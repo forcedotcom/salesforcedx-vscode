@@ -530,52 +530,57 @@ const WorkspaceMetadataToSemanticModel = S.transformOrFail(
 
 const SemanticModelFromTransmogrifierInput = S.Union(RestDescribeToSemanticModel, WorkspaceMetadataToSemanticModel);
 
-export class TransmogrifierService extends Effect.Service<TransmogrifierService>()('TransmogrifierService', {
-  accessors: true,
-  dependencies: [],
-  effect: Effect.gen(function* () {
-    const toMinimalSObject = Effect.fn('TransmogrifierService.toMinimalSObject')((raw: DescribeSObjectResult) =>
-      S.decodeUnknown(RestDescribeToSObject)(raw)
-    );
+export class TransmogrifierService extends Effect.Service<TransmogrifierService>()(
+  'salesforcedx-vscode-services/core/transmogrifierService',
+  {
+    accessors: true,
+    dependencies: [],
+    effect: Effect.gen(function* () {
+      const toMinimalSObject = Effect.fn('TransmogrifierService.toMinimalSObject')((raw: DescribeSObjectResult) =>
+        S.decodeUnknown(RestDescribeToSObject)(raw)
+      );
 
-    const decodeSObject = Effect.fn('TransmogrifierService.decodeSObject')(function* (input: unknown) {
-      return yield* S.decodeUnknown(SObjectSchema)(input);
-    });
+      const decodeSObject = Effect.fn('TransmogrifierService.decodeSObject')(function* (input: unknown) {
+        return yield* S.decodeUnknown(SObjectSchema)(input);
+      });
 
-    const toSemanticModel = Effect.fn('TransmogrifierService.toSemanticModel')(function* (input: TransmogrifierInput) {
-      if (input.source === 'persisted-semantic-model') {
-        const persistedModel = yield* S.decodeUnknown(SObjectSemanticModelSchema)(input.value).pipe(
-          Effect.catchTag('ParseError', cause =>
-            Effect.fail(
+      const toSemanticModel = Effect.fn('TransmogrifierService.toSemanticModel')(function* (
+        input: TransmogrifierInput
+      ) {
+        if (input.source === 'persisted-semantic-model') {
+          const persistedModel = yield* S.decodeUnknown(SObjectSemanticModelSchema)(input.value).pipe(
+            Effect.catchTag('ParseError', cause =>
+              Effect.fail(
+                new TransmogrifierError({
+                  source: input.source,
+                  message: 'Failed to validate the persisted canonical semantic model',
+                  cause
+                })
+              )
+            )
+          );
+          if (!artifactIdentitiesEqual(input.identity, persistedModel.value.identity)) {
+            return yield* new TransmogrifierError({
+              source: input.source,
+              message: 'Persisted semantic model identity does not match the requested artifact identity',
+              cause: { requested: input.identity, received: persistedModel.value.identity }
+            });
+          }
+          return persistedModel;
+        }
+        return yield* S.decodeUnknown(SemanticModelFromTransmogrifierInput)(input).pipe(
+          Effect.mapError(
+            cause =>
               new TransmogrifierError({
                 source: input.source,
-                message: 'Failed to validate the persisted canonical semantic model',
+                message: `Failed to transform ${input.source} into the canonical semantic model`,
                 cause
               })
-            )
           )
         );
-        if (!artifactIdentitiesEqual(input.identity, persistedModel.value.identity)) {
-          return yield* new TransmogrifierError({
-            source: input.source,
-            message: 'Persisted semantic model identity does not match the requested artifact identity',
-            cause: { requested: input.identity, received: persistedModel.value.identity }
-          });
-        }
-        return persistedModel;
-      }
-      return yield* S.decodeUnknown(SemanticModelFromTransmogrifierInput)(input).pipe(
-        Effect.mapError(
-          cause =>
-            new TransmogrifierError({
-              source: input.source,
-              message: `Failed to transform ${input.source} into the canonical semantic model`,
-              cause
-            })
-        )
-      );
-    });
+      });
 
-    return { toMinimalSObject, decodeSObject, toSemanticModel, SObjectSchema };
-  })
-}) {}
+      return { toMinimalSObject, decodeSObject, toSemanticModel, SObjectSchema };
+    })
+  }
+) {}

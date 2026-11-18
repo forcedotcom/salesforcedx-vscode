@@ -32,27 +32,30 @@ const globalRegistryAccessCache = Effect.runSync(
   }).pipe(Effect.withSpan('registryAccessCache'))
 );
 
-export class MetadataRegistryService extends Effect.Service<MetadataRegistryService>()('MetadataRegistryService', {
-  accessors: true,
-  dependencies: [WorkspaceService.Default],
-  effect: Effect.gen(function* () {
-    const workspaceService = yield* WorkspaceService;
+export class MetadataRegistryService extends Effect.Service<MetadataRegistryService>()(
+  'salesforcedx-vscode-services/core/metadataRegistryService',
+  {
+    accessors: true,
+    dependencies: [WorkspaceService.Default],
+    effect: Effect.gen(function* () {
+      const workspaceService = yield* WorkspaceService;
 
-    /** Get the registry access (cached by fsPath) */
-    const getRegistryAccess = Effect.fn('MetadataRegistryService.getRegistryAccess')(function* () {
-      const workspaceInfo = yield* workspaceService.getWorkspaceInfoOrThrow();
-      return yield* globalRegistryAccessCache.get(workspaceInfo.fsPath);
-    });
-
-    /** Get the metadata registry (cached by fsPath) */
-    const getRegistry = Effect.fn('MetadataRegistryService.getRegistry')(function* () {
-      const registryAccess = yield* getRegistryAccess();
-      return yield* Effect.try({
-        try: () => registryAccess.getRegistry(),
-        catch: error => new GetRegistryAccessError({ cause: unknownToErrorCause(error).cause })
+      /** Get the registry access (cached by fsPath) */
+      const getRegistryAccess = Effect.fn('MetadataRegistryService.getRegistryAccess')(function* () {
+        const workspaceInfo = yield* workspaceService.getWorkspaceInfoOrThrow();
+        return yield* globalRegistryAccessCache.get(workspaceInfo.fsPath);
       });
-    });
 
-    return { getRegistry, getRegistryAccess };
-  })
-}) {}
+      /** Get the metadata registry (cached by fsPath) */
+      const getRegistry = Effect.fn('MetadataRegistryService.getRegistry')(function* () {
+        const registryAccess = yield* getRegistryAccess();
+        return yield* Effect.try({
+          try: () => registryAccess.getRegistry(),
+          catch: error => new GetRegistryAccessError({ cause: unknownToErrorCause(error).cause })
+        });
+      });
+
+      return { getRegistry, getRegistryAccess };
+    })
+  }
+) {}

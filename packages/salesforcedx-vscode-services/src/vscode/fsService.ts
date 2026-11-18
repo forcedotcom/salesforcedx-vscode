@@ -118,7 +118,7 @@ const showTextDocument = Effect.fn('fsService.showTextDocument')(function* (
   });
 });
 
-export class FsService extends Effect.Service<FsService>()('FsService', {
+export class FsService extends Effect.Service<FsService>()('salesforcedx-vscode-services/vscode/fsService', {
   accessors: true,
   dependencies: [],
   effect: Effect.gen(function* () {

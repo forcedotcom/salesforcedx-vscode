@@ -81,37 +81,42 @@ const getApexApi = Effect.fn('ApexOas.Lsp.getApexApi')(function* () {
   return apexApi;
 });
 
-export class ApexMetadataService extends Effect.Service<ApexMetadataService>()('ApexMetadataService', {
-  accessors: true,
-  effect: Effect.gen(function* () {
-    const isOpenAPIEligible = Effect.fn('ApexOas.Lsp.isOpenAPIEligible')(function* (requests: ApexOASEligiblePayload) {
-      const apexApi = yield* getApexApi();
-      return yield* Effect.tryPromise({
-        try: () => apexApi.isOpenAPIEligible(requests),
-        catch: cause =>
-          new ApexLspRequestFailed({ message: `apexoas/isEligible request failed: ${String(cause)}`, cause })
-      }).pipe(
-        Effect.filterOrFail(
-          isNotUndefined,
-          () => new ApexLspRequestFailed({ message: 'apexoas/isEligible returned no response' })
-        )
-      );
-    });
+export class ApexMetadataService extends Effect.Service<ApexMetadataService>()(
+  'salesforcedx-vscode-apex-oas/services/apexMetadataService',
+  {
+    accessors: true,
+    effect: Effect.gen(function* () {
+      const isOpenAPIEligible = Effect.fn('ApexOas.Lsp.isOpenAPIEligible')(function* (
+        requests: ApexOASEligiblePayload
+      ) {
+        const apexApi = yield* getApexApi();
+        return yield* Effect.tryPromise({
+          try: () => apexApi.isOpenAPIEligible(requests),
+          catch: cause =>
+            new ApexLspRequestFailed({ message: `apexoas/isEligible request failed: ${String(cause)}`, cause })
+        }).pipe(
+          Effect.filterOrFail(
+            isNotUndefined,
+            () => new ApexLspRequestFailed({ message: 'apexoas/isEligible returned no response' })
+          )
+        );
+      });
 
-    const gatherOpenAPIContext = Effect.fn('ApexOas.Lsp.gatherOpenAPIContext')(function* (sourceUri: URI) {
-      const apexApi = yield* getApexApi();
-      return yield* Effect.tryPromise({
-        try: () => apexApi.gatherOpenAPIContext(sourceUri),
-        catch: cause =>
-          new ApexLspRequestFailed({ message: `apexoas/gatherContext request failed: ${String(cause)}`, cause })
-      }).pipe(
-        Effect.filterOrFail(
-          isNotUndefined,
-          () => new ApexLspRequestFailed({ message: 'apexoas/gatherContext returned no response' })
-        )
-      );
-    });
+      const gatherOpenAPIContext = Effect.fn('ApexOas.Lsp.gatherOpenAPIContext')(function* (sourceUri: URI) {
+        const apexApi = yield* getApexApi();
+        return yield* Effect.tryPromise({
+          try: () => apexApi.gatherOpenAPIContext(sourceUri),
+          catch: cause =>
+            new ApexLspRequestFailed({ message: `apexoas/gatherContext request failed: ${String(cause)}`, cause })
+        }).pipe(
+          Effect.filterOrFail(
+            isNotUndefined,
+            () => new ApexLspRequestFailed({ message: 'apexoas/gatherContext returned no response' })
+          )
+        );
+      });
 
-    return { isOpenAPIEligible, gatherOpenAPIContext };
-  })
-}) {}
+      return { isOpenAPIEligible, gatherOpenAPIContext };
+    })
+  }
+) {}

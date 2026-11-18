@@ -64,283 +64,286 @@ type ProgressReportingOptions = ProgressOptions & {
   readonly interruptOnCancel?: boolean;
 };
 
-export class PromptService extends Effect.Service<PromptService>()('PromptService', {
-  accessors: false,
-  dependencies: [FsService.Default, ProjectService.Default, WorkspaceService.Default],
-  effect: Effect.gen(function* () {
-    const fsService = yield* FsService;
-    const projectService = yield* ProjectService;
-    const workspaceService = yield* WorkspaceService;
+export class PromptService extends Effect.Service<PromptService>()(
+  'salesforcedx-vscode-services/vscode/prompts/promptService',
+  {
+    accessors: false,
+    dependencies: [FsService.Default, ProjectService.Default, WorkspaceService.Default],
+    effect: Effect.gen(function* () {
+      const fsService = yield* FsService;
+      const projectService = yield* ProjectService;
+      const workspaceService = yield* WorkspaceService;
 
-    /** If any of `uris` exists, prompt to overwrite; on cancel fail with {@link UserCancellationError}.
-     * This is shared across metadata types (Apex, SOQL, LWC, Manifest, etc). */
-    const ensureMetadataOverwriteOrThrow = Effect.fn('PromptService.ensureMetadataOverwriteOrThrow')(
-      function* (params: { readonly uris: readonly URI[] }) {
-        const firstExistingUri = yield* Effect.forEach(
-          params.uris,
-          uri => fsService.fileOrFolderExists(uri).pipe(Effect.map(exists => (exists ? uri : undefined))),
-          { concurrency: 'unbounded' }
-        ).pipe(Effect.map(matches => matches.find(isNotUndefined)));
-        if (!firstExistingUri) return;
-
-        const placeholder = yield* fsService.uriToPath(firstExistingUri);
-
-        const choice = yield* Effect.promise(() =>
-          vscode.window.showWarningMessage(
-            nls.localize('metadata_overwrite_confirmation', placeholder),
-            { modal: true },
-            nls.localize('overwrite_button')
-          )
-        );
-
-        yield* Effect.succeed(choice).pipe(
-          Effect.filterOrFail(
-            selectedChoice => selectedChoice === nls.localize('overwrite_button'),
-            () => new UserCancellationError({ message: 'User cancelled overwrite' })
-          )
-        );
-      }
-    );
-
-    /** Show a modal warning with a single confirm button; if the user dismisses it (does not click
-     * `confirmLabel`), fail with {@link UserCancellationError}. Use to gate destructive actions. */
-    const confirmOrThrow = Effect.fn('PromptService.confirmOrThrow')(function* (params: {
-      readonly message: string;
-      readonly confirmLabel: string;
-      readonly detail?: string;
-    }) {
-      const choice = yield* Effect.promise(() =>
-        vscode.window.showWarningMessage(params.message, { modal: true, detail: params.detail }, params.confirmLabel)
-      );
-      yield* Effect.succeed(choice).pipe(
-        Effect.filterOrFail(
-          selectedChoice => selectedChoice === params.confirmLabel,
-          () => new UserCancellationError({ message: 'User cancelled confirmation' })
-        )
-      );
-    });
-
-    /** If `value` is undefined (or an empty trimmed string), fail with {@link UserCancellationError}.
-     * Otherwise, return `value` with `undefined` removed from its type. */
-    const considerUndefinedAsCancellation = <T>(value: T | undefined) =>
-      Effect.succeed(value).pipe(
-        Effect.filterOrFail(
-          (candidateValue): candidateValue is T =>
-            isNotUndefined(candidateValue) && (!isString(candidateValue) || candidateValue.trim().length > 0),
-          () => new UserCancellationError()
-        )
-      );
-
-    /** Multi-pick sibling of {@link considerUndefinedAsCancellation}: treats `undefined` (Esc) AND an empty
-     * selection array (picked nothing then accepted) as cancellation. `canPickMany` quick picks resolve to
-     * `[]` on pick-nothing, which `considerUndefinedAsCancellation` would let through. */
-    const considerEmptySelectionAsCancellation = <T>(value: readonly T[] | undefined) =>
-      Effect.succeed(value).pipe(
-        Effect.filterOrFail(
-          (candidateValue): candidateValue is Arr.NonEmptyReadonlyArray<T> =>
-            isNotUndefined(candidateValue) && Arr.isNonEmptyReadonlyArray(candidateValue),
-          () => new UserCancellationError()
-        )
-      );
-
-    /** BFS search for all directories named `folderName` under `rootUri`. Swallows read errors on any subtree. */
-    const findFoldersByName = (rootUri: URI, folderName: string) => {
-      const init: { queue: URI[]; results: URI[] } = { queue: [rootUri], results: [] };
-      return Effect.iterate(init, {
-        while: state => state.queue.length > 0,
-        body: state =>
-          Effect.gen(function* () {
-            const [dir, ...rest] = state.queue;
-            const entries = yield* fsService.readDirectoryWithTypes(dir!);
-            const dirs = entries.filter(e => e.type === vscode.FileType.Directory);
-            return {
-              queue: [...rest, ...dirs.filter(({ uri }) => Utils.basename(uri) !== folderName).map(({ uri }) => uri)],
-              results: [
-                ...state.results,
-                ...dirs.filter(({ uri }) => Utils.basename(uri) === folderName).map(({ uri }) => uri)
-              ]
-            };
-          })
-      }).pipe(Effect.map(state => state.results));
-    };
-
-    /** Prompt user to select output directory from available package directories, or choose a custom one. */
-    const promptForOutputDir = Effect.fn('PromptService.promptForOutputDir')(function* (
-      params: {
-        readonly defaultUri: URI;
-        readonly pickerPlaceHolder?: string;
-      } & (
-        | {
-            /** Search all package directories for subdirectories with this name and offer them as candidates.
-             * Mutually exclusive with `description`. */
-            readonly folderName: string;
-            readonly description?: never;
-          }
-        | {
-            readonly folderName?: never;
-            /** Label shown beside the first (default) directory entry in the picker.
-             * Mutually exclusive with `folderName`. */
-            readonly description?: string;
-          }
-      )
-    ) {
-      const CUSTOM_DIR_LABEL = `$(file-directory) ${nls.localize('choose_different_folder')}`;
-
-      const workspaceUri = (yield* workspaceService.getWorkspaceInfoOrThrow()).uri;
-      const wsPath = workspaceUri.path.endsWith('/') ? workspaceUri.path : `${workspaceUri.path}/`;
-      const toRelativeLabel = (uri: URI) => (uri.path.startsWith(wsPath) ? uri.path.slice(wsPath.length) : uri.path);
-
-      const candidateUris = [
-        params.defaultUri,
-        ...(params.folderName
-          ? yield* projectService.getSfProject().pipe(
-              Effect.map(project => project.getPackageDirectories()),
-              Stream.fromIterableEffect,
-              Stream.mapEffect(pkg => findFoldersByName(toUri(pkg.fullPath), params.folderName!)),
-              Stream.mapConcat(uris => uris),
-              Stream.filter(u => !Equal.equals(HashableUri.fromUri(u), HashableUri.fromUri(params.defaultUri))),
-              Stream.runCollect,
-              Effect.map(Chunk.toReadonlyArray)
-            )
-          : [])
-      ];
-
-      const items = [
-        ...candidateUris.map((uri, i) => ({
-          label: toRelativeLabel(uri),
-          description: i === 0 ? params.description : undefined,
-          uri
-        })),
-        { label: CUSTOM_DIR_LABEL, description: undefined, uri: undefined }
-      ];
-
-      const selected = yield* Effect.promise(() =>
-        vscode.window.showQuickPick(items, {
-          placeHolder: params.pickerPlaceHolder,
-          matchOnDescription: true
-        })
-      ).pipe(Effect.flatMap(considerUndefinedAsCancellation));
-
-      if (selected.label === CUSTOM_DIR_LABEL) {
-        return yield* Effect.promise(() =>
-          vscode.window.showOpenDialog({
-            canSelectFiles: false,
-            canSelectFolders: true,
-            canSelectMany: false,
-            defaultUri: params.defaultUri,
-            openLabel: nls.localize('select_folder')
-          })
-        ).pipe(Effect.flatMap(considerEmptySelectionAsCancellation), Effect.map(Arr.headNonEmpty));
-      }
-
-      return selected.uri!;
-    });
-
-    /** Run work with progress at an already-resolved VS Code location. */
-    const runWithProgress = <A, E, R>(
-      params: ProgressPresentation & Pick<ProgressReportingOptions, 'interruptOnCancel'>,
-      location: vscode.ProgressLocation,
-      build: ProgressTask<A, E, R>
-    ) =>
-      Effect.gen(function* () {
-        const runtime = yield* Effect.runtime<R>();
-        const cancelDeferred = yield* Deferred.make<never, UserCancellationError>();
-        return yield* Effect.async<A, E | UserCancellationError>((resume, signal) => {
-          // Route real fiber interruption through the same cancel path so build interrupts and progress settles.
-          signal.addEventListener(
-            'abort',
-            () =>
-              void Runtime.runPromise(runtime)(
-                Deferred.fail(cancelDeferred, new UserCancellationError({ message: 'User cancelled progress' }))
-              )
-          );
-          void vscode.window.withProgress(
-            { location, title: params.title, cancellable: params.cancellable },
-            async (progress, token) => {
-              const cancellation =
-                params.interruptOnCancel === false
-                  ? undefined
-                  : token.onCancellationRequested(
-                      () =>
-                        void Runtime.runPromise(runtime)(
-                          Deferred.fail(
-                            cancelDeferred,
-                            new UserCancellationError({ message: 'User cancelled progress' })
-                          )
-                        )
-                    );
-              const exit = await Effect.raceFirst(build(progress, token), Deferred.await(cancelDeferred)).pipe(
-                Effect.exit,
-                Effect.ensuring(Effect.sync(() => cancellation?.dispose())),
-                Runtime.runPromise(runtime)
-              );
-              resume(Exit.isSuccess(exit) ? Effect.succeed(exit.value) : Effect.failCause(exit.cause));
-            }
-          );
-        });
-      });
-
-    /** Pipeable progress operator for Effects that don't need the reporter or cancellation token. */
-    function withProgress(
-      params: CommandProgressOptions
-    ): <A, E, R>(
-      self: Effect.Effect<A, E, R>
-    ) => Effect.Effect<A, E | UserCancellationError, R | NotificationModeService>;
-    function withProgress(
-      params: LocationProgressOptions
-    ): <A, E, R>(self: Effect.Effect<A, E, R>) => Effect.Effect<A, E | UserCancellationError, R>;
-    // eslint-disable-next-line prefer-arrow/prefer-arrow-functions -- TypeScript overloads require a function declaration.
-    function withProgress(params: ProgressOptions) {
-      return <A, E, R>(self: Effect.Effect<A, E, R>) => {
-        const run = (location: vscode.ProgressLocation) =>
-          runWithProgress({ ...params, interruptOnCancel: true }, location, () => self);
-        return params.command !== undefined
-          ? NotificationModeService.getProgressLocation(params.command).pipe(Effect.flatMap(run))
-          : run(params.location ?? vscode.ProgressLocation.Notification);
-      };
-    }
-
-    /**
-     * Reporting variant for work that needs progress updates or must respond to the cancellation token itself.
-     * By default Cancel interrupts the work and fails with {@link UserCancellationError}. Set
-     * `interruptOnCancel: false` when the callback must handle cancellation cooperatively and return its real
-     * outcome, such as awaiting an in-flight server request or stopping between steps. Progress remains open
-     * until the callback settles. Real Effect fiber interruption always interrupts the callback.
-     */
-    function withProgressReporting(
-      params: CommandProgressOptions & Pick<ProgressReportingOptions, 'interruptOnCancel'>
-    ): <A, E, R>(
-      build: ProgressTask<A, E, R>
-    ) => Effect.Effect<A, E | UserCancellationError, R | NotificationModeService>;
-    function withProgressReporting(
-      params: LocationProgressOptions & Pick<ProgressReportingOptions, 'interruptOnCancel'>
-    ): <A, E, R>(build: ProgressTask<A, E, R>) => Effect.Effect<A, E | UserCancellationError, R>;
-    // eslint-disable-next-line prefer-arrow/prefer-arrow-functions -- TypeScript overloads require a function declaration.
-    function withProgressReporting(params: ProgressReportingOptions) {
-      return <A, E, R>(build: ProgressTask<A, E, R>) => {
-        const run = (location: vscode.ProgressLocation) => runWithProgress(params, location, build);
-        return params.command !== undefined
-          ? NotificationModeService.getProgressLocation(params.command).pipe(Effect.flatMap(run))
-          : run(params.location ?? vscode.ProgressLocation.Notification);
-      };
-    }
-
-    return {
       /** If any of `uris` exists, prompt to overwrite; on cancel fail with {@link UserCancellationError}.
        * This is shared across metadata types (Apex, SOQL, LWC, Manifest, etc). */
-      ensureMetadataOverwriteOrThrow,
+      const ensureMetadataOverwriteOrThrow = Effect.fn('PromptService.ensureMetadataOverwriteOrThrow')(
+        function* (params: { readonly uris: readonly URI[] }) {
+          const firstExistingUri = yield* Effect.forEach(
+            params.uris,
+            uri => fsService.fileOrFolderExists(uri).pipe(Effect.map(exists => (exists ? uri : undefined))),
+            { concurrency: 'unbounded' }
+          ).pipe(Effect.map(matches => matches.find(isNotUndefined)));
+          if (!firstExistingUri) return;
+
+          const placeholder = yield* fsService.uriToPath(firstExistingUri);
+
+          const choice = yield* Effect.promise(() =>
+            vscode.window.showWarningMessage(
+              nls.localize('metadata_overwrite_confirmation', placeholder),
+              { modal: true },
+              nls.localize('overwrite_button')
+            )
+          );
+
+          yield* Effect.succeed(choice).pipe(
+            Effect.filterOrFail(
+              selectedChoice => selectedChoice === nls.localize('overwrite_button'),
+              () => new UserCancellationError({ message: 'User cancelled overwrite' })
+            )
+          );
+        }
+      );
+
       /** Show a modal warning with a single confirm button; if the user dismisses it (does not click
        * `confirmLabel`), fail with {@link UserCancellationError}. Use to gate destructive actions. */
-      confirmOrThrow,
+      const confirmOrThrow = Effect.fn('PromptService.confirmOrThrow')(function* (params: {
+        readonly message: string;
+        readonly confirmLabel: string;
+        readonly detail?: string;
+      }) {
+        const choice = yield* Effect.promise(() =>
+          vscode.window.showWarningMessage(params.message, { modal: true, detail: params.detail }, params.confirmLabel)
+        );
+        yield* Effect.succeed(choice).pipe(
+          Effect.filterOrFail(
+            selectedChoice => selectedChoice === params.confirmLabel,
+            () => new UserCancellationError({ message: 'User cancelled confirmation' })
+          )
+        );
+      });
+
       /** If `value` is undefined (or an empty trimmed string), fail with {@link UserCancellationError}.
        * Otherwise, return `value` with `undefined` removed from its type. */
-      considerUndefinedAsCancellation,
-      /** Multi-pick sibling: treats `undefined` (Esc) AND an empty selection array as {@link UserCancellationError}. */
-      considerEmptySelectionAsCancellation,
+      const considerUndefinedAsCancellation = <T>(value: T | undefined) =>
+        Effect.succeed(value).pipe(
+          Effect.filterOrFail(
+            (candidateValue): candidateValue is T =>
+              isNotUndefined(candidateValue) && (!isString(candidateValue) || candidateValue.trim().length > 0),
+            () => new UserCancellationError()
+          )
+        );
+
+      /** Multi-pick sibling of {@link considerUndefinedAsCancellation}: treats `undefined` (Esc) AND an empty
+       * selection array (picked nothing then accepted) as cancellation. `canPickMany` quick picks resolve to
+       * `[]` on pick-nothing, which `considerUndefinedAsCancellation` would let through. */
+      const considerEmptySelectionAsCancellation = <T>(value: readonly T[] | undefined) =>
+        Effect.succeed(value).pipe(
+          Effect.filterOrFail(
+            (candidateValue): candidateValue is Arr.NonEmptyReadonlyArray<T> =>
+              isNotUndefined(candidateValue) && Arr.isNonEmptyReadonlyArray(candidateValue),
+            () => new UserCancellationError()
+          )
+        );
+
+      /** BFS search for all directories named `folderName` under `rootUri`. Swallows read errors on any subtree. */
+      const findFoldersByName = (rootUri: URI, folderName: string) => {
+        const init: { queue: URI[]; results: URI[] } = { queue: [rootUri], results: [] };
+        return Effect.iterate(init, {
+          while: state => state.queue.length > 0,
+          body: state =>
+            Effect.gen(function* () {
+              const [dir, ...rest] = state.queue;
+              const entries = yield* fsService.readDirectoryWithTypes(dir!);
+              const dirs = entries.filter(e => e.type === vscode.FileType.Directory);
+              return {
+                queue: [...rest, ...dirs.filter(({ uri }) => Utils.basename(uri) !== folderName).map(({ uri }) => uri)],
+                results: [
+                  ...state.results,
+                  ...dirs.filter(({ uri }) => Utils.basename(uri) === folderName).map(({ uri }) => uri)
+                ]
+              };
+            })
+        }).pipe(Effect.map(state => state.results));
+      };
+
       /** Prompt user to select output directory from available package directories, or choose a custom one. */
-      promptForOutputDir,
-      withProgress,
-      withProgressReporting
-    };
-  })
-}) {}
+      const promptForOutputDir = Effect.fn('PromptService.promptForOutputDir')(function* (
+        params: {
+          readonly defaultUri: URI;
+          readonly pickerPlaceHolder?: string;
+        } & (
+          | {
+              /** Search all package directories for subdirectories with this name and offer them as candidates.
+               * Mutually exclusive with `description`. */
+              readonly folderName: string;
+              readonly description?: never;
+            }
+          | {
+              readonly folderName?: never;
+              /** Label shown beside the first (default) directory entry in the picker.
+               * Mutually exclusive with `folderName`. */
+              readonly description?: string;
+            }
+        )
+      ) {
+        const CUSTOM_DIR_LABEL = `$(file-directory) ${nls.localize('choose_different_folder')}`;
+
+        const workspaceUri = (yield* workspaceService.getWorkspaceInfoOrThrow()).uri;
+        const wsPath = workspaceUri.path.endsWith('/') ? workspaceUri.path : `${workspaceUri.path}/`;
+        const toRelativeLabel = (uri: URI) => (uri.path.startsWith(wsPath) ? uri.path.slice(wsPath.length) : uri.path);
+
+        const candidateUris = [
+          params.defaultUri,
+          ...(params.folderName
+            ? yield* projectService.getSfProject().pipe(
+                Effect.map(project => project.getPackageDirectories()),
+                Stream.fromIterableEffect,
+                Stream.mapEffect(pkg => findFoldersByName(toUri(pkg.fullPath), params.folderName!)),
+                Stream.mapConcat(uris => uris),
+                Stream.filter(u => !Equal.equals(HashableUri.fromUri(u), HashableUri.fromUri(params.defaultUri))),
+                Stream.runCollect,
+                Effect.map(Chunk.toReadonlyArray)
+              )
+            : [])
+        ];
+
+        const items = [
+          ...candidateUris.map((uri, i) => ({
+            label: toRelativeLabel(uri),
+            description: i === 0 ? params.description : undefined,
+            uri
+          })),
+          { label: CUSTOM_DIR_LABEL, description: undefined, uri: undefined }
+        ];
+
+        const selected = yield* Effect.promise(() =>
+          vscode.window.showQuickPick(items, {
+            placeHolder: params.pickerPlaceHolder,
+            matchOnDescription: true
+          })
+        ).pipe(Effect.flatMap(considerUndefinedAsCancellation));
+
+        if (selected.label === CUSTOM_DIR_LABEL) {
+          return yield* Effect.promise(() =>
+            vscode.window.showOpenDialog({
+              canSelectFiles: false,
+              canSelectFolders: true,
+              canSelectMany: false,
+              defaultUri: params.defaultUri,
+              openLabel: nls.localize('select_folder')
+            })
+          ).pipe(Effect.flatMap(considerEmptySelectionAsCancellation), Effect.map(Arr.headNonEmpty));
+        }
+
+        return selected.uri!;
+      });
+
+      /** Run work with progress at an already-resolved VS Code location. */
+      const runWithProgress = <A, E, R>(
+        params: ProgressPresentation & Pick<ProgressReportingOptions, 'interruptOnCancel'>,
+        location: vscode.ProgressLocation,
+        build: ProgressTask<A, E, R>
+      ) =>
+        Effect.gen(function* () {
+          const runtime = yield* Effect.runtime<R>();
+          const cancelDeferred = yield* Deferred.make<never, UserCancellationError>();
+          return yield* Effect.async<A, E | UserCancellationError>((resume, signal) => {
+            // Route real fiber interruption through the same cancel path so build interrupts and progress settles.
+            signal.addEventListener(
+              'abort',
+              () =>
+                void Runtime.runPromise(runtime)(
+                  Deferred.fail(cancelDeferred, new UserCancellationError({ message: 'User cancelled progress' }))
+                )
+            );
+            void vscode.window.withProgress(
+              { location, title: params.title, cancellable: params.cancellable },
+              async (progress, token) => {
+                const cancellation =
+                  params.interruptOnCancel === false
+                    ? undefined
+                    : token.onCancellationRequested(
+                        () =>
+                          void Runtime.runPromise(runtime)(
+                            Deferred.fail(
+                              cancelDeferred,
+                              new UserCancellationError({ message: 'User cancelled progress' })
+                            )
+                          )
+                      );
+                const exit = await Effect.raceFirst(build(progress, token), Deferred.await(cancelDeferred)).pipe(
+                  Effect.exit,
+                  Effect.ensuring(Effect.sync(() => cancellation?.dispose())),
+                  Runtime.runPromise(runtime)
+                );
+                resume(Exit.isSuccess(exit) ? Effect.succeed(exit.value) : Effect.failCause(exit.cause));
+              }
+            );
+          });
+        });
+
+      /** Pipeable progress operator for Effects that don't need the reporter or cancellation token. */
+      function withProgress(
+        params: CommandProgressOptions
+      ): <A, E, R>(
+        self: Effect.Effect<A, E, R>
+      ) => Effect.Effect<A, E | UserCancellationError, R | NotificationModeService>;
+      function withProgress(
+        params: LocationProgressOptions
+      ): <A, E, R>(self: Effect.Effect<A, E, R>) => Effect.Effect<A, E | UserCancellationError, R>;
+      // eslint-disable-next-line prefer-arrow/prefer-arrow-functions -- TypeScript overloads require a function declaration.
+      function withProgress(params: ProgressOptions) {
+        return <A, E, R>(self: Effect.Effect<A, E, R>) => {
+          const run = (location: vscode.ProgressLocation) =>
+            runWithProgress({ ...params, interruptOnCancel: true }, location, () => self);
+          return params.command !== undefined
+            ? NotificationModeService.getProgressLocation(params.command).pipe(Effect.flatMap(run))
+            : run(params.location ?? vscode.ProgressLocation.Notification);
+        };
+      }
+
+      /**
+       * Reporting variant for work that needs progress updates or must respond to the cancellation token itself.
+       * By default Cancel interrupts the work and fails with {@link UserCancellationError}. Set
+       * `interruptOnCancel: false` when the callback must handle cancellation cooperatively and return its real
+       * outcome, such as awaiting an in-flight server request or stopping between steps. Progress remains open
+       * until the callback settles. Real Effect fiber interruption always interrupts the callback.
+       */
+      function withProgressReporting(
+        params: CommandProgressOptions & Pick<ProgressReportingOptions, 'interruptOnCancel'>
+      ): <A, E, R>(
+        build: ProgressTask<A, E, R>
+      ) => Effect.Effect<A, E | UserCancellationError, R | NotificationModeService>;
+      function withProgressReporting(
+        params: LocationProgressOptions & Pick<ProgressReportingOptions, 'interruptOnCancel'>
+      ): <A, E, R>(build: ProgressTask<A, E, R>) => Effect.Effect<A, E | UserCancellationError, R>;
+      // eslint-disable-next-line prefer-arrow/prefer-arrow-functions -- TypeScript overloads require a function declaration.
+      function withProgressReporting(params: ProgressReportingOptions) {
+        return <A, E, R>(build: ProgressTask<A, E, R>) => {
+          const run = (location: vscode.ProgressLocation) => runWithProgress(params, location, build);
+          return params.command !== undefined
+            ? NotificationModeService.getProgressLocation(params.command).pipe(Effect.flatMap(run))
+            : run(params.location ?? vscode.ProgressLocation.Notification);
+        };
+      }
+
+      return {
+        /** If any of `uris` exists, prompt to overwrite; on cancel fail with {@link UserCancellationError}.
+         * This is shared across metadata types (Apex, SOQL, LWC, Manifest, etc). */
+        ensureMetadataOverwriteOrThrow,
+        /** Show a modal warning with a single confirm button; if the user dismisses it (does not click
+         * `confirmLabel`), fail with {@link UserCancellationError}. Use to gate destructive actions. */
+        confirmOrThrow,
+        /** If `value` is undefined (or an empty trimmed string), fail with {@link UserCancellationError}.
+         * Otherwise, return `value` with `undefined` removed from its type. */
+        considerUndefinedAsCancellation,
+        /** Multi-pick sibling: treats `undefined` (Esc) AND an empty selection array as {@link UserCancellationError}. */
+        considerEmptySelectionAsCancellation,
+        /** Prompt user to select output directory from available package directories, or choose a custom one. */
+        promptForOutputDir,
+        withProgress,
+        withProgressReporting
+      };
+    })
+  }
+) {}

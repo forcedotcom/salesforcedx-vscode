@@ -38,271 +38,274 @@ const sourceComponentFilePaths = (sourceComponent?: {
   ...(sourceComponent ? [...sourceComponent.walkContent()] : [])
 ];
 
-export class OrgCatalogRemoteRetrieve extends Effect.Service<OrgCatalogRemoteRetrieve>()('OrgCatalogRemoteRetrieve', {
-  accessors: true,
-  dependencies: [
-    ComponentSetService.Default,
-    FsService.Default,
-    MetadataRetrieveService.Default,
-    MetadataRegistryService.Default,
-    OrgMetadataShadowStore.Default
-  ],
-  effect: Effect.gen(function* () {
-    const [componentSetService, fsService, metadataRetrieveService, registry, shadowStore] = yield* Effect.all([
-      ComponentSetService,
-      FsService,
-      MetadataRetrieveService,
-      MetadataRegistryService,
-      OrgMetadataShadowStore
-    ]);
-    const listStagedFiles = Effect.fn('OrgCatalogRemoteRetrieve.listStagedFiles')(function* (rootUri: URI) {
-      const initial: { readonly pending: readonly URI[]; readonly files: readonly URI[] } = {
-        pending: [rootUri],
-        files: []
-      };
-      const result = yield* Effect.iterate(initial, {
-        while: traversal => traversal.pending.length > 0,
-        body: traversal =>
-          fsService.readDirectoryWithTypes(traversal.pending[0]!).pipe(
-            Effect.map(entries => ({
-              pending: [
-                ...traversal.pending.slice(1),
-                ...entries.filter(entry => (entry.type & vscode.FileType.Directory) !== 0).map(entry => entry.uri)
-              ],
-              files: [
-                ...traversal.files,
-                ...entries.filter(entry => (entry.type & vscode.FileType.File) !== 0).map(entry => entry.uri)
-              ]
-            }))
-          )
-      });
-      yield* Effect.annotateCurrentSpan('stagedFileCount', result.files.length);
-      return result.files;
-    });
-
-    const sourceBasenames = Effect.fn('OrgCatalogRemoteRetrieve.sourceBasenames')(function* (
-      orgId: string,
-      reference: OrgMetadataComponentReference
-    ) {
-      const logicalBasename = Utils.basename(
-        yield* documentUri({ orgId, ...reference }).pipe(Effect.provideService(MetadataRegistryService, registry))
-      );
-      const leafName = reference.fullName.split(/[/.]/).at(-1) ?? reference.fullName;
-      const suffix = yield* getTypeSuffix(reference.xmlName).pipe(
-        Effect.provideService(MetadataRegistryService, registry)
-      );
-      return new Set<string>([
-        logicalBasename,
-        `${logicalBasename}-meta.xml`,
-        ...(suffix ? [`${leafName}.${suffix}`, `${leafName}.${suffix}-meta.xml`] : [])
+export class OrgCatalogRemoteRetrieve extends Effect.Service<OrgCatalogRemoteRetrieve>()(
+  'salesforcedx-vscode-services/orgCatalog/orgCatalogRemoteRetrieve',
+  {
+    accessors: true,
+    dependencies: [
+      ComponentSetService.Default,
+      FsService.Default,
+      MetadataRetrieveService.Default,
+      MetadataRegistryService.Default,
+      OrgMetadataShadowStore.Default
+    ],
+    effect: Effect.gen(function* () {
+      const [componentSetService, fsService, metadataRetrieveService, registry, shadowStore] = yield* Effect.all([
+        ComponentSetService,
+        FsService,
+        MetadataRetrieveService,
+        MetadataRegistryService,
+        OrgMetadataShadowStore
       ]);
-    });
+      const listStagedFiles = Effect.fn('OrgCatalogRemoteRetrieve.listStagedFiles')(function* (rootUri: URI) {
+        const initial: { readonly pending: readonly URI[]; readonly files: readonly URI[] } = {
+          pending: [rootUri],
+          files: []
+        };
+        const result = yield* Effect.iterate(initial, {
+          while: traversal => traversal.pending.length > 0,
+          body: traversal =>
+            fsService.readDirectoryWithTypes(traversal.pending[0]!).pipe(
+              Effect.map(entries => ({
+                pending: [
+                  ...traversal.pending.slice(1),
+                  ...entries.filter(entry => (entry.type & vscode.FileType.Directory) !== 0).map(entry => entry.uri)
+                ],
+                files: [
+                  ...traversal.files,
+                  ...entries.filter(entry => (entry.type & vscode.FileType.File) !== 0).map(entry => entry.uri)
+                ]
+              }))
+            )
+        });
+        yield* Effect.annotateCurrentSpan('stagedFileCount', result.files.length);
+        return result.files;
+      });
 
-    const materializeOne = Effect.fn('OrgCatalogRemoteRetrieve.materializeOne')(function* (
-      orgId: string,
-      request: RetrieveRequest
-    ) {
-      const { reference } = request;
-      const { stagingUri } = yield* shadowStore.prepare(orgId, reference, request.expectedRemoteLastModifiedDate);
-      const member = { type: reference.xmlName, fullName: reference.fullName };
-      const componentSet = yield* metadataRetrieveService.buildComponentSet([member]);
-      const nonEmptyComponentSet = yield* componentSetService.ensureNonEmptyComponentSet(componentSet);
-      return yield* metadataRetrieveService
-        .retrieveComponentSetToDirectory(nonEmptyComponentSet, stagingUri, { expectedOrgId: orgId })
-        .pipe(
-          Effect.flatMap(result =>
-            Effect.gen(function* () {
-              const sourceComponent = [...result.components.getSourceComponents()].find(
-                component => component.type.name === reference.xmlName && component.fullName === reference.fullName
-              );
-              const responsePaths = result
-                .getFileResponses()
-                .flatMap(response => (response.filePath ? [response.filePath] : []));
-              const stagedFiles = yield* listStagedFiles(stagingUri);
-              const reportedUris = yield* Effect.forEach(
-                Arr.dedupe([...result.components.getComponentFilenamesByNameAndType(member), ...responsePaths]),
-                path => fsService.toUri(path),
-                { concurrency: 'unbounded' }
-              );
-              const basenames = yield* sourceBasenames(orgId, reference);
-              const sourceContentUri = sourceComponent?.content
-                ? yield* fsService.toUri(sourceComponent.content)
-                : undefined;
-              const fileUris = uniqueHashableUris([...reportedUris, ...stagedFiles]);
-              const primaryUri =
-                fileUris.find(uri => basenames.has(Utils.basename(uri.uri))) ??
-                fileUris.find(uri => !uri.uri.path.endsWith('-meta.xml')) ??
-                (sourceContentUri ? HashableUri.fromUri(sourceContentUri) : undefined) ??
-                fileUris[0];
-              yield* Effect.annotateCurrentSpan({
-                discoveredFileCount: fileUris.length,
-                responsePathCount: responsePaths.length,
-                selectedPrimaryPath: primaryUri?.uri.toString()
-              });
-              if (!primaryUri) {
+      const sourceBasenames = Effect.fn('OrgCatalogRemoteRetrieve.sourceBasenames')(function* (
+        orgId: string,
+        reference: OrgMetadataComponentReference
+      ) {
+        const logicalBasename = Utils.basename(
+          yield* documentUri({ orgId, ...reference }).pipe(Effect.provideService(MetadataRegistryService, registry))
+        );
+        const leafName = reference.fullName.split(/[/.]/).at(-1) ?? reference.fullName;
+        const suffix = yield* getTypeSuffix(reference.xmlName).pipe(
+          Effect.provideService(MetadataRegistryService, registry)
+        );
+        return new Set<string>([
+          logicalBasename,
+          `${logicalBasename}-meta.xml`,
+          ...(suffix ? [`${leafName}.${suffix}`, `${leafName}.${suffix}-meta.xml`] : [])
+        ]);
+      });
+
+      const materializeOne = Effect.fn('OrgCatalogRemoteRetrieve.materializeOne')(function* (
+        orgId: string,
+        request: RetrieveRequest
+      ) {
+        const { reference } = request;
+        const { stagingUri } = yield* shadowStore.prepare(orgId, reference, request.expectedRemoteLastModifiedDate);
+        const member = { type: reference.xmlName, fullName: reference.fullName };
+        const componentSet = yield* metadataRetrieveService.buildComponentSet([member]);
+        const nonEmptyComponentSet = yield* componentSetService.ensureNonEmptyComponentSet(componentSet);
+        return yield* metadataRetrieveService
+          .retrieveComponentSetToDirectory(nonEmptyComponentSet, stagingUri, { expectedOrgId: orgId })
+          .pipe(
+            Effect.flatMap(result =>
+              Effect.gen(function* () {
+                const sourceComponent = [...result.components.getSourceComponents()].find(
+                  component => component.type.name === reference.xmlName && component.fullName === reference.fullName
+                );
+                const responsePaths = result
+                  .getFileResponses()
+                  .flatMap(response => (response.filePath ? [response.filePath] : []));
+                const stagedFiles = yield* listStagedFiles(stagingUri);
+                const reportedUris = yield* Effect.forEach(
+                  Arr.dedupe([...result.components.getComponentFilenamesByNameAndType(member), ...responsePaths]),
+                  path => fsService.toUri(path),
+                  { concurrency: 'unbounded' }
+                );
+                const basenames = yield* sourceBasenames(orgId, reference);
+                const sourceContentUri = sourceComponent?.content
+                  ? yield* fsService.toUri(sourceComponent.content)
+                  : undefined;
+                const fileUris = uniqueHashableUris([...reportedUris, ...stagedFiles]);
+                const primaryUri =
+                  fileUris.find(uri => basenames.has(Utils.basename(uri.uri))) ??
+                  fileUris.find(uri => !uri.uri.path.endsWith('-meta.xml')) ??
+                  (sourceContentUri ? HashableUri.fromUri(sourceContentUri) : undefined) ??
+                  fileUris[0];
+                yield* Effect.annotateCurrentSpan({
+                  discoveredFileCount: fileUris.length,
+                  responsePathCount: responsePaths.length,
+                  selectedPrimaryPath: primaryUri?.uri.toString()
+                });
+                if (!primaryUri) {
+                  return yield* new OrgMetadataCatalogError({
+                    cause: new Error('Retrieve completed without a readable source file'),
+                    message: `Retrieved ${reference.xmlName} '${reference.fullName}', but no source file was produced`,
+                    reference
+                  });
+                }
+                const sourceComponentUris = yield* Effect.forEach(
+                  sourceComponentFilePaths(sourceComponent),
+                  path => fsService.toUri(path),
+                  { concurrency: 'unbounded' }
+                );
+                const artifactFileUris = Arr.dedupe([...fileUris, ...sourceComponentUris.map(HashableUri.fromUri)]);
+                const fileProperties = Arr.ensure(result.response.fileProperties);
+                const remoteLastModifiedDate = fileProperties.find(
+                  property => property?.type === reference.xmlName && property.fullName === reference.fullName
+                )?.lastModifiedDate;
+                const artifact = yield* shadowStore.publish({
+                  orgId,
+                  reference,
+                  stagingUri,
+                  primaryUri: primaryUri.uri,
+                  fileUris: artifactFileUris.map(uri => uri.uri),
+                  remoteLastModifiedDate: request.expectedRemoteLastModifiedDate ?? remoteLastModifiedDate
+                });
+                if (artifact) return artifact;
                 return yield* new OrgMetadataCatalogError({
-                  cause: new Error('Retrieve completed without a readable source file'),
-                  message: `Retrieved ${reference.xmlName} '${reference.fullName}', but no source file was produced`,
+                  cause: new Error('Published shadow artifact could not be resolved'),
+                  message: `Failed to publish ${reference.xmlName} '${reference.fullName}'`,
                   reference
                 });
-              }
-              const sourceComponentUris = yield* Effect.forEach(
-                sourceComponentFilePaths(sourceComponent),
-                path => fsService.toUri(path),
-                { concurrency: 'unbounded' }
-              );
-              const artifactFileUris = Arr.dedupe([...fileUris, ...sourceComponentUris.map(HashableUri.fromUri)]);
-              const fileProperties = Arr.ensure(result.response.fileProperties);
-              const remoteLastModifiedDate = fileProperties.find(
-                property => property?.type === reference.xmlName && property.fullName === reference.fullName
-              )?.lastModifiedDate;
-              const artifact = yield* shadowStore.publish({
-                orgId,
-                reference,
-                stagingUri,
-                primaryUri: primaryUri.uri,
-                fileUris: artifactFileUris.map(uri => uri.uri),
-                remoteLastModifiedDate: request.expectedRemoteLastModifiedDate ?? remoteLastModifiedDate
-              });
-              if (artifact) return artifact;
-              return yield* new OrgMetadataCatalogError({
-                cause: new Error('Published shadow artifact could not be resolved'),
-                message: `Failed to publish ${reference.xmlName} '${reference.fullName}'`,
-                reference
-              });
-            })
-          ),
-          Effect.ensuring(fsService.safeDelete(stagingUri, { recursive: true }))
-        );
-    });
+              })
+            ),
+            Effect.ensuring(fsService.safeDelete(stagingUri, { recursive: true }))
+          );
+      });
 
-    const materializeBatch = Effect.fn('OrgCatalogRemoteRetrieve.materializeBatch')(function* (
-      orgId: string,
-      requests: readonly RetrieveRequest[]
-    ) {
-      const stagingUri = yield* shadowStore.prepareBatch(orgId);
-      const members = requests.map(({ reference }) => ({ type: reference.xmlName, fullName: reference.fullName }));
-      const componentSet = yield* metadataRetrieveService.buildComponentSet(members);
-      const nonEmptyComponentSet = yield* componentSetService.ensureNonEmptyComponentSet(componentSet);
-      return yield* metadataRetrieveService
-        .retrieveComponentSetToDirectory(nonEmptyComponentSet, stagingUri, { expectedOrgId: orgId })
-        .pipe(
-          Effect.flatMap(result =>
-            Effect.gen(function* () {
-              const sourceComponents = [...result.components.getSourceComponents()];
-              const responses = result.getFileResponses();
-              const stagedFiles = yield* listStagedFiles(stagingUri);
-              const fileProperties = Arr.ensure(result.response.fileProperties);
-              return yield* Effect.forEach(
-                requests,
-                request =>
-                  Effect.gen(function* () {
-                    const { reference } = request;
-                    const member = { type: reference.xmlName, fullName: reference.fullName };
-                    const sourceComponent = sourceComponents.find(
-                      component =>
-                        component.type.name === reference.xmlName && component.fullName === reference.fullName
-                    );
-                    const responsePaths = responses.flatMap(response =>
-                      response.type === reference.xmlName &&
-                      response.fullName === reference.fullName &&
-                      response.filePath
-                        ? [response.filePath]
-                        : []
-                    );
-                    const reportedUris = yield* Effect.forEach(
-                      Arr.dedupe([...result.components.getComponentFilenamesByNameAndType(member), ...responsePaths]),
-                      path => fsService.toUri(path),
-                      { concurrency: 'unbounded' }
-                    );
-                    const basenames = yield* sourceBasenames(orgId, reference);
-                    const discoveredUris = stagedFiles.filter(uri => basenames.has(Utils.basename(uri)));
-                    const sourceComponentUris = yield* Effect.forEach(
-                      sourceComponentFilePaths(sourceComponent),
-                      path => fsService.toUri(path),
-                      { concurrency: 'unbounded' }
-                    );
-                    const fileUris = uniqueHashableUris([...reportedUris, ...discoveredUris, ...sourceComponentUris]);
-                    const primaryUri =
-                      fileUris.find(uri => basenames.has(Utils.basename(uri.uri))) ??
-                      fileUris.find(uri => !uri.uri.path.endsWith('-meta.xml')) ??
-                      fileUris[0];
-                    if (!primaryUri) {
-                      return yield* new OrgMetadataCatalogError({
-                        cause: new Error('Retrieve completed without a readable source file'),
-                        message: `Retrieved ${reference.xmlName} '${reference.fullName}', but no source file was produced`,
-                        reference
-                      });
-                    }
-                    const remoteLastModifiedDate =
-                      request.expectedRemoteLastModifiedDate ??
-                      fileProperties.find(
-                        property => property?.type === reference.xmlName && property.fullName === reference.fullName
-                      )?.lastModifiedDate;
-                    const { stagingUri: componentStagingUri } = yield* shadowStore.prepare(
-                      orgId,
-                      reference,
-                      remoteLastModifiedDate
-                    );
-                    const copiedUris = yield* Effect.forEach(
-                      fileUris,
-                      hashable => {
-                        const uri = hashable.uri;
-                        const relative = pathSuffixWithin(stagingUri, uri) ?? Utils.basename(uri);
-                        const targetUri = Utils.joinPath(componentStagingUri, ...relative.split('/'));
-                        return fsService.readFile(uri).pipe(
-                          Effect.flatMap(content => fsService.safeWriteFile(targetUri, content)),
-                          Effect.as([hashable, targetUri] as const)
-                        );
-                      },
-                      { concurrency: 10 }
-                    );
-                    const copiedPrimaryUri = yield* Option.match(
-                      HashMap.get(HashMap.fromIterable(copiedUris), primaryUri),
-                      {
-                        onNone: () =>
-                          new OrgMetadataCatalogError({
-                            cause: new Error(`Failed to stage ${reference.xmlName} '${reference.fullName}'`),
-                            message: `Failed to stage ${reference.xmlName} '${reference.fullName}'`,
-                            reference
-                          }),
-                        onSome: Effect.succeed
-                      }
-                    );
-                    const artifact = yield* shadowStore.publish({
-                      orgId,
-                      reference,
-                      stagingUri: componentStagingUri,
-                      primaryUri: copiedPrimaryUri,
-                      fileUris: copiedUris.map(([, targetUri]) => targetUri),
-                      remoteLastModifiedDate
-                    });
-                    return artifact
-                      ? { reference, artifact }
-                      : yield* new OrgMetadataCatalogError({
-                          cause: new Error('Published shadow artifact could not be resolved'),
-                          message: `Failed to publish ${reference.xmlName} '${reference.fullName}'`,
+      const materializeBatch = Effect.fn('OrgCatalogRemoteRetrieve.materializeBatch')(function* (
+        orgId: string,
+        requests: readonly RetrieveRequest[]
+      ) {
+        const stagingUri = yield* shadowStore.prepareBatch(orgId);
+        const members = requests.map(({ reference }) => ({ type: reference.xmlName, fullName: reference.fullName }));
+        const componentSet = yield* metadataRetrieveService.buildComponentSet(members);
+        const nonEmptyComponentSet = yield* componentSetService.ensureNonEmptyComponentSet(componentSet);
+        return yield* metadataRetrieveService
+          .retrieveComponentSetToDirectory(nonEmptyComponentSet, stagingUri, { expectedOrgId: orgId })
+          .pipe(
+            Effect.flatMap(result =>
+              Effect.gen(function* () {
+                const sourceComponents = [...result.components.getSourceComponents()];
+                const responses = result.getFileResponses();
+                const stagedFiles = yield* listStagedFiles(stagingUri);
+                const fileProperties = Arr.ensure(result.response.fileProperties);
+                return yield* Effect.forEach(
+                  requests,
+                  request =>
+                    Effect.gen(function* () {
+                      const { reference } = request;
+                      const member = { type: reference.xmlName, fullName: reference.fullName };
+                      const sourceComponent = sourceComponents.find(
+                        component =>
+                          component.type.name === reference.xmlName && component.fullName === reference.fullName
+                      );
+                      const responsePaths = responses.flatMap(response =>
+                        response.type === reference.xmlName &&
+                        response.fullName === reference.fullName &&
+                        response.filePath
+                          ? [response.filePath]
+                          : []
+                      );
+                      const reportedUris = yield* Effect.forEach(
+                        Arr.dedupe([...result.components.getComponentFilenamesByNameAndType(member), ...responsePaths]),
+                        path => fsService.toUri(path),
+                        { concurrency: 'unbounded' }
+                      );
+                      const basenames = yield* sourceBasenames(orgId, reference);
+                      const discoveredUris = stagedFiles.filter(uri => basenames.has(Utils.basename(uri)));
+                      const sourceComponentUris = yield* Effect.forEach(
+                        sourceComponentFilePaths(sourceComponent),
+                        path => fsService.toUri(path),
+                        { concurrency: 'unbounded' }
+                      );
+                      const fileUris = uniqueHashableUris([...reportedUris, ...discoveredUris, ...sourceComponentUris]);
+                      const primaryUri =
+                        fileUris.find(uri => basenames.has(Utils.basename(uri.uri))) ??
+                        fileUris.find(uri => !uri.uri.path.endsWith('-meta.xml')) ??
+                        fileUris[0];
+                      if (!primaryUri) {
+                        return yield* new OrgMetadataCatalogError({
+                          cause: new Error('Retrieve completed without a readable source file'),
+                          message: `Retrieved ${reference.xmlName} '${reference.fullName}', but no source file was produced`,
                           reference
                         });
-                  }),
-                { concurrency: 1 }
-              );
-            })
-          ),
-          Effect.ensuring(fsService.safeDelete(stagingUri, { recursive: true }))
-        );
-    });
+                      }
+                      const remoteLastModifiedDate =
+                        request.expectedRemoteLastModifiedDate ??
+                        fileProperties.find(
+                          property => property?.type === reference.xmlName && property.fullName === reference.fullName
+                        )?.lastModifiedDate;
+                      const { stagingUri: componentStagingUri } = yield* shadowStore.prepare(
+                        orgId,
+                        reference,
+                        remoteLastModifiedDate
+                      );
+                      const copiedUris = yield* Effect.forEach(
+                        fileUris,
+                        hashable => {
+                          const uri = hashable.uri;
+                          const relative = pathSuffixWithin(stagingUri, uri) ?? Utils.basename(uri);
+                          const targetUri = Utils.joinPath(componentStagingUri, ...relative.split('/'));
+                          return fsService.readFile(uri).pipe(
+                            Effect.flatMap(content => fsService.safeWriteFile(targetUri, content)),
+                            Effect.as([hashable, targetUri] as const)
+                          );
+                        },
+                        { concurrency: 10 }
+                      );
+                      const copiedPrimaryUri = yield* Option.match(
+                        HashMap.get(HashMap.fromIterable(copiedUris), primaryUri),
+                        {
+                          onNone: () =>
+                            new OrgMetadataCatalogError({
+                              cause: new Error(`Failed to stage ${reference.xmlName} '${reference.fullName}'`),
+                              message: `Failed to stage ${reference.xmlName} '${reference.fullName}'`,
+                              reference
+                            }),
+                          onSome: Effect.succeed
+                        }
+                      );
+                      const artifact = yield* shadowStore.publish({
+                        orgId,
+                        reference,
+                        stagingUri: componentStagingUri,
+                        primaryUri: copiedPrimaryUri,
+                        fileUris: copiedUris.map(([, targetUri]) => targetUri),
+                        remoteLastModifiedDate
+                      });
+                      return artifact
+                        ? { reference, artifact }
+                        : yield* new OrgMetadataCatalogError({
+                            cause: new Error('Published shadow artifact could not be resolved'),
+                            message: `Failed to publish ${reference.xmlName} '${reference.fullName}'`,
+                            reference
+                          });
+                    }),
+                  { concurrency: 1 }
+                );
+              })
+            ),
+            Effect.ensuring(fsService.safeDelete(stagingUri, { recursive: true }))
+          );
+      });
 
-    const materializeRetrievedComponents = Effect.fn('OrgCatalogRemoteRetrieve.materializeComponents')(function* (
-      orgId: string,
-      requests: readonly RetrieveRequest[]
-    ) {
-      if (requests.length === 0) return [];
-      if (requests.length > 1) return yield* materializeBatch(orgId, requests);
-      const request = requests[0]!;
-      return [{ reference: request.reference, artifact: yield* materializeOne(orgId, request) }];
-    });
+      const materializeRetrievedComponents = Effect.fn('OrgCatalogRemoteRetrieve.materializeComponents')(function* (
+        orgId: string,
+        requests: readonly RetrieveRequest[]
+      ) {
+        if (requests.length === 0) return [];
+        if (requests.length > 1) return yield* materializeBatch(orgId, requests);
+        const request = requests[0]!;
+        return [{ reference: request.reference, artifact: yield* materializeOne(orgId, request) }];
+      });
 
-    return { materializeRetrievedComponents } as const;
-  })
-}) {}
+      return { materializeRetrievedComponents } as const;
+    })
+  }
+) {}

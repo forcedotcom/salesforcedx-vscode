@@ -14,41 +14,44 @@ import * as vscode from 'vscode';
  * Ref-backed Effect state (replaces the former hand-rolled mutable singleton). Absence is modeled
  * as `Option.none` rather than an empty-string sentinel.
  */
-export class ApexTestRunCacheService extends Effect.Service<ApexTestRunCacheService>()('ApexTestRunCacheService', {
-  accessors: true,
-  effect: Effect.gen(function* () {
-    const lastClassTestParam = yield* Ref.make(Option.none<string>());
-    const lastMethodTestParam = yield* Ref.make(Option.none<string>());
+export class ApexTestRunCacheService extends Effect.Service<ApexTestRunCacheService>()(
+  'salesforcedx-vscode-apex-testing/testRunCache/apexTestRunCacheService',
+  {
+    accessors: true,
+    effect: Effect.gen(function* () {
+      const lastClassTestParam = yield* Ref.make(Option.none<string>());
+      const lastMethodTestParam = yield* Ref.make(Option.none<string>());
 
-    const getLastClassTestParam = Effect.fn('ApexTestRunCacheService.getLastClassTestParam')(function* () {
-      return yield* Ref.get(lastClassTestParam);
-    });
+      const getLastClassTestParam = Effect.fn('ApexTestRunCacheService.getLastClassTestParam')(function* () {
+        return yield* Ref.get(lastClassTestParam);
+      });
 
-    const getLastMethodTestParam = Effect.fn('ApexTestRunCacheService.getLastMethodTestParam')(function* () {
-      return yield* Ref.get(lastMethodTestParam);
-    });
+      const getLastMethodTestParam = Effect.fn('ApexTestRunCacheService.getLastMethodTestParam')(function* () {
+        return yield* Ref.get(lastMethodTestParam);
+      });
 
-    const setCachedClassTestParam = Effect.fn('ApexTestRunCacheService.setCachedClassTestParam')(function* (
-      test: string
-    ) {
-      // enable then run 'last executed' command so command added to 'recently used'
-      yield* Effect.promise(() => vscode.commands.executeCommand('setContext', 'sf:has_cached_test_class', true));
-      yield* Ref.set(lastClassTestParam, Option.some(test));
-    });
+      const setCachedClassTestParam = Effect.fn('ApexTestRunCacheService.setCachedClassTestParam')(function* (
+        test: string
+      ) {
+        // enable then run 'last executed' command so command added to 'recently used'
+        yield* Effect.promise(() => vscode.commands.executeCommand('setContext', 'sf:has_cached_test_class', true));
+        yield* Ref.set(lastClassTestParam, Option.some(test));
+      });
 
-    const setCachedMethodTestParam = Effect.fn('ApexTestRunCacheService.setCachedMethodTestParam')(function* (
-      test: string
-    ) {
-      // enable then run 'last executed' command so command added to 'recently used'
-      yield* Effect.promise(() => vscode.commands.executeCommand('setContext', 'sf:has_cached_test_method', true));
-      yield* Ref.set(lastMethodTestParam, Option.some(test));
-    });
+      const setCachedMethodTestParam = Effect.fn('ApexTestRunCacheService.setCachedMethodTestParam')(function* (
+        test: string
+      ) {
+        // enable then run 'last executed' command so command added to 'recently used'
+        yield* Effect.promise(() => vscode.commands.executeCommand('setContext', 'sf:has_cached_test_method', true));
+        yield* Ref.set(lastMethodTestParam, Option.some(test));
+      });
 
-    return {
-      getLastClassTestParam,
-      getLastMethodTestParam,
-      setCachedClassTestParam,
-      setCachedMethodTestParam
-    };
-  })
-}) {}
+      return {
+        getLastClassTestParam,
+        getLastMethodTestParam,
+        setCachedClassTestParam,
+        setCachedMethodTestParam
+      };
+    })
+  }
+) {}

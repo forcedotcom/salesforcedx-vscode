@@ -115,136 +115,139 @@ const unsupportedOnWeb = Effect.fn('TerminalService.simpleExec')(function* <A>(_
   return yield* execError({ errorType: 'unsupported_platform', message: 'Not available on web' });
 });
 
-export class TerminalService extends Effect.Service<TerminalService>()('TerminalService', {
-  accessors: false,
-  dependencies: [ConfigService.Default, SettingsService.Default, Layer.service(CommandExecutor.CommandExecutor)],
-  effect: Effect.gen(function* () {
-    const commandExecutor = yield* CommandExecutor.CommandExecutor;
-    const configService = yield* ConfigService;
-    const settingsService = yield* SettingsService;
+export class TerminalService extends Effect.Service<TerminalService>()(
+  'salesforcedx-vscode-services/terminal/terminalService',
+  {
+    accessors: false,
+    dependencies: [ConfigService.Default, SettingsService.Default, Layer.service(CommandExecutor.CommandExecutor)],
+    effect: Effect.gen(function* () {
+      const commandExecutor = yield* CommandExecutor.CommandExecutor;
+      const configService = yield* ConfigService;
+      const settingsService = yield* SettingsService;
 
-    /** NODE_EXTRA_CA_CERTS omitted when unset — empty value breaks node's TLS bootstrap. */
-    const sfCliSettingsEnv = Effect.fn('TerminalService.sfCliSettingsEnv')(
-      function* () {
-        const logLevel = yield* settingsService.getValueOrElse(SFDX_CORE_SECTION, 'SF_LOG_LEVEL', 'fatal');
-        const caCerts =
-          (yield* settingsService.getValue<string>(SFDX_CORE_SECTION, 'NODE_EXTRA_CA_CERTS')) ??
-          Option.getOrUndefined(yield* Config.string('NODE_EXTRA_CA_CERTS').pipe(Config.option));
-        const result: Record<string, string> = {
-          SF_LOG_LEVEL: logLevel,
-          ...(caCerts ? { NODE_EXTRA_CA_CERTS: caCerts } : {})
-        };
-        return result;
-      },
-      Effect.catchTags({
-        MissingSettingsError: fallbackTo<Record<string, string>>({}),
-        ConfigError: fallbackTo<Record<string, string>>({})
-      })
-    );
-
-    /** Keep in sync with utils-vscode `isTelemetryExtensionConfigurationEnabled` (same two settings, negated). */
-    const isVscodeTelemetryOff = Effect.fn('TerminalService.isVscodeTelemetryOff')(
-      function* () {
-        const level = yield* settingsService.getValueOrElse('telemetry', 'telemetryLevel', 'all');
-        const coreEnabled = yield* settingsService.getValueOrElse(SFDX_CORE_SECTION, 'telemetry.enabled', true);
-        return level === 'off' || !coreEnabled;
-      },
-      Effect.catchTag('MissingSettingsError', fallbackTo(false))
-    );
-
-    const isTelemetryDisabled = Effect.fn('TerminalService.isTelemetryDisabled')(
-      function* () {
-        return (yield* isVscodeTelemetryOff()) ? true : yield* configService.isCliTelemetryDisabled();
-      },
-      Effect.catchTags({
-        FailedToCreateConfigAggregatorError: fallbackTo(false),
-        NoWorkspaceOpenError: fallbackTo(false)
-      })
-    );
-
-    /**
-     * Run `executable` + `args` as an argv vector (never a shell string). Desktop-only.
-     * `sf` gets SF_LOG_LEVEL, optional NODE_EXTRA_CA_CERTS / SF_DISABLE_TELEMETRY, then
-     * SF_JSON_TO_STDOUT / FORCE_COLOR=0 / SFDX_TOOL; caller `env` wins.
-     */
-    const simpleExec = Effect.fn('TerminalService.simpleExec')(function* <A>({
-      executable,
-      args,
-      parse,
-      timeout = Duration.seconds(30),
-      env,
-      cwd
-    }: SimpleExecInput<A>) {
-      const timeoutMs = Duration.toMillis(timeout);
-      yield* Effect.annotateCurrentSpan({
-        'terminal.timeout.ms': timeoutMs,
-        'terminal.cwd.set': isNotUndefined(cwd)
-      });
-      const sfEnv =
-        executable === 'sf'
-          ? {
-              ...(yield* sfCliSettingsEnv()),
-              ...((yield* isTelemetryDisabled()) ? { SF_DISABLE_TELEMETRY: 'true' } : {}),
-              SF_JSON_TO_STDOUT: 'true',
-              FORCE_COLOR: '0',
-              SFDX_TOOL: 'salesforce-vscode-extensions'
-            }
-          : undefined;
-      const mergedEnv = sfEnv || env ? { ...sfEnv, ...env } : undefined;
-      if (isNotUndefined(mergedEnv))
-        yield* Effect.annotateCurrentSpan('envKeys', Rec.keys<string, string | undefined>(mergedEnv));
-      return yield* Effect.scoped(
-        Effect.gen(function* () {
-          const proc = yield* pipe(
-            Command.make(executable, ...args),
-            cmd => (isUndefined(mergedEnv) ? cmd : Command.env(mergedEnv)(cmd)),
-            cmd => (isUndefined(cwd) ? cmd : Command.workingDirectory(cwd)(cmd)),
-            commandExecutor.start
-          );
-          const [stdout, stderr, code] = yield* Effect.all(
-            [collectUtf8(proc.stdout), collectUtf8(proc.stderr), proc.exitCode],
-            { concurrency: 3 }
-          );
-          return code === 0
-            ? { stdout, stderr }
-            : yield* execError({
-                errorType: 'nonzero_exit',
-                message: commandFailed({ identifier: code, stdout, stderr }),
-                exitCode: code,
-                stdoutBytes: byteLength(stdout),
-                stderrBytes: byteLength(stderr)
-              });
-        })
-      ).pipe(
+      /** NODE_EXTRA_CA_CERTS omitted when unset — empty value breaks node's TLS bootstrap. */
+      const sfCliSettingsEnv = Effect.fn('TerminalService.sfCliSettingsEnv')(
+        function* () {
+          const logLevel = yield* settingsService.getValueOrElse(SFDX_CORE_SECTION, 'SF_LOG_LEVEL', 'fatal');
+          const caCerts =
+            (yield* settingsService.getValue<string>(SFDX_CORE_SECTION, 'NODE_EXTRA_CA_CERTS')) ??
+            Option.getOrUndefined(yield* Config.string('NODE_EXTRA_CA_CERTS').pipe(Config.option));
+          const result: Record<string, string> = {
+            SF_LOG_LEVEL: logLevel,
+            ...(caCerts ? { NODE_EXTRA_CA_CERTS: caCerts } : {})
+          };
+          return result;
+        },
         Effect.catchTags({
-          SystemError: platformToExecFailure,
-          BadArgument: platformToExecFailure
-        }),
-        Effect.timeoutFail({
-          duration: timeout,
-          onTimeout: () => execError({ errorType: 'timeout', message: 'Command failed' })
-        }),
-        Effect.tap(execution =>
-          Effect.annotateCurrentSpan({
-            'process.exit.code': 0,
-            'terminal.stdout.bytes': byteLength(execution.stdout),
-            'terminal.stderr.bytes': byteLength(execution.stderr)
-          })
-        ),
-        Effect.tapErrorTag('TerminalServiceError', failure =>
-          Effect.annotateCurrentSpan({
-            ...(isUndefined(failure.exitCode) ? {} : { 'process.exit.code': failure.exitCode }),
-            'error.type': failure.errorType,
-            'terminal.stdout.bytes': failure.stdoutBytes,
-            'terminal.stderr.bytes': failure.stderrBytes
-          })
-        ),
-        Effect.map(({ stdout }) => parse(stdout.trim()))
+          MissingSettingsError: fallbackTo<Record<string, string>>({}),
+          ConfigError: fallbackTo<Record<string, string>>({})
+        })
       );
-    });
-    return { simpleExec };
-  })
-}) {}
+
+      /** Keep in sync with utils-vscode `isTelemetryExtensionConfigurationEnabled` (same two settings, negated). */
+      const isVscodeTelemetryOff = Effect.fn('TerminalService.isVscodeTelemetryOff')(
+        function* () {
+          const level = yield* settingsService.getValueOrElse('telemetry', 'telemetryLevel', 'all');
+          const coreEnabled = yield* settingsService.getValueOrElse(SFDX_CORE_SECTION, 'telemetry.enabled', true);
+          return level === 'off' || !coreEnabled;
+        },
+        Effect.catchTag('MissingSettingsError', fallbackTo(false))
+      );
+
+      const isTelemetryDisabled = Effect.fn('TerminalService.isTelemetryDisabled')(
+        function* () {
+          return (yield* isVscodeTelemetryOff()) ? true : yield* configService.isCliTelemetryDisabled();
+        },
+        Effect.catchTags({
+          FailedToCreateConfigAggregatorError: fallbackTo(false),
+          NoWorkspaceOpenError: fallbackTo(false)
+        })
+      );
+
+      /**
+       * Run `executable` + `args` as an argv vector (never a shell string). Desktop-only.
+       * `sf` gets SF_LOG_LEVEL, optional NODE_EXTRA_CA_CERTS / SF_DISABLE_TELEMETRY, then
+       * SF_JSON_TO_STDOUT / FORCE_COLOR=0 / SFDX_TOOL; caller `env` wins.
+       */
+      const simpleExec = Effect.fn('TerminalService.simpleExec')(function* <A>({
+        executable,
+        args,
+        parse,
+        timeout = Duration.seconds(30),
+        env,
+        cwd
+      }: SimpleExecInput<A>) {
+        const timeoutMs = Duration.toMillis(timeout);
+        yield* Effect.annotateCurrentSpan({
+          'terminal.timeout.ms': timeoutMs,
+          'terminal.cwd.set': isNotUndefined(cwd)
+        });
+        const sfEnv =
+          executable === 'sf'
+            ? {
+                ...(yield* sfCliSettingsEnv()),
+                ...((yield* isTelemetryDisabled()) ? { SF_DISABLE_TELEMETRY: 'true' } : {}),
+                SF_JSON_TO_STDOUT: 'true',
+                FORCE_COLOR: '0',
+                SFDX_TOOL: 'salesforce-vscode-extensions'
+              }
+            : undefined;
+        const mergedEnv = sfEnv || env ? { ...sfEnv, ...env } : undefined;
+        if (isNotUndefined(mergedEnv))
+          yield* Effect.annotateCurrentSpan('envKeys', Rec.keys<string, string | undefined>(mergedEnv));
+        return yield* Effect.scoped(
+          Effect.gen(function* () {
+            const proc = yield* pipe(
+              Command.make(executable, ...args),
+              cmd => (isUndefined(mergedEnv) ? cmd : Command.env(mergedEnv)(cmd)),
+              cmd => (isUndefined(cwd) ? cmd : Command.workingDirectory(cwd)(cmd)),
+              commandExecutor.start
+            );
+            const [stdout, stderr, code] = yield* Effect.all(
+              [collectUtf8(proc.stdout), collectUtf8(proc.stderr), proc.exitCode],
+              { concurrency: 3 }
+            );
+            return code === 0
+              ? { stdout, stderr }
+              : yield* execError({
+                  errorType: 'nonzero_exit',
+                  message: commandFailed({ identifier: code, stdout, stderr }),
+                  exitCode: code,
+                  stdoutBytes: byteLength(stdout),
+                  stderrBytes: byteLength(stderr)
+                });
+          })
+        ).pipe(
+          Effect.catchTags({
+            SystemError: platformToExecFailure,
+            BadArgument: platformToExecFailure
+          }),
+          Effect.timeoutFail({
+            duration: timeout,
+            onTimeout: () => execError({ errorType: 'timeout', message: 'Command failed' })
+          }),
+          Effect.tap(execution =>
+            Effect.annotateCurrentSpan({
+              'process.exit.code': 0,
+              'terminal.stdout.bytes': byteLength(execution.stdout),
+              'terminal.stderr.bytes': byteLength(execution.stderr)
+            })
+          ),
+          Effect.tapErrorTag('TerminalServiceError', failure =>
+            Effect.annotateCurrentSpan({
+              ...(isUndefined(failure.exitCode) ? {} : { 'process.exit.code': failure.exitCode }),
+              'error.type': failure.errorType,
+              'terminal.stdout.bytes': failure.stdoutBytes,
+              'terminal.stderr.bytes': failure.stderrBytes
+            })
+          ),
+          Effect.map(({ stdout }) => parse(stdout.trim()))
+        );
+      });
+      return { simpleExec };
+    })
+  }
+) {}
 
 export const TerminalServiceWebLive = Layer.succeed(
   TerminalService,

@@ -138,179 +138,184 @@ const readResult = Effect.fn('CodeCoverageService.readResult')(function* (apexTe
  * api.services; they are NOT declared as hard Default dependencies (that would double-provision
  * and conflict at runtime).
  */
-export class CodeCoverageService extends Effect.Service<CodeCoverageService>()('CodeCoverageService', {
-  accessors: true,
-  dependencies: [],
-  effect: Effect.gen(function* () {
-    const coveredLines = yield* Ref.make<Range[]>([]);
-    const uncoveredLines = yield* Ref.make<Range[]>([]);
+export class CodeCoverageService extends Effect.Service<CodeCoverageService>()(
+  'salesforcedx-vscode-apex-testing/codecoverage/codeCoverageService',
+  {
+    accessors: true,
+    dependencies: [],
+    effect: Effect.gen(function* () {
+      const coveredLines = yield* Ref.make<Range[]>([]);
+      const uncoveredLines = yield* Ref.make<Range[]>([]);
 
-    const getCoverageData = Effect.fn('CodeCoverageService.getCoverageData')(function* () {
-      const api = yield* (yield* ExtensionProviderService).getServicesApi;
-      const settings = yield* api.services.SettingsService;
+      const getCoverageData = Effect.fn('CodeCoverageService.getCoverageData')(function* () {
+        const api = yield* (yield* ExtensionProviderService).getServicesApi;
+        const settings = yield* api.services.SettingsService;
 
-      // no workspace folder open, or no default org / cannot resolve results folder
-      const apexTestResultsUri = yield* getTestResultsFolder().pipe(
-        Effect.catchTags({ NoDefaultOrgError: noCoverage, NoWorkspaceOpenError: noCoverage })
-      );
-
-      // readDirectoryWithTypes failed (results dir missing/unreadable)
-      const entries = yield* api.services.FsService.readDirectoryWithTypes(apexTestResultsUri).pipe(
-        Effect.catchAll(() => noCoverage())
-      );
-
-      const resultNames = entries
-        .filter(({ type }) => type === FileType.File)
-        .map(({ uri }) => Utils.basename(uri))
-        .filter(
-          name => name.startsWith('test-result') && name.endsWith('.json') && !name.endsWith('-codecoverage.json')
+        // no workspace folder open, or no default org / cannot resolve results folder
+        const apexTestResultsUri = yield* getTestResultsFolder().pipe(
+          Effect.catchTags({ NoDefaultOrgError: noCoverage, NoWorkspaceOpenError: noCoverage })
         );
 
-      if (resultNames.length === 0) {
-        // no test-result files in the directory
-        return yield* noCoverage();
-      }
+        // readDirectoryWithTypes failed (results dir missing/unreadable)
+        const entries = yield* api.services.FsService.readDirectoryWithTypes(apexTestResultsUri).pipe(
+          Effect.catchAll(() => noCoverage())
+        );
 
-      const now = yield* Clock.currentTimeMillis;
-      const recentEntries = (yield* Effect.forEach(
-        resultNames,
-        // skip files we can't stat (stat order does not matter; sort happens after)
-        name =>
-          statRecent(apexTestResultsUri, now, name).pipe(
-            Effect.catchAll(() => Effect.succeed(Option.none<{ name: string; mtime: number }>()))
+        const resultNames = entries
+          .filter(({ type }) => type === FileType.File)
+          .map(({ uri }) => Utils.basename(uri))
+          .filter(
+            name => name.startsWith('test-result') && name.endsWith('.json') && !name.endsWith('-codecoverage.json')
+          );
+
+        if (resultNames.length === 0) {
+          // no test-result files in the directory
+          return yield* noCoverage();
+        }
+
+        const now = yield* Clock.currentTimeMillis;
+        const recentEntries = (yield* Effect.forEach(
+          resultNames,
+          // skip files we can't stat (stat order does not matter; sort happens after)
+          name =>
+            statRecent(apexTestResultsUri, now, name).pipe(
+              Effect.catchAll(() => Effect.succeed(Option.none<{ name: string; mtime: number }>()))
+            ),
+          { concurrency: 'unbounded' }
+        )).flatMap(Option.toArray);
+
+        if (recentEntries.length === 0) {
+          // all result files are older than RESULT_MAX_AGE_MS
+          return yield* noCoverage();
+        }
+
+        return yield* settings.getValueOrElse(APEX_TESTING_SECTION, 'restore-previous-results', true).pipe(
+          Effect.map(restorePrevious => {
+            const sortedEntries = sortByMtimeAscending(recentEntries);
+            return restorePrevious ? sortedEntries : sortedEntries.slice(-1);
+          }),
+          Effect.flatMap(
+            Effect.partition(({ name }) => readResult(apexTestResultsUri, name), { concurrency: 'unbounded' })
           ),
-        { concurrency: 'unbounded' }
-      )).flatMap(Option.toArray);
-
-      if (recentEntries.length === 0) {
-        // all result files are older than RESULT_MAX_AGE_MS
-        return yield* noCoverage();
-      }
-
-      return yield* settings.getValueOrElse(APEX_TESTING_SECTION, 'restore-previous-results', true).pipe(
-        Effect.map(restorePrevious => {
-          const sortedEntries = sortByMtimeAscending(recentEntries);
-          return restorePrevious ? sortedEntries : sortedEntries.slice(-1);
-        }),
-        Effect.flatMap(
-          Effect.partition(({ name }) => readResult(apexTestResultsUri, name), { concurrency: 'unbounded' })
-        ),
-        Effect.map(([, perFileItems]) => perFileItems.flat()),
-        // Files are oldest-first, so HashMap.set keeps the newest coverage per class.
-        Effect.map((items: (CoverageItem | CoverageResult)[]) =>
-          HashMap.toValues(
-            Arr.reduce(items, HashMap.empty<string, CoverageItem | CoverageResult>(), (byName, item) =>
-              HashMap.set(byName, item.name, item)
+          Effect.map(([, perFileItems]) => perFileItems.flat()),
+          // Files are oldest-first, so HashMap.set keeps the newest coverage per class.
+          Effect.map((items: (CoverageItem | CoverageResult)[]) =>
+            HashMap.toValues(
+              Arr.reduce(items, HashMap.empty<string, CoverageItem | CoverageResult>(), (byName, item) =>
+                HashMap.set(byName, item.name, item)
+              )
             )
+          ),
+          Effect.filterOrFail(
+            Arr.isNonEmptyReadonlyArray,
+            () =>
+              new StaleResultsError({
+                message: nls.localize('colorizer_no_code_coverage_in_recent_results')
+              })
           )
-        ),
-        Effect.filterOrFail(
-          Arr.isNonEmptyReadonlyArray,
-          () =>
-            new StaleResultsError({
-              message: nls.localize('colorizer_no_code_coverage_in_recent_results')
-            })
-        )
-      );
-    });
+        );
+      });
 
-    const computeRanges = Effect.fn('CodeCoverageService.computeRanges')(function* (document: TextDocument) {
-      if (
-        docPath(document).includes(SFDX_FOLDER) ||
-        !isApexMetadata(docPath(document)) ||
-        IS_TEST_REG_EXP.test(document.getText())
-      ) {
-        return emptyRanges();
-      }
+      const computeRanges = Effect.fn('CodeCoverageService.computeRanges')(function* (document: TextDocument) {
+        if (
+          docPath(document).includes(SFDX_FOLDER) ||
+          !isApexMetadata(docPath(document)) ||
+          IS_TEST_REG_EXP.test(document.getText())
+        ) {
+          return emptyRanges();
+        }
 
-      const codeCovArray = yield* getCoverageData();
-      const apexMemberName = getApexMemberName(document);
-      const codeCovItem = codeCovArray.find(covItem => covItem.name === apexMemberName);
+        const codeCovArray = yield* getCoverageData();
+        const apexMemberName = getApexMemberName(document);
+        const codeCovItem = codeCovArray.find(covItem => covItem.name === apexMemberName);
 
-      if (!codeCovItem) {
-        return yield* new NoCoverageForFileError({
-          message: nls.localize('colorizer_no_code_coverage_current_file', docPath(document))
-        });
-      }
+        if (!codeCovItem) {
+          return yield* new NoCoverageForFileError({
+            message: nls.localize('colorizer_no_code_coverage_current_file', docPath(document))
+          });
+        }
 
-      if (isCodeCoverageItem(codeCovItem)) {
-        const [uncovered, covered] = Record.partition(codeCovItem.lines, value => value === 1);
+        if (isCodeCoverageItem(codeCovItem)) {
+          const [uncovered, covered] = Record.partition(codeCovItem.lines, value => value === 1);
+          return {
+            coveredLines: yield* Effect.forEach(Object.entries(covered), ([key]) =>
+              getLineRange(document, Number(key))
+            ),
+            uncoveredLines: yield* Effect.forEach(Object.entries(uncovered), ([key]) =>
+              getLineRange(document, Number(key))
+            )
+          };
+        }
+
         return {
-          coveredLines: yield* Effect.forEach(Object.entries(covered), ([key]) => getLineRange(document, Number(key))),
-          uncoveredLines: yield* Effect.forEach(Object.entries(uncovered), ([key]) =>
-            getLineRange(document, Number(key))
+          coveredLines: yield* Effect.forEach(codeCovItem.coveredLines, cov => getLineRange(document, Number(cov))),
+          uncoveredLines: yield* Effect.forEach(codeCovItem.uncoveredLines, uncov =>
+            getLineRange(document, Number(uncov))
           )
         };
-      }
+      });
 
-      return {
-        coveredLines: yield* Effect.forEach(codeCovItem.coveredLines, cov => getLineRange(document, Number(cov))),
-        uncoveredLines: yield* Effect.forEach(codeCovItem.uncoveredLines, uncov =>
-          getLineRange(document, Number(uncov))
-        )
-      };
-    });
+      /** Reset coverage Refs to empty. */
+      const clear = Effect.fn('CodeCoverageService.clear')(function* () {
+        yield* Ref.set(coveredLines, []);
+        yield* Ref.set(uncoveredLines, []);
+        return emptyRanges();
+      });
 
-    /** Reset coverage Refs to empty. */
-    const clear = Effect.fn('CodeCoverageService.clear')(function* () {
-      yield* Ref.set(coveredLines, []);
-      yield* Ref.set(uncoveredLines, []);
-      return emptyRanges();
-    });
+      /** Read the current coverage ranges from the Refs. */
+      const getRanges = Effect.fn('CodeCoverageService.getRanges')(function* () {
+        return { coveredLines: yield* Ref.get(coveredLines), uncoveredLines: yield* Ref.get(uncoveredLines) };
+      });
 
-    /** Read the current coverage ranges from the Refs. */
-    const getRanges = Effect.fn('CodeCoverageService.getRanges')(function* () {
-      return { coveredLines: yield* Ref.get(coveredLines), uncoveredLines: yield* Ref.get(uncoveredLines) };
-    });
+      /** Log coverage error to channel (if warnings disabled) or show as warning message. */
+      const handleCoverageException = Effect.fn('CodeCoverageService.handleCoverageException')(function* (
+        e: NoCoverageOnProjectError | StaleResultsError | NoCoverageForFileError | OutOfSyncCoverageError
+      ) {
+        const api = yield* (yield* ExtensionProviderService).getServicesApi;
+        const settings = yield* api.services.SettingsService;
+        const disableWarning = yield* settings.getValueOrElse(
+          APEX_TESTING_SECTION,
+          'disable-warnings-for-missing-coverage',
+          false
+        );
+        if (disableWarning) {
+          const svc = yield* api.services.ChannelService;
+          yield* svc.appendToChannel(e.message);
+        } else {
+          yield* Effect.sync(() => {
+            void window.showWarningMessage(nls.localize('colorizer_coverage_apply_failed_message', e.message));
+          });
+        }
+      });
 
-    /** Log coverage error to channel (if warnings disabled) or show as warning message. */
-    const handleCoverageException = Effect.fn('CodeCoverageService.handleCoverageException')(function* (
-      e: NoCoverageOnProjectError | StaleResultsError | NoCoverageForFileError | OutOfSyncCoverageError
-    ) {
-      const api = yield* (yield* ExtensionProviderService).getServicesApi;
-      const settings = yield* api.services.SettingsService;
-      const disableWarning = yield* settings.getValueOrElse(
-        APEX_TESTING_SECTION,
-        'disable-warnings-for-missing-coverage',
-        false
-      );
-      if (disableWarning) {
-        const svc = yield* api.services.ChannelService;
-        yield* svc.appendToChannel(e.message);
-      } else {
-        yield* Effect.sync(() => {
-          void window.showWarningMessage(nls.localize('colorizer_coverage_apply_failed_message', e.message));
-        });
-      }
-    });
+      /** Compute coverage for the editor's document, store it in Refs, and return the ranges. */
+      const applyForEditor = Effect.fn('CodeCoverageService.applyForEditor')(function* (document: TextDocument) {
+        const ranges = yield* computeRanges(document);
+        yield* Ref.set(coveredLines, ranges.coveredLines);
+        yield* Ref.set(uncoveredLines, ranges.uncoveredLines);
+        return ranges;
+      });
 
-    /** Compute coverage for the editor's document, store it in Refs, and return the ranges. */
-    const applyForEditor = Effect.fn('CodeCoverageService.applyForEditor')(function* (document: TextDocument) {
-      const ranges = yield* computeRanges(document);
-      yield* Ref.set(coveredLines, ranges.coveredLines);
-      yield* Ref.set(uncoveredLines, ranges.uncoveredLines);
-      return ranges;
-    });
+      /**
+       * Apply coverage for the editor, handling every coverage failure and returning the ranges to decorate.
+       * On failure the Refs are reset to empty so the editor clears stale decorations instead of redrawing
+       * the previous file's ranges.
+       */
+      const applyForEditorHandled = Effect.fn('CodeCoverageService.applyForEditorHandled')(function* (
+        document: TextDocument
+      ) {
+        return yield* applyForEditor(document).pipe(
+          // Enumerate tags (not catchAll) so a new failure type forces a compile decision.
+          Effect.catchTags({
+            NoCoverageOnProjectError: e => handleCoverageException(e).pipe(Effect.zipRight(clear())),
+            StaleResultsError: e => handleCoverageException(e).pipe(Effect.zipRight(clear())),
+            NoCoverageForFileError: e => handleCoverageException(e).pipe(Effect.zipRight(clear())),
+            OutOfSyncCoverageError: e => handleCoverageException(e).pipe(Effect.zipRight(clear()))
+          })
+        );
+      });
 
-    /**
-     * Apply coverage for the editor, handling every coverage failure and returning the ranges to decorate.
-     * On failure the Refs are reset to empty so the editor clears stale decorations instead of redrawing
-     * the previous file's ranges.
-     */
-    const applyForEditorHandled = Effect.fn('CodeCoverageService.applyForEditorHandled')(function* (
-      document: TextDocument
-    ) {
-      return yield* applyForEditor(document).pipe(
-        // Enumerate tags (not catchAll) so a new failure type forces a compile decision.
-        Effect.catchTags({
-          NoCoverageOnProjectError: e => handleCoverageException(e).pipe(Effect.zipRight(clear())),
-          StaleResultsError: e => handleCoverageException(e).pipe(Effect.zipRight(clear())),
-          NoCoverageForFileError: e => handleCoverageException(e).pipe(Effect.zipRight(clear())),
-          OutOfSyncCoverageError: e => handleCoverageException(e).pipe(Effect.zipRight(clear()))
-        })
-      );
-    });
-
-    return { applyForEditor, applyForEditorHandled, clear, getRanges, handleCoverageException };
-  })
-}) {}
+      return { applyForEditor, applyForEditorHandled, clear, getRanges, handleCoverageException };
+    })
+  }
+) {}

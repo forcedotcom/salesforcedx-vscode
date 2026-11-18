@@ -77,129 +77,132 @@ export const pollDeploy = Effect.fn('MetadataDeployService.pollDeploy')(function
   return deployOutcome;
 });
 
-export class MetadataDeployService extends Effect.Service<MetadataDeployService>()('MetadataDeployService', {
-  accessors: true,
-  dependencies: [
-    ConnectionService.Default,
-    FsService.Default,
-    MetadataChangeNotificationService.Default,
-    ProjectService.Default,
-    PromptService.Default,
-    WorkspaceService.Default,
-    SourceTrackingService.Default,
-    MetadataDescribeService.Default,
-    OrgMetadataCatalogRecorder.Default
-  ],
-  effect: Effect.gen(function* () {
-    const trackingService = yield* SourceTrackingService;
-    const connectionService = yield* ConnectionService;
-    const fsService = yield* FsService;
-    const workspaceService = yield* WorkspaceService;
-    const projectService = yield* ProjectService;
-    const promptService = yield* PromptService;
-    const notificationService = yield* MetadataChangeNotificationService;
-    const metadataDescribeService = yield* MetadataDescribeService;
-    const catalogRecorder = yield* OrgMetadataCatalogRecorder;
+export class MetadataDeployService extends Effect.Service<MetadataDeployService>()(
+  'salesforcedx-vscode-services/core/metadataDeployService',
+  {
+    accessors: true,
+    dependencies: [
+      ConnectionService.Default,
+      FsService.Default,
+      MetadataChangeNotificationService.Default,
+      ProjectService.Default,
+      PromptService.Default,
+      WorkspaceService.Default,
+      SourceTrackingService.Default,
+      MetadataDescribeService.Default,
+      OrgMetadataCatalogRecorder.Default
+    ],
+    effect: Effect.gen(function* () {
+      const trackingService = yield* SourceTrackingService;
+      const connectionService = yield* ConnectionService;
+      const fsService = yield* FsService;
+      const workspaceService = yield* WorkspaceService;
+      const projectService = yield* ProjectService;
+      const promptService = yield* PromptService;
+      const notificationService = yield* MetadataChangeNotificationService;
+      const metadataDescribeService = yield* MetadataDescribeService;
+      const catalogRecorder = yield* OrgMetadataCatalogRecorder;
 
-    /** Get ComponentSet of local changes for deploy */
-    const getComponentSetForDeploy = Effect.fn('MetadataDeployService.getComponentSetForDeploy')(function* () {
-      const localComponentSets = yield* trackingService.getLocalChangesAsComponentSet();
+      /** Get ComponentSet of local changes for deploy */
+      const getComponentSetForDeploy = Effect.fn('MetadataDeployService.getComponentSetForDeploy')(function* () {
+        const localComponentSets = yield* trackingService.getLocalChangesAsComponentSet();
 
-      yield* Effect.annotateCurrentSpan({
-        componentCount: localComponentSets.map(cs => cs.size).reduce((n, size) => n + size, 0),
-        componentSetCount: localComponentSets.length,
-        projectDirectory: localComponentSets[0]?.projectDirectory
+        yield* Effect.annotateCurrentSpan({
+          componentCount: localComponentSets.map(cs => cs.size).reduce((n, size) => n + size, 0),
+          componentSetCount: localComponentSets.length,
+          projectDirectory: localComponentSets[0]?.projectDirectory
+        });
+        return localComponentSets[0] ?? new ComponentSet();
       });
-      return localComponentSets[0] ?? new ComponentSet();
-    });
 
-    const publishDeployNotifications = Effect.fn('MetadataDeployService.publishDeployNotifications')(function* (
-      deployOutcome: DeployResult,
-      orgId: string | undefined
-    ) {
-      const successfulResponses = deployOutcome.getFileResponses().filter(isSDRSuccess);
-      const changes = dedupeMetadataChanges(
-        yield* Effect.forEach(
-          successfulResponses,
-          response =>
-            Effect.gen(function* () {
-              return {
-                metadataType: response.type,
-                fullName: response.fullName,
-                changeType: toComponentStatusChangeType(response.state),
-                fileUri: Option.fromNullable(
-                  isNotUndefined(response.filePath) ? yield* fsService.toUri(response.filePath) : undefined
-                )
-              };
-            }),
-          { concurrency: 'unbounded' }
-        )
-      );
-      if (changes.length === 0) return;
-      yield* Effect.annotateCurrentSpan({
-        rawFileResponseCount: successfulResponses.length,
-        uniqueComponentCount: changes.length,
-        affectedMetadataTypeCount: new Set(changes.map(change => change.metadataType)).size
-      });
-      const event = {
-        ...(orgId ? { orgId } : {}),
-        operation: changes.every(change => change.changeType === 'deleted') ? 'delete' : 'deploy',
-        completedAt: DateTime.formatIso(yield* DateTime.now),
-        changes: [...changes]
-      } as const;
-      yield* notificationService.publishOperation(event);
-      if (orgId) {
-        yield* metadataDescribeService.invalidateForMetadataChanges(
-          orgId,
-          changes.map(change => ({ xmlName: change.metadataType, fullName: change.fullName }))
+      const publishDeployNotifications = Effect.fn('MetadataDeployService.publishDeployNotifications')(function* (
+        deployOutcome: DeployResult,
+        orgId: string | undefined
+      ) {
+        const successfulResponses = deployOutcome.getFileResponses().filter(isSDRSuccess);
+        const changes = dedupeMetadataChanges(
+          yield* Effect.forEach(
+            successfulResponses,
+            response =>
+              Effect.gen(function* () {
+                return {
+                  metadataType: response.type,
+                  fullName: response.fullName,
+                  changeType: toComponentStatusChangeType(response.state),
+                  fileUri: Option.fromNullable(
+                    isNotUndefined(response.filePath) ? yield* fsService.toUri(response.filePath) : undefined
+                  )
+                };
+              }),
+            { concurrency: 'unbounded' }
+          )
         );
-      }
-      yield* catalogRecorder.recordOperation(event);
-    });
+        if (changes.length === 0) return;
+        yield* Effect.annotateCurrentSpan({
+          rawFileResponseCount: successfulResponses.length,
+          uniqueComponentCount: changes.length,
+          affectedMetadataTypeCount: new Set(changes.map(change => change.metadataType)).size
+        });
+        const event = {
+          ...(orgId ? { orgId } : {}),
+          operation: changes.every(change => change.changeType === 'deleted') ? 'delete' : 'deploy',
+          completedAt: DateTime.formatIso(yield* DateTime.now),
+          changes: [...changes]
+        } as const;
+        yield* notificationService.publishOperation(event);
+        if (orgId) {
+          yield* metadataDescribeService.invalidateForMetadataChanges(
+            orgId,
+            changes.map(change => ({ xmlName: change.metadataType, fullName: change.fullName }))
+          );
+        }
+        yield* catalogRecorder.recordOperation(event);
+      });
 
-    /** Deploy metadata to the default org */
-    const deploy = Effect.fn('MetadataDeployService.deploy')(function* (
-      components: ComponentSet,
-      options?: { progressLocation?: vscode.ProgressLocation }
-    ) {
-      yield* Effect.all(
-        [workspaceService.getWorkspaceInfoOrThrow(), Effect.annotateCurrentSpan({ componentCount: components.size })],
-        { concurrency: 'unbounded' }
-      );
-
-      const connection = yield* connectionService.getConnection();
-      components.projectDirectory = (yield* projectService.getSfProject()).getPath();
-
-      // Show progress before the initial deploy request: on a busy org that request can take many seconds,
-      // and the user should see "Deploying" immediately.
-      const deployOutcome = yield* promptService.withProgressReporting({
-        title: getDeployMessage(components),
-        location: options?.progressLocation,
-        cancellable: true,
-        interruptOnCancel: false
-      })((_, token) => pollDeploy(() => components.deploy({ usernameOrConnection: connection }), token));
-
-      if (
-        deployOutcome.response?.status === RequestStatus.Succeeded ||
-        deployOutcome.response?.status === RequestStatus.SucceededPartial
+      /** Deploy metadata to the default org */
+      const deploy = Effect.fn('MetadataDeployService.deploy')(function* (
+        components: ComponentSet,
+        options?: { progressLocation?: vscode.ProgressLocation }
       ) {
         yield* Effect.all(
-          [
-            trackingService
-              .maybeUpdateTrackingFromDeploy(deployOutcome)
-              .pipe(Effect.withSpan('MetadataDeployService.maybeUpdateTrackingFromDeploy')),
-            publishDeployNotifications(deployOutcome, Option.getOrUndefined(orgIdFromConnection(connection)))
-          ],
+          [workspaceService.getWorkspaceInfoOrThrow(), Effect.annotateCurrentSpan({ componentCount: components.size })],
           { concurrency: 'unbounded' }
         );
-      }
 
-      return deployOutcome;
-    }, withActiveMetadataOperationPipeline);
+        const connection = yield* connectionService.getConnection();
+        components.projectDirectory = (yield* projectService.getSfProject()).getPath();
 
-    return { deploy, getComponentSetForDeploy };
-  })
-}) {}
+        // Show progress before the initial deploy request: on a busy org that request can take many seconds,
+        // and the user should see "Deploying" immediately.
+        const deployOutcome = yield* promptService.withProgressReporting({
+          title: getDeployMessage(components),
+          location: options?.progressLocation,
+          cancellable: true,
+          interruptOnCancel: false
+        })((_, token) => pollDeploy(() => components.deploy({ usernameOrConnection: connection }), token));
+
+        if (
+          deployOutcome.response?.status === RequestStatus.Succeeded ||
+          deployOutcome.response?.status === RequestStatus.SucceededPartial
+        ) {
+          yield* Effect.all(
+            [
+              trackingService
+                .maybeUpdateTrackingFromDeploy(deployOutcome)
+                .pipe(Effect.withSpan('MetadataDeployService.maybeUpdateTrackingFromDeploy')),
+              publishDeployNotifications(deployOutcome, Option.getOrUndefined(orgIdFromConnection(connection)))
+            ],
+            { concurrency: 'unbounded' }
+          );
+        }
+
+        return deployOutcome;
+      }, withActiveMetadataOperationPipeline);
+
+      return { deploy, getComponentSetForDeploy };
+    })
+  }
+) {}
 
 const getDeployMessage = (components: ComponentSet): string => {
   const byType = Map.groupBy(components.getSourceComponents().toArray(), c =>

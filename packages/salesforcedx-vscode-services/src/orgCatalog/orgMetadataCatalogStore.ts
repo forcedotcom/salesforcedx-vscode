@@ -126,60 +126,69 @@ const snapshotSpanAttributes = (snapshot: OrgMetadataCatalogSnapshot) => ({
   metadataListingCount: snapshot.metadataListings.length
 });
 
-export class OrgMetadataCatalogStore extends Effect.Service<OrgMetadataCatalogStore>()('OrgMetadataCatalogStore', {
-  accessors: true,
-  dependencies: [FsService.Default, WorkspaceService.Default],
-  effect: Effect.gen(function* () {
-    const [fsService, workspaceService] = yield* Effect.all([FsService, WorkspaceService]);
-    const saveSemaphore = yield* Effect.makeSemaphore(1);
+export class OrgMetadataCatalogStore extends Effect.Service<OrgMetadataCatalogStore>()(
+  'salesforcedx-vscode-services/orgCatalog/orgMetadataCatalogStore',
+  {
+    accessors: true,
+    dependencies: [FsService.Default, WorkspaceService.Default],
+    effect: Effect.gen(function* () {
+      const [fsService, workspaceService] = yield* Effect.all([FsService, WorkspaceService]);
+      const saveSemaphore = yield* Effect.makeSemaphore(1);
 
-    const getRootUri = Effect.fn('OrgMetadataCatalogStore.getRootUri')(function* (orgId: string) {
-      const workspace = yield* workspaceService.getWorkspaceInfoOrThrow();
-      return Utils.joinPath(workspace.uri, '.sf', 'orgs', yield* Encoding.encodeUriComponent(orgId), CATALOG_DIRECTORY);
-    });
+      const getRootUri = Effect.fn('OrgMetadataCatalogStore.getRootUri')(function* (orgId: string) {
+        const workspace = yield* workspaceService.getWorkspaceInfoOrThrow();
+        return Utils.joinPath(
+          workspace.uri,
+          '.sf',
+          'orgs',
+          yield* Encoding.encodeUriComponent(orgId),
+          CATALOG_DIRECTORY
+        );
+      });
 
-    const getSnapshotUri = Effect.fn('OrgMetadataCatalogStore.getSnapshotUri')(function* (orgId: string) {
-      return Utils.joinPath(yield* getRootUri(orgId), CATALOG_FILE);
-    });
+      const getSnapshotUri = Effect.fn('OrgMetadataCatalogStore.getSnapshotUri')(function* (orgId: string) {
+        return Utils.joinPath(yield* getRootUri(orgId), CATALOG_FILE);
+      });
 
-    const load = Effect.fn('OrgMetadataCatalogStore.load')(function* (orgId: string) {
-      const snapshotUri = yield* getSnapshotUri(orgId);
-      if (!(yield* fsService.fileOrFolderExists(snapshotUri))) return undefined;
-      const decoded = yield* fsService.readJSON(
-        snapshotUri.toString(),
-        Schema.Union(OrgMetadataCatalogSnapshotV1Schema, OrgMetadataCatalogSnapshotSchema)
-      );
-      const snapshot: OrgMetadataCatalogSnapshot =
-        decoded.version === 1
-          ? { ...decoded, version: CATALOG_VERSION, metadataTypes: [], metadataListings: [] }
-          : decoded;
-      if (snapshot.orgId !== orgId) {
-        return yield* new OrgMetadataCatalogSnapshotOrgMismatchError({
-          message: `Catalog snapshot org '${snapshot.orgId}' does not match '${orgId}'`
-        });
-      }
-      yield* Effect.annotateCurrentSpan(snapshotSpanAttributes(snapshot));
-      return snapshot;
-    });
-
-    const save = Effect.fn('OrgMetadataCatalogStore.save')(function* (snapshot: OrgMetadataCatalogSnapshot) {
-      return yield* saveSemaphore.withPermits(1)(
-        Effect.gen(function* () {
-          const snapshotUri = yield* getSnapshotUri(snapshot.orgId);
-          const stagingUri = URI.parse(`${snapshotUri.toString()}.__staging__`);
-          const encoded = yield* Schema.encode(OrgMetadataCatalogSnapshotSchema)(snapshot);
-          const content = JSON.stringify(encoded, null, 2);
-          yield* fsService.safeWriteFile(stagingUri, content);
-          yield* fsService.rename(stagingUri.toString(), snapshotUri.toString(), { overwrite: true });
-          yield* Effect.annotateCurrentSpan({
-            ...snapshotSpanAttributes(snapshot),
-            byteCount: new TextEncoder().encode(content).byteLength
+      const load = Effect.fn('OrgMetadataCatalogStore.load')(function* (orgId: string) {
+        const snapshotUri = yield* getSnapshotUri(orgId);
+        if (!(yield* fsService.fileOrFolderExists(snapshotUri))) return undefined;
+        const decoded = yield* fsService.readJSON(
+          snapshotUri.toString(),
+          Schema.Union(OrgMetadataCatalogSnapshotV1Schema, OrgMetadataCatalogSnapshotSchema)
+        );
+        const snapshot: OrgMetadataCatalogSnapshot =
+          decoded.version === 1
+            ? { ...decoded, version: CATALOG_VERSION, metadataTypes: [], metadataListings: [] }
+            : decoded;
+        if (snapshot.orgId !== orgId) {
+          return yield* new OrgMetadataCatalogSnapshotOrgMismatchError({
+            message: `Catalog snapshot org '${snapshot.orgId}' does not match '${orgId}'`
           });
-          return snapshotUri;
-        })
-      );
-    });
+        }
+        yield* Effect.annotateCurrentSpan(snapshotSpanAttributes(snapshot));
+        return snapshot;
+      });
 
-    return { getSnapshotUri, load, save };
-  })
-}) {}
+      const save = Effect.fn('OrgMetadataCatalogStore.save')(function* (snapshot: OrgMetadataCatalogSnapshot) {
+        return yield* saveSemaphore.withPermits(1)(
+          Effect.gen(function* () {
+            const snapshotUri = yield* getSnapshotUri(snapshot.orgId);
+            const stagingUri = URI.parse(`${snapshotUri.toString()}.__staging__`);
+            const encoded = yield* Schema.encode(OrgMetadataCatalogSnapshotSchema)(snapshot);
+            const content = JSON.stringify(encoded, null, 2);
+            yield* fsService.safeWriteFile(stagingUri, content);
+            yield* fsService.rename(stagingUri.toString(), snapshotUri.toString(), { overwrite: true });
+            yield* Effect.annotateCurrentSpan({
+              ...snapshotSpanAttributes(snapshot),
+              byteCount: new TextEncoder().encode(content).byteLength
+            });
+            return snapshotUri;
+          })
+        );
+      });
+
+      return { getSnapshotUri, load, save };
+    })
+  }
+) {}

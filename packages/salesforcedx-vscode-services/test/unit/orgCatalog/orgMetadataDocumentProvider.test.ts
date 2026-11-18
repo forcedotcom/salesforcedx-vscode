@@ -36,9 +36,12 @@ const makeHarness = (isEmpty: boolean) => {
   const invalidateWorkspaceInventories = vi.fn(() => Effect.void);
   const readDocumentUri = vi.fn(() => Effect.succeed('body'));
   const layer = Layer.mergeAll(
-    Layer.mock(OrgCatalogDocuments, { _tag: 'OrgCatalogDocuments', readDocumentUri }),
+    Layer.mock(OrgCatalogDocuments, {
+      _tag: 'salesforcedx-vscode-services/orgCatalog/orgCatalogDocuments',
+      readDocumentUri
+    }),
     Layer.mock(OrgCatalogState, {
-      _tag: 'OrgCatalogState',
+      _tag: 'salesforcedx-vscode-services/orgCatalog/orgCatalogState',
       ensureHydrated: () => Effect.void,
       invalidateOrgInventories,
       invalidateWorkspaceInventories,
@@ -48,7 +51,7 @@ const makeHarness = (isEmpty: boolean) => {
     FileChangePubSub.Default,
     MetadataChangeNotificationService.Default,
     Layer.mock(WorkspaceService, {
-      _tag: 'WorkspaceService',
+      _tag: 'salesforcedx-vscode-services/vscode/workspaceService',
       getWorkspaceInfo: () =>
         Effect.succeed({
           uri: URI.file('/workspace'),

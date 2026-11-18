@@ -16,18 +16,21 @@ import { getExtensionContext } from './extensionContext';
  * Use ExtensionContextServiceLayer to provide the context.
  * Default falls back to the services extension's context when set.
  */
-export class ExtensionContextService extends Effect.Service<ExtensionContextService>()('ExtensionContextService', {
-  sync: (): {
-    getContext: Effect.Effect<ExtensionContext, ExtensionContextNotAvailableError>;
-    getDisplayName: Effect.Effect<string, ExtensionContextNotAvailableError>;
-  } => ({
-    getContext: getExtensionContext(),
-    getDisplayName: Effect.gen(function* () {
-      const ctx = yield* getExtensionContext();
-      return ctx.extension.packageJSON.displayName;
+export class ExtensionContextService extends Effect.Service<ExtensionContextService>()(
+  'salesforcedx-vscode-services/vscode/extensionContextService',
+  {
+    sync: (): {
+      getContext: Effect.Effect<ExtensionContext, ExtensionContextNotAvailableError>;
+      getDisplayName: Effect.Effect<string, ExtensionContextNotAvailableError>;
+    } => ({
+      getContext: getExtensionContext(),
+      getDisplayName: Effect.gen(function* () {
+        const ctx = yield* getExtensionContext();
+        return ctx.extension.packageJSON.displayName;
+      })
     })
-  })
-}) {}
+  }
+) {}
 
 /**
  * Factory for a Layer that provides an ExtensionContextService for the given context.

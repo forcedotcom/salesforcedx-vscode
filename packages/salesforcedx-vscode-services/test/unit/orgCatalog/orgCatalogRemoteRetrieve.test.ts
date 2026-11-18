@@ -53,11 +53,11 @@ const makeHarness = () => {
           ensureNonEmptyComponentSet: componentSet => Effect.succeed(componentSet as NonEmptyComponentSet)
         } as Pick<ComponentSetService, 'ensureNonEmptyComponentSet'> as ComponentSetService),
         Layer.mock(MetadataRegistryService, {
-          _tag: 'MetadataRegistryService',
+          _tag: 'salesforcedx-vscode-services/core/metadataRegistryService',
           getRegistryAccess: () => Effect.succeed(new RegistryAccess(registry))
         }),
         Layer.mock(MetadataRetrieveService, {
-          _tag: 'MetadataRetrieveService',
+          _tag: 'salesforcedx-vscode-services/core/metadataRetrieveService',
           buildComponentSet: members => Effect.succeed(new ComponentSet(members)),
           retrieveComponentSetToDirectory:
             retrieveComponentSetToDirectory as unknown as MetadataRetrieveService['retrieveComponentSetToDirectory']
@@ -68,7 +68,7 @@ const makeHarness = () => {
           safeDelete: () => Effect.void
         } as Pick<FsService, 'readDirectoryWithTypes' | 'toUri' | 'safeDelete'> as FsService),
         Layer.mock(OrgMetadataShadowStore, {
-          _tag: 'OrgMetadataShadowStore',
+          _tag: 'salesforcedx-vscode-services/orgCatalog/orgMetadataShadowStore',
           prepare: () => Effect.succeed({ rootUri: stagingUri, stagingUri }),
           publish
         })

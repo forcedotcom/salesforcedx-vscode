@@ -29,45 +29,48 @@ const transitionAttributes = (identity: WorkspaceOrgIdentity) => ({
   isSandbox: identity.isSandbox ?? false
 });
 
-export class WorkspaceContextService extends Effect.Service<WorkspaceContextService>()('WorkspaceContextService', {
-  accessors: true,
-  dependencies: [Layer.service(ExtensionProviderService)],
-  scoped: Effect.gen(function* () {
-    const api = yield* (yield* ExtensionProviderService).getServicesApi;
-    const targetOrgRef = yield* api.services.TargetOrgRef();
-    const identityRef = MutableRef.make<WorkspaceOrgIdentity>({});
-    const orgChanges = yield* PubSub.sliding<OrgUserInfo>(1);
-    const latch = yield* Effect.makeLatch();
-    const extensionScope = yield* getExtensionScope();
+export class WorkspaceContextService extends Effect.Service<WorkspaceContextService>()(
+  'salesforcedx-vscode-core/context/workspaceContextService',
+  {
+    accessors: true,
+    dependencies: [Layer.service(ExtensionProviderService)],
+    scoped: Effect.gen(function* () {
+      const api = yield* (yield* ExtensionProviderService).getServicesApi;
+      const targetOrgRef = yield* api.services.TargetOrgRef();
+      const identityRef = MutableRef.make<WorkspaceOrgIdentity>({});
+      const orgChanges = yield* PubSub.sliding<OrgUserInfo>(1);
+      const latch = yield* Effect.makeLatch();
+      const extensionScope = yield* getExtensionScope();
 
-    const watch = Effect.fnUntraced(function* () {
-      yield* targetOrgRef.changes.pipe(
-        Stream.map(Struct.pick('username', 'alias', 'orgId', 'isScratch', 'isSandbox')),
-        Stream.changesWith(sameIdentity),
-        Stream.tap(identity => Effect.sync(() => MutableRef.set(identityRef, identity))),
-        Stream.tap(() => latch.open),
-        Stream.drop(1),
-        Stream.runForEach(identity =>
-          PubSub.publish(orgChanges, { username: identity.username, alias: identity.alias }).pipe(
-            Effect.withSpan('WorkspaceContext.updateTargetOrgState', {
-              attributes: transitionAttributes(identity)
-            })
+      const watch = Effect.fnUntraced(function* () {
+        yield* targetOrgRef.changes.pipe(
+          Stream.map(Struct.pick('username', 'alias', 'orgId', 'isScratch', 'isSandbox')),
+          Stream.changesWith(sameIdentity),
+          Stream.tap(identity => Effect.sync(() => MutableRef.set(identityRef, identity))),
+          Stream.tap(() => latch.open),
+          Stream.drop(1),
+          Stream.runForEach(identity =>
+            PubSub.publish(orgChanges, { username: identity.username, alias: identity.alias }).pipe(
+              Effect.withSpan('WorkspaceContext.updateTargetOrgState', {
+                attributes: transitionAttributes(identity)
+              })
+            )
           )
-        )
-      );
-    });
+        );
+      });
 
-    yield* watch().pipe(Effect.forkIn(extensionScope));
+      yield* watch().pipe(Effect.forkIn(extensionScope));
 
-    const getIdentityValue = <K extends keyof WorkspaceOrgIdentity>(key: K): WorkspaceOrgIdentity[K] =>
-      MutableRef.get(identityRef)[key];
+      const getIdentityValue = <K extends keyof WorkspaceOrgIdentity>(key: K): WorkspaceOrgIdentity[K] =>
+        MutableRef.get(identityRef)[key];
 
-    return {
-      getUsername: () => getIdentityValue('username'),
-      getAlias: () => getIdentityValue('alias'),
-      getOrgId: () => getIdentityValue('orgId'),
-      orgChanges,
-      initialized: latch.await
-    };
-  })
-}) {}
+      return {
+        getUsername: () => getIdentityValue('username'),
+        getAlias: () => getIdentityValue('alias'),
+        getOrgId: () => getIdentityValue('orgId'),
+        orgChanges,
+        initialized: latch.await
+      };
+    })
+  }
+) {}

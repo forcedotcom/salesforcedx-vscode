@@ -11,6 +11,9 @@ import type * as vscode from 'vscode';
 
 /** PubSub that broadcasts VS Code configuration-change events.
  * The VS Code wiring (SettingsWatcherLayer) writes to this; consumers subscribe read-only. */
-export class SettingsChangePubSub extends Effect.Service<SettingsChangePubSub>()('SettingsChangePubSub', {
-  scoped: PubSub.sliding<vscode.ConfigurationChangeEvent>(10_000)
-}) {}
+export class SettingsChangePubSub extends Effect.Service<SettingsChangePubSub>()(
+  'salesforcedx-vscode-services/vscode/settingsChangePubSub',
+  {
+    scoped: PubSub.sliding<vscode.ConfigurationChangeEvent>(10_000)
+  }
+) {}

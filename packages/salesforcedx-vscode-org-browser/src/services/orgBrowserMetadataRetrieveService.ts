@@ -74,7 +74,7 @@ const findFirstSuccessfulFile = (result: RetrieveResult): Option.Option<string> 
   );
 
 export class OrgBrowserRetrieveService extends Effect.Service<OrgBrowserRetrieveService>()(
-  'OrgBrowserRetrieveService',
+  'salesforcedx-vscode-org-browser/services/orgBrowserMetadataRetrieveService/OrgBrowserRetrieveService',
   {
     accessors: true,
     succeed: {

@@ -20,24 +20,27 @@ const snapshotInstalledIds = (): ReadonlySet<string> => new Set(vscode.extension
  * but does NOT fire when an extension activates. Consumers needing presence/enabled
  * state should subscribe to `changes`; consumers needing isActive must read it directly.
  */
-export class ExtensionsService extends Effect.Service<ExtensionsService>()('ExtensionsService', {
-  accessors: true,
-  scoped: Effect.gen(function* () {
-    const ref = yield* SubscriptionRef.make<ReadonlySet<string>>(snapshotInstalledIds());
-    const runtime = yield* Effect.runtime();
-    const disposable = vscode.extensions.onDidChange(() => {
-      Runtime.runSync(runtime)(SubscriptionRef.set(ref, snapshotInstalledIds()));
-    });
-    yield* Effect.addFinalizer(() =>
-      Effect.sync(() => {
-        disposable.dispose();
-      })
-    );
+export class ExtensionsService extends Effect.Service<ExtensionsService>()(
+  'salesforcedx-vscode-services/vscode/extensionsService',
+  {
+    accessors: true,
+    scoped: Effect.gen(function* () {
+      const ref = yield* SubscriptionRef.make<ReadonlySet<string>>(snapshotInstalledIds());
+      const runtime = yield* Effect.runtime();
+      const disposable = vscode.extensions.onDidChange(() => {
+        Runtime.runSync(runtime)(SubscriptionRef.set(ref, snapshotInstalledIds()));
+      });
+      yield* Effect.addFinalizer(() =>
+        Effect.sync(() => {
+          disposable.dispose();
+        })
+      );
 
-    const changes: Stream.Stream<ReadonlySet<string>> = ref.changes;
-    const get = SubscriptionRef.get(ref);
-    const isInstalled = (id: string) => Effect.map(get, ids => ids.has(id));
+      const changes: Stream.Stream<ReadonlySet<string>> = ref.changes;
+      const get = SubscriptionRef.get(ref);
+      const isInstalled = (id: string) => Effect.map(get, ids => ids.has(id));
 
-    return { changes, get, isInstalled };
-  })
-}) {}
+      return { changes, get, isInstalled };
+    })
+  }
+) {}

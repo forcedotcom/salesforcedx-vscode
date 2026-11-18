@@ -61,25 +61,28 @@ export class NoWorkspaceOpenError extends Schema.TaggedError<NoWorkspaceOpenErro
   message: Schema.String
 }) {}
 
-export class WorkspaceService extends Effect.Service<WorkspaceService>()('WorkspaceService', {
-  accessors: true,
-  effect: Effect.gen(function* () {
-    /** Get info about the workspace */
-    const getWorkspaceInfo = Effect.fn('WorkspaceService.getWorkspaceInfo')(function* () {
-      // Always read `vscode.workspace.workspaceFolders` fresh. Cached workspace info on web poisoned the first
-      // value when the memo ran before `vscode-test-web` mounted the folder (empty / wrong `fsPath`), breaking
-      // `sf:project_opened` and commands such as **SFDX: Create Lightning Web Component** in Playwright web E2E.
-      return yield* getWorkspaceInfoTask;
-    });
+export class WorkspaceService extends Effect.Service<WorkspaceService>()(
+  'salesforcedx-vscode-services/vscode/workspaceService',
+  {
+    accessors: true,
+    effect: Effect.gen(function* () {
+      /** Get info about the workspace */
+      const getWorkspaceInfo = Effect.fn('WorkspaceService.getWorkspaceInfo')(function* () {
+        // Always read `vscode.workspace.workspaceFolders` fresh. Cached workspace info on web poisoned the first
+        // value when the memo ran before `vscode-test-web` mounted the folder (empty / wrong `fsPath`), breaking
+        // `sf:project_opened` and commands such as **SFDX: Create Lightning Web Component** in Playwright web E2E.
+        return yield* getWorkspaceInfoTask;
+      });
 
-    /** GetWorkspaceInfo, throws if there is not one open */
-    const getWorkspaceInfoOrThrow = Effect.fn('WorkspaceService.getWorkspaceInfoOrThrow')(function* () {
-      const info = yield* getWorkspaceInfoTask;
-      return yield* isNonEmptyWorkspace(info)
-        ? Effect.succeed(info)
-        : Effect.fail(new NoWorkspaceOpenError({ message: 'No workspace is currently open' }));
-    });
+      /** GetWorkspaceInfo, throws if there is not one open */
+      const getWorkspaceInfoOrThrow = Effect.fn('WorkspaceService.getWorkspaceInfoOrThrow')(function* () {
+        const info = yield* getWorkspaceInfoTask;
+        return yield* isNonEmptyWorkspace(info)
+          ? Effect.succeed(info)
+          : Effect.fail(new NoWorkspaceOpenError({ message: 'No workspace is currently open' }));
+      });
 
-    return { getWorkspaceInfo, getWorkspaceInfoOrThrow };
-  })
-}) {}
+      return { getWorkspaceInfo, getWorkspaceInfoOrThrow };
+    })
+  }
+) {}

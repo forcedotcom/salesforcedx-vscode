@@ -32,7 +32,7 @@ export type OrgMetadataCatalogChange =
 
 /** Signals why consumers should re-query their view of the org catalog. */
 export class OrgMetadataCatalogChangePubSub extends Effect.Service<OrgMetadataCatalogChangePubSub>()(
-  'OrgMetadataCatalogChangePubSub',
+  'salesforcedx-vscode-services/orgCatalog/orgMetadataCatalogChangePubSub',
   {
     scoped: PubSub.sliding<OrgMetadataCatalogChange>(100)
   }

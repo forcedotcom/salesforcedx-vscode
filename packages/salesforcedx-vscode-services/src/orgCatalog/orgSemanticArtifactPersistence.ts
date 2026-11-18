@@ -53,7 +53,7 @@ const semanticArtifactKey = (
 
 /** Typed canonical persistence boundary for remote semantic projections. Actual source remains in metadata-shadow. */
 export class OrgSemanticArtifactPersistence extends Effect.Service<OrgSemanticArtifactPersistence>()(
-  'OrgSemanticArtifactPersistence',
+  'salesforcedx-vscode-services/orgCatalog/orgSemanticArtifactPersistence',
   {
     accessors: true,
     dependencies: [OrgSemanticArtifactStore.Default, TransmogrifierService.Default],

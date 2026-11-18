@@ -17,7 +17,7 @@ import type * as Schema from 'effect/Schema';
 import { ConnectionService } from './connectionService';
 import { executeQuery, type QueryOptions } from './queryExecute';
 
-export class QueryService extends Effect.Service<QueryService>()('QueryService', {
+export class QueryService extends Effect.Service<QueryService>()('salesforcedx-vscode-services/core/queryService', {
   accessors: true,
   dependencies: [ConnectionService.Default],
   effect: Effect.gen(function* () {

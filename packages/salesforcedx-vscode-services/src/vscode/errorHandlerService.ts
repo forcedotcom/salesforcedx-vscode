@@ -75,42 +75,47 @@ export const getErrorMessage = (error: unknown): string => {
  * Logs the error message to the output channel except for deploy/retrieve completed-with-errors (details are already in the channel).
  * When errors have actions (like SfError), also shows a "View Details" button.
  */
-export class ErrorHandlerService extends Effect.Service<ErrorHandlerService>()('ErrorHandlerService', {
-  dependencies: [Layer.service(ChannelService)],
-  effect: Effect.gen(function* () {
-    const channelService = yield* ChannelService;
-    return {
-      /** Handle a Cause by showing error notification - use with Effect.catchAllCause */
-      handleCause: (cause: Cause.Cause<unknown>) =>
-        Effect.gen(function* () {
-          const error = Cause.squash(cause);
-          const baseMessage = getBaseMessage(error);
-          const actions = getActions(error);
-          const tag = isRecord(error) && '_tag' in error ? Reflect.get(error, '_tag') : undefined;
-          const channelPrefix = isString(tag) ? `[${tag}] ` : '';
+export class ErrorHandlerService extends Effect.Service<ErrorHandlerService>()(
+  'salesforcedx-vscode-services/vscode/errorHandlerService',
+  {
+    dependencies: [Layer.service(ChannelService)],
+    effect: Effect.gen(function* () {
+      const channelService = yield* ChannelService;
+      return {
+        /** Handle a Cause by showing error notification - use with Effect.catchAllCause */
+        handleCause: (cause: Cause.Cause<unknown>) =>
+          Effect.gen(function* () {
+            const error = Cause.squash(cause);
+            const baseMessage = getBaseMessage(error);
+            const actions = getActions(error);
+            const tag = isRecord(error) && '_tag' in error ? Reflect.get(error, '_tag') : undefined;
+            const channelPrefix = isString(tag) ? `[${tag}] ` : '';
 
-          if (isRecoverableOrgChangeInterruption(error)) {
-            yield* channelService.appendToChannel(`${channelPrefix}${baseMessage}`);
-            yield* Effect.sync(
-              () => void vscode.window.showInformationMessage(nls.localize('org_operation_superseded'))
-            );
-            return;
-          }
-
-          if (actions.length > 0) {
-            const fullMessage = `${channelPrefix}Error: ${baseMessage}\n\n${actions.join('\n')}`;
-            yield* channelService.appendToChannel(fullMessage);
-            const channel = yield* channelService.getChannel;
-            const viewSuggestions = nls.localize('view_suggestions');
-            const selection = yield* Effect.promise(() => vscode.window.showErrorMessage(baseMessage, viewSuggestions));
-            if (selection === viewSuggestions) channel.show();
-          } else {
-            if (!isMetadataCompletedWithErrorsSummaryError(error)) {
+            if (isRecoverableOrgChangeInterruption(error)) {
               yield* channelService.appendToChannel(`${channelPrefix}${baseMessage}`);
+              yield* Effect.sync(
+                () => void vscode.window.showInformationMessage(nls.localize('org_operation_superseded'))
+              );
+              return;
             }
-            yield* Effect.sync(() => void vscode.window.showErrorMessage(baseMessage));
-          }
-        })
-    };
-  })
-}) {}
+
+            if (actions.length > 0) {
+              const fullMessage = `${channelPrefix}Error: ${baseMessage}\n\n${actions.join('\n')}`;
+              yield* channelService.appendToChannel(fullMessage);
+              const channel = yield* channelService.getChannel;
+              const viewSuggestions = nls.localize('view_suggestions');
+              const selection = yield* Effect.promise(() =>
+                vscode.window.showErrorMessage(baseMessage, viewSuggestions)
+              );
+              if (selection === viewSuggestions) channel.show();
+            } else {
+              if (!isMetadataCompletedWithErrorsSummaryError(error)) {
+                yield* channelService.appendToChannel(`${channelPrefix}${baseMessage}`);
+              }
+              yield* Effect.sync(() => void vscode.window.showErrorMessage(baseMessage));
+            }
+          })
+      };
+    })
+  }
+) {}

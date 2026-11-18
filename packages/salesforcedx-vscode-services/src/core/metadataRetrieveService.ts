@@ -91,320 +91,325 @@ type PerformRetrieveOperationInput = {
 
 type MetadataRetrieveOptions = SourceTrackingOptions & { readonly expectedOrgId?: string };
 
-export class MetadataRetrieveService extends Effect.Service<MetadataRetrieveService>()('MetadataRetrieveService', {
-  accessors: true,
-  dependencies: [
-    WorkspaceService.Default,
-    ConnectionService.Default,
-    SourceTrackingService.Default,
-    MetadataRegistryService.Default,
-    ProjectService.Default,
-    PromptService.Default,
-    ConfigService.Default,
-    MetadataChangeNotificationService.Default,
-    MetadataDescribeService.Default,
-    OrgMetadataCatalogRecorder.Default,
-    FsService.Default
-  ],
-  effect: Effect.gen(function* () {
-    const workspaceService = yield* WorkspaceService;
-    const connectionService = yield* ConnectionService;
-    const sourceTrackingService = yield* SourceTrackingService;
-    const projectService = yield* ProjectService;
-    const promptService = yield* PromptService;
-    const configService = yield* ConfigService;
-    const metadataRegistryService = yield* MetadataRegistryService;
-    const notificationService = yield* MetadataChangeNotificationService;
-    const metadataDescribeService = yield* MetadataDescribeService;
-    const catalogRecorder = yield* OrgMetadataCatalogRecorder;
-    const fsService = yield* FsService;
+export class MetadataRetrieveService extends Effect.Service<MetadataRetrieveService>()(
+  'salesforcedx-vscode-services/core/metadataRetrieveService',
+  {
+    accessors: true,
+    dependencies: [
+      WorkspaceService.Default,
+      ConnectionService.Default,
+      SourceTrackingService.Default,
+      MetadataRegistryService.Default,
+      ProjectService.Default,
+      PromptService.Default,
+      ConfigService.Default,
+      MetadataChangeNotificationService.Default,
+      MetadataDescribeService.Default,
+      OrgMetadataCatalogRecorder.Default,
+      FsService.Default
+    ],
+    effect: Effect.gen(function* () {
+      const workspaceService = yield* WorkspaceService;
+      const connectionService = yield* ConnectionService;
+      const sourceTrackingService = yield* SourceTrackingService;
+      const projectService = yield* ProjectService;
+      const promptService = yield* PromptService;
+      const configService = yield* ConfigService;
+      const metadataRegistryService = yield* MetadataRegistryService;
+      const notificationService = yield* MetadataChangeNotificationService;
+      const metadataDescribeService = yield* MetadataDescribeService;
+      const catalogRecorder = yield* OrgMetadataCatalogRecorder;
+      const fsService = yield* FsService;
 
-    const publishRetrieveNotifications = Effect.fn('MetadataRetrieveService.publishRetrieveNotifications')(function* (
-      retrieveOutcome: Awaited<ReturnType<MetadataApiRetrieve['pollStatus']>>,
-      expectedOrgId?: string
-    ) {
-      const successfulResponses = retrieveOutcome.getFileResponses().filter(isSDRSuccess);
-      const changes = dedupeMetadataChanges(
-        yield* Effect.forEach(
-          successfulResponses,
-          response =>
-            Effect.gen(function* () {
-              return {
-                metadataType: response.type,
-                fullName: response.fullName,
-                changeType: toComponentStatusChangeType(response.state),
-                fileUri: Option.fromNullable(response.filePath ? yield* fsService.toUri(response.filePath) : undefined)
-              };
-            }),
-          { concurrency: 'unbounded' }
-        )
-      );
-      if (changes.length === 0) return;
-      const orgId = expectedOrgId;
-      yield* Effect.annotateCurrentSpan({
-        rawFileResponseCount: successfulResponses.length,
-        uniqueComponentCount: changes.length,
-        affectedMetadataTypeCount: new Set(changes.map(change => change.metadataType)).size
-      });
-      const event = {
-        ...(orgId ? { orgId } : {}),
-        operation: 'retrieve',
-        completedAt: DateTime.formatIso(yield* DateTime.now),
-        changes: [...changes]
-      } as const;
-      yield* notificationService.publishOperation(event);
-      if (orgId) {
-        yield* metadataDescribeService.invalidateForMetadataChanges(
-          orgId,
-          changes.map(change => ({ xmlName: change.metadataType, fullName: change.fullName }))
-        );
-      }
-      yield* catalogRecorder.recordOperation(event);
-    });
-
-    const buildComponentSet = Effect.fn('MetadataRetrieveService.buildComponentSet')(function* (
-      members: MetadataMember[]
-    ) {
-      const registryAccess = yield* metadataRegistryService.getRegistryAccess();
-      return yield* Effect.try({
-        try: () => new ComponentSet(members, registryAccess),
-        catch: e => {
-          const { cause } = unknownToErrorCause(e);
-          return new FailedToBuildComponentSetError({
-            message: `Failed to build ComponentSet: ${cause.message}`,
-            cause
-          });
-        }
-      });
-    });
-
-    /** Build a ComponentSet from source paths.
-     *
-     * If you pass a members array, that will be used to filter the components (componentSet will only include the members you pass in)
-     *
-     * pass an empty array to include all components from the source paths
-     *
-     */
-    const buildComponentSetFromSource = Effect.fn('MetadataRetrieveService.buildComponentSetFromSource')(function* (
-      sourcePaths: string[],
-      filterMembers: MetadataMember[]
-    ) {
-      yield* Effect.annotateCurrentSpan({
-        filterMemberCount: filterMembers.length,
-        sourcePathCount: sourcePaths.length
-      });
-      const registryAccess = yield* metadataRegistryService.getRegistryAccess();
-      const include = filterMembers.length > 0 ? yield* buildComponentSet(filterMembers) : undefined;
-      const cs = yield* Effect.try({
-        try: () => ComponentSet.fromSource({ fsPaths: sourcePaths, include, registry: registryAccess }),
-        catch: e => {
-          const { cause } = unknownToErrorCause(e);
-          return new FailedToBuildComponentSetError({
-            message: `Failed to build ComponentSet from source: ${cause.message}`,
-            cause
-          });
-        }
-      });
-      yield* Effect.annotateCurrentSpan({ size: cs.size });
-      return cs;
-    });
-
-    /** Shared helper to perform the actual retrieve operation */
-    const performRetrieveOperation = Effect.fn('MetadataRetrieveService.performRetrieveOperation')(function* (
-      input: PerformRetrieveOperationInput
-    ) {
-      const output = input.merge ? input.project.getDefaultPackage().fullPath : uriToPath(input.outputPath);
-      yield* Effect.annotateCurrentSpan({ output });
-      const retrieveOperation = yield* Effect.try({
-        try: () =>
-          new MetadataApiRetrieve({
-            usernameOrConnection: input.connection,
-            components: input.componentSet,
-            output,
-            format: 'source',
-            merge: input.merge,
-            registry: input.registryAccess
-          }),
-        catch: e => new MetadataRetrieveError(unknownToErrorCause(e))
-      });
-      const retrieveOutcome = yield* Effect.tryPromise({
-        try: async () => {
-          await retrieveOperation.start();
-          return await retrieveOperation.pollStatus();
-        },
-        catch: e => new MetadataRetrieveError(unknownToErrorCause(e))
-      }).pipe(
-        Effect.tapError(e => e.pipe(Cause.fail, Effect.logError)),
-        Effect.withSpan('retrieve (API call)'),
-        Effect.onInterrupt(() => Effect.promise(() => retrieveOperation.cancel()).pipe(Effect.asVoid)),
-        promptService.withProgress({ title: input.title, location: input.progressLocation, cancellable: true })
-      );
-
-      yield* Effect.annotateCurrentSpan(retrieveSpanAttributes(retrieveOutcome));
-      const orgId = input.expectedOrgId ?? Option.getOrUndefined(orgIdFromConnection(input.connection));
-      // only do tracking in the case where we retrieve to project
-      if (input.merge) {
-        yield* Effect.all(
-          [
-            sourceTrackingService
-              .maybeUpdateTrackingFromRetrieve(retrieveOutcome, input.expectedOrgId)
-              .pipe(Effect.withSpan('MetadataRetrieveService.maybeUpdateTrackingFromRetrieve')),
-            publishRetrieveNotifications(retrieveOutcome, input.expectedOrgId)
-          ],
-          { concurrency: 'unbounded', discard: true }
-        );
-      } else if (orgId) {
-        const fileProperties = Arr.ensure(retrieveOutcome.response.fileProperties);
-        const observationsByIdentity = fileProperties.reduce(
-          (byIdentity, property) =>
-            property?.type && property.fullName
-              ? byIdentity.set(`${property.type}\0${property.fullName}`, {
-                  type: property.type,
-                  fullName: property.fullName,
-                  ...(property.lastModifiedDate ? { lastModifiedDate: property.lastModifiedDate } : {})
-                })
-              : byIdentity,
-          new Map<string, { readonly type: string; readonly fullName: string; readonly lastModifiedDate?: string }>()
-        );
-        retrieveOutcome
-          .getFileResponses()
-          .filter(isSDRSuccess)
-          .forEach(response => {
-            const identity = `${response.type}\0${response.fullName}`;
-            if (!observationsByIdentity.has(identity)) {
-              observationsByIdentity.set(identity, { type: response.type, fullName: response.fullName });
-            }
-          });
-        const observations = [...observationsByIdentity.values()];
-        yield* catalogRecorder.recordRemoteComponents(orgId, 'metadata-api', observations);
-      }
-
-      return retrieveOutcome;
-    });
-
-    /** Retrieve one or more metadata components from the default org. */
-    const retrieve = Effect.fn('MetadataRetrieveService.retrieve')(function* (
-      members: MetadataMember[],
-      options?: MetadataRetrieveOptions & { progressLocation?: vscode.ProgressLocation }
-    ) {
-      const [connection, project, registryAccess, componentSet, hasTracking] = yield* Effect.all(
-        [
-          options?.expectedOrgId
-            ? connectionService.getConnectionForOrg(options.expectedOrgId)
-            : connectionService.getConnection(),
-          projectService.getSfProject(),
-          metadataRegistryService.getRegistryAccess(),
-          buildComponentSet(members),
-          sourceTrackingService.hasTracking(options?.expectedOrgId),
-          workspaceService.getWorkspaceInfoOrThrow()
-        ],
-        { concurrency: 'unbounded' }
-      );
-
-      if (hasTracking && !options?.ignoreConflicts) {
-        yield* sourceTrackingService.checkConflicts(options?.expectedOrgId);
-      }
-
-      const title = `Retrieving ${members.map(m => `${m.type}: ${m.fullName === '*' ? 'all' : m.fullName}`).join(', ')}`;
-      return yield* performRetrieveOperation({
-        componentSet,
-        connection,
-        registryAccess,
-        title,
-        progressLocation: options?.progressLocation,
-        merge: true,
-        project,
-        expectedOrgId: options?.expectedOrgId ?? Option.getOrUndefined(orgIdFromConnection(connection))
-      });
-    }, withActiveMetadataOperationPipeline);
-
-    /** Retrieve metadata using a ComponentSet directly.
-     * Sets project directory and API versions on the ComponentSet before retrieving.
-     */
-    const retrieveComponentSet = Effect.fn('MetadataRetrieveService.retrieveComponentSet')(function* (
-      components: ComponentSet,
-      options?: MetadataRetrieveOptions & { progressLocation?: vscode.ProgressLocation }
-    ) {
-      yield* Effect.annotateCurrentSpan({ components: components.size });
-      const registryAccess = yield* metadataRegistryService.getRegistryAccess();
-      const [connection, project, configAggregator, , hasTracking] = yield* Effect.all(
-        [
-          options?.expectedOrgId
-            ? connectionService.getConnectionForOrg(options.expectedOrgId)
-            : connectionService.getConnection(),
-          projectService.getSfProject(),
-          configService.getConfigAggregator(),
-          workspaceService.getWorkspaceInfoOrThrow(),
-          sourceTrackingService.hasTracking(options?.expectedOrgId)
-        ],
-        { concurrency: 'unbounded' }
-      );
-
-      yield* setComponentSetProperties({ componentSet: components, project, configAggregator });
-      if (hasTracking && !options?.ignoreConflicts) {
-        yield* sourceTrackingService.checkConflicts(options?.expectedOrgId);
-      }
-
-      const title = `Retrieving ${components.size} component${components.size === 1 ? '' : 's'}`;
-      return yield* performRetrieveOperation({
-        componentSet: components,
-        connection,
-        registryAccess,
-        title,
-        progressLocation: options?.progressLocation,
-        merge: true,
-        project,
-        expectedOrgId: options?.expectedOrgId ?? Option.getOrUndefined(orgIdFromConnection(connection))
-      });
-    }, withActiveMetadataOperationPipeline);
-
-    /** Retrieve metadata using a ComponentSet directly to a custom output directory.
-     * Sets project directory and API versions on the ComponentSet before retrieving.
-     */
-    const retrieveComponentSetToDirectory = Effect.fn('MetadataRetrieveService.retrieveComponentSetToDirectory')(
-      function* (
-        components: NonEmptyComponentSet,
-        outputPath: URI,
-        options?: { progressLocation?: vscode.ProgressLocation; expectedOrgId?: string }
+      const publishRetrieveNotifications = Effect.fn('MetadataRetrieveService.publishRetrieveNotifications')(function* (
+        retrieveOutcome: Awaited<ReturnType<MetadataApiRetrieve['pollStatus']>>,
+        expectedOrgId?: string
       ) {
-        const expectedOrgId = options?.expectedOrgId;
+        const successfulResponses = retrieveOutcome.getFileResponses().filter(isSDRSuccess);
+        const changes = dedupeMetadataChanges(
+          yield* Effect.forEach(
+            successfulResponses,
+            response =>
+              Effect.gen(function* () {
+                return {
+                  metadataType: response.type,
+                  fullName: response.fullName,
+                  changeType: toComponentStatusChangeType(response.state),
+                  fileUri: Option.fromNullable(
+                    response.filePath ? yield* fsService.toUri(response.filePath) : undefined
+                  )
+                };
+              }),
+            { concurrency: 'unbounded' }
+          )
+        );
+        if (changes.length === 0) return;
+        const orgId = expectedOrgId;
+        yield* Effect.annotateCurrentSpan({
+          rawFileResponseCount: successfulResponses.length,
+          uniqueComponentCount: changes.length,
+          affectedMetadataTypeCount: new Set(changes.map(change => change.metadataType)).size
+        });
+        const event = {
+          ...(orgId ? { orgId } : {}),
+          operation: 'retrieve',
+          completedAt: DateTime.formatIso(yield* DateTime.now),
+          changes: [...changes]
+        } as const;
+        yield* notificationService.publishOperation(event);
+        if (orgId) {
+          yield* metadataDescribeService.invalidateForMetadataChanges(
+            orgId,
+            changes.map(change => ({ xmlName: change.metadataType, fullName: change.fullName }))
+          );
+        }
+        yield* catalogRecorder.recordOperation(event);
+      });
+
+      const buildComponentSet = Effect.fn('MetadataRetrieveService.buildComponentSet')(function* (
+        members: MetadataMember[]
+      ) {
         const registryAccess = yield* metadataRegistryService.getRegistryAccess();
-        const [connection, project, configAggregator] = yield* Effect.all(
+        return yield* Effect.try({
+          try: () => new ComponentSet(members, registryAccess),
+          catch: e => {
+            const { cause } = unknownToErrorCause(e);
+            return new FailedToBuildComponentSetError({
+              message: `Failed to build ComponentSet: ${cause.message}`,
+              cause
+            });
+          }
+        });
+      });
+
+      /** Build a ComponentSet from source paths.
+       *
+       * If you pass a members array, that will be used to filter the components (componentSet will only include the members you pass in)
+       *
+       * pass an empty array to include all components from the source paths
+       *
+       */
+      const buildComponentSetFromSource = Effect.fn('MetadataRetrieveService.buildComponentSetFromSource')(function* (
+        sourcePaths: string[],
+        filterMembers: MetadataMember[]
+      ) {
+        yield* Effect.annotateCurrentSpan({
+          filterMemberCount: filterMembers.length,
+          sourcePathCount: sourcePaths.length
+        });
+        const registryAccess = yield* metadataRegistryService.getRegistryAccess();
+        const include = filterMembers.length > 0 ? yield* buildComponentSet(filterMembers) : undefined;
+        const cs = yield* Effect.try({
+          try: () => ComponentSet.fromSource({ fsPaths: sourcePaths, include, registry: registryAccess }),
+          catch: e => {
+            const { cause } = unknownToErrorCause(e);
+            return new FailedToBuildComponentSetError({
+              message: `Failed to build ComponentSet from source: ${cause.message}`,
+              cause
+            });
+          }
+        });
+        yield* Effect.annotateCurrentSpan({ size: cs.size });
+        return cs;
+      });
+
+      /** Shared helper to perform the actual retrieve operation */
+      const performRetrieveOperation = Effect.fn('MetadataRetrieveService.performRetrieveOperation')(function* (
+        input: PerformRetrieveOperationInput
+      ) {
+        const output = input.merge ? input.project.getDefaultPackage().fullPath : uriToPath(input.outputPath);
+        yield* Effect.annotateCurrentSpan({ output });
+        const retrieveOperation = yield* Effect.try({
+          try: () =>
+            new MetadataApiRetrieve({
+              usernameOrConnection: input.connection,
+              components: input.componentSet,
+              output,
+              format: 'source',
+              merge: input.merge,
+              registry: input.registryAccess
+            }),
+          catch: e => new MetadataRetrieveError(unknownToErrorCause(e))
+        });
+        const retrieveOutcome = yield* Effect.tryPromise({
+          try: async () => {
+            await retrieveOperation.start();
+            return await retrieveOperation.pollStatus();
+          },
+          catch: e => new MetadataRetrieveError(unknownToErrorCause(e))
+        }).pipe(
+          Effect.tapError(e => e.pipe(Cause.fail, Effect.logError)),
+          Effect.withSpan('retrieve (API call)'),
+          Effect.onInterrupt(() => Effect.promise(() => retrieveOperation.cancel()).pipe(Effect.asVoid)),
+          promptService.withProgress({ title: input.title, location: input.progressLocation, cancellable: true })
+        );
+
+        yield* Effect.annotateCurrentSpan(retrieveSpanAttributes(retrieveOutcome));
+        const orgId = input.expectedOrgId ?? Option.getOrUndefined(orgIdFromConnection(input.connection));
+        // only do tracking in the case where we retrieve to project
+        if (input.merge) {
+          yield* Effect.all(
+            [
+              sourceTrackingService
+                .maybeUpdateTrackingFromRetrieve(retrieveOutcome, input.expectedOrgId)
+                .pipe(Effect.withSpan('MetadataRetrieveService.maybeUpdateTrackingFromRetrieve')),
+              publishRetrieveNotifications(retrieveOutcome, input.expectedOrgId)
+            ],
+            { concurrency: 'unbounded', discard: true }
+          );
+        } else if (orgId) {
+          const fileProperties = Arr.ensure(retrieveOutcome.response.fileProperties);
+          const observationsByIdentity = fileProperties.reduce(
+            (byIdentity, property) =>
+              property?.type && property.fullName
+                ? byIdentity.set(`${property.type}\0${property.fullName}`, {
+                    type: property.type,
+                    fullName: property.fullName,
+                    ...(property.lastModifiedDate ? { lastModifiedDate: property.lastModifiedDate } : {})
+                  })
+                : byIdentity,
+            new Map<string, { readonly type: string; readonly fullName: string; readonly lastModifiedDate?: string }>()
+          );
+          retrieveOutcome
+            .getFileResponses()
+            .filter(isSDRSuccess)
+            .forEach(response => {
+              const identity = `${response.type}\0${response.fullName}`;
+              if (!observationsByIdentity.has(identity)) {
+                observationsByIdentity.set(identity, { type: response.type, fullName: response.fullName });
+              }
+            });
+          const observations = [...observationsByIdentity.values()];
+          yield* catalogRecorder.recordRemoteComponents(orgId, 'metadata-api', observations);
+        }
+
+        return retrieveOutcome;
+      });
+
+      /** Retrieve one or more metadata components from the default org. */
+      const retrieve = Effect.fn('MetadataRetrieveService.retrieve')(function* (
+        members: MetadataMember[],
+        options?: MetadataRetrieveOptions & { progressLocation?: vscode.ProgressLocation }
+      ) {
+        const [connection, project, registryAccess, componentSet, hasTracking] = yield* Effect.all(
           [
-            expectedOrgId ? connectionService.getConnectionForOrg(expectedOrgId) : connectionService.getConnection(),
+            options?.expectedOrgId
+              ? connectionService.getConnectionForOrg(options.expectedOrgId)
+              : connectionService.getConnection(),
             projectService.getSfProject(),
-            configService.getConfigAggregator(),
+            metadataRegistryService.getRegistryAccess(),
+            buildComponentSet(members),
+            sourceTrackingService.hasTracking(options?.expectedOrgId),
             workspaceService.getWorkspaceInfoOrThrow()
           ],
           { concurrency: 'unbounded' }
         );
-        // Set API versions and use output directory as projectDirectory when merge is false
-        // This ensures components resolved from the output directory have correct paths
-        yield* setComponentSetProperties({
-          componentSet: components,
-          configAggregator,
+
+        if (hasTracking && !options?.ignoreConflicts) {
+          yield* sourceTrackingService.checkConflicts(options?.expectedOrgId);
+        }
+
+        const title = `Retrieving ${members.map(m => `${m.type}: ${m.fullName === '*' ? 'all' : m.fullName}`).join(', ')}`;
+        return yield* performRetrieveOperation({
+          componentSet,
+          connection,
+          registryAccess,
+          title,
+          progressLocation: options?.progressLocation,
+          merge: true,
           project,
-          directory: outputPath
+          expectedOrgId: options?.expectedOrgId ?? Option.getOrUndefined(orgIdFromConnection(connection))
         });
+      }, withActiveMetadataOperationPipeline);
+
+      /** Retrieve metadata using a ComponentSet directly.
+       * Sets project directory and API versions on the ComponentSet before retrieving.
+       */
+      const retrieveComponentSet = Effect.fn('MetadataRetrieveService.retrieveComponentSet')(function* (
+        components: ComponentSet,
+        options?: MetadataRetrieveOptions & { progressLocation?: vscode.ProgressLocation }
+      ) {
+        yield* Effect.annotateCurrentSpan({ components: components.size });
+        const registryAccess = yield* metadataRegistryService.getRegistryAccess();
+        const [connection, project, configAggregator, , hasTracking] = yield* Effect.all(
+          [
+            options?.expectedOrgId
+              ? connectionService.getConnectionForOrg(options.expectedOrgId)
+              : connectionService.getConnection(),
+            projectService.getSfProject(),
+            configService.getConfigAggregator(),
+            workspaceService.getWorkspaceInfoOrThrow(),
+            sourceTrackingService.hasTracking(options?.expectedOrgId)
+          ],
+          { concurrency: 'unbounded' }
+        );
+
+        yield* setComponentSetProperties({ componentSet: components, project, configAggregator });
+        if (hasTracking && !options?.ignoreConflicts) {
+          yield* sourceTrackingService.checkConflicts(options?.expectedOrgId);
+        }
+
+        const title = `Retrieving ${components.size} component${components.size === 1 ? '' : 's'}`;
         return yield* performRetrieveOperation({
           componentSet: components,
           connection,
           registryAccess,
-          title: `Retrieving ${components.size} component${components.size === 1 ? '' : 's'} for diff`,
+          title,
           progressLocation: options?.progressLocation,
-          merge: false,
-          outputPath,
-          expectedOrgId: expectedOrgId ?? Option.getOrUndefined(orgIdFromConnection(connection))
+          merge: true,
+          project,
+          expectedOrgId: options?.expectedOrgId ?? Option.getOrUndefined(orgIdFromConnection(connection))
         });
-      }
-    );
+      }, withActiveMetadataOperationPipeline);
 
-    return {
-      retrieve,
-      retrieveComponentSet,
-      retrieveComponentSetToDirectory,
-      buildComponentSet,
-      buildComponentSetFromSource
-    };
-  })
-}) {}
+      /** Retrieve metadata using a ComponentSet directly to a custom output directory.
+       * Sets project directory and API versions on the ComponentSet before retrieving.
+       */
+      const retrieveComponentSetToDirectory = Effect.fn('MetadataRetrieveService.retrieveComponentSetToDirectory')(
+        function* (
+          components: NonEmptyComponentSet,
+          outputPath: URI,
+          options?: { progressLocation?: vscode.ProgressLocation; expectedOrgId?: string }
+        ) {
+          const expectedOrgId = options?.expectedOrgId;
+          const registryAccess = yield* metadataRegistryService.getRegistryAccess();
+          const [connection, project, configAggregator] = yield* Effect.all(
+            [
+              expectedOrgId ? connectionService.getConnectionForOrg(expectedOrgId) : connectionService.getConnection(),
+              projectService.getSfProject(),
+              configService.getConfigAggregator(),
+              workspaceService.getWorkspaceInfoOrThrow()
+            ],
+            { concurrency: 'unbounded' }
+          );
+          // Set API versions and use output directory as projectDirectory when merge is false
+          // This ensures components resolved from the output directory have correct paths
+          yield* setComponentSetProperties({
+            componentSet: components,
+            configAggregator,
+            project,
+            directory: outputPath
+          });
+          return yield* performRetrieveOperation({
+            componentSet: components,
+            connection,
+            registryAccess,
+            title: `Retrieving ${components.size} component${components.size === 1 ? '' : 's'} for diff`,
+            progressLocation: options?.progressLocation,
+            merge: false,
+            outputPath,
+            expectedOrgId: expectedOrgId ?? Option.getOrUndefined(orgIdFromConnection(connection))
+          });
+        }
+      );
+
+      return {
+        retrieve,
+        retrieveComponentSet,
+        retrieveComponentSetToDirectory,
+        buildComponentSet,
+        buildComponentSetFromSource
+      };
+    })
+  }
+) {}

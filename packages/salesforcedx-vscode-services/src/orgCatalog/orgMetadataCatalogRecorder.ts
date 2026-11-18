@@ -100,7 +100,7 @@ const componentObservation = (component: ListedMetadataComponent): ListedMetadat
 
 /** Private write boundary used by metadata-producing services. */
 export class OrgMetadataCatalogRecorder extends Effect.Service<OrgMetadataCatalogRecorder>()(
-  'OrgMetadataCatalogRecorder',
+  'salesforcedx-vscode-services/orgCatalog/orgMetadataCatalogRecorder',
   {
     accessors: true,
     dependencies: [

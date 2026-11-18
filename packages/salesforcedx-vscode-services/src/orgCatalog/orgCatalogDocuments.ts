@@ -14,29 +14,35 @@ import { FsService } from '../vscode/fsService';
 import { OrgCatalogRemoteSource } from './orgCatalogRemoteSource';
 import { parseDocumentUri, type OrgMetadataDocumentLocation } from './orgMetadataReference';
 
-export class OrgCatalogDocuments extends Effect.Service<OrgCatalogDocuments>()('OrgCatalogDocuments', {
-  accessors: true,
-  dependencies: [FsService.Default, OrgCatalogRemoteSource.Default, MetadataRegistryService.Default],
-  effect: Effect.gen(function* () {
-    const [fsService, remoteSource, registry] = yield* Effect.all([
-      FsService,
-      OrgCatalogRemoteSource,
-      MetadataRegistryService
-    ]);
+export class OrgCatalogDocuments extends Effect.Service<OrgCatalogDocuments>()(
+  'salesforcedx-vscode-services/orgCatalog/orgCatalogDocuments',
+  {
+    accessors: true,
+    dependencies: [FsService.Default, OrgCatalogRemoteSource.Default, MetadataRegistryService.Default],
+    effect: Effect.gen(function* () {
+      const [fsService, remoteSource, registry] = yield* Effect.all([
+        FsService,
+        OrgCatalogRemoteSource,
+        MetadataRegistryService
+      ]);
 
-    const readDocumentUri = Effect.fn('OrgCatalogDocuments.readDocumentUri')(function* (activeOrgId: string, uri: URI) {
-      const location = yield* parseDocumentUri(uri).pipe(
-        Effect.provideService(MetadataRegistryService, registry),
-        Effect.filterOrFail(
-          (candidateLocation): candidateLocation is OrgMetadataDocumentLocation =>
-            isNotUndefined(candidateLocation) && candidateLocation.orgId === activeOrgId,
-          () => vscode.FileSystemError.FileNotFound(uri)
-        )
-      );
-      const artifact = yield* remoteSource.materializePrimaryDocument(activeOrgId, location);
-      return yield* fsService.readFile(artifact.primaryUri);
-    });
+      const readDocumentUri = Effect.fn('OrgCatalogDocuments.readDocumentUri')(function* (
+        activeOrgId: string,
+        uri: URI
+      ) {
+        const location = yield* parseDocumentUri(uri).pipe(
+          Effect.provideService(MetadataRegistryService, registry),
+          Effect.filterOrFail(
+            (candidateLocation): candidateLocation is OrgMetadataDocumentLocation =>
+              isNotUndefined(candidateLocation) && candidateLocation.orgId === activeOrgId,
+            () => vscode.FileSystemError.FileNotFound(uri)
+          )
+        );
+        const artifact = yield* remoteSource.materializePrimaryDocument(activeOrgId, location);
+        return yield* fsService.readFile(artifact.primaryUri);
+      });
 
-    return { readDocumentUri } as const;
-  })
-}) {}
+      return { readDocumentUri } as const;
+    })
+  }
+) {}

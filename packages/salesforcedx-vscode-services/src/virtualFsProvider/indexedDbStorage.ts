@@ -36,115 +36,118 @@ const ensureOpenRequestEvent = (event: Event): Event & { target: IDBOpenDBReques
   return event;
 };
 
-export class IndexedDBStorageService extends Effect.Service<IndexedDBStorageService>()('IndexedDBStorageService', {
-  scoped: Effect.gen(function* () {
-    const dbName =
-      vscode.workspace.getConfiguration(CODE_BUILDER_WEB_SECTION).get<string>(INSTANCE_URL_KEY)?.trim() ?? 'default';
+export class IndexedDBStorageService extends Effect.Service<IndexedDBStorageService>()(
+  'salesforcedx-vscode-services/virtualFsProvider/indexedDbStorage/IndexedDBStorageService',
+  {
+    scoped: Effect.gen(function* () {
+      const dbName =
+        vscode.workspace.getConfiguration(CODE_BUILDER_WEB_SECTION).get<string>(INSTANCE_URL_KEY)?.trim() ?? 'default';
 
-    const db = yield* Effect.async<IDBDatabase, VirtualFsProviderError>(resume => {
-      const openRequest = indexedDB.open(dbName, DB_VERSION);
+      const db = yield* Effect.async<IDBDatabase, VirtualFsProviderError>(resume => {
+        const openRequest = indexedDB.open(dbName, DB_VERSION);
 
-      openRequest.onupgradeneeded = (event): void => {
-        const dbToUpgrade = ensureOpenRequestEvent(event).target.result;
-        if (!dbToUpgrade.objectStoreNames.contains(STORE_NAME)) {
-          dbToUpgrade.createObjectStore(STORE_NAME);
-        }
-      };
+        openRequest.onupgradeneeded = (event): void => {
+          const dbToUpgrade = ensureOpenRequestEvent(event).target.result;
+          if (!dbToUpgrade.objectStoreNames.contains(STORE_NAME)) {
+            dbToUpgrade.createObjectStore(STORE_NAME);
+          }
+        };
 
-      openRequest.onsuccess = (event: Event): void => {
-        resume(Effect.succeed(ensureOpenRequestEvent(event).target.result));
-      };
+        openRequest.onsuccess = (event: Event): void => {
+          resume(Effect.succeed(ensureOpenRequestEvent(event).target.result));
+        };
 
-      openRequest.onerror = (): void => {
-        resume(
-          Effect.fail(
-            new VirtualFsProviderError({
-              ...unknownToErrorCause(openRequest.error),
-              message: `Failed to open IndexedDB database "${dbName}"`
-            })
-          )
-        );
-      };
-    });
-
-    yield* Effect.addFinalizer(() =>
-      Effect.sync(() => {
-        db.close();
-      })
-    );
-
-    const withStore = <A>(mode: IDBTransactionMode, f: (store: IDBObjectStore) => IDBRequest<A>) =>
-      Effect.suspend(() => {
-        // eslint-disable-next-line functional/no-try-statements
-        try {
-          const transaction = db.transaction(STORE_NAME, mode);
-          return settleIdbTransaction(transaction, f(transaction.objectStore(STORE_NAME)), mode);
-        } catch (error: unknown) {
-          return Effect.fail(
-            new VirtualFsProviderError({
-              ...unknownToErrorCause(error),
-              message: `Transaction failed with mode "${mode}"`
-            })
+        openRequest.onerror = (): void => {
+          resume(
+            Effect.fail(
+              new VirtualFsProviderError({
+                ...unknownToErrorCause(openRequest.error),
+                message: `Failed to open IndexedDB database "${dbName}"`
+              })
+            )
           );
-        }
+        };
       });
 
-    const loadState = () =>
-      withStore('readonly', store => store.getAll()).pipe(
-        Effect.tap((entries: SerializedEntryWithPath[]) =>
-          Effect.gen(function* () {
-            yield* Effect.forEach(
-              entries.filter(isSerializedDirectoryWithPath),
-              entry => restoreDirectory(entry.path),
-              { discard: true }
+      yield* Effect.addFinalizer(() =>
+        Effect.sync(() => {
+          db.close();
+        })
+      );
+
+      const withStore = <A>(mode: IDBTransactionMode, f: (store: IDBObjectStore) => IDBRequest<A>) =>
+        Effect.suspend(() => {
+          // eslint-disable-next-line functional/no-try-statements
+          try {
+            const transaction = db.transaction(STORE_NAME, mode);
+            return settleIdbTransaction(transaction, f(transaction.objectStore(STORE_NAME)), mode);
+          } catch (error: unknown) {
+            return Effect.fail(
+              new VirtualFsProviderError({
+                ...unknownToErrorCause(error),
+                message: `Transaction failed with mode "${mode}"`
+              })
             );
-            yield* Effect.forEach(entries.filter(isSerializedFileWithPath), writeFileWithOrWithoutDir, {
-              discard: true
-            });
-          })
-        ),
-        Effect.tap(entries => Effect.annotateCurrentSpan(vfsSpanAttributes(entries))),
-        Effect.withSpan('loadState')
-      );
-
-    const saveFile = (path: string) =>
-      // Provide the key explicitly since the store uses out-of-line keys
-      withStore('readwrite', store => store.put(buildFileEntry(path), path)).pipe(
-        Effect.withSpan('saveFile', { attributes: { path } })
-      );
-
-    const deleteFile = (path: string) =>
-      withStore('readwrite', store => store.delete(path)).pipe(
-        Effect.asVoid,
-        Effect.withSpan('deleteFile', { attributes: { path } })
-      );
-
-    const loadFile = (path: string) =>
-      withStore<SerializedEntryWithPath | undefined>('readonly', store => store.get(path)).pipe(
-        Effect.tap(entry => {
-          if (!entry) {
-            return Effect.void;
           }
-          if (isSerializedFileWithPath(entry)) {
-            return writeFileWithOrWithoutDir(entry);
-          }
-          return restoreDirectory(entry.path);
-        }),
-        Effect.asVoid,
-        Effect.withSpan('loadFile', { attributes: { path } })
-      );
-    return {
-      /** Load state from IndexedDB into memfs */
-      loadState,
-      /** Save a file to IndexedDB */
-      saveFile,
-      /** Delete a file from IndexedDB */
-      deleteFile,
-      /** Load a specific file from IndexedDB */
-      loadFile
-    };
-  })
-}) {}
+        });
+
+      const loadState = () =>
+        withStore('readonly', store => store.getAll()).pipe(
+          Effect.tap((entries: SerializedEntryWithPath[]) =>
+            Effect.gen(function* () {
+              yield* Effect.forEach(
+                entries.filter(isSerializedDirectoryWithPath),
+                entry => restoreDirectory(entry.path),
+                { discard: true }
+              );
+              yield* Effect.forEach(entries.filter(isSerializedFileWithPath), writeFileWithOrWithoutDir, {
+                discard: true
+              });
+            })
+          ),
+          Effect.tap(entries => Effect.annotateCurrentSpan(vfsSpanAttributes(entries))),
+          Effect.withSpan('loadState')
+        );
+
+      const saveFile = (path: string) =>
+        // Provide the key explicitly since the store uses out-of-line keys
+        withStore('readwrite', store => store.put(buildFileEntry(path), path)).pipe(
+          Effect.withSpan('saveFile', { attributes: { path } })
+        );
+
+      const deleteFile = (path: string) =>
+        withStore('readwrite', store => store.delete(path)).pipe(
+          Effect.asVoid,
+          Effect.withSpan('deleteFile', { attributes: { path } })
+        );
+
+      const loadFile = (path: string) =>
+        withStore<SerializedEntryWithPath | undefined>('readonly', store => store.get(path)).pipe(
+          Effect.tap(entry => {
+            if (!entry) {
+              return Effect.void;
+            }
+            if (isSerializedFileWithPath(entry)) {
+              return writeFileWithOrWithoutDir(entry);
+            }
+            return restoreDirectory(entry.path);
+          }),
+          Effect.asVoid,
+          Effect.withSpan('loadFile', { attributes: { path } })
+        );
+      return {
+        /** Load state from IndexedDB into memfs */
+        loadState,
+        /** Save a file to IndexedDB */
+        saveFile,
+        /** Delete a file from IndexedDB */
+        deleteFile,
+        /** Load a specific file from IndexedDB */
+        loadFile
+      };
+    })
+  }
+) {}
 
 // Noop implementation for non-web environments
 const IndexedDBStorageServicesNoop: Layer.Layer<IndexedDBStorageService, never> = Layer.succeed(

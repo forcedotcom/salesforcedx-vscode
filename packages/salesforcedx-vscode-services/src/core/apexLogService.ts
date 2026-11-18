@@ -20,69 +20,72 @@ import * as Stream from 'effect/Stream';
 import { ConnectionService } from './connectionService';
 import { refineSoqlError } from './queryExecute';
 
-export class ApexLogService extends Effect.Service<ApexLogService>()('ApexLogService', {
-  accessors: true,
-  dependencies: [ConnectionService.Default],
-  effect: Effect.gen(function* () {
-    const connectionService = yield* ConnectionService;
-    const connectionFailure = (error: Effect.Effect.Error<ReturnType<typeof connectionService.getConnection>>) =>
-      Stream.succeed({ _tag: 'QueryError' as const, error });
+export class ApexLogService extends Effect.Service<ApexLogService>()(
+  'salesforcedx-vscode-services/core/apexLogService',
+  {
+    accessors: true,
+    dependencies: [ConnectionService.Default],
+    effect: Effect.gen(function* () {
+      const connectionService = yield* ConnectionService;
+      const connectionFailure = (error: Effect.Effect.Error<ReturnType<typeof connectionService.getConnection>>) =>
+        Stream.succeed({ _tag: 'QueryError' as const, error });
 
-    return {
-      listLogs: Effect.fn('ApexLogService.listLogs')((options?: ListLogsOptions) =>
-        connectionService.getConnection().pipe(
-          Effect.flatMap(connection => listLogs(connection, options)),
-          Effect.catchTag('ApexLogQueryError', error => Effect.fail(refineSoqlError(error.soql, error.cause)))
-        )
-      ),
-      getLogBody: Effect.fn('ApexLogService.getLogBody')((logId: Parameters<typeof getLogBody>[1]) =>
-        connectionService.getConnection().pipe(Effect.flatMap(connection => getLogBody(connection, logId)))
-      ),
-      streamLogs: (options: StreamLogsOptions) =>
-        Stream.repeatEffectWithSchedule(Effect.void, options.schedule).pipe(
-          Stream.zipWithIndex,
-          Stream.mapEffect(([, index]) => options.pollOptions?.(index) ?? Effect.succeed(Option.some({}))),
-          Stream.filterMap(filters => filters),
-          Stream.flatMap(filters =>
-            Stream.unwrap(
-              connectionService.getConnection().pipe(
-                Effect.map(connection =>
-                  streamLogs(connection, {
-                    ...options,
-                    schedule: Schedule.recurs(0),
-                    pollOptions: () => Effect.succeed(Option.some(filters))
-                  }).pipe(
-                    Stream.map(event =>
-                      Match.value(event).pipe(
-                        Match.tag('Log', 'BodyError', value => value),
-                        Match.tag('QueryError', ({ error }) => ({
-                          _tag: 'QueryError' as const,
-                          error: Match.value(error).pipe(
-                            Match.tag('ApexLogQueryError', value => refineSoqlError(value.soql, value.cause)),
-                            Match.tag('ParseError', value => value),
-                            Match.exhaustive
-                          )
-                        })),
-                        Match.exhaustive
+      return {
+        listLogs: Effect.fn('ApexLogService.listLogs')((options?: ListLogsOptions) =>
+          connectionService.getConnection().pipe(
+            Effect.flatMap(connection => listLogs(connection, options)),
+            Effect.catchTag('ApexLogQueryError', error => Effect.fail(refineSoqlError(error.soql, error.cause)))
+          )
+        ),
+        getLogBody: Effect.fn('ApexLogService.getLogBody')((logId: Parameters<typeof getLogBody>[1]) =>
+          connectionService.getConnection().pipe(Effect.flatMap(connection => getLogBody(connection, logId)))
+        ),
+        streamLogs: (options: StreamLogsOptions) =>
+          Stream.repeatEffectWithSchedule(Effect.void, options.schedule).pipe(
+            Stream.zipWithIndex,
+            Stream.mapEffect(([, index]) => options.pollOptions?.(index) ?? Effect.succeed(Option.some({}))),
+            Stream.filterMap(filters => filters),
+            Stream.flatMap(filters =>
+              Stream.unwrap(
+                connectionService.getConnection().pipe(
+                  Effect.map(connection =>
+                    streamLogs(connection, {
+                      ...options,
+                      schedule: Schedule.recurs(0),
+                      pollOptions: () => Effect.succeed(Option.some(filters))
+                    }).pipe(
+                      Stream.map(event =>
+                        Match.value(event).pipe(
+                          Match.tag('Log', 'BodyError', value => value),
+                          Match.tag('QueryError', ({ error }) => ({
+                            _tag: 'QueryError' as const,
+                            error: Match.value(error).pipe(
+                              Match.tag('ApexLogQueryError', value => refineSoqlError(value.soql, value.cause)),
+                              Match.tag('ParseError', value => value),
+                              Match.exhaustive
+                            )
+                          })),
+                          Match.exhaustive
+                        )
                       )
                     )
                   )
                 )
+              ).pipe(
+                // Connection setup belongs to each poll, including recovery after a failed lookup.
+                Stream.catchTags({
+                  SettingsError: connectionFailure,
+                  NoWorkspaceOpenError: connectionFailure,
+                  FailedToCreateConfigAggregatorError: connectionFailure,
+                  FailedToCreateAuthInfoError: connectionFailure,
+                  FailedToCreateConnectionError: connectionFailure,
+                  NoTargetOrgConfiguredError: connectionFailure,
+                  AccessTokenExpiredError: connectionFailure
+                })
               )
-            ).pipe(
-              // Connection setup belongs to each poll, including recovery after a failed lookup.
-              Stream.catchTags({
-                SettingsError: connectionFailure,
-                NoWorkspaceOpenError: connectionFailure,
-                FailedToCreateConfigAggregatorError: connectionFailure,
-                FailedToCreateAuthInfoError: connectionFailure,
-                FailedToCreateConnectionError: connectionFailure,
-                NoTargetOrgConfiguredError: connectionFailure,
-                AccessTokenExpiredError: connectionFailure
-              })
             )
           )
-        )
-    };
-  })
-}) {}
+      };
+    })
+  }
+) {}

@@ -17,7 +17,7 @@ import { DefaultReportOptions, DefaultWatermarks, type CoverageReporterOptions }
 import { ApexReportError, causeMessage } from './errors';
 
 /** The host supplies Istanbul and owns its writer, source lookup, and report destination. */
-export class IstanbulReports extends Context.Tag('Apex.IstanbulReports')<
+export class IstanbulReports extends Context.Tag('@salesforce/apex-node/effect/coverageReports/IstanbulReports')<
   IstanbulReports,
   {
     createContext: (options: Omit<libReport.ContextOptions, 'dir'>) => libReport.Context;

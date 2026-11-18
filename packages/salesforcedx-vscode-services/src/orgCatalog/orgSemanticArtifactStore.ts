@@ -95,118 +95,124 @@ const serializeManifest = (manifest: SemanticArtifactManifest) =>
   });
 
 /** Durable, org-isolated storage primitive for opaque semantic projection payloads. */
-export class OrgSemanticArtifactStore extends Effect.Service<OrgSemanticArtifactStore>()('OrgSemanticArtifactStore', {
-  accessors: true,
-  dependencies: [FsService.Default, WorkspaceService.Default],
-  effect: Effect.gen(function* () {
-    const [fsService, workspaceService] = yield* Effect.all([FsService, WorkspaceService]);
-    const publishSemaphore = yield* Effect.makeSemaphore(1);
+export class OrgSemanticArtifactStore extends Effect.Service<OrgSemanticArtifactStore>()(
+  'salesforcedx-vscode-services/orgCatalog/orgSemanticArtifactStore',
+  {
+    accessors: true,
+    dependencies: [FsService.Default, WorkspaceService.Default],
+    effect: Effect.gen(function* () {
+      const [fsService, workspaceService] = yield* Effect.all([FsService, WorkspaceService]);
+      const publishSemaphore = yield* Effect.makeSemaphore(1);
 
-    const getUri = Effect.fn('OrgSemanticArtifactStore.getUri')(function* (key: SemanticArtifactStoreKey) {
-      const workspace = yield* workspaceService.getWorkspaceInfoOrThrow();
-      return Utils.joinPath(
-        workspace.uri,
-        '.sf',
-        'orgs',
-        encodeURIComponent(key.orgId),
-        SEMANTIC_ARTIFACT_DIRECTORY,
-        ...encodedIdentitySegments(key),
-        revisionFileName(key.revision)
-      );
-    });
-
-    const loadManifest = Effect.fn('OrgSemanticArtifactStore.loadManifest')(function* (
-      uri: URI,
-      expectedKey?: SemanticArtifactStoreKey
-    ) {
-      const manifest = yield* fsService.readJSON(uri.toString(), SemanticArtifactManifestSchema);
-      if (expectedKey && !keysEqual(manifest.key, expectedKey)) {
-        return yield* new SemanticArtifactStoreKeyMismatchError({
-          message: `Stored semantic artifact key does not match '${uri.toString()}'`
-        });
-      }
-      return manifest;
-    });
-
-    const load = Effect.fn('OrgSemanticArtifactStore.load')(function* (key: SemanticArtifactStoreKey) {
-      const uri = yield* getUri(key);
-      if (!(yield* fsService.fileOrFolderExists(uri))) return undefined;
-      const manifest = yield* loadManifest(uri, key);
-      return { key: manifest.key, writtenAt: manifest.writtenAt, value: manifest.value, uri };
-    });
-
-    const pruneRevisions = Effect.fn('OrgSemanticArtifactStore.pruneRevisions')(function* (currentUri: URI) {
-      const revisionsUri = Utils.dirname(currentUri);
-      const revisionUris = (yield* fsService.readDirectory(revisionsUri)).filter(
-        uri => Utils.basename(uri).endsWith('.json') && !Utils.basename(uri).endsWith(STAGING_SUFFIX)
-      );
-      const manifests = (yield* Effect.forEach(
-        revisionUris,
-        uri =>
-          loadManifest(uri).pipe(
-            Effect.option,
-            Effect.map(manifest => ({ manifest, uri }))
-          ),
-        { concurrency: 'unbounded' }
-      )).flatMap(({ manifest, uri }) => (Option.isSome(manifest) ? [{ manifest: manifest.value, uri }] : []));
-      const retainedUris = new Set([
-        currentUri.toString(),
-        ...manifests
-          .filter(candidate => candidate.uri.toString() !== currentUri.toString())
-          .toSorted(
-            (left, right) =>
-              right.manifest.writtenAt.localeCompare(left.manifest.writtenAt) ||
-              right.uri.toString().localeCompare(left.uri.toString())
-          )
-          .slice(0, ORG_SEMANTIC_ARTIFACT_REVISIONS_TO_KEEP - 1)
-          .map(candidate => candidate.uri.toString())
-      ]);
-      const staleUris = manifests.map(candidate => candidate.uri).filter(uri => !retainedUris.has(uri.toString()));
-      yield* Effect.forEach(staleUris, uri => fsService.safeDelete(uri), {
-        concurrency: 'unbounded',
-        discard: true
+      const getUri = Effect.fn('OrgSemanticArtifactStore.getUri')(function* (key: SemanticArtifactStoreKey) {
+        const workspace = yield* workspaceService.getWorkspaceInfoOrThrow();
+        return Utils.joinPath(
+          workspace.uri,
+          '.sf',
+          'orgs',
+          encodeURIComponent(key.orgId),
+          SEMANTIC_ARTIFACT_DIRECTORY,
+          ...encodedIdentitySegments(key),
+          revisionFileName(key.revision)
+        );
       });
-      yield* Effect.annotateCurrentSpan({
-        scannedRevisionCount: revisionUris.length,
-        validRevisionCount: manifests.length,
-        deletedRevisionCount: staleUris.length
-      });
-    });
 
-    const save = Effect.fn('OrgSemanticArtifactStore.save')(function* (key: SemanticArtifactStoreKey, value: unknown) {
-      return yield* publishSemaphore.withPermits(1)(
-        Effect.gen(function* () {
-          const decodedKey = yield* Schema.decodeUnknown(SemanticArtifactStoreKeySchema)(key);
-          const uri = yield* getUri(decodedKey);
-          const stagingUri = URI.parse(`${uri.toString()}${STAGING_SUFFIX}`);
-          const manifest: SemanticArtifactManifest = {
-            version: SEMANTIC_ARTIFACT_MANIFEST_VERSION,
-            key: decodedKey,
-            writtenAt: DateTime.formatIso(yield* DateTime.now),
-            value
-          };
-          const content = yield* serializeManifest(manifest);
-          yield* fsService.safeDelete(stagingUri);
-          yield* fsService.safeWriteFile(stagingUri, content);
-          yield* fsService.rename(stagingUri.toString(), uri.toString(), { overwrite: true });
-          yield* pruneRevisions(uri).pipe(
-            Effect.catchAll(error => Effect.logWarning('Failed to prune semantic artifact revisions', error))
-          );
-          yield* Effect.annotateCurrentSpan({
-            orgId: decodedKey.orgId,
-            targetKind: decodedKey.identity.kind,
-            namespace: decodedKey.identity.namespace ?? '',
-            name: decodedKey.identity.name,
-            projection: decodedKey.projection.model,
-            provider: decodedKey.provider,
-            capabilityVersion: decodedKey.capabilityVersion,
-            revision: decodedKey.revision ?? ''
+      const loadManifest = Effect.fn('OrgSemanticArtifactStore.loadManifest')(function* (
+        uri: URI,
+        expectedKey?: SemanticArtifactStoreKey
+      ) {
+        const manifest = yield* fsService.readJSON(uri.toString(), SemanticArtifactManifestSchema);
+        if (expectedKey && !keysEqual(manifest.key, expectedKey)) {
+          return yield* new SemanticArtifactStoreKeyMismatchError({
+            message: `Stored semantic artifact key does not match '${uri.toString()}'`
           });
-          return { key: decodedKey, writtenAt: manifest.writtenAt, value, uri };
-        })
-      );
-    });
+        }
+        return manifest;
+      });
 
-    return { getUri, load, pruneRevisions, save };
-  })
-}) {}
+      const load = Effect.fn('OrgSemanticArtifactStore.load')(function* (key: SemanticArtifactStoreKey) {
+        const uri = yield* getUri(key);
+        if (!(yield* fsService.fileOrFolderExists(uri))) return undefined;
+        const manifest = yield* loadManifest(uri, key);
+        return { key: manifest.key, writtenAt: manifest.writtenAt, value: manifest.value, uri };
+      });
+
+      const pruneRevisions = Effect.fn('OrgSemanticArtifactStore.pruneRevisions')(function* (currentUri: URI) {
+        const revisionsUri = Utils.dirname(currentUri);
+        const revisionUris = (yield* fsService.readDirectory(revisionsUri)).filter(
+          uri => Utils.basename(uri).endsWith('.json') && !Utils.basename(uri).endsWith(STAGING_SUFFIX)
+        );
+        const manifests = (yield* Effect.forEach(
+          revisionUris,
+          uri =>
+            loadManifest(uri).pipe(
+              Effect.option,
+              Effect.map(manifest => ({ manifest, uri }))
+            ),
+          { concurrency: 'unbounded' }
+        )).flatMap(({ manifest, uri }) => (Option.isSome(manifest) ? [{ manifest: manifest.value, uri }] : []));
+        const retainedUris = new Set([
+          currentUri.toString(),
+          ...manifests
+            .filter(candidate => candidate.uri.toString() !== currentUri.toString())
+            .toSorted(
+              (left, right) =>
+                right.manifest.writtenAt.localeCompare(left.manifest.writtenAt) ||
+                right.uri.toString().localeCompare(left.uri.toString())
+            )
+            .slice(0, ORG_SEMANTIC_ARTIFACT_REVISIONS_TO_KEEP - 1)
+            .map(candidate => candidate.uri.toString())
+        ]);
+        const staleUris = manifests.map(candidate => candidate.uri).filter(uri => !retainedUris.has(uri.toString()));
+        yield* Effect.forEach(staleUris, uri => fsService.safeDelete(uri), {
+          concurrency: 'unbounded',
+          discard: true
+        });
+        yield* Effect.annotateCurrentSpan({
+          scannedRevisionCount: revisionUris.length,
+          validRevisionCount: manifests.length,
+          deletedRevisionCount: staleUris.length
+        });
+      });
+
+      const save = Effect.fn('OrgSemanticArtifactStore.save')(function* (
+        key: SemanticArtifactStoreKey,
+        value: unknown
+      ) {
+        return yield* publishSemaphore.withPermits(1)(
+          Effect.gen(function* () {
+            const decodedKey = yield* Schema.decodeUnknown(SemanticArtifactStoreKeySchema)(key);
+            const uri = yield* getUri(decodedKey);
+            const stagingUri = URI.parse(`${uri.toString()}${STAGING_SUFFIX}`);
+            const manifest: SemanticArtifactManifest = {
+              version: SEMANTIC_ARTIFACT_MANIFEST_VERSION,
+              key: decodedKey,
+              writtenAt: DateTime.formatIso(yield* DateTime.now),
+              value
+            };
+            const content = yield* serializeManifest(manifest);
+            yield* fsService.safeDelete(stagingUri);
+            yield* fsService.safeWriteFile(stagingUri, content);
+            yield* fsService.rename(stagingUri.toString(), uri.toString(), { overwrite: true });
+            yield* pruneRevisions(uri).pipe(
+              Effect.catchAll(error => Effect.logWarning('Failed to prune semantic artifact revisions', error))
+            );
+            yield* Effect.annotateCurrentSpan({
+              orgId: decodedKey.orgId,
+              targetKind: decodedKey.identity.kind,
+              namespace: decodedKey.identity.namespace ?? '',
+              name: decodedKey.identity.name,
+              projection: decodedKey.projection.model,
+              provider: decodedKey.provider,
+              capabilityVersion: decodedKey.capabilityVersion,
+              revision: decodedKey.revision ?? ''
+            });
+            return { key: decodedKey, writtenAt: manifest.writtenAt, value, uri };
+          })
+        );
+      });
+
+      return { getUri, load, pruneRevisions, save };
+    })
+  }
+) {}

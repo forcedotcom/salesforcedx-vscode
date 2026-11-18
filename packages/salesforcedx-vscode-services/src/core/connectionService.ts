@@ -305,227 +305,238 @@ const getUserFromUserSobject = Effect.fn('getUserFromUserSobject')(function* (or
   return either.pipe(Either.merge, Option.getOrUndefined);
 });
 
-export class ConnectionService extends Effect.Service<ConnectionService>()('ConnectionService', {
-  accessors: true,
-  dependencies: [ConfigService.Default, SettingsService.Default, AliasService.Default],
-  effect: Effect.gen(function* () {
-    const configService = yield* ConfigService;
-    const settingsService = yield* SettingsService;
-    const aliasService = yield* AliasService;
-    const activeConnectionCache =
-      process.env.ESBUILD_PLATFORM === 'web'
-        ? yield* Cache.makeWith({
-            capacity: 1,
-            timeToLive: Exit.match({
-              onSuccess: () => Duration.infinity,
-              onFailure: () => Duration.zero
-            }),
-            lookup: createWebConnection
-          })
-        : desktopConnectionCache;
+export class ConnectionService extends Effect.Service<ConnectionService>()(
+  'salesforcedx-vscode-services/core/connectionService',
+  {
+    accessors: true,
+    dependencies: [ConfigService.Default, SettingsService.Default, AliasService.Default],
+    effect: Effect.gen(function* () {
+      const configService = yield* ConfigService;
+      const settingsService = yield* SettingsService;
+      const aliasService = yield* AliasService;
+      const activeConnectionCache =
+        process.env.ESBUILD_PLATFORM === 'web'
+          ? yield* Cache.makeWith({
+              capacity: 1,
+              timeToLive: Exit.match({
+                onSuccess: () => Duration.infinity,
+                onFailure: () => Duration.zero
+              }),
+              lookup: createWebConnection
+            })
+          : desktopConnectionCache;
 
-    const getCachedConnection = Effect.fn('ConnectionService.connectionCache.get')(function* (key: string) {
-      return yield* activeConnectionCache.getEither(key).pipe(
-        Effect.tap(either => Effect.annotateCurrentSpan({ connectionCache: Either.isLeft(either) ? 'hit' : 'miss' })),
-        Effect.map(either => ({ connection: Either.merge(either), cacheHit: Either.isLeft(either) }))
+      const getCachedConnection = Effect.fn('ConnectionService.connectionCache.get')(function* (key: string) {
+        return yield* activeConnectionCache.getEither(key).pipe(
+          Effect.tap(either => Effect.annotateCurrentSpan({ connectionCache: Either.isLeft(either) ? 'hit' : 'miss' })),
+          Effect.map(either => ({ connection: Either.merge(either), cacheHit: Either.isLeft(either) }))
+        );
+      });
+
+      const getConnectionFromCache = (key: string) =>
+        getCachedConnection(key).pipe(
+          Effect.tap(({ cacheHit }) =>
+            cacheHit ? Effect.annotateCurrentSpan({ telemetryIgnore: true }) : Effect.void
+          ),
+          Effect.map(({ connection }) => connection)
+        );
+
+      // explicit type breaks the promptReauth → reauthCache → runReauthLookup → promptReauth inference cycle
+      const promptReauth: (
+        conn: Connection,
+        username: string
+      ) => Effect.Effect<never, NoWorkspaceOpenError | FailedToCreateConfigAggregatorError | AccessTokenExpiredError> =
+        Effect.fn('ConnectionService.promptReauth')(function* (conn: Connection, username: string) {
+          // Preserve existing alias on reauth (not arbitrary first-registered alias).
+          const targetOrgOrAlias = yield* configService.getTargetOrg();
+          const alias = targetOrgOrAlias && targetOrgOrAlias !== username ? targetOrgOrAlias : undefined;
+          const loginButton = nls.localize('error_access_token_expired_login_button');
+          const selection = yield* Effect.promise(() =>
+            vscode.window.showErrorMessage(
+              nls.localize('error_access_token_expired'),
+              { modal: true, detail: nls.localize('error_access_token_expired_detail') },
+              loginButton
+            )
+          );
+          if (selection === loginButton) {
+            yield* Effect.promise(() =>
+              vscode.commands.executeCommand('sf.org.login.web', conn.instanceUrl, alias ?? username)
+            );
+            // executeCommand blocks until login finishes; fresh auth file on disk. Invalidate both caches so the
+            // next getConnection rebuilds AuthInfo AND re-runs the reauth probe against the new token (the failed
+            // reauth entry is keyed by username, so it must be dropped explicitly or it would stay cached 30min).
+            yield* invalidateCachedConnections();
+            yield* reauthCache.invalidate(username);
+          }
+          return yield* new AccessTokenExpiredError({
+            message: nls.localize('error_access_token_refresh_failed'),
+            username
+          });
+        });
+
+      // Keyed by RESOLVED USERNAME (matching desktopConnectionCache), NOT the Connection object: desktopConnectionCache is
+      // invalidated on every config-file change (configFileWatcher) + on org switch, so a Connection-keyed reauth
+      // cache would treat each rebuilt Connection for the SAME org as new and re-prompt — stacking a modal per
+      // invalidation. Re-fetch the Connection here (cache hit in the common path; a fresh valid one if it was
+      // invalidated) so identity() always probes the current auth.
+      const runReauthLookup = Effect.fn('ConnectionService.runReauthLookup')(function* (username: string) {
+        const conn = yield* desktopConnectionCache.get(username);
+        yield* Effect.tryPromise(() => conn.identity()).pipe(Effect.catchAll(() => promptReauth(conn, username)));
+      });
+
+      // Dedup concurrent identity() calls per username. Success TTL 1min (re-probe mid-session tokens).
+      // Failure TTL 30min: one modal per username per session; reauth's invalidate drops it so a fresh login re-probes.
+      const reauthCache = yield* Cache.makeWith({
+        capacity: 100,
+        timeToLive: Exit.match({
+          onSuccess: () => Duration.minutes(1),
+          onFailure: () => Duration.minutes(30)
+        }),
+        lookup: runReauthLookup
+      });
+
+      /**
+       * If the connection uses the access-token (session-ID) flow — which cannot silently refresh — validate
+       * that the token still works via `identity()`. On failure, show a modal and (if accepted) dispatch
+       * `sf.org.login.web`. No-op for refreshable (web/JWT) flows.
+       */
+      const validateAccessTokenOrPromptReauth = Effect.fn('ConnectionService.validateAccessTokenOrPromptReauth')(
+        function* (conn: Connection) {
+          if (!conn.getAuthInfo().isAccessTokenFlow()) return;
+          const username = resolveUsername(conn);
+          if (!username) return;
+          yield* reauthCache.get(username);
+        }
       );
-    });
 
-    const getConnectionFromCache = (key: string) =>
-      getCachedConnection(key).pipe(
-        Effect.tap(({ cacheHit }) => (cacheHit ? Effect.annotateCurrentSpan({ telemetryIgnore: true }) : Effect.void)),
-        Effect.map(({ connection }) => connection)
-      );
+      /**
+       * Get a Connection to an org. Desktop: `username` given → alias-resolve it and skip the config
+       * `target-org` lookup; omitted → resolve the configured default org (unchanged). Web ignores the param.
+       * When `username` is given, the default-org ref is NOT mutated (an arbitrary org must not overwrite it).
+       */
+      const getConnection = Effect.fn('ConnectionService.getConnection')(function* (username?: string) {
+        const conn = yield* process.env.ESBUILD_PLATFORM === 'web'
+          ? Effect.gen(function* () {
+              // Web environment - get connection from settings
+              const instanceUrl = yield* settingsService.getInstanceUrl();
+              const accessToken = yield* settingsService.getAccessToken();
+              const apiVersion = yield* settingsService.getApiVersion();
 
-    // explicit type breaks the promptReauth → reauthCache → runReauthLookup → promptReauth inference cycle
-    const promptReauth: (
-      conn: Connection,
-      username: string
-    ) => Effect.Effect<never, NoWorkspaceOpenError | FailedToCreateConfigAggregatorError | AccessTokenExpiredError> =
-      Effect.fn('ConnectionService.promptReauth')(function* (conn: Connection, username: string) {
-        // Preserve existing alias on reauth (not arbitrary first-registered alias).
-        const targetOrgOrAlias = yield* configService.getTargetOrg();
-        const alias = targetOrgOrAlias && targetOrgOrAlias !== username ? targetOrgOrAlias : undefined;
-        const loginButton = nls.localize('error_access_token_expired_login_button');
-        const selection = yield* Effect.promise(() =>
-          vscode.window.showErrorMessage(
-            nls.localize('error_access_token_expired'),
-            { modal: true, detail: nls.localize('error_access_token_expired_detail') },
-            loginButton
+              return yield* getConnectionFromCache(toKey(instanceUrl, accessToken, apiVersion));
+            })
+          : Effect.gen(function* () {
+              const usernameOrAlias =
+                username ??
+                (yield* configService.getConfigAggregator().pipe(
+                  Effect.map(agg => agg.getPropertyValue<string>(OrgConfigProperties.TARGET_ORG)),
+                  Effect.filterOrFail(
+                    isNotUndefined,
+                    () => new NoTargetOrgConfiguredError({ message: 'No target org configured' })
+                  )
+                ));
+              const resolvedUsername = yield* aliasService
+                .getUsernameFromAlias(usernameOrAlias)
+                .pipe(Effect.map(Option.getOrElse(() => usernameOrAlias)));
+              // Session-ID orgs can't silently refresh; validate before returning so ALL consumers
+              // see reauth modal on expired token. No-op for refreshable flows.
+              return yield* getConnectionFromCache(resolvedUsername).pipe(
+                Effect.tap(validateAccessTokenOrPromptReauth)
+              );
+            });
+
+        // Update the org ref in the background only for the default org (no explicit username).
+        if (isUndefined(username)) {
+          const orgId = Option.getOrUndefined(orgIdFromConnection(conn));
+          const instanceName = Option.getOrUndefined(
+            Option.flatMap(authFieldsFromConnection(conn), f => f.instanceName)
+          );
+          const defaultOrgRef = yield* getDefaultOrgRef();
+          const previousOrgId = yield* updateDefaultOrgIdentity(defaultOrgRef, orgId, instanceName);
+          yield* maybeUpdateDefaultOrgRef(conn, previousOrgId).pipe(
+            Effect.provideService(AliasService, aliasService),
+            Effect.provideService(ConfigService, configService),
+            Effect.tapError(e => Effect.logWarning(String(e))),
+            Effect.catchAll(() => Effect.void),
+            Effect.forkDaemon
+          );
+        }
+        return conn;
+      });
+
+      const getConnectionForOrg = Effect.fn('ConnectionService.getConnectionForOrg')(function* (expectedOrgId: string) {
+        const connection = yield* getConnection();
+        const observedOrgId = Option.getOrUndefined(orgIdFromConnection(connection));
+        return yield* Effect.succeed(connection).pipe(
+          Effect.filterOrFail(
+            () => observedOrgId === expectedOrgId,
+            () =>
+              new InactiveOrgOperationError({
+                message: nls.localize('org_operation_target_changed', expectedOrgId),
+                expectedOrgId,
+                ...(observedOrgId ? { observedOrgId } : {})
+              })
           )
         );
-        if (selection === loginButton) {
-          yield* Effect.promise(() =>
-            vscode.commands.executeCommand('sf.org.login.web', conn.instanceUrl, alias ?? username)
-          );
-          // executeCommand blocks until login finishes; fresh auth file on disk. Invalidate both caches so the
-          // next getConnection rebuilds AuthInfo AND re-runs the reauth probe against the new token (the failed
-          // reauth entry is keyed by username, so it must be dropped explicitly or it would stay cached 30min).
-          yield* invalidateCachedConnections();
-          yield* reauthCache.invalidate(username);
-        }
-        return yield* new AccessTokenExpiredError({
-          message: nls.localize('error_access_token_refresh_failed'),
-          username
+      });
+
+      /** Get decoded auth fields; failure to read or decode them is an error for every consumer. */
+      const getAuthInfoFields = Effect.fn('ConnectionService.getAuthInfoFields')(function* (username?: string) {
+        const connection = yield* getConnection(username).pipe(
+          Effect.mapError(
+            error => new GetAuthFieldsError({ message: error.message, ...(username ? { username } : {}) })
+          )
+        );
+        const authFieldsUsername = username ?? connection.getUsername();
+        return yield* Option.match(authFieldsFromConnection(connection), {
+          onNone: () =>
+            Effect.fail(
+              new GetAuthFieldsError({
+                message: 'Unable to decode auth fields',
+                ...(authFieldsUsername ? { username: authFieldsUsername } : {})
+              })
+            ),
+          onSome: fields => Effect.succeed(Schema.encodeSync(AuthFields)(fields) satisfies AuthInfoFields)
         });
       });
 
-    // Keyed by RESOLVED USERNAME (matching desktopConnectionCache), NOT the Connection object: desktopConnectionCache is
-    // invalidated on every config-file change (configFileWatcher) + on org switch, so a Connection-keyed reauth
-    // cache would treat each rebuilt Connection for the SAME org as new and re-prompt — stacking a modal per
-    // invalidation. Re-fetch the Connection here (cache hit in the common path; a fresh valid one if it was
-    // invalidated) so identity() always probes the current auth.
-    const runReauthLookup = Effect.fn('ConnectionService.runReauthLookup')(function* (username: string) {
-      const conn = yield* desktopConnectionCache.get(username);
-      yield* Effect.tryPromise(() => conn.identity()).pipe(Effect.catchAll(() => promptReauth(conn, username)));
-    });
-
-    // Dedup concurrent identity() calls per username. Success TTL 1min (re-probe mid-session tokens).
-    // Failure TTL 30min: one modal per username per session; reauth's invalidate drops it so a fresh login re-probes.
-    const reauthCache = yield* Cache.makeWith({
-      capacity: 100,
-      timeToLive: Exit.match({
-        onSuccess: () => Duration.minutes(1),
-        onFailure: () => Duration.minutes(30)
-      }),
-      lookup: runReauthLookup
-    });
-
-    /**
-     * If the connection uses the access-token (session-ID) flow — which cannot silently refresh — validate
-     * that the token still works via `identity()`. On failure, show a modal and (if accepted) dispatch
-     * `sf.org.login.web`. No-op for refreshable (web/JWT) flows.
-     */
-    const validateAccessTokenOrPromptReauth = Effect.fn('ConnectionService.validateAccessTokenOrPromptReauth')(
-      function* (conn: Connection) {
-        if (!conn.getAuthInfo().isAccessTokenFlow()) return;
-        const username = resolveUsername(conn);
-        if (!username) return;
-        yield* reauthCache.get(username);
-      }
-    );
-
-    /**
-     * Get a Connection to an org. Desktop: `username` given → alias-resolve it and skip the config
-     * `target-org` lookup; omitted → resolve the configured default org (unchanged). Web ignores the param.
-     * When `username` is given, the default-org ref is NOT mutated (an arbitrary org must not overwrite it).
-     */
-    const getConnection = Effect.fn('ConnectionService.getConnection')(function* (username?: string) {
-      const conn = yield* process.env.ESBUILD_PLATFORM === 'web'
-        ? Effect.gen(function* () {
-            // Web environment - get connection from settings
-            const instanceUrl = yield* settingsService.getInstanceUrl();
-            const accessToken = yield* settingsService.getAccessToken();
-            const apiVersion = yield* settingsService.getApiVersion();
-
-            return yield* getConnectionFromCache(toKey(instanceUrl, accessToken, apiVersion));
-          })
-        : Effect.gen(function* () {
-            const usernameOrAlias =
-              username ??
-              (yield* configService.getConfigAggregator().pipe(
-                Effect.map(agg => agg.getPropertyValue<string>(OrgConfigProperties.TARGET_ORG)),
-                Effect.filterOrFail(
-                  isNotUndefined,
-                  () => new NoTargetOrgConfiguredError({ message: 'No target org configured' })
-                )
-              ));
-            const resolvedUsername = yield* aliasService
-              .getUsernameFromAlias(usernameOrAlias)
-              .pipe(Effect.map(Option.getOrElse(() => usernameOrAlias)));
-            // Session-ID orgs can't silently refresh; validate before returning so ALL consumers
-            // see reauth modal on expired token. No-op for refreshable flows.
-            return yield* getConnectionFromCache(resolvedUsername).pipe(Effect.tap(validateAccessTokenOrPromptReauth));
-          });
-
-      // Update the org ref in the background only for the default org (no explicit username).
-      if (isUndefined(username)) {
-        const orgId = Option.getOrUndefined(orgIdFromConnection(conn));
-        const instanceName = Option.getOrUndefined(Option.flatMap(authFieldsFromConnection(conn), f => f.instanceName));
-        const defaultOrgRef = yield* getDefaultOrgRef();
-        const previousOrgId = yield* updateDefaultOrgIdentity(defaultOrgRef, orgId, instanceName);
-        yield* maybeUpdateDefaultOrgRef(conn, previousOrgId).pipe(
-          Effect.provideService(AliasService, aliasService),
-          Effect.provideService(ConfigService, configService),
-          Effect.tapError(e => Effect.logWarning(String(e))),
-          Effect.catchAll(() => Effect.void),
-          Effect.forkDaemon
-        );
-      }
-      return conn;
-    });
-
-    const getConnectionForOrg = Effect.fn('ConnectionService.getConnectionForOrg')(function* (expectedOrgId: string) {
-      const connection = yield* getConnection();
-      const observedOrgId = Option.getOrUndefined(orgIdFromConnection(connection));
-      return yield* Effect.succeed(connection).pipe(
-        Effect.filterOrFail(
-          () => observedOrgId === expectedOrgId,
-          () =>
-            new InactiveOrgOperationError({
-              message: nls.localize('org_operation_target_changed', expectedOrgId),
-              expectedOrgId,
-              ...(observedOrgId ? { observedOrgId } : {})
-            })
-        )
-      );
-    });
-
-    /** Get decoded auth fields; failure to read or decode them is an error for every consumer. */
-    const getAuthInfoFields = Effect.fn('ConnectionService.getAuthInfoFields')(function* (username?: string) {
-      const connection = yield* getConnection(username).pipe(
-        Effect.mapError(error => new GetAuthFieldsError({ message: error.message, ...(username ? { username } : {}) }))
-      );
-      const authFieldsUsername = username ?? connection.getUsername();
-      return yield* Option.match(authFieldsFromConnection(connection), {
-        onNone: () =>
-          Effect.fail(
-            new GetAuthFieldsError({
-              message: 'Unable to decode auth fields',
-              ...(authFieldsUsername ? { username: authFieldsUsername } : {})
-            })
-          ),
-        onSome: fields => Effect.succeed(Schema.encodeSync(AuthFields)(fields) satisfies AuthInfoFields)
+      /** Drops cached JSForce `Connection` instances so the next `getConnection()` reloads `AuthInfo` from disk. */
+      const invalidateCachedConnections = Effect.fn('ConnectionService.invalidateCachedConnections')(function* () {
+        yield* activeConnectionCache.invalidateAll;
       });
-    });
 
-    /** Drops cached JSForce `Connection` instances so the next `getConnection()` reloads `AuthInfo` from disk. */
-    const invalidateCachedConnections = Effect.fn('ConnectionService.invalidateCachedConnections')(function* () {
-      yield* activeConnectionCache.invalidateAll;
-    });
-
-    /**
-     * List all org authorizations known to the CLI (wraps `AuthInfo.listAllAuthorizations`).
-     * Clears the StateAggregator first: `AuthInfo.listAllAuthorizations` reads via a cached
-     * StateAggregator whose `orgs.readAll` only *adds* to its `configs` map and never evicts
-     * entries for files deleted out of process (orgAccessor.js `readAll` L81-103). A logged-out
-     * org (its auth file removed by `AuthRemover.removeAuth`) therefore lingers in the cache, so
-     * the org pickers keep listing it. Resetting the instance forces a fresh disk read.
-     */
-    const listAllAuthorizations = Effect.fn('ConnectionService.listAllAuthorizations')(function* () {
-      yield* Effect.promise(() => StateAggregator.clearInstanceAsync());
-      return yield* Effect.tryPromise({
-        try: () => AuthInfo.listAllAuthorizations(),
-        catch: error => {
-          const { cause } = unknownToErrorCause(error);
-          return new FailedToListAuthorizationsError({
-            message: `Failed to list authorizations: ${cause.message}`,
-            cause
-          });
-        }
+      /**
+       * List all org authorizations known to the CLI (wraps `AuthInfo.listAllAuthorizations`).
+       * Clears the StateAggregator first: `AuthInfo.listAllAuthorizations` reads via a cached
+       * StateAggregator whose `orgs.readAll` only *adds* to its `configs` map and never evicts
+       * entries for files deleted out of process (orgAccessor.js `readAll` L81-103). A logged-out
+       * org (its auth file removed by `AuthRemover.removeAuth`) therefore lingers in the cache, so
+       * the org pickers keep listing it. Resetting the instance forces a fresh disk read.
+       */
+      const listAllAuthorizations = Effect.fn('ConnectionService.listAllAuthorizations')(function* () {
+        yield* Effect.promise(() => StateAggregator.clearInstanceAsync());
+        return yield* Effect.tryPromise({
+          try: () => AuthInfo.listAllAuthorizations(),
+          catch: error => {
+            const { cause } = unknownToErrorCause(error);
+            return new FailedToListAuthorizationsError({
+              message: `Failed to list authorizations: ${cause.message}`,
+              cause
+            });
+          }
+        });
       });
-    });
 
-    return {
-      getConnection,
-      getConnectionForOrg,
-      getAuthInfoFields,
-      validateAccessTokenOrPromptReauth,
-      invalidateCachedConnections,
-      listAllAuthorizations
-    };
-  })
-}) {}
+      return {
+        getConnection,
+        getConnectionForOrg,
+        getAuthInfoFields,
+        validateAccessTokenOrPromptReauth,
+        invalidateCachedConnections,
+        listAllAuthorizations
+      };
+    })
+  }
+) {}
 
 const getTracksSourceFromOrg = (conn: Connection, configService: ConfigService) =>
   configService.getConfigAggregator().pipe(

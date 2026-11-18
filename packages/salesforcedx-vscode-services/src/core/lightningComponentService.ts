@@ -32,7 +32,7 @@ export type RenameBundleParams = {
 };
 
 export class LightningComponentService extends Effect.Service<LightningComponentService>()(
-  'LightningComponentService',
+  'salesforcedx-vscode-services/core/lightningComponentService',
   {
     accessors: true,
     dependencies: [FsService.Default],

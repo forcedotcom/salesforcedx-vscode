@@ -55,7 +55,7 @@ const toLLMError = (cause: unknown) => {
  * command (e.g. a provider version that never registers it) should fail fast, not stall the user. */
 const LLM_AVAILABILITY_SCHEDULE = Schedule.spaced(Duration.millis(200)).pipe(Schedule.intersect(Schedule.recurs(3)));
 
-export class LLMService extends Effect.Service<LLMService>()('LLMService', {
+export class LLMService extends Effect.Service<LLMService>()('salesforcedx-vscode-apex-oas/services/llmService', {
   accessors: true,
   effect: Effect.gen(function* () {
     const getInterface = Effect.tryPromise({

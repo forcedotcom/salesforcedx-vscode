@@ -304,131 +304,134 @@ const withProjectDefaults = (params: CreateParams<SfTemplates.TemplateType>): Cr
  * Service that wraps @salesforce/templates TemplateService for creating templates.
  * Lives in services extension which has @salesforce/core and @salesforce/templates.
  */
-export class TemplateService extends Effect.Service<TemplateService>()('TemplateService', {
-  accessors: true,
-  dependencies: [ProjectService.Default, ConnectionService.Default, ConfigService.Default],
-  effect: Effect.gen(function* () {
-    const resolveCustomTemplatesPath = Effect.fn('TemplateService.resolveCustomTemplatesPath')(function* () {
-      const configService = yield* ConfigService;
-      const agg = yield* configService.getConfigAggregator();
-      const value = agg.getPropertyValue<string>(OrgConfigProperties.ORG_CUSTOM_METADATA_TEMPLATES);
-      return value ? String(value) : undefined;
-    });
-
-    const getTemplatesRootCached = yield* Effect.cached(getTemplatesRoot());
-    // Stage templates into memfs exactly once on success, while making concurrent callers AWAIT the
-    // in-flight run. Neither `Effect.once` nor `Effect.cached` fits:
-    //   - `once` flips its flag when the first caller STARTS, so a second `create` mid-staging skips and
-    //     runs against a half-copied templates dir (ENOENT on readdir).
-    //   - `cached` memoizes failures too, so one transient copy error would be stuck until reload.
-    // A 1-permit semaphore serializes callers (they queue and await); a Ref set ONLY after success
-    // short-circuits subsequent callers, while a failure leaves it false so the next caller retries.
-    const stagingDone = yield* Ref.make(false);
-    const stagingLock = yield* Effect.makeSemaphore(1);
-    const ensureTemplatesInFsOnce = stagingLock.withPermits(1)(
-      Effect.unlessEffect(
-        getTemplatesRootCached.pipe(
-          Effect.flatMap(({ templatesRootUri, templatesRootPath }) =>
-            ensureTemplatesInFs(templatesRootUri, templatesRootPath)
-          ),
-          Effect.zipRight(Ref.set(stagingDone, true))
-        ),
-        Ref.get(stagingDone)
-      )
-    );
-
-    const getBuiltInTemplateNames = Effect.fn('TemplateService.getBuiltInTemplateNames')(function* (
-      templateDir: string,
-      filetype: RegExp
-    ) {
-      const { templatesRootPath } = yield* getTemplatesRootCached;
-      yield* ensureTemplatesInFsOnce;
-      return yield* Effect.try(() =>
-        SfTemplates.CreateUtil.getCommandTemplatesForFiletype(filetype, templateDir, nodeFs, templatesRootPath)
-      );
-    });
-
-    const getCustomTemplateNames = Effect.fn('TemplateService.getCustomTemplateNames')(function* (
-      templateDir: string,
-      ext: string
-    ) {
-      const customPath = yield* resolveCustomTemplatesPath().pipe(Effect.orElseSucceed(() => undefined));
-      if (!customPath) return [];
-      const subdirUri = Utils.joinPath(URI.file(customPath), templateDir);
-      const entries = yield* readDirectoryOrEmpty(subdirUri);
-      return entries
-        .filter(([name, type]) => type === vscode.FileType.File && name.endsWith(ext))
-        .map(([name]) => name.slice(0, -ext.length));
-    });
-
-    const getBuiltInTemplateSubdirNames = Effect.fn('TemplateService.getBuiltInTemplateSubdirNames')(function* (
-      templateDir: string,
-      subdir: string,
-      filetype: RegExp
-    ) {
-      const { templatesRootPath } = yield* getTemplatesRootCached;
-      yield* ensureTemplatesInFsOnce;
-      return yield* Effect.try(() =>
-        SfTemplates.CreateUtil.getCommandTemplatesInSubdirs(
-          templateDir,
-          { filetype, subdir },
-          nodeFs,
-          templatesRootPath
-        )
-      );
-    });
-
-    const getCustomTemplateSubdirNames = Effect.fn('TemplateService.getCustomTemplateSubdirNames')(function* (
-      templateDir: string,
-      subdir: string,
-      filetype: RegExp
-    ) {
-      const customPath = yield* resolveCustomTemplatesPath().pipe(Effect.orElseSucceed(() => undefined));
-      if (!customPath) return [];
-      const subdirUri = Utils.joinPath(URI.file(customPath), templateDir, subdir);
-      const entries = yield* readDirectoryOrEmpty(subdirUri);
-      const dirNames = entries.filter(([, type]) => type === vscode.FileType.Directory).map(([name]) => name);
-      const matches = yield* Effect.forEach(dirNames, name =>
-        readDirectoryOrEmpty(Utils.joinPath(subdirUri, name)).pipe(
-          Effect.map(files =>
-            files.some(([fileName, type]) => type === vscode.FileType.File && filetype.test(fileName))
-          )
-        )
-      );
-      return dirNames.filter((_, i) => matches[i]);
-    });
-
-    const getProjectTemplateNames = Effect.fn('TemplateService.getProjectTemplateNames')(() =>
-      Effect.succeed<readonly SfTemplates.ProjectTemplate[]>(SfTemplates.PROJECT_TEMPLATES)
-    );
-
-    const create = Effect.fn('TemplateService.create')(function* (params: CreateParams<SfTemplates.TemplateType>) {
-      const { templatesRootPath } = yield* getTemplatesRootCached;
-      yield* ensureTemplatesInFsOnce;
-      const templateService = SfTemplates.TemplateService.getInstance(params.cwd, {
-        templatesRootPath,
-        fs: nodeFs
+export class TemplateService extends Effect.Service<TemplateService>()(
+  'salesforcedx-vscode-services/core/templateService',
+  {
+    accessors: true,
+    dependencies: [ProjectService.Default, ConnectionService.Default, ConfigService.Default],
+    effect: Effect.gen(function* () {
+      const resolveCustomTemplatesPath = Effect.fn('TemplateService.resolveCustomTemplatesPath')(function* () {
+        const configService = yield* ConfigService;
+        const agg = yield* configService.getConfigAggregator();
+        const value = agg.getPropertyValue<string>(OrgConfigProperties.ORG_CUSTOM_METADATA_TEMPLATES);
+        return value ? String(value) : undefined;
       });
-      const paramsWithDefaults = withProjectDefaults(params);
-      const optionsWithApiVersion = yield* resolveOptionsWithApiVersion(paramsWithDefaults);
-      const templateOptions = params.outputdir
-        ? {
-            ...optionsWithApiVersion,
-            outputdir: path.relative(params.cwd, uriToPath(params.outputdir))
-          }
-        : optionsWithApiVersion;
-      const customTemplatesPath = yield* resolveCustomTemplatesPath().pipe(Effect.orElseSucceed(() => undefined));
-      return yield* Effect.tryPromise(() =>
-        templateService.create(params.templateType, templateOptions, customTemplatesPath)
+
+      const getTemplatesRootCached = yield* Effect.cached(getTemplatesRoot());
+      // Stage templates into memfs exactly once on success, while making concurrent callers AWAIT the
+      // in-flight run. Neither `Effect.once` nor `Effect.cached` fits:
+      //   - `once` flips its flag when the first caller STARTS, so a second `create` mid-staging skips and
+      //     runs against a half-copied templates dir (ENOENT on readdir).
+      //   - `cached` memoizes failures too, so one transient copy error would be stuck until reload.
+      // A 1-permit semaphore serializes callers (they queue and await); a Ref set ONLY after success
+      // short-circuits subsequent callers, while a failure leaves it false so the next caller retries.
+      const stagingDone = yield* Ref.make(false);
+      const stagingLock = yield* Effect.makeSemaphore(1);
+      const ensureTemplatesInFsOnce = stagingLock.withPermits(1)(
+        Effect.unlessEffect(
+          getTemplatesRootCached.pipe(
+            Effect.flatMap(({ templatesRootUri, templatesRootPath }) =>
+              ensureTemplatesInFs(templatesRootUri, templatesRootPath)
+            ),
+            Effect.zipRight(Ref.set(stagingDone, true))
+          ),
+          Ref.get(stagingDone)
+        )
       );
-    });
-    return {
-      create,
-      getBuiltInTemplateNames,
-      getCustomTemplateNames,
-      getBuiltInTemplateSubdirNames,
-      getCustomTemplateSubdirNames,
-      getProjectTemplateNames
-    };
-  })
-}) {}
+
+      const getBuiltInTemplateNames = Effect.fn('TemplateService.getBuiltInTemplateNames')(function* (
+        templateDir: string,
+        filetype: RegExp
+      ) {
+        const { templatesRootPath } = yield* getTemplatesRootCached;
+        yield* ensureTemplatesInFsOnce;
+        return yield* Effect.try(() =>
+          SfTemplates.CreateUtil.getCommandTemplatesForFiletype(filetype, templateDir, nodeFs, templatesRootPath)
+        );
+      });
+
+      const getCustomTemplateNames = Effect.fn('TemplateService.getCustomTemplateNames')(function* (
+        templateDir: string,
+        ext: string
+      ) {
+        const customPath = yield* resolveCustomTemplatesPath().pipe(Effect.orElseSucceed(() => undefined));
+        if (!customPath) return [];
+        const subdirUri = Utils.joinPath(URI.file(customPath), templateDir);
+        const entries = yield* readDirectoryOrEmpty(subdirUri);
+        return entries
+          .filter(([name, type]) => type === vscode.FileType.File && name.endsWith(ext))
+          .map(([name]) => name.slice(0, -ext.length));
+      });
+
+      const getBuiltInTemplateSubdirNames = Effect.fn('TemplateService.getBuiltInTemplateSubdirNames')(function* (
+        templateDir: string,
+        subdir: string,
+        filetype: RegExp
+      ) {
+        const { templatesRootPath } = yield* getTemplatesRootCached;
+        yield* ensureTemplatesInFsOnce;
+        return yield* Effect.try(() =>
+          SfTemplates.CreateUtil.getCommandTemplatesInSubdirs(
+            templateDir,
+            { filetype, subdir },
+            nodeFs,
+            templatesRootPath
+          )
+        );
+      });
+
+      const getCustomTemplateSubdirNames = Effect.fn('TemplateService.getCustomTemplateSubdirNames')(function* (
+        templateDir: string,
+        subdir: string,
+        filetype: RegExp
+      ) {
+        const customPath = yield* resolveCustomTemplatesPath().pipe(Effect.orElseSucceed(() => undefined));
+        if (!customPath) return [];
+        const subdirUri = Utils.joinPath(URI.file(customPath), templateDir, subdir);
+        const entries = yield* readDirectoryOrEmpty(subdirUri);
+        const dirNames = entries.filter(([, type]) => type === vscode.FileType.Directory).map(([name]) => name);
+        const matches = yield* Effect.forEach(dirNames, name =>
+          readDirectoryOrEmpty(Utils.joinPath(subdirUri, name)).pipe(
+            Effect.map(files =>
+              files.some(([fileName, type]) => type === vscode.FileType.File && filetype.test(fileName))
+            )
+          )
+        );
+        return dirNames.filter((_, i) => matches[i]);
+      });
+
+      const getProjectTemplateNames = Effect.fn('TemplateService.getProjectTemplateNames')(() =>
+        Effect.succeed<readonly SfTemplates.ProjectTemplate[]>(SfTemplates.PROJECT_TEMPLATES)
+      );
+
+      const create = Effect.fn('TemplateService.create')(function* (params: CreateParams<SfTemplates.TemplateType>) {
+        const { templatesRootPath } = yield* getTemplatesRootCached;
+        yield* ensureTemplatesInFsOnce;
+        const templateService = SfTemplates.TemplateService.getInstance(params.cwd, {
+          templatesRootPath,
+          fs: nodeFs
+        });
+        const paramsWithDefaults = withProjectDefaults(params);
+        const optionsWithApiVersion = yield* resolveOptionsWithApiVersion(paramsWithDefaults);
+        const templateOptions = params.outputdir
+          ? {
+              ...optionsWithApiVersion,
+              outputdir: path.relative(params.cwd, uriToPath(params.outputdir))
+            }
+          : optionsWithApiVersion;
+        const customTemplatesPath = yield* resolveCustomTemplatesPath().pipe(Effect.orElseSucceed(() => undefined));
+        return yield* Effect.tryPromise(() =>
+          templateService.create(params.templateType, templateOptions, customTemplatesPath)
+        );
+      });
+      return {
+        create,
+        getBuiltInTemplateNames,
+        getCustomTemplateNames,
+        getBuiltInTemplateSubdirNames,
+        getCustomTemplateSubdirNames,
+        getProjectTemplateNames
+      };
+    })
+  }
+) {}

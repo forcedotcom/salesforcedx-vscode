@@ -59,7 +59,7 @@ const createConfigAggregator = (projectPath: string) =>
     }
   }).pipe(Effect.withSpan('createConfigAggregator (cache miss)', { attributes: { projectPath } }));
 
-export class ConfigService extends Effect.Service<ConfigService>()('ConfigService', {
+export class ConfigService extends Effect.Service<ConfigService>()('salesforcedx-vscode-services/core/configService', {
   accessors: true,
   dependencies: [WorkspaceService.Default],
   effect: Effect.gen(function* () {

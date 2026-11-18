@@ -49,7 +49,7 @@ const getIconDescription = Effect.fn('MediaService.getIconDescription')(function
 });
 
 /** Effect service for media (icons, descriptions). */
-export class MediaService extends Effect.Service<MediaService>()('MediaService', {
+export class MediaService extends Effect.Service<MediaService>()('salesforcedx-vscode-services/vscode/mediaService', {
   accessors: true,
   dependencies: [],
   effect: Effect.sync(() => ({ ICONS, getIconDescription }))

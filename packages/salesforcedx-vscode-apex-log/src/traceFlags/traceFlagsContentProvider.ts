@@ -138,7 +138,7 @@ let providerInstance: TraceFlagsContentProviderClass | undefined;
 
 /** Effect.Service providing the trace flags virtual document provider (singleton). */
 export class TraceFlagsContentProviderService extends Effect.Service<TraceFlagsContentProviderService>()(
-  'TraceFlagsContentProviderService',
+  'salesforcedx-vscode-apex-log/traceFlags/traceFlagsContentProvider/TraceFlagsContentProviderService',
   {
     accessors: true,
     dependencies: [],

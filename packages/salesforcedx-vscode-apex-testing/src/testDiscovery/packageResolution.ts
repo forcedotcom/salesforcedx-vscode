@@ -303,99 +303,102 @@ const resolveByPackageEnumeration = Effect.fn('PackageResolutionService.resolveB
  * per org for the runtime lifetime. Classes not resolvable are omitted (caller treats them as unpackaged
  * or 1GP based on namespace from discovery).
  */
-export class PackageResolutionService extends Effect.Service<PackageResolutionService>()('PackageResolutionService', {
-  accessors: true,
-  dependencies: [],
-  effect: Effect.gen(function* () {
-    const stateRef = yield* Ref.make<ResolutionState>({ byOrg: HashMap.empty(), unavailable: HashSet.empty() });
+export class PackageResolutionService extends Effect.Service<PackageResolutionService>()(
+  'salesforcedx-vscode-apex-testing/testDiscovery/packageResolution/PackageResolutionService',
+  {
+    accessors: true,
+    dependencies: [],
+    effect: Effect.gen(function* () {
+      const stateRef = yield* Ref.make<ResolutionState>({ byOrg: HashMap.empty(), unavailable: HashSet.empty() });
 
-    const markUnavailable = (orgKey: string) =>
-      Ref.update(stateRef, state => ({ ...state, unavailable: HashSet.add(state.unavailable, orgKey) }));
+      const markUnavailable = (orgKey: string) =>
+        Ref.update(stateRef, state => ({ ...state, unavailable: HashSet.add(state.unavailable, orgKey) }));
 
-    // Only Package2UnavailableError (INVALID_TYPE) marks the org unavailable; generic query errors don't.
-    const markIfUnavailable = (orgKey: string) => (error: Package2UnavailableError | Package2QueryError) =>
-      Match.value(error).pipe(
-        Match.tag('Package2UnavailableError', () => markUnavailable(orgKey)),
-        Match.orElse(() => Effect.void)
-      );
+      // Only Package2UnavailableError (INVALID_TYPE) marks the org unavailable; generic query errors don't.
+      const markIfUnavailable = (orgKey: string) => (error: Package2UnavailableError | Package2QueryError) =>
+        Match.value(error).pipe(
+          Match.tag('Package2UnavailableError', () => markUnavailable(orgKey)),
+          Match.orElse(() => Effect.void)
+        );
 
-    // Project the org's cache down to just the requested ids as a plain Map (the tree consumers' shape).
-    const projectCache = (
-      orgCache: Option.Option<HashMap.HashMap<string, ResolvedPackageInfo>>,
-      ids: readonly string[]
-    ) =>
-      new Map(
-        Option.match(orgCache, {
-          onNone: () => [],
-          onSome: cache =>
-            Array.filterMap(ids, id => HashMap.get(cache, id).pipe(Option.map(info => [id, info] as const)))
-        })
-      );
+      // Project the org's cache down to just the requested ids as a plain Map (the tree consumers' shape).
+      const projectCache = (
+        orgCache: Option.Option<HashMap.HashMap<string, ResolvedPackageInfo>>,
+        ids: readonly string[]
+      ) =>
+        new Map(
+          Option.match(orgCache, {
+            onNone: () => [],
+            onSome: cache =>
+              Array.filterMap(ids, id => HashMap.get(cache, id).pipe(Option.map(info => [id, info] as const)))
+          })
+        );
 
-    // On primary success, resolve any still-missing ids by enumerating packages; failures there stay best-effort.
-    const augmentUnresolved = Effect.fn('PackageResolutionService.augmentUnresolved')(function* (
-      orgKey: string,
-      validIds: readonly string[],
-      resolved: HashMap.HashMap<string, ResolvedPackageInfo>
-    ) {
-      const unresolved = validIds.filter(id => !HashMap.has(resolved, id));
-      if (unresolved.length === 0) {
-        return resolved;
-      }
-      const extra = yield* resolveByPackageEnumeration(unresolved).pipe(
-        Effect.tapError(markIfUnavailable(orgKey)),
-        Effect.catchAll(() => Effect.succeed(HashMap.empty<string, ResolvedPackageInfo>()))
-      );
-      return HashMap.union(resolved, extra);
-    });
+      // On primary success, resolve any still-missing ids by enumerating packages; failures there stay best-effort.
+      const augmentUnresolved = Effect.fn('PackageResolutionService.augmentUnresolved')(function* (
+        orgKey: string,
+        validIds: readonly string[],
+        resolved: HashMap.HashMap<string, ResolvedPackageInfo>
+      ) {
+        const unresolved = validIds.filter(id => !HashMap.has(resolved, id));
+        if (unresolved.length === 0) {
+          return resolved;
+        }
+        const extra = yield* resolveByPackageEnumeration(unresolved).pipe(
+          Effect.tapError(markIfUnavailable(orgKey)),
+          Effect.catchAll(() => Effect.succeed(HashMap.empty<string, ResolvedPackageInfo>()))
+        );
+        return HashMap.union(resolved, extra);
+      });
 
-    const resolve = Effect.fn('PackageResolutionService.resolve')(function* (
-      apexClassIds: readonly string[],
-      classIdToNamespace: ReadonlyMap<string, Option.Option<string>> = new Map()
-    ) {
-      const validIds = apexClassIds.filter(id => isString(id) && id.length > 0);
-      if (validIds.length === 0) {
-        return new Map<string, ResolvedPackageInfo>();
-      }
+      const resolve = Effect.fn('PackageResolutionService.resolve')(function* (
+        apexClassIds: readonly string[],
+        classIdToNamespace: ReadonlyMap<string, Option.Option<string>> = new Map()
+      ) {
+        const validIds = apexClassIds.filter(id => isString(id) && id.length > 0);
+        if (validIds.length === 0) {
+          return new Map<string, ResolvedPackageInfo>();
+        }
 
-      const orgKey = yield* getOrgKey;
-      const state = yield* Ref.get(stateRef);
-      const orgCache = HashMap.get(state.byOrg, orgKey);
+        const orgKey = yield* getOrgKey;
+        const state = yield* Ref.get(stateRef);
+        const orgCache = HashMap.get(state.byOrg, orgKey);
 
-      // Known-unavailable org: serve whatever is cached, never re-query.
-      if (HashSet.has(state.unavailable, orgKey)) {
-        return projectCache(orgCache, validIds);
-      }
-      // Full cache hit for every requested id.
-      if (Option.exists(orgCache, cache => validIds.every(id => HashMap.has(cache, id)))) {
-        return projectCache(orgCache, validIds);
-      }
+        // Known-unavailable org: serve whatever is cached, never re-query.
+        if (HashSet.has(state.unavailable, orgKey)) {
+          return projectCache(orgCache, validIds);
+        }
+        // Full cache hit for every requested id.
+        if (Option.exists(orgCache, cache => validIds.every(id => HashMap.has(cache, id)))) {
+          return projectCache(orgCache, validIds);
+        }
 
-      const resolved = yield* resolveByMembers(validIds).pipe(
-        Effect.flatMap(members => augmentUnresolved(orgKey, validIds, members)),
-        Effect.tapError(markIfUnavailable(orgKey)),
-        Effect.catchTags({
-          Package2UnavailableError: () => resolveFromInstalledSubscriberPackages(classIdToNamespace),
-          Package2QueryError: () => resolveFromInstalledSubscriberPackages(classIdToNamespace)
-        })
-      );
+        const resolved = yield* resolveByMembers(validIds).pipe(
+          Effect.flatMap(members => augmentUnresolved(orgKey, validIds, members)),
+          Effect.tapError(markIfUnavailable(orgKey)),
+          Effect.catchTags({
+            Package2UnavailableError: () => resolveFromInstalledSubscriberPackages(classIdToNamespace),
+            Package2QueryError: () => resolveFromInstalledSubscriberPackages(classIdToNamespace)
+          })
+        );
 
-      yield* Ref.update(stateRef, current => ({
-        ...current,
-        byOrg: HashMap.set(
-          current.byOrg,
-          orgKey,
-          HashMap.union(
-            Option.getOrElse(HashMap.get(current.byOrg, orgKey), () => HashMap.empty<string, ResolvedPackageInfo>()),
-            resolved
+        yield* Ref.update(stateRef, current => ({
+          ...current,
+          byOrg: HashMap.set(
+            current.byOrg,
+            orgKey,
+            HashMap.union(
+              Option.getOrElse(HashMap.get(current.byOrg, orgKey), () => HashMap.empty<string, ResolvedPackageInfo>()),
+              resolved
+            )
           )
-        )
-      }));
+        }));
 
-      // Scope the returned map to the requested ids (resolved may also carry sibling ids from the subscriber fallback).
-      return projectCache(Option.some(resolved), validIds);
-    });
+        // Scope the returned map to the requested ids (resolved may also carry sibling ids from the subscriber fallback).
+        return projectCache(Option.some(resolved), validIds);
+      });
 
-    return { resolve };
-  })
-}) {}
+      return { resolve };
+    })
+  }
+) {}

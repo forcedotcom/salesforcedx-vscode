@@ -296,9 +296,12 @@ const makeHarness = (options: HarnessOptions = {}) => {
     OrgMetadataCatalogChangePubSub.Default,
     FileChangePubSub.Default,
     MetadataChangeNotificationService.Default,
-    Layer.mock(OrgCatalogDocuments, { _tag: 'OrgCatalogDocuments', readDocumentUri: () => Effect.succeed('body') }),
+    Layer.mock(OrgCatalogDocuments, {
+      _tag: 'salesforcedx-vscode-services/orgCatalog/orgCatalogDocuments',
+      readDocumentUri: () => Effect.succeed('body')
+    }),
     Layer.mock(WorkspaceService, {
-      _tag: 'WorkspaceService',
+      _tag: 'salesforcedx-vscode-services/vscode/workspaceService',
       getWorkspaceInfo: () =>
         Effect.succeed({
           uri: URI.file('/workspace'),

@@ -44,7 +44,7 @@ const findingsMarkdown = (findings: readonly DrivableVscodeFinding[]) =>
 const summaryMarkdown = (summary: DrivableVscodeSummary) =>
   `# Drivable VS Code Summary\n\n- Objective: ${markdownValue(summary.objective)}\n- Run ID: ${summary.runId}\n- Status: ${summary.status}\n- Explored: ${summary.exploredCount}\n- Actions: ${summary.actionCount}\n- Observations: ${summary.observationCount}\n- Findings: ${summary.findingCount}\n- Limitations: ${summary.limitations.length === 0 ? 'None' : summary.limitations.map(markdownValue).join('; ')}\n`;
 
-export class ArtifactService extends Effect.Service<ArtifactService>()('DrivableVscode/ArtifactService', {
+export class ArtifactService extends Effect.Service<ArtifactService>()('@salesforce/drivable-vscode/artifactService', {
   accessors: true,
   dependencies: [Layer.service(FileSystem.FileSystem), Layer.service(Path.Path)],
   effect: Effect.gen(function* () {

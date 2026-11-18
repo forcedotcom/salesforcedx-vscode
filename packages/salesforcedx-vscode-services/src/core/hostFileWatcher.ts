@@ -59,8 +59,11 @@ const watchHostFile = (filePath: string) =>
     Stream.withSpan('HostFileWatcher.watch', { attributes: { path: filePath } })
   );
 
-export class HostFileWatcher extends Effect.Service<HostFileWatcher>()('HostFileWatcher', {
-  effect: Effect.succeed({
-    watch: watchHostFile
-  })
-}) {}
+export class HostFileWatcher extends Effect.Service<HostFileWatcher>()(
+  'salesforcedx-vscode-services/core/hostFileWatcher',
+  {
+    effect: Effect.succeed({
+      watch: watchHostFile
+    })
+  }
+) {}

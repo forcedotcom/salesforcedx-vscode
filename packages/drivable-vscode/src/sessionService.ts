@@ -318,7 +318,7 @@ const executeAction = (page: Page, action: DrivableVscodeAction) =>
       })
   });
 
-export class SessionService extends Effect.Service<SessionService>()('DrivableVscode/SessionService', {
+export class SessionService extends Effect.Service<SessionService>()('@salesforce/drivable-vscode/sessionService', {
   accessors: true,
   dependencies: [
     ArtifactService.Default,

@@ -121,124 +121,129 @@ const applyForceShow = (mode: ProgressAndSuccessMode): ProgressAndSuccessMode =>
 
 /** Per-extension service for notification settings, progress placement, success notifications, and error
  * toasts with actions. */
-export class NotificationModeService extends Effect.Service<NotificationModeService>()('NotificationModeService', {
-  accessors: true,
-  scoped: (extensionSection: string, statusBarId: string, statusBarName: string) =>
-    Effect.gen(function* () {
-      const scope = yield* Effect.scope;
-      const item = yield* Effect.sync(() =>
-        vscode.window.createStatusBarItem(statusBarId, vscode.StatusBarAlignment.Left, 44)
-      );
-      yield* Effect.addFinalizer(() => Effect.sync(() => item.dispose()));
-      item.name = statusBarName;
-
-      const pendingToastRef = yield* Ref.make<Option.Option<{ message: string; actions: ToastAction[] }>>(
-        Option.none()
-      );
-      const hideTimerRef = yield* Ref.make<Option.Option<Fiber.RuntimeFiber<void, never>>>(Option.none());
-      const runtime = yield* Effect.runtime<never>();
-
-      const awaitToastSelection = Effect.fn('NotificationModeService.awaitToastSelection')(function* (
-        pendingSelection: Thenable<string | undefined>,
-        actions: ToastAction[]
-      ) {
-        const selection = yield* Effect.promise(() => Promise.resolve(pendingSelection));
-        const action = actions.find(candidate => candidate.label === selection);
-        if (action)
-          yield* Effect.tryPromise({
-            try: async () => await action.run(),
-            catch: cause => new ToastActionError({ cause })
-          }).pipe(
-            Effect.catchTag('ToastActionError', error =>
-              Effect.promise(() => vscode.window.showErrorMessage(String(error.cause))).pipe(Effect.asVoid)
-            )
-          );
-      });
-
-      // Never block the caller on VS Code's toast Thenable: it settles only when the user clicks a button or
-      // dismisses the toast (or never, in a headless/E2E session), so awaiting it would hold the caller's
-      // progress, TestRun, etc. open until then.
-      const showToastWithActions = Effect.fn('NotificationModeService.showToastWithActions')(function* (
-        show: ShowToast,
-        message: string,
-        actions: ToastAction[]
-      ) {
-        const pendingSelection = yield* Effect.sync(() => show(message, ...actions.map(candidate => candidate.label)));
-        // Buttons: await the selection in a fiber owned by the service scope so the action still runs after the
-        // caller has moved on. No buttons: nothing to react to, so fire-and-forget.
-        if (actions.length > 0) yield* awaitToastSelection(pendingSelection, actions).pipe(Effect.forkIn(scope));
-      });
-
-      const commandId = `${statusBarId}.showToast`;
-      const commandDisposable = yield* Effect.sync(() =>
-        vscode.commands.registerCommand(commandId, async () => {
-          const pending = pendingToastRef.pipe(Ref.get, Runtime.runSync(runtime));
-          await Option.match(pending, {
-            onNone: () => Promise.resolve(),
-            onSome: ({ message, actions }) =>
-              Runtime.runPromise(runtime)(showToastWithActions(showInformationToast, message, actions))
-          });
-        })
-      );
-      yield* Effect.addFinalizer(() =>
-        Effect.sync(() => {
-          commandDisposable.dispose();
-        })
-      );
-      item.command = commandId;
-
-      const showTransient = Effect.fn('NotificationModeService.showTransient')(function* (
-        message: string,
-        actions: ToastAction[]
-      ) {
-        yield* Effect.sync(() => {
-          item.text = `$(check) ${message}`;
-          item.show();
-        });
-        yield* Ref.set(pendingToastRef, Option.some({ message, actions }));
-        yield* Option.match(yield* Ref.get(hideTimerRef), {
-          onNone: () => Effect.void,
-          onSome: Fiber.interrupt
-        });
-        const newFiber = yield* Effect.sleep(STATUS_BAR_VISIBLE).pipe(
-          Effect.andThen(Effect.sync(() => item.hide())),
-          Effect.andThen(Ref.set(hideTimerRef, Option.none())),
-          Effect.interruptible,
-          Effect.forkIn(scope)
+export class NotificationModeService extends Effect.Service<NotificationModeService>()(
+  'salesforcedx-vscode-services/vscode/notificationModeService',
+  {
+    accessors: true,
+    scoped: (extensionSection: string, statusBarId: string, statusBarName: string) =>
+      Effect.gen(function* () {
+        const scope = yield* Effect.scope;
+        const item = yield* Effect.sync(() =>
+          vscode.window.createStatusBarItem(statusBarId, vscode.StatusBarAlignment.Left, 44)
         );
-        yield* Ref.set(hideTimerRef, Option.some(newFiber));
-      });
+        yield* Effect.addFinalizer(() => Effect.sync(() => item.dispose()));
+        item.name = statusBarName;
 
-      const commandLevelSection = `${extensionSection}.${COMMAND_LEVEL_KEY}`;
+        const pendingToastRef = yield* Ref.make<Option.Option<{ message: string; actions: ToastAction[] }>>(
+          Option.none()
+        );
+        const hideTimerRef = yield* Ref.make<Option.Option<Fiber.RuntimeFiber<void, never>>>(Option.none());
+        const runtime = yield* Effect.runtime<never>();
 
-      return {
-        showSuccessNotification: Effect.fn('NotificationModeService.showSuccessNotification')(function* (
-          command: string,
-          message: string,
-          forceShow = false,
-          actions: ToastAction[] = []
+        const awaitToastSelection = Effect.fn('NotificationModeService.awaitToastSelection')(function* (
+          pendingSelection: Thenable<string | undefined>,
+          actions: ToastAction[]
         ) {
-          const mode = getInternalMode(extensionSection, commandLevelSection, command);
-          const effectiveMode = forceShow ? applyForceShow(mode) : mode;
-          if (effectiveMode === 'progressStatusBarSuccessStatusBar') return yield* showTransient(message, actions);
-          if (effectiveMode === 'progressToastSuccessToast')
-            return yield* showToastWithActions(showInformationToast, message, actions);
-        }),
-        /** Error toast with action buttons for an operation that completed with errors. Always shown as a toast:
-         * notification modes only govern progress and success. Returns without waiting for a click, and a
-         * failed action is surfaced as an error, same as success-toast actions. */
-        showErrorWithActions: Effect.fn('NotificationModeService.showErrorWithActions')(function* (
+          const selection = yield* Effect.promise(() => Promise.resolve(pendingSelection));
+          const action = actions.find(candidate => candidate.label === selection);
+          if (action)
+            yield* Effect.tryPromise({
+              try: async () => await action.run(),
+              catch: cause => new ToastActionError({ cause })
+            }).pipe(
+              Effect.catchTag('ToastActionError', error =>
+                Effect.promise(() => vscode.window.showErrorMessage(String(error.cause))).pipe(Effect.asVoid)
+              )
+            );
+        });
+
+        // Never block the caller on VS Code's toast Thenable: it settles only when the user clicks a button or
+        // dismisses the toast (or never, in a headless/E2E session), so awaiting it would hold the caller's
+        // progress, TestRun, etc. open until then.
+        const showToastWithActions = Effect.fn('NotificationModeService.showToastWithActions')(function* (
+          show: ShowToast,
           message: string,
-          actions: ToastAction[] = []
+          actions: ToastAction[]
         ) {
-          yield* showToastWithActions(showErrorToast, message, actions);
-        }),
-        getProgressLocation: Effect.fn('NotificationModeService.getProgressLocation')(function* (command: string) {
-          const mode = getInternalMode(extensionSection, commandLevelSection, command);
-          return mode === 'progressToastSuccessToast' || mode === 'progressToastSuccessOff'
-            ? vscode.ProgressLocation.Notification
-            : vscode.ProgressLocation.Window;
-        })
-      };
-    })
-}) {}
+          const pendingSelection = yield* Effect.sync(() =>
+            show(message, ...actions.map(candidate => candidate.label))
+          );
+          // Buttons: await the selection in a fiber owned by the service scope so the action still runs after the
+          // caller has moved on. No buttons: nothing to react to, so fire-and-forget.
+          if (actions.length > 0) yield* awaitToastSelection(pendingSelection, actions).pipe(Effect.forkIn(scope));
+        });
+
+        const commandId = `${statusBarId}.showToast`;
+        const commandDisposable = yield* Effect.sync(() =>
+          vscode.commands.registerCommand(commandId, async () => {
+            const pending = pendingToastRef.pipe(Ref.get, Runtime.runSync(runtime));
+            await Option.match(pending, {
+              onNone: () => Promise.resolve(),
+              onSome: ({ message, actions }) =>
+                Runtime.runPromise(runtime)(showToastWithActions(showInformationToast, message, actions))
+            });
+          })
+        );
+        yield* Effect.addFinalizer(() =>
+          Effect.sync(() => {
+            commandDisposable.dispose();
+          })
+        );
+        item.command = commandId;
+
+        const showTransient = Effect.fn('NotificationModeService.showTransient')(function* (
+          message: string,
+          actions: ToastAction[]
+        ) {
+          yield* Effect.sync(() => {
+            item.text = `$(check) ${message}`;
+            item.show();
+          });
+          yield* Ref.set(pendingToastRef, Option.some({ message, actions }));
+          yield* Option.match(yield* Ref.get(hideTimerRef), {
+            onNone: () => Effect.void,
+            onSome: Fiber.interrupt
+          });
+          const newFiber = yield* Effect.sleep(STATUS_BAR_VISIBLE).pipe(
+            Effect.andThen(Effect.sync(() => item.hide())),
+            Effect.andThen(Ref.set(hideTimerRef, Option.none())),
+            Effect.interruptible,
+            Effect.forkIn(scope)
+          );
+          yield* Ref.set(hideTimerRef, Option.some(newFiber));
+        });
+
+        const commandLevelSection = `${extensionSection}.${COMMAND_LEVEL_KEY}`;
+
+        return {
+          showSuccessNotification: Effect.fn('NotificationModeService.showSuccessNotification')(function* (
+            command: string,
+            message: string,
+            forceShow = false,
+            actions: ToastAction[] = []
+          ) {
+            const mode = getInternalMode(extensionSection, commandLevelSection, command);
+            const effectiveMode = forceShow ? applyForceShow(mode) : mode;
+            if (effectiveMode === 'progressStatusBarSuccessStatusBar') return yield* showTransient(message, actions);
+            if (effectiveMode === 'progressToastSuccessToast')
+              return yield* showToastWithActions(showInformationToast, message, actions);
+          }),
+          /** Error toast with action buttons for an operation that completed with errors. Always shown as a toast:
+           * notification modes only govern progress and success. Returns without waiting for a click, and a
+           * failed action is surfaced as an error, same as success-toast actions. */
+          showErrorWithActions: Effect.fn('NotificationModeService.showErrorWithActions')(function* (
+            message: string,
+            actions: ToastAction[] = []
+          ) {
+            yield* showToastWithActions(showErrorToast, message, actions);
+          }),
+          getProgressLocation: Effect.fn('NotificationModeService.getProgressLocation')(function* (command: string) {
+            const mode = getInternalMode(extensionSection, commandLevelSection, command);
+            return mode === 'progressToastSuccessToast' || mode === 'progressToastSuccessOff'
+              ? vscode.ProgressLocation.Notification
+              : vscode.ProgressLocation.Window;
+          })
+        };
+      })
+  }
+) {}

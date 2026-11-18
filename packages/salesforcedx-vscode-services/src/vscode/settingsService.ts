@@ -102,214 +102,217 @@ const isNonEmptyString = (key: string) => (value: string | undefined) =>
   );
 
 /** Static service for reading and writing VS Code settings */
-export class SettingsService extends Effect.Service<SettingsService>()('SettingsService', {
-  accessors: true,
-  dependencies: [],
-  effect: Effect.gen(function* () {
-    const readValue = <T>(section: string, key: string) =>
-      Effect.try({
-        try: () => vscode.workspace.getConfiguration(section).get<T>(key),
-        catch: error => {
-          const { cause } = unknownToErrorCause(error);
-          return new SettingsError({
-            cause,
-            section,
-            key,
-            message: `Failed to get setting ${section}.${key}: ${getErrorMessage(cause)}`
-          });
-        }
+export class SettingsService extends Effect.Service<SettingsService>()(
+  'salesforcedx-vscode-services/vscode/settingsService',
+  {
+    accessors: true,
+    dependencies: [],
+    effect: Effect.gen(function* () {
+      const readValue = <T>(section: string, key: string) =>
+        Effect.try({
+          try: () => vscode.workspace.getConfiguration(section).get<T>(key),
+          catch: error => {
+            const { cause } = unknownToErrorCause(error);
+            return new SettingsError({
+              cause,
+              section,
+              key,
+              message: `Failed to get setting ${section}.${key}: ${getErrorMessage(cause)}`
+            });
+          }
+        });
+
+      const getValue = Effect.fn('SettingsService.getValue')(function* <T>(section: string, key: string) {
+        return yield* readValue<T>(section, key);
       });
 
-    const getValue = Effect.fn('SettingsService.getValue')(function* <T>(section: string, key: string) {
-      return yield* readValue<T>(section, key);
-    });
-
-    const getValueOrElse = Effect.fn('SettingsService.getValueOrElse')(function* <T>(
-      section: string,
-      key: string,
-      defaultValue: T
-    ) {
-      return (yield* readValue<T>(section, key)) ?? defaultValue;
-    });
-
-    const setValue = Effect.fn('SettingsService.setValue')(function* <T>(
-      section: string,
-      key: string,
-      value: T,
-      target: vscode.ConfigurationTarget = vscode.ConfigurationTarget.Global
-    ) {
-      return yield* Effect.tryPromise({
-        try: async () => {
-          const config = vscode.workspace.getConfiguration(section);
-          await config.update(key, value, target);
-        },
-        catch: error => {
-          const { cause } = unknownToErrorCause(error);
-          return new SettingsError({
-            cause,
-            section,
-            key,
-            message: `Failed to set setting ${section}.${key}: ${getErrorMessage(cause)}`
-          });
-        }
+      const getValueOrElse = Effect.fn('SettingsService.getValueOrElse')(function* <T>(
+        section: string,
+        key: string,
+        defaultValue: T
+      ) {
+        return (yield* readValue<T>(section, key)) ?? defaultValue;
       });
-    });
 
-    const getInstanceUrl = Effect.fn('SettingsService.getInstanceUrl')(function* () {
-      return yield* Effect.try({
-        try: () => vscode.workspace.getConfiguration(CODE_BUILDER_WEB_SECTION).get<string>(INSTANCE_URL_KEY)?.trim(),
-        catch: error => {
-          const { cause } = unknownToErrorCause(error);
-          return new SettingsError({
-            cause,
-            key: INSTANCE_URL_KEY,
-            section: CODE_BUILDER_WEB_SECTION,
-            message: `Failed to get instance URL: ${getErrorMessage(cause)}`
-          });
-        }
-      }).pipe(Effect.flatMap(isNonEmptyString(INSTANCE_URL_KEY)));
-    });
-
-    const getAccessToken = Effect.fn('SettingsService.getAccessToken')(function* () {
-      return yield* Effect.try({
-        try: () => vscode.workspace.getConfiguration(CODE_BUILDER_WEB_SECTION).get<string>(ACCESS_TOKEN_KEY)?.trim(),
-        catch: error => {
-          const { cause } = unknownToErrorCause(error);
-          return new SettingsError({
-            cause,
-            key: ACCESS_TOKEN_KEY,
-            section: CODE_BUILDER_WEB_SECTION,
-            message: `Failed to get access token: ${getErrorMessage(cause)}`
-          });
-        }
-      }).pipe(Effect.flatMap(isNonEmptyString(ACCESS_TOKEN_KEY)), Effect.map(Redacted.make));
-    });
-
-    const getApiVersion = Effect.fn('SettingsService.getApiVersion')(function* () {
-      return yield* Effect.try({
-        try: () => {
-          const config = vscode.workspace.getConfiguration(CODE_BUILDER_WEB_SECTION);
-          const value = config.get<string>(API_VERSION_KEY) ?? FALLBACK_API_VERSION;
-          return value.length > 0 ? value : FALLBACK_API_VERSION;
-        },
-        catch: error => {
-          const { cause } = unknownToErrorCause(error);
-          return new SettingsError({
-            cause,
-            key: API_VERSION_KEY,
-            section: CODE_BUILDER_WEB_SECTION,
-            message: `Failed to get API version: ${getErrorMessage(cause)}`
-          });
-        }
+      const setValue = Effect.fn('SettingsService.setValue')(function* <T>(
+        section: string,
+        key: string,
+        value: T,
+        target: vscode.ConfigurationTarget = vscode.ConfigurationTarget.Global
+      ) {
+        return yield* Effect.tryPromise({
+          try: async () => {
+            const config = vscode.workspace.getConfiguration(section);
+            await config.update(key, value, target);
+          },
+          catch: error => {
+            const { cause } = unknownToErrorCause(error);
+            return new SettingsError({
+              cause,
+              section,
+              key,
+              message: `Failed to set setting ${section}.${key}: ${getErrorMessage(cause)}`
+            });
+          }
+        });
       });
-    });
 
-    const getSessionContext = Effect.fn('SettingsService.getSessionContext')(function* () {
-      const value = yield* getValue<unknown>(CODE_BUILDER_WEB_SECTION, SESSION_CONTEXT_KEY);
-      return Option.getOrElse(S.decodeUnknownOption(WebSessionContextSchema)(value), () => defaultWebSessionContext);
-    });
-
-    const setInstanceUrl = Effect.fn('SettingsService.setInstanceUrl')(function* (url: string) {
-      return yield* Effect.tryPromise({
-        try: async () => {
-          const config = vscode.workspace.getConfiguration(CODE_BUILDER_WEB_SECTION);
-          await config.update(INSTANCE_URL_KEY, url, vscode.ConfigurationTarget.Global);
-        },
-        catch: error => {
-          const { cause } = unknownToErrorCause(error);
-          return new SettingsError({
-            cause,
-            key: INSTANCE_URL_KEY,
-            section: CODE_BUILDER_WEB_SECTION,
-            message: `Failed to set instance URL: ${getErrorMessage(cause)}`
-          });
-        }
+      const getInstanceUrl = Effect.fn('SettingsService.getInstanceUrl')(function* () {
+        return yield* Effect.try({
+          try: () => vscode.workspace.getConfiguration(CODE_BUILDER_WEB_SECTION).get<string>(INSTANCE_URL_KEY)?.trim(),
+          catch: error => {
+            const { cause } = unknownToErrorCause(error);
+            return new SettingsError({
+              cause,
+              key: INSTANCE_URL_KEY,
+              section: CODE_BUILDER_WEB_SECTION,
+              message: `Failed to get instance URL: ${getErrorMessage(cause)}`
+            });
+          }
+        }).pipe(Effect.flatMap(isNonEmptyString(INSTANCE_URL_KEY)));
       });
-    });
 
-    const setAccessToken = Effect.fn('SettingsService.setAccessToken')(function* (token: string) {
-      return yield* Effect.tryPromise({
-        try: async () => {
-          const config = vscode.workspace.getConfiguration(CODE_BUILDER_WEB_SECTION);
-          await config.update(ACCESS_TOKEN_KEY, token, vscode.ConfigurationTarget.Global);
-        },
-        catch: error => {
-          const { cause } = unknownToErrorCause(error);
-          return new SettingsError({
-            cause,
-            key: ACCESS_TOKEN_KEY,
-            section: CODE_BUILDER_WEB_SECTION,
-            message: `Failed to set access token: ${getErrorMessage(cause)}`
-          });
-        }
+      const getAccessToken = Effect.fn('SettingsService.getAccessToken')(function* () {
+        return yield* Effect.try({
+          try: () => vscode.workspace.getConfiguration(CODE_BUILDER_WEB_SECTION).get<string>(ACCESS_TOKEN_KEY)?.trim(),
+          catch: error => {
+            const { cause } = unknownToErrorCause(error);
+            return new SettingsError({
+              cause,
+              key: ACCESS_TOKEN_KEY,
+              section: CODE_BUILDER_WEB_SECTION,
+              message: `Failed to get access token: ${getErrorMessage(cause)}`
+            });
+          }
+        }).pipe(Effect.flatMap(isNonEmptyString(ACCESS_TOKEN_KEY)), Effect.map(Redacted.make));
       });
-    });
 
-    const setApiVersion = Effect.fn('SettingsService.setApiVersion')(function* (version: string) {
-      return yield* Effect.tryPromise({
-        try: async () => {
-          const config = vscode.workspace.getConfiguration(CODE_BUILDER_WEB_SECTION);
-          await config.update(API_VERSION_KEY, version, vscode.ConfigurationTarget.Global);
-        },
-        catch: error => {
-          const { cause } = unknownToErrorCause(error);
-          return new SettingsError({
-            cause,
-            key: API_VERSION_KEY,
-            section: CODE_BUILDER_WEB_SECTION,
-            message: `Failed to set API version: ${getErrorMessage(cause)}`
-          });
-        }
+      const getApiVersion = Effect.fn('SettingsService.getApiVersion')(function* () {
+        return yield* Effect.try({
+          try: () => {
+            const config = vscode.workspace.getConfiguration(CODE_BUILDER_WEB_SECTION);
+            const value = config.get<string>(API_VERSION_KEY) ?? FALLBACK_API_VERSION;
+            return value.length > 0 ? value : FALLBACK_API_VERSION;
+          },
+          catch: error => {
+            const { cause } = unknownToErrorCause(error);
+            return new SettingsError({
+              cause,
+              key: API_VERSION_KEY,
+              section: CODE_BUILDER_WEB_SECTION,
+              message: `Failed to get API version: ${getErrorMessage(cause)}`
+            });
+          }
+        });
       });
-    });
 
-    const getRetrieveOnLoad = Effect.fn('SettingsService.getRetrieveOnLoad')(function* () {
-      return yield* Effect.try({
-        try: () => {
-          const config = vscode.workspace.getConfiguration(CODE_BUILDER_WEB_SECTION);
-          return config.get<string>(RETRIEVE_ON_LOAD_KEY)?.trim() ?? '';
-        },
-        catch: error => {
-          const { cause } = unknownToErrorCause(error);
-          return new SettingsError({
-            cause,
-            key: RETRIEVE_ON_LOAD_KEY,
-            section: CODE_BUILDER_WEB_SECTION,
-            message: `Failed to get retrieve on load setting: ${getErrorMessage(cause)}`
-          });
-        }
+      const getSessionContext = Effect.fn('SettingsService.getSessionContext')(function* () {
+        const value = yield* getValue<unknown>(CODE_BUILDER_WEB_SECTION, SESSION_CONTEXT_KEY);
+        return Option.getOrElse(S.decodeUnknownOption(WebSessionContextSchema)(value), () => defaultWebSessionContext);
       });
-    });
 
-    const getInternalDev = Effect.fn('SettingsService.getInternalDev')(function* () {
-      return yield* getValueOrElse(SFDX_CORE_SECTION, 'internal-development', false);
-    });
+      const setInstanceUrl = Effect.fn('SettingsService.setInstanceUrl')(function* (url: string) {
+        return yield* Effect.tryPromise({
+          try: async () => {
+            const config = vscode.workspace.getConfiguration(CODE_BUILDER_WEB_SECTION);
+            await config.update(INSTANCE_URL_KEY, url, vscode.ConfigurationTarget.Global);
+          },
+          catch: error => {
+            const { cause } = unknownToErrorCause(error);
+            return new SettingsError({
+              cause,
+              key: INSTANCE_URL_KEY,
+              section: CODE_BUILDER_WEB_SECTION,
+              message: `Failed to set instance URL: ${getErrorMessage(cause)}`
+            });
+          }
+        });
+      });
 
-    return {
-      /** Setting value, or `undefined` when unset. */
-      getValue,
-      /** Setting value, or `defaultValue` when stored value is `undefined` or `null`. */
-      getValueOrElse,
-      /** Set a value in settings. @param section The settings section @param key The settings key @param value The value to set @param target Configuration target (defaults to Global) */
-      setValue,
-      /** Get the Salesforce instance URL from settings */
-      getInstanceUrl,
-      /** Get the Salesforce access token from settings as a redacted value */
-      getAccessToken,
-      /** Get the Salesforce API version from settings. In the form of '67.0' */
-      getApiVersion,
-      /** Get the optional Web Console session identity values as one object. */
-      getSessionContext,
-      /** Set the Salesforce instance URL in settings */
-      setInstanceUrl,
-      /** Set the Salesforce access token in settings */
-      setAccessToken,
-      /** Set the Salesforce API version in settings */
-      setApiVersion,
-      /** Get the retrieve on load setting value */
-      getRetrieveOnLoad,
-      /** Read the salesforcedx-vscode-core.internal-development setting */
-      getInternalDev
-    };
-  })
-}) {}
+      const setAccessToken = Effect.fn('SettingsService.setAccessToken')(function* (token: string) {
+        return yield* Effect.tryPromise({
+          try: async () => {
+            const config = vscode.workspace.getConfiguration(CODE_BUILDER_WEB_SECTION);
+            await config.update(ACCESS_TOKEN_KEY, token, vscode.ConfigurationTarget.Global);
+          },
+          catch: error => {
+            const { cause } = unknownToErrorCause(error);
+            return new SettingsError({
+              cause,
+              key: ACCESS_TOKEN_KEY,
+              section: CODE_BUILDER_WEB_SECTION,
+              message: `Failed to set access token: ${getErrorMessage(cause)}`
+            });
+          }
+        });
+      });
+
+      const setApiVersion = Effect.fn('SettingsService.setApiVersion')(function* (version: string) {
+        return yield* Effect.tryPromise({
+          try: async () => {
+            const config = vscode.workspace.getConfiguration(CODE_BUILDER_WEB_SECTION);
+            await config.update(API_VERSION_KEY, version, vscode.ConfigurationTarget.Global);
+          },
+          catch: error => {
+            const { cause } = unknownToErrorCause(error);
+            return new SettingsError({
+              cause,
+              key: API_VERSION_KEY,
+              section: CODE_BUILDER_WEB_SECTION,
+              message: `Failed to set API version: ${getErrorMessage(cause)}`
+            });
+          }
+        });
+      });
+
+      const getRetrieveOnLoad = Effect.fn('SettingsService.getRetrieveOnLoad')(function* () {
+        return yield* Effect.try({
+          try: () => {
+            const config = vscode.workspace.getConfiguration(CODE_BUILDER_WEB_SECTION);
+            return config.get<string>(RETRIEVE_ON_LOAD_KEY)?.trim() ?? '';
+          },
+          catch: error => {
+            const { cause } = unknownToErrorCause(error);
+            return new SettingsError({
+              cause,
+              key: RETRIEVE_ON_LOAD_KEY,
+              section: CODE_BUILDER_WEB_SECTION,
+              message: `Failed to get retrieve on load setting: ${getErrorMessage(cause)}`
+            });
+          }
+        });
+      });
+
+      const getInternalDev = Effect.fn('SettingsService.getInternalDev')(function* () {
+        return yield* getValueOrElse(SFDX_CORE_SECTION, 'internal-development', false);
+      });
+
+      return {
+        /** Setting value, or `undefined` when unset. */
+        getValue,
+        /** Setting value, or `defaultValue` when stored value is `undefined` or `null`. */
+        getValueOrElse,
+        /** Set a value in settings. @param section The settings section @param key The settings key @param value The value to set @param target Configuration target (defaults to Global) */
+        setValue,
+        /** Get the Salesforce instance URL from settings */
+        getInstanceUrl,
+        /** Get the Salesforce access token from settings as a redacted value */
+        getAccessToken,
+        /** Get the Salesforce API version from settings. In the form of '67.0' */
+        getApiVersion,
+        /** Get the optional Web Console session identity values as one object. */
+        getSessionContext,
+        /** Set the Salesforce instance URL in settings */
+        setInstanceUrl,
+        /** Set the Salesforce access token in settings */
+        setAccessToken,
+        /** Set the Salesforce API version in settings */
+        setApiVersion,
+        /** Get the retrieve on load setting value */
+        getRetrieveOnLoad,
+        /** Read the salesforcedx-vscode-core.internal-development setting */
+        getInternalDev
+      };
+    })
+  }
+) {}

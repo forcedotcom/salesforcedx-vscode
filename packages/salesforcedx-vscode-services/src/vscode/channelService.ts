@@ -11,26 +11,29 @@ import * as Layer from 'effect/Layer';
 import * as vscode from 'vscode';
 import { SERVICES_CHANNEL_NAME } from '../constants';
 
-export class ChannelService extends Effect.Service<ChannelService>()('ChannelService', {
-  sync: () => {
-    // Default implementation with a generic channel name
-    const channel = Effect.runSync(cache.get(SERVICES_CHANNEL_NAME));
-    return {
-      /** Get the OutputChannel for this ChannelService */
-      getChannel: Effect.sync(() => channel),
-      /** Reveal the OutputChannel in the UI */
-      showChannel: Effect.sync(() => channel.show()),
-      /** Clear the OutputChannel */
-      clearChannel: Effect.try(() => channel.clear()).pipe(Effect.catchAll(() => Effect.void)),
-      /** Append a message to this OutputChannel */
-      appendToChannel: (message: string) =>
-        Effect.try(() => channel.appendLine(message)).pipe(
-          // channelLogging is "best effort" and will not cause a failure
-          Effect.catchAll(() => Effect.void)
-        )
-    };
+export class ChannelService extends Effect.Service<ChannelService>()(
+  'salesforcedx-vscode-services/vscode/channelService',
+  {
+    sync: () => {
+      // Default implementation with a generic channel name
+      const channel = Effect.runSync(cache.get(SERVICES_CHANNEL_NAME));
+      return {
+        /** Get the OutputChannel for this ChannelService */
+        getChannel: Effect.sync(() => channel),
+        /** Reveal the OutputChannel in the UI */
+        showChannel: Effect.sync(() => channel.show()),
+        /** Clear the OutputChannel */
+        clearChannel: Effect.try(() => channel.clear()).pipe(Effect.catchAll(() => Effect.void)),
+        /** Append a message to this OutputChannel */
+        appendToChannel: (message: string) =>
+          Effect.try(() => channel.appendLine(message)).pipe(
+            // channelLogging is "best effort" and will not cause a failure
+            Effect.catchAll(() => Effect.void)
+          )
+      };
+    }
   }
-}) {}
+) {}
 
 /**
  * Factory for a Layer that provides a ChannelService for the given channel name.

@@ -88,7 +88,7 @@ export const dedupeMetadataChanges = (changes: readonly MetadataChangeEvent[]): 
 
 /** Publishes one event per successful metadata operation. */
 export class MetadataChangeNotificationService extends Effect.Service<MetadataChangeNotificationService>()(
-  'MetadataChangeNotificationService',
+  'salesforcedx-vscode-services/core/metadataChangeNotificationService',
   {
     effect: Effect.gen(function* () {
       const pubsub = yield* PubSub.sliding<MetadataOperationEvent>(1000);

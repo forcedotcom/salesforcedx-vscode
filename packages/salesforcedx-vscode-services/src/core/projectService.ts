@@ -167,151 +167,156 @@ const workspaceRootSalesforceManifestExistsViaVscodeFs = Effect.promise(async ()
   );
 }).pipe(Effect.withSpan('workspaceRootSalesforceManifestExistsViaVscodeFs'));
 
-export class ProjectService extends Effect.Service<ProjectService>()('ProjectService', {
-  accessors: true,
-  dependencies: [WorkspaceService.Default],
-  effect: Effect.gen(function* () {
-    const workspaceService = yield* WorkspaceService;
-    const projectOpenedContext = yield* Ref.make<boolean | undefined>(undefined);
+export class ProjectService extends Effect.Service<ProjectService>()(
+  'salesforcedx-vscode-services/core/projectService',
+  {
+    accessors: true,
+    dependencies: [WorkspaceService.Default],
+    effect: Effect.gen(function* () {
+      const workspaceService = yield* WorkspaceService;
+      const projectOpenedContext = yield* Ref.make<boolean | undefined>(undefined);
 
-    /** Check if we're in a Salesforce project (sfdx-project.json exists).  Side effect: sets the 'sf:project_opened' context to true or false */
-    const isSalesforceProject = Effect.fn('ProjectService.isSalesforceProject')(function* () {
-      const workspaceDescription = yield* workspaceService.getWorkspaceInfo();
+      /** Check if we're in a Salesforce project (sfdx-project.json exists).  Side effect: sets the 'sf:project_opened' context to true or false */
+      const isSalesforceProject = Effect.fn('ProjectService.isSalesforceProject')(function* () {
+        const workspaceDescription = yield* workspaceService.getWorkspaceInfo();
 
-      if (workspaceDescription.isEmpty) {
-        yield* setProjectOpenedContext(projectOpenedContext, false, 'workspace_empty');
-        return false;
-      }
+        if (workspaceDescription.isEmpty) {
+          yield* setProjectOpenedContext(projectOpenedContext, false, 'workspace_empty');
+          return false;
+        }
 
-      const cacheKey = yield* sfProjectCacheKey(workspaceDescription.fsPath);
+        const cacheKey = yield* sfProjectCacheKey(workspaceDescription.fsPath);
 
-      return yield* globalSfProjectCache.get(cacheKey).pipe(
-        Effect.tap(() => setProjectOpenedContext(projectOpenedContext, true, 'workspace_non_empty')),
-        Effect.tapError(() => setProjectOpenedContext(projectOpenedContext, false, 'workspace_empty')),
-        Effect.map(() => true),
-        Effect.catchTag('FailedToResolveSfProjectError', () =>
-          Effect.gen(function* () {
-            const viaVscodeFs = yield* workspaceRootSalesforceManifestExistsViaVscodeFs;
-            yield* setProjectOpenedContext(projectOpenedContext, viaVscodeFs, 'workspace_non_empty');
-            return viaVscodeFs;
-          })
-        )
+        return yield* globalSfProjectCache.get(cacheKey).pipe(
+          Effect.tap(() => setProjectOpenedContext(projectOpenedContext, true, 'workspace_non_empty')),
+          Effect.tapError(() => setProjectOpenedContext(projectOpenedContext, false, 'workspace_empty')),
+          Effect.map(() => true),
+          Effect.catchTag('FailedToResolveSfProjectError', () =>
+            Effect.gen(function* () {
+              const viaVscodeFs = yield* workspaceRootSalesforceManifestExistsViaVscodeFs;
+              yield* setProjectOpenedContext(projectOpenedContext, viaVscodeFs, 'workspace_non_empty');
+              return viaVscodeFs;
+            })
+          )
+        );
+      });
+
+      /** Get the SfProject instance for the workspace (fails if not a Salesforce project).  Side effect: sets the 'sf:project_opened' context to true or false */
+      const getSfProject = Effect.fn('ProjectService.getSfProject')(function* () {
+        const workspacePath = (yield* workspaceService.getWorkspaceInfoOrThrow()).fsPath;
+        const cacheKey = yield* sfProjectCacheKey(workspacePath);
+        const project = yield* globalSfProjectCache
+          .get(cacheKey)
+          .pipe(Effect.tapError(() => setProjectOpenedContext(projectOpenedContext, false, 'workspace_empty')));
+        yield* setProjectOpenedContext(projectOpenedContext, true, 'workspace_non_empty');
+        return project;
+      });
+
+      /** Return the canonical project namespace, or null for an explicitly unnamespaced project. */
+      const getProjectNamespace = Effect.fn('ProjectService.getProjectNamespace')(function* () {
+        const project = yield* getSfProject();
+        return canonicalProjectNamespace(project.getSfProjectJson().getContents().namespace);
+      });
+
+      /** Determine whether an exact artifact namespace is eligible for attribution to this workspace. */
+      const isArtifactNamespaceWorkspaceEligible = Effect.fn('ProjectService.isArtifactNamespaceWorkspaceEligible')(
+        function* (requestedNamespace: ArtifactNamespace) {
+          return isWorkspaceNamespaceEligible(requestedNamespace, yield* getProjectNamespace());
+        }
       );
-    });
 
-    /** Get the SfProject instance for the workspace (fails if not a Salesforce project).  Side effect: sets the 'sf:project_opened' context to true or false */
-    const getSfProject = Effect.fn('ProjectService.getSfProject')(function* () {
-      const workspacePath = (yield* workspaceService.getWorkspaceInfoOrThrow()).fsPath;
-      const cacheKey = yield* sfProjectCacheKey(workspacePath);
-      const project = yield* globalSfProjectCache
-        .get(cacheKey)
-        .pipe(Effect.tapError(() => setProjectOpenedContext(projectOpenedContext, false, 'workspace_empty')));
-      yield* setProjectOpenedContext(projectOpenedContext, true, 'workspace_non_empty');
-      return project;
-    });
+      /** Check if a URI is within any package directory */
+      const isInPackageDirectories = Effect.fn('ProjectService.isInPackageDirectories')(function* (uri: URI) {
+        return (
+          (yield* isSalesforceProject()) &&
+          (yield* getSfProject()).getPackageDirectories().some(dir => isUriEqualOrWithin(toUri(dir.fullPath), uri))
+        );
+      });
 
-    /** Return the canonical project namespace, or null for an explicitly unnamespaced project. */
-    const getProjectNamespace = Effect.fn('ProjectService.getProjectNamespace')(function* () {
-      const project = yield* getSfProject();
-      return canonicalProjectNamespace(project.getSfProjectJson().getContents().namespace);
-    });
+      /** Fail with NotInPackageDirectoryError if any of the given URIs are outside package directories */
+      const ensureInPackageDirectories = Effect.fn('ProjectService.ensureInPackageDirectories')(function* (
+        uris: URI[]
+      ) {
+        const outOfPackage = yield* Stream.fromIterable(uris).pipe(
+          Stream.filterEffect(uri => isInPackageDirectories(uri).pipe(Effect.map(b => !b))),
+          Stream.runCollect
+        );
+        yield* Chunk.isEmpty(outOfPackage)
+          ? Effect.void
+          : new NotInPackageDirectoryError({
+              message: 'Only files in a Salesforce package directory can be used with this command',
+              uris: Chunk.toReadonlyArray(outOfPackage)
+            });
+      });
 
-    /** Determine whether an exact artifact namespace is eligible for attribution to this workspace. */
-    const isArtifactNamespaceWorkspaceEligible = Effect.fn('ProjectService.isArtifactNamespaceWorkspaceEligible')(
-      function* (requestedNamespace: ArtifactNamespace) {
-        return isWorkspaceNamespaceEligible(requestedNamespace, yield* getProjectNamespace());
-      }
-    );
+      const getStateFolder = Effect.fn('ProjectService.getStateFolder')(function* () {
+        const { uri } = yield* workspaceService.getWorkspaceInfoOrThrow();
+        return Utils.joinPath(uri, Global.SFDX_STATE_FOLDER);
+      });
 
-    /** Check if a URI is within any package directory */
-    const isInPackageDirectories = Effect.fn('ProjectService.isInPackageDirectories')(function* (uri: URI) {
-      return (
-        (yield* isSalesforceProject()) &&
-        (yield* getSfProject()).getPackageDirectories().some(dir => isUriEqualOrWithin(toUri(dir.fullPath), uri))
-      );
-    });
+      const getToolsFolder = Effect.fn('ProjectService.getToolsFolder')(function* () {
+        return Utils.joinPath(yield* getStateFolder(), TOOLS_DIR);
+      });
 
-    /** Fail with NotInPackageDirectoryError if any of the given URIs are outside package directories */
-    const ensureInPackageDirectories = Effect.fn('ProjectService.ensureInPackageDirectories')(function* (uris: URI[]) {
-      const outOfPackage = yield* Stream.fromIterable(uris).pipe(
-        Stream.filterEffect(uri => isInPackageDirectories(uri).pipe(Effect.map(b => !b))),
-        Stream.runCollect
-      );
-      yield* Chunk.isEmpty(outOfPackage)
-        ? Effect.void
-        : new NotInPackageDirectoryError({
-            message: 'Only files in a Salesforce package directory can be used with this command',
-            uris: Chunk.toReadonlyArray(outOfPackage)
-          });
-    });
+      const getDebugLogsFolder = Effect.fn('ProjectService.getDebugLogsFolder')(function* () {
+        return Utils.joinPath(yield* getToolsFolder(), DEBUG_DIR, LOGS_DIR);
+      });
 
-    const getStateFolder = Effect.fn('ProjectService.getStateFolder')(function* () {
-      const { uri } = yield* workspaceService.getWorkspaceInfoOrThrow();
-      return Utils.joinPath(uri, Global.SFDX_STATE_FOLDER);
-    });
+      const getApexTestResultsFolder = Effect.fn('ProjectService.getApexTestResultsFolder')(function* () {
+        return Utils.joinPath(yield* getToolsFolder(), TESTRESULTS_DIR, APEX_DIR);
+      });
 
-    const getToolsFolder = Effect.fn('ProjectService.getToolsFolder')(function* () {
-      return Utils.joinPath(yield* getStateFolder(), TOOLS_DIR);
-    });
+      const getSoqlMetadataPath = Effect.fn('ProjectService.getSoqlMetadataPath')(function* () {
+        return Utils.joinPath(yield* getToolsFolder(), SOQLMETADATA_DIR);
+      });
 
-    const getDebugLogsFolder = Effect.fn('ProjectService.getDebugLogsFolder')(function* () {
-      return Utils.joinPath(yield* getToolsFolder(), DEBUG_DIR, LOGS_DIR);
-    });
+      const getSoqlStandardObjectsPath = Effect.fn('ProjectService.getSoqlStandardObjectsPath')(function* () {
+        return Utils.joinPath(yield* getToolsFolder(), SOQLMETADATA_DIR, STANDARDOBJECTS_DIR);
+      });
 
-    const getApexTestResultsFolder = Effect.fn('ProjectService.getApexTestResultsFolder')(function* () {
-      return Utils.joinPath(yield* getToolsFolder(), TESTRESULTS_DIR, APEX_DIR);
-    });
+      const getSoqlCustomObjectsPath = Effect.fn('ProjectService.getSoqlCustomObjectsPath')(function* () {
+        return Utils.joinPath(yield* getToolsFolder(), SOQLMETADATA_DIR, CUSTOMOBJECTS_DIR);
+      });
 
-    const getSoqlMetadataPath = Effect.fn('ProjectService.getSoqlMetadataPath')(function* () {
-      return Utils.joinPath(yield* getToolsFolder(), SOQLMETADATA_DIR);
-    });
+      const getFauxClassesPath = Effect.fn('ProjectService.getFauxClassesPath')(function* () {
+        return Utils.joinPath(yield* getToolsFolder(), SOBJECTS_DIR);
+      });
 
-    const getSoqlStandardObjectsPath = Effect.fn('ProjectService.getSoqlStandardObjectsPath')(function* () {
-      return Utils.joinPath(yield* getToolsFolder(), SOQLMETADATA_DIR, STANDARDOBJECTS_DIR);
-    });
+      const getFauxStandardObjectsPath = Effect.fn('ProjectService.getFauxStandardObjectsPath')(function* () {
+        return Utils.joinPath(yield* getToolsFolder(), SOBJECTS_DIR, STANDARDOBJECTS_DIR);
+      });
 
-    const getSoqlCustomObjectsPath = Effect.fn('ProjectService.getSoqlCustomObjectsPath')(function* () {
-      return Utils.joinPath(yield* getToolsFolder(), SOQLMETADATA_DIR, CUSTOMOBJECTS_DIR);
-    });
+      const getFauxCustomObjectsPath = Effect.fn('ProjectService.getFauxCustomObjectsPath')(function* () {
+        return Utils.joinPath(yield* getToolsFolder(), SOBJECTS_DIR, CUSTOMOBJECTS_DIR);
+      });
 
-    const getFauxClassesPath = Effect.fn('ProjectService.getFauxClassesPath')(function* () {
-      return Utils.joinPath(yield* getToolsFolder(), SOBJECTS_DIR);
-    });
+      const getTypingsPath = Effect.fn('ProjectService.getTypingsPath')(function* () {
+        const { uri } = yield* workspaceService.getWorkspaceInfoOrThrow();
+        return Utils.joinPath(uri, Global.SFDX_STATE_FOLDER, ...TYPINGS_SEGMENTS);
+      });
 
-    const getFauxStandardObjectsPath = Effect.fn('ProjectService.getFauxStandardObjectsPath')(function* () {
-      return Utils.joinPath(yield* getToolsFolder(), SOBJECTS_DIR, STANDARDOBJECTS_DIR);
-    });
-
-    const getFauxCustomObjectsPath = Effect.fn('ProjectService.getFauxCustomObjectsPath')(function* () {
-      return Utils.joinPath(yield* getToolsFolder(), SOBJECTS_DIR, CUSTOMOBJECTS_DIR);
-    });
-
-    const getTypingsPath = Effect.fn('ProjectService.getTypingsPath')(function* () {
-      const { uri } = yield* workspaceService.getWorkspaceInfoOrThrow();
-      return Utils.joinPath(uri, Global.SFDX_STATE_FOLDER, ...TYPINGS_SEGMENTS);
-    });
-
-    return {
-      isSalesforceProject,
-      getSfProject,
-      getProjectNamespace,
-      isArtifactNamespaceWorkspaceEligible,
-      projectConfigChanges,
-      isInPackageDirectories,
-      ensureInPackageDirectories,
-      getSoqlMetadataPath,
-      getSoqlStandardObjectsPath,
-      getSoqlCustomObjectsPath,
-      getFauxClassesPath,
-      getFauxStandardObjectsPath,
-      getFauxCustomObjectsPath,
-      getTypingsPath,
-      getStateFolder,
-      getDebugLogsFolder,
-      getApexTestResultsFolder
-    };
-  })
-}) {}
+      return {
+        isSalesforceProject,
+        getSfProject,
+        getProjectNamespace,
+        isArtifactNamespaceWorkspaceEligible,
+        projectConfigChanges,
+        isInPackageDirectories,
+        ensureInPackageDirectories,
+        getSoqlMetadataPath,
+        getSoqlStandardObjectsPath,
+        getSoqlCustomObjectsPath,
+        getFauxClassesPath,
+        getFauxStandardObjectsPath,
+        getFauxCustomObjectsPath,
+        getTypingsPath,
+        getStateFolder,
+        getDebugLogsFolder,
+        getApexTestResultsFolder
+      };
+    })
+  }
+) {}
 
 export class NotInPackageDirectoryError extends Data.TaggedError('NotInPackageDirectoryError')<{
   readonly message: string;

@@ -16,6 +16,9 @@ export type FileChangeEvent = {
 
 /** PubSub that broadcasts observed file-system change events.
  * The VS Code wiring (FileWatcherLayer) writes to this; consumers subscribe read-only. */
-export class FileChangePubSub extends Effect.Service<FileChangePubSub>()('FileChangePubSub', {
-  scoped: PubSub.sliding<FileChangeEvent>(10_000)
-}) {}
+export class FileChangePubSub extends Effect.Service<FileChangePubSub>()(
+  'salesforcedx-vscode-services/vscode/fileChangePubSub',
+  {
+    scoped: PubSub.sliding<FileChangeEvent>(10_000)
+  }
+) {}

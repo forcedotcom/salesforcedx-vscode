@@ -52,146 +52,149 @@ const toCatalogEntry = (entry: OrgMetadataCatalogInternalEntry): OrgMetadataCata
  * active org and workspace. Consumers query it; only services mutates its
  * caches in response to org, workspace, and retrieve lifecycle events.
  */
-export class OrgMetadataCatalog extends Effect.Service<OrgMetadataCatalog>()('OrgMetadataCatalog', {
-  accessors: true,
-  dependencies: [
-    ConnectionService.Default,
-    MetadataDescribeService.Default,
-    MetadataRegistryService.Default,
-    MetadataRetrieveService.Default,
-    ProjectService.Default,
-    OrgCatalogState.Default,
-    OrgMetadataCatalogRecorder.Default,
-    TransmogrifierService.Default
-  ],
-  effect: Effect.gen(function* () {
-    const [connectionService, metadataDescribeService, inventories, state, treeProjection, workspace, recorder] =
-      yield* Effect.all([
-        ConnectionService,
-        MetadataDescribeService,
-        makeOrgCatalogInventory,
-        OrgCatalogState,
-        makeOrgCatalogTreeProjection,
-        makeOrgCatalogWorkspace,
-        OrgMetadataCatalogRecorder
-      ]);
-    const getActiveOrgId = Effect.fn('OrgMetadataCatalog.getActiveOrgId')(function* () {
-      const { orgId } = yield* SubscriptionRef.get(yield* getDefaultOrgRef());
-      if (orgId) return orgId;
+export class OrgMetadataCatalog extends Effect.Service<OrgMetadataCatalog>()(
+  'salesforcedx-vscode-services/orgCatalog/orgMetadataCatalog',
+  {
+    accessors: true,
+    dependencies: [
+      ConnectionService.Default,
+      MetadataDescribeService.Default,
+      MetadataRegistryService.Default,
+      MetadataRetrieveService.Default,
+      ProjectService.Default,
+      OrgCatalogState.Default,
+      OrgMetadataCatalogRecorder.Default,
+      TransmogrifierService.Default
+    ],
+    effect: Effect.gen(function* () {
+      const [connectionService, metadataDescribeService, inventories, state, treeProjection, workspace, recorder] =
+        yield* Effect.all([
+          ConnectionService,
+          MetadataDescribeService,
+          makeOrgCatalogInventory,
+          OrgCatalogState,
+          makeOrgCatalogTreeProjection,
+          makeOrgCatalogWorkspace,
+          OrgMetadataCatalogRecorder
+        ]);
+      const getActiveOrgId = Effect.fn('OrgMetadataCatalog.getActiveOrgId')(function* () {
+        const { orgId } = yield* SubscriptionRef.get(yield* getDefaultOrgRef());
+        if (orgId) return orgId;
 
-      // Startup race: ref may lack orgId; re-acquire connection for AuthFields org id.
-      return yield* connectionService.getConnection().pipe(
-        Effect.map(orgIdFromConnection),
-        Effect.flatMap(
-          Option.match({
-            onNone: () => Effect.fail(vscode.FileSystemError.Unavailable('No default org is configured')),
-            onSome: Effect.succeed
-          })
-        )
-      );
-    });
-
-    const resolveComponents = Effect.fn('OrgMetadataCatalog.resolveComponents')(function* (
-      references: readonly OrgMetadataCatalogComponentReference[]
-    ) {
-      const orgId = yield* getActiveOrgId();
-      const resolutions = yield* workspace.resolveComponents(orgId, references.map(toInternalComponentReference), {
-        prefer: 'workspace'
-      });
-      yield* recorder.recordRemoteComponents(
-        orgId,
-        'tooling-api',
-        resolutions.map(resolution => ({
-          type: resolution.reference.xmlName,
-          fullName: resolution.reference.fullName,
-          documentUri: resolution.orgUri,
-          ...(resolution.workspaceUri ? { workspaceUri: resolution.workspaceUri } : {})
-        }))
-      );
-      return resolutions.map(resolution => ({
-        ...resolution,
-        reference: { type: resolution.reference.xmlName, fullName: resolution.reference.fullName }
-      }));
-    });
-
-    const invalidateHierarchy = Effect.fn('OrgMetadataCatalog.invalidateHierarchy')(function* (
-      orgId: string,
-      reference: OrgMetadataReference
-    ) {
-      if (!reference.xmlName) {
-        yield* metadataDescribeService.invalidateDescribe(orgId);
-      } else if (FOLDERED_METADATA_TYPES.has(reference.xmlName)) {
-        yield* metadataDescribeService.invalidateAllListMetadata(orgId);
-      } else {
-        yield* metadataDescribeService.invalidateListMetadata(reference.xmlName, undefined, orgId);
-      }
-      yield* treeProjection.clearLoadedChildren(orgId, reference);
-      yield* state.ensureHydrated(orgId);
-      yield* reference.xmlName
-        ? state.invalidateTypes(orgId, new Set([reference.xmlName]))
-        : state.invalidateOrgInventories(orgId);
-      yield* state.persistOrg(orgId);
-    });
-
-    const getChildren = Effect.fn('OrgMetadataCatalog.getChildren')(function* (
-      reference: OrgMetadataCatalogReference = {},
-      options: { readonly consistency?: OrgMetadataHierarchyConsistency } = {}
-    ) {
-      const orgId = yield* getActiveOrgId();
-      const internalReference = toInternalReference(reference);
-      if (options.consistency === 'cache-only') {
-        return internalReference.xmlName
-          ? yield* treeProjection.getChildrenCached(orgId, internalReference).pipe(
-              Effect.map(children => children ?? []),
-              Effect.map(Arr.map(toCatalogEntry))
-            )
-          : [];
-      }
-      if (options.consistency === 'refresh') yield* invalidateHierarchy(orgId, internalReference);
-      return yield* treeProjection.getChildren(orgId, internalReference).pipe(Effect.map(Arr.map(toCatalogEntry)));
-    });
-
-    /** Whether the direct component inventory for a type is already available without an API call. */
-    const hasTypeInventory = Effect.fn('OrgMetadataCatalog.hasTypeInventory')(function* (type: string) {
-      const orgId = yield* getActiveOrgId();
-      yield* state.ensureHydrated(orgId);
-      const [loaded, persisted] = yield* Effect.all([
-        state.getInventory(orgId, type),
-        state.getPersistedInventory(orgId, type)
-      ]);
-      return Boolean(loaded?.complete ?? persisted?.complete);
-    });
-
-    const getEntries = Effect.fn('OrgMetadataCatalog.getEntries')(function* (
-      references: readonly OrgMetadataCatalogComponentReference[],
-      options: { readonly consistency?: OrgMetadataConsistency } = {}
-    ) {
-      const orgId = yield* getActiveOrgId();
-      const internalReferences = references.map(toInternalComponentReference);
-      if (options.consistency === 'refresh') {
-        const xmlNames = new Set(internalReferences.map(reference => reference.xmlName));
-        yield* Effect.forEach(
-          xmlNames,
-          xmlName =>
-            FOLDERED_METADATA_TYPES.has(xmlName)
-              ? metadataDescribeService.invalidateAllListMetadata(orgId)
-              : metadataDescribeService.invalidateListMetadata(xmlName, undefined, orgId),
-          { concurrency: 1, discard: true }
+        // Startup race: ref may lack orgId; re-acquire connection for AuthFields org id.
+        return yield* connectionService.getConnection().pipe(
+          Effect.map(orgIdFromConnection),
+          Effect.flatMap(
+            Option.match({
+              onNone: () => Effect.fail(vscode.FileSystemError.Unavailable('No default org is configured')),
+              onSome: Effect.succeed
+            })
+          )
         );
-        yield* state.ensureHydrated(orgId);
-        yield* state.invalidateTypes(orgId, xmlNames);
-        yield* state.persistOrg(orgId);
-      }
-      return yield* Effect.forEach(internalReferences, reference => inventories.getEntry(orgId, reference), {
-        concurrency: 'unbounded'
-      }).pipe(Effect.map(entries => entries.map(entry => (entry ? toCatalogEntry(entry) : entry))));
-    });
+      });
 
-    return {
-      getChildren,
-      getEntries,
-      hasTypeInventory,
-      resolveComponents
-    };
-  })
-}) {}
+      const resolveComponents = Effect.fn('OrgMetadataCatalog.resolveComponents')(function* (
+        references: readonly OrgMetadataCatalogComponentReference[]
+      ) {
+        const orgId = yield* getActiveOrgId();
+        const resolutions = yield* workspace.resolveComponents(orgId, references.map(toInternalComponentReference), {
+          prefer: 'workspace'
+        });
+        yield* recorder.recordRemoteComponents(
+          orgId,
+          'tooling-api',
+          resolutions.map(resolution => ({
+            type: resolution.reference.xmlName,
+            fullName: resolution.reference.fullName,
+            documentUri: resolution.orgUri,
+            ...(resolution.workspaceUri ? { workspaceUri: resolution.workspaceUri } : {})
+          }))
+        );
+        return resolutions.map(resolution => ({
+          ...resolution,
+          reference: { type: resolution.reference.xmlName, fullName: resolution.reference.fullName }
+        }));
+      });
+
+      const invalidateHierarchy = Effect.fn('OrgMetadataCatalog.invalidateHierarchy')(function* (
+        orgId: string,
+        reference: OrgMetadataReference
+      ) {
+        if (!reference.xmlName) {
+          yield* metadataDescribeService.invalidateDescribe(orgId);
+        } else if (FOLDERED_METADATA_TYPES.has(reference.xmlName)) {
+          yield* metadataDescribeService.invalidateAllListMetadata(orgId);
+        } else {
+          yield* metadataDescribeService.invalidateListMetadata(reference.xmlName, undefined, orgId);
+        }
+        yield* treeProjection.clearLoadedChildren(orgId, reference);
+        yield* state.ensureHydrated(orgId);
+        yield* reference.xmlName
+          ? state.invalidateTypes(orgId, new Set([reference.xmlName]))
+          : state.invalidateOrgInventories(orgId);
+        yield* state.persistOrg(orgId);
+      });
+
+      const getChildren = Effect.fn('OrgMetadataCatalog.getChildren')(function* (
+        reference: OrgMetadataCatalogReference = {},
+        options: { readonly consistency?: OrgMetadataHierarchyConsistency } = {}
+      ) {
+        const orgId = yield* getActiveOrgId();
+        const internalReference = toInternalReference(reference);
+        if (options.consistency === 'cache-only') {
+          return internalReference.xmlName
+            ? yield* treeProjection.getChildrenCached(orgId, internalReference).pipe(
+                Effect.map(children => children ?? []),
+                Effect.map(Arr.map(toCatalogEntry))
+              )
+            : [];
+        }
+        if (options.consistency === 'refresh') yield* invalidateHierarchy(orgId, internalReference);
+        return yield* treeProjection.getChildren(orgId, internalReference).pipe(Effect.map(Arr.map(toCatalogEntry)));
+      });
+
+      /** Whether the direct component inventory for a type is already available without an API call. */
+      const hasTypeInventory = Effect.fn('OrgMetadataCatalog.hasTypeInventory')(function* (type: string) {
+        const orgId = yield* getActiveOrgId();
+        yield* state.ensureHydrated(orgId);
+        const [loaded, persisted] = yield* Effect.all([
+          state.getInventory(orgId, type),
+          state.getPersistedInventory(orgId, type)
+        ]);
+        return Boolean(loaded?.complete ?? persisted?.complete);
+      });
+
+      const getEntries = Effect.fn('OrgMetadataCatalog.getEntries')(function* (
+        references: readonly OrgMetadataCatalogComponentReference[],
+        options: { readonly consistency?: OrgMetadataConsistency } = {}
+      ) {
+        const orgId = yield* getActiveOrgId();
+        const internalReferences = references.map(toInternalComponentReference);
+        if (options.consistency === 'refresh') {
+          const xmlNames = new Set(internalReferences.map(reference => reference.xmlName));
+          yield* Effect.forEach(
+            xmlNames,
+            xmlName =>
+              FOLDERED_METADATA_TYPES.has(xmlName)
+                ? metadataDescribeService.invalidateAllListMetadata(orgId)
+                : metadataDescribeService.invalidateListMetadata(xmlName, undefined, orgId),
+            { concurrency: 1, discard: true }
+          );
+          yield* state.ensureHydrated(orgId);
+          yield* state.invalidateTypes(orgId, xmlNames);
+          yield* state.persistOrg(orgId);
+        }
+        return yield* Effect.forEach(internalReferences, reference => inventories.getEntry(orgId, reference), {
+          concurrency: 'unbounded'
+        }).pipe(Effect.map(entries => entries.map(entry => (entry ? toCatalogEntry(entry) : entry))));
+      });
+
+      return {
+        getChildren,
+        getEntries,
+        hasTypeInventory,
+        resolveComponents
+      };
+    })
+  }
+) {}

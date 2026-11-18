@@ -23,49 +23,52 @@ const AliasFileSchema = Schema.Struct({
   orgs: Schema.Record({ key: Schema.String, value: Schema.String })
 });
 
-export class AliasService extends Effect.Service<AliasService>()('AliasService', {
-  accessors: true,
-  dependencies: [FsService.Default],
-  effect: Effect.gen(function* () {
-    const fsService = yield* FsService;
+export class AliasService extends Effect.Service<AliasService>()(
+  'salesforcedx-vscode-services/core/alias/AliasService',
+  {
+    accessors: true,
+    dependencies: [FsService.Default],
+    effect: Effect.gen(function* () {
+      const fsService = yield* FsService;
 
-    const readAliasFile = Effect.fn('AliasService.readAliasFile')(function* () {
-      const aliasPath = join(Global.SFDX_DIR, 'alias.json');
-      return yield* fsService.readJSON(aliasPath, AliasFileSchema);
-    });
+      const readAliasFile = Effect.fn('AliasService.readAliasFile')(function* () {
+        const aliasPath = join(Global.SFDX_DIR, 'alias.json');
+        return yield* fsService.readJSON(aliasPath, AliasFileSchema);
+      });
 
-    /** Get all aliases as Record<alias, username> */
-    const getAllAliases = Effect.fn('AliasService.getAllAliases')(function* () {
-      return yield* readAliasFile().pipe(Effect.map(a => a.orgs));
-    });
+      /** Get all aliases as Record<alias, username> */
+      const getAllAliases = Effect.fn('AliasService.getAllAliases')(function* () {
+        return yield* readAliasFile().pipe(Effect.map(a => a.orgs));
+      });
 
-    /** Get all aliases for a given username */
-    const getAliasesFromUsername = Effect.fn('AliasService.getAliasesFromUsername')(function* (username: string) {
-      return yield* readAliasFile().pipe(
-        Effect.map(aliasContents => aliasContents.orgs),
-        Effect.map(orgs => Record.keys(orgs).filter(alias => orgs[alias] === username)),
-        Effect.catchAll(() => Effect.succeed([]))
-      );
-    });
+      /** Get all aliases for a given username */
+      const getAliasesFromUsername = Effect.fn('AliasService.getAliasesFromUsername')(function* (username: string) {
+        return yield* readAliasFile().pipe(
+          Effect.map(aliasContents => aliasContents.orgs),
+          Effect.map(orgs => Record.keys(orgs).filter(alias => orgs[alias] === username)),
+          Effect.catchAll(() => Effect.succeed([]))
+        );
+      });
 
-    /** Get the username for a given alias */
-    const getUsernameFromAlias = Effect.fn('AliasService.getUsernameFromAlias')(function* (alias: string) {
-      return yield* readAliasFile().pipe(
-        Effect.map(aliasContents => Option.fromNullable(aliasContents.orgs[alias])),
-        Effect.catchAll(() => Effect.succeed(Option.none()))
-      );
-    });
+      /** Get the username for a given alias */
+      const getUsernameFromAlias = Effect.fn('AliasService.getUsernameFromAlias')(function* (alias: string) {
+        return yield* readAliasFile().pipe(
+          Effect.map(aliasContents => Option.fromNullable(aliasContents.orgs[alias])),
+          Effect.catchAll(() => Effect.succeed(Option.none()))
+        );
+      });
 
-    /** Remove aliases by name. Idempotent: no-op if alias already removed (e.g. by Core). */
-    const unsetAliases = Effect.fn('AliasService.unsetAliases')(function* (aliases: readonly string[]) {
-      const sa = yield* Effect.promise(() => StateAggregator.getInstance());
-      yield* Effect.forEach(
-        aliases,
-        alias => Effect.tryPromise(() => sa.aliases.unsetAndSave(alias)).pipe(Effect.ignore),
-        { discard: true }
-      );
-    });
+      /** Remove aliases by name. Idempotent: no-op if alias already removed (e.g. by Core). */
+      const unsetAliases = Effect.fn('AliasService.unsetAliases')(function* (aliases: readonly string[]) {
+        const sa = yield* Effect.promise(() => StateAggregator.getInstance());
+        yield* Effect.forEach(
+          aliases,
+          alias => Effect.tryPromise(() => sa.aliases.unsetAndSave(alias)).pipe(Effect.ignore),
+          { discard: true }
+        );
+      });
 
-    return { getAllAliases, getAliasesFromUsername, getUsernameFromAlias, unsetAliases };
-  })
-}) {}
+      return { getAllAliases, getAliasesFromUsername, getUsernameFromAlias, unsetAliases };
+    })
+  }
+) {}
