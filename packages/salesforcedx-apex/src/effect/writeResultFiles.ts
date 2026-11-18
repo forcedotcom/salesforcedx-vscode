@@ -9,6 +9,7 @@ import type { ApexReportError } from './errors';
 import type { MarkdownTextReporterOptions } from '../reporters/markdownTextReporter';
 import * as Arr from 'effect/Array';
 import * as Effect from 'effect/Effect';
+import { isNotUndefined } from 'effect/Predicate';
 import * as Ref from 'effect/Ref';
 import * as Schema from 'effect/Schema';
 import * as Stream from 'effect/Stream';
@@ -18,6 +19,7 @@ import { formatTapChunks } from '../reporters/formatTap';
 import { stringifyTestResultChunks } from '../streaming/testResultStringify';
 import {
   type OutputDirConfig,
+  type ResultFileFormat,
   ResultFileFormatsSchema,
   ResultFormatsSchema,
   type TestResult,
@@ -34,12 +36,12 @@ export interface WriteResultFilesOptions extends MarkdownTextReporterOptions {
   codeCoverage?: boolean;
 }
 
-const assertResultFormats: Schema.Schema.ToAsserts<typeof ResultFormatsSchema> = Schema.asserts(
+const decodeResultFormats = Schema.decodeUnknownSync(
   ResultFormatsSchema.pipe(
     Schema.annotations({ message: () => ({ message: nls.localize('resultFormatErr'), override: true }) })
   )
 );
-const assertResultFileFormats: Schema.Schema.ToAsserts<typeof ResultFileFormatsSchema> = Schema.asserts(
+const decodeResultFileFormats = Schema.decodeUnknownSync(
   ResultFileFormatsSchema.pipe(
     Schema.annotations({ message: () => ({ message: nls.localize('resultFileFormatErr'), override: true }) })
   )
@@ -54,7 +56,7 @@ const stringifyJsonArrayChunks = function* <A>(values: readonly A[]): Generator<
   yield ']';
 };
 
-const fileNameForResultFormat = (format: string, fileId: string): string | undefined => {
+const fileNameForResultFormat = (format: ResultFileFormat, fileId: string): string => {
   switch (format) {
     case 'json':
       return `test-result-${fileId}.json`;
@@ -66,8 +68,6 @@ const fileNameForResultFormat = (format: string, fileId: string): string | undef
       return `test-result-${fileId}.md`;
     case 'text':
       return `test-result-${fileId}.txt`;
-    default:
-      return undefined;
   }
 };
 
@@ -77,10 +77,10 @@ const writeFiles = Effect.fn('Apex.writeResultFiles.writeFiles')(function* (
   options: WriteResultFilesOptions = {}
 ) {
   const fileOutput = yield* FileOutput;
-  const { dirPath, resultFormats, fileInfos } = outputDirConfig;
-  assertResultFormats(resultFormats);
+  const { dirPath, fileInfos } = outputDirConfig;
+  const resultFormats = decodeResultFormats(outputDirConfig.resultFormats);
   const testResult = 'summary' in result ? result : undefined;
-  if (resultFormats && testResult) assertResultFileFormats(resultFormats);
+  const fileFormats = resultFormats && testResult ? decodeResultFileFormats(resultFormats) : [];
   yield* fileOutput.createDirectory(dirPath);
 
   const testRunId = 'summary' in result ? result.summary.testRunId : result.testRunId;
@@ -91,30 +91,31 @@ const writeFiles = Effect.fn('Apex.writeResultFiles.writeFiles')(function* (
       : [];
 
   const resultFiles = yield* Effect.forEach(
-    resultFormats && testResult ? resultFormats.map(format => ({ format, testResult })) : [],
+    testResult ? fileFormats.map(format => ({ format, testResult })) : [],
     Effect.fn('Apex.writeResultFiles.writeReport')(function* ({ format, testResult }) {
       const fileName = fileNameForResultFormat(format, fileId);
-      if (fileName === undefined) return yield* Effect.die(new Error(nls.localize('resultFormatErr')));
 
-      if (format === 'json') {
-        return yield* fileOutput.writeFile(
-          dirPath,
-          fileName,
-          Stream.fromIterable(stringifyTestResultChunks(testResult, { includeSetup: options.includeSetup }))
-        );
+      switch (format) {
+        case 'json':
+          return yield* fileOutput.writeFile(
+            dirPath,
+            fileName,
+            Stream.fromIterable(stringifyTestResultChunks(testResult, { includeSetup: options.includeSetup }))
+          );
+        case 'tap':
+          return yield* fileOutput.writeFile(dirPath, fileName, formatTapChunks(testResult));
+        case 'junit':
+          return yield* fileOutput.writeFile(dirPath, fileName, formatJUnitChunks(testResult));
+        case 'markdown':
+        case 'text': {
+          const chunks = yield* formatMarkdownTextReportStream(testResult, {
+            ...options,
+            format,
+            codeCoverage: options.codeCoverage
+          });
+          return yield* fileOutput.writeFile(dirPath, fileName, chunks);
+        }
       }
-      if (format === 'tap') return yield* fileOutput.writeFile(dirPath, fileName, formatTapChunks(testResult));
-      if (format === 'junit') return yield* fileOutput.writeFile(dirPath, fileName, formatJUnitChunks(testResult));
-
-      if (format === 'markdown' || format === 'text') {
-        const chunks = yield* formatMarkdownTextReportStream(testResult, {
-          ...options,
-          format,
-          codeCoverage: options.codeCoverage
-        });
-        return yield* fileOutput.writeFile(dirPath, fileName, chunks);
-      }
-      return yield* Effect.die(new Error(nls.localize('resultFormatErr')));
     }),
     { concurrency: 1 }
   );
@@ -129,7 +130,7 @@ const writeFiles = Effect.fn('Apex.writeResultFiles.writeFiles')(function* (
               stringifyJsonArrayChunks(
                 testResult.tests
                   .map(test => test.perClassCoverage)
-                  .filter(coverage => coverage !== undefined && coverage.length > 0)
+                  .filter(coverage => isNotUndefined(coverage) && coverage.length > 0)
               )
             )
           )
@@ -188,5 +189,3 @@ export const writeResultFiles = Effect.fn('Apex.writeResultFiles')(function* (
     Effect.catchTags({ FileOutputError: onFailure, ApexReportError: onFailure })
   );
 });
-
-const isNotUndefined = <A>(value: A | undefined): value is A => value !== undefined;
