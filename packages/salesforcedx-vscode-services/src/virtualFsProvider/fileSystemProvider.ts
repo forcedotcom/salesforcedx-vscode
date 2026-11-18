@@ -15,7 +15,7 @@ import type { MetadataType } from '@salesforce/source-deploy-retrieve';
 import * as Chunk from 'effect/Chunk';
 import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
-import { isError, isNullable, isString } from 'effect/Predicate';
+import { isError, isNullable, isString, isUndefined } from 'effect/Predicate';
 import * as Stream from 'effect/Stream';
 import { Buffer } from 'node:buffer';
 // eslint-disable-next-line no-restricted-imports
@@ -194,16 +194,21 @@ export class FsProvider implements vscode.FileSystemProvider {
       vscode.workspace.workspaceFolders?.[0]?.uri;
     if (!baseUri) return [];
     const excludeArr = isNullable(exclude) ? undefined : isString(exclude) ? [exclude] : [exclude.pattern];
-    const matches = await Stream.fromAsyncIterable(
+    return await Stream.fromAsyncIterable(
       fs.promises.glob(pattern, { cwd: baseUri.path, exclude: excludeArr }),
       error => new VirtualFsProviderError({ ...unknownToErrorCause(error), path: baseUri.path })
-    ).pipe(Stream.runCollect, Effect.map(Chunk.toArray), Effect.runPromise);
-    return (
-      matches
-        .map(p => joinPathWithBase(baseUri, p))
-        // Glob returns path strings; exclude directories from VS Code file search results.
-        .filter(uri => !fs.statSync(uri.path).isDirectory())
-        .slice(0, maxResults ?? Infinity)
+    ).pipe(
+      Stream.map(p => joinPathWithBase(baseUri, p)),
+      // Exclude confirmed directories; keep matches whose stat cannot be read.
+      Stream.filterEffect(uri =>
+        Effect.try(() => !fs.statSync(uri.path).isDirectory()).pipe(
+          Effect.catchTag('UnknownException', () => Effect.succeed(true))
+        )
+      ),
+      stream => (isUndefined(maxResults) ? stream : stream.pipe(Stream.take(maxResults))),
+      Stream.runCollect,
+      Effect.map(Chunk.toArray),
+      Effect.runPromise
     );
   }
 }
