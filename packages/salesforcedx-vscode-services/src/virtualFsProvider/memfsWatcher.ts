@@ -75,6 +75,8 @@ export const startWatch = Effect.fn('startWatch')(
       // if there are "change" events AND non-change events for the same file, drop the change events.  We prefer the "rename" (create) event.
       Stream.changesWith((a, b) => a.eventType === 'change' && b.eventType !== 'change' && a.filename === b.filename),
       Stream.changesWith((a, b) => b.eventType === 'change' && a.eventType !== 'change' && a.filename === b.filename),
+      // Drain watcher events independently of throttled IndexedDB persistence.
+      Stream.buffer({ capacity: 'unbounded' }),
       Stream.throttle({
         cost: Chunk.size,
         duration: '10 millis',
