@@ -1,6 +1,7 @@
 name: Manual test plan
 
 on:
+  workflow_dispatch:
   pull_request:
     types: [opened, synchronize]
 
@@ -9,7 +10,7 @@ permissions:
   pull-requests: write
 
 concurrency:
-  group: manual-test-plan-${{ github.event.pull_request.number }}
+  group: manual-test-plan-${{ github.event.pull_request.number || github.run_id }}
   cancel-in-progress: false
 
 jobs:
@@ -33,14 +34,16 @@ jobs:
   body:
     name: Manual test plan
     needs: secret
-    if: needs.secret.outputs.has_key == 'true'
+    if: github.event_name == 'pull_request' && needs.secret.outputs.has_key == 'true'
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
           ref: ${{ github.event.pull_request.head.sha }}
           fetch-depth: 0
+          persist-credentials: false
       - uses: ./.github/actions/setup-pnpm
         with:
           node-version: 24
@@ -55,3 +58,31 @@ jobs:
           GITHUB_EVENT_PATH: ${{ github.event_path }}
           GITHUB_REPOSITORY: ${{ github.repository }}
         run: node scripts/manualTestPlan/manualTestPlan.mts
+
+  smoke:
+    name: OpenCode smoke (${{ matrix.model }})
+    needs: secret
+    if: github.event_name == 'workflow_dispatch' && needs.secret.outputs.has_key == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        model: ${{ fromJSON(vars.OPENCODE_MODELS) }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/setup-pnpm
+        with:
+          node-version: 24
+      - name: Compile effect-octokit
+        run: pnpm --filter @salesforce/effect-octokit compile
+      - uses: ./.github/actions/setup-opencode
+      - name: Verify authenticated inference and repository reads
+        env:
+          OPENCODE_API_KEY: ${{ secrets.OPENCODE_API_KEY }}
+          OPENCODE_MODELS: ${{ format('["{0}"]', matrix.model) }}
+        run: node scripts/manualTestPlan/smoke.mts

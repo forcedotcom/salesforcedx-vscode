@@ -6,19 +6,28 @@
  */
 
 import { expect } from '@playwright/test';
-import { executeCommandById, waitForVSCodeWorkbench } from '@salesforce/playwright-vscode-ext';
+import { executeCommandById, startVideoRecording, waitForVSCodeWorkbench } from '@salesforce/playwright-vscode-ext';
 import { test } from '../fixtures';
 
-test('redacts Effect logs emitted through the services runtime', async ({ page }) => {
+test('redacts Effect logs emitted through the services runtime', async ({ page }, testInfo) => {
   const consoleLogs: string[] = [];
   page.on('console', message => consoleLogs.push(message.text()));
   await waitForVSCodeWorkbench(page);
 
-  await executeCommandById(page, 'sf.internal.testRedactingConsoleLogger', {
-    verifyExecution: async () => {
-      expect(consoleLogs.join('\n')).toContain('<REDACTED ACCESS TOKEN>');
-    }
-  });
+  const videoName = [testInfo.project.name, ...testInfo.titlePath, 'redact-logs', `retry-${testInfo.retry}`]
+    .join('-')
+    .replaceAll(/[^a-zA-Z0-9._-]+/g, '-')
+    .replaceAll(/^-+|-+$/g, '');
+  const stopRecording = await startVideoRecording(page, testInfo, videoName);
+  try {
+    await executeCommandById(page, 'sf.internal.testRedactingConsoleLogger', {
+      verifyExecution: async () => {
+        expect(consoleLogs.join('\n')).toContain('<REDACTED ACCESS TOKEN>');
+      }
+    });
 
-  expect(consoleLogs.join('\n')).not.toContain('playwright-secret');
+    expect(consoleLogs.join('\n')).not.toContain('playwright-secret');
+  } finally {
+    await stopRecording();
+  }
 });

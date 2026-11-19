@@ -4,4 +4,4 @@ runs:
   using: composite
   steps:
     - shell: bash
-      run: npm install --global @opencode/cli@2.2.5
+      run: npm install --global @opencode/cli@2.3.0

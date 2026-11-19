@@ -7,16 +7,18 @@
 
 import * as NodeContext from '@effect/platform-node/NodeContext';
 import { GitHub } from '@salesforce/effect-octokit';
-import { ConfigProvider, Effect } from 'effect';
+import { ConfigProvider, Effect, Layer, Schema } from 'effect';
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
-import { mkdirSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, realpathSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { test } from 'node:test';
+import { commands, config as openCodeConfig, nodeCommand } from '../../../../test/ciAiFixtures.mts';
 import { OpenCodeRunFailed } from '../../../shared/openCode.mts';
 import {
   judgmentError,
+  manualTestPlanPrompt,
   manualTestPlanProgram,
   renderManualTestPlan,
   spliceManualTestPlan,
@@ -261,15 +263,17 @@ test('schema and watch-video failures retry once', async () => {
   assert.deepEqual(stuck.writes, []);
 });
 
-test('workflow uses the actions token and skips when the OpenCode key is empty', () => {
+test('workflow uses the OpenCode secret and model variable with the actions token and skips without a key', () => {
   const workflow = readFileSync(join(repoRoot, '.github', 'workflows', 'manual-test-plan.yml'), 'utf8');
   assert.match(workflow, /types: \[opened, synchronize\]/);
-  assert.match(workflow, /group: manual-test-plan-\$\{\{ github\.event\.pull_request\.number \}\}/);
+  assert.match(workflow, /group: manual-test-plan-\$\{\{ github\.event\.pull_request\.number \|\| github\.run_id \}\}/);
   assert.match(workflow, /cancel-in-progress: false/);
-  assert.match(workflow, /if: needs\.secret\.outputs\.has_key == 'true'/);
+  assert.match(workflow, /if: github\.event_name == 'pull_request' && needs\.secret\.outputs\.has_key == 'true'/);
   assert.match(workflow, /has_key=false/);
   assert.match(workflow, /OPENCODE_API_KEY: \$\{\{ secrets\.OPENCODE_API_KEY \}\}/);
   assert.match(workflow, /OPENCODE_MODELS: \$\{\{ vars\.OPENCODE_MODELS \}\}/);
+  assert.match(workflow, /uses: \.\/\.github\/actions\/setup-opencode/);
+  assert.equal(workflow.includes('CURSOR'), false);
   assert.match(workflow, /GITHUB_TOKEN: \$\{\{ github\.token \}\}/);
   assert.match(workflow, /GITHUB_EVENT_PATH: \$\{\{ github\.event_path \}\}/);
   assert.match(workflow, /GITHUB_REPOSITORY: \$\{\{ github\.repository \}\}/);
@@ -281,4 +285,89 @@ test('workflow uses the actions token and skips when the OpenCode key is empty',
   assert.match(workflow, /uses: \.\/\.github\/actions\/setup-pnpm/);
   assert.match(workflow, /ref: \$\{\{ github\.event\.pull_request\.head\.sha \}\}/);
   assert.match(workflow, /fetch-depth: 0/);
+});
+
+test('OpenCode subprocess receives isolated read-only configuration, stdin prompt, and no GitHub token', async () => {
+  const result = await manualTestPlanPrompt(repoRoot, {
+    skill: 'judge this diff',
+    diff: '+change',
+    correction: 'invalid JSON'
+  }).pipe(
+    Effect.provide(
+      Layer.mergeAll(
+        NodeContext.layer,
+        commands(command =>
+          nodeCommand(
+            command,
+            `
+const fs = require('node:fs');
+const config = JSON.parse(fs.readFileSync('opencode.json', 'utf8'));
+const prompt = fs.readFileSync(0, 'utf8');
+const text = JSON.stringify({
+  args:process.argv.slice(1),
+  cwd:process.cwd(),
+  config,
+  prompt,
+  githubToken:process.env.GITHUB_TOKEN,
+  apiKey:process.env.OPENCODE_API_KEY
+});
+process.stdout.write([
+  {type:'step_start'},
+  {type:'text',part:{text}},
+  {type:'step_finish',part:{reason:'stop'}}
+].map(event => JSON.stringify(event)).join('\\n') + '\\n');
+`
+          )
+        )
+      )
+    ),
+    Effect.withConfigProvider(openCodeConfig()),
+    Effect.flatMap(
+      Schema.decodeUnknown(
+        Schema.parseJson(
+          Schema.Struct({
+            args: Schema.Array(Schema.String),
+            cwd: Schema.String,
+            config: Schema.Struct({
+              agents: Schema.Struct({
+                judgment: Schema.Struct({
+                  permissions: Schema.Array(
+                    Schema.Struct({ action: Schema.String, resource: Schema.String, effect: Schema.String })
+                  )
+                })
+              })
+            }),
+            prompt: Schema.String,
+            githubToken: Schema.optional(Schema.String),
+            apiKey: Schema.String
+          })
+        )
+      )
+    ),
+    Effect.runPromise
+  );
+  assert.deepEqual(result.args, [
+    '--standalone',
+    'run',
+    '--agent',
+    'judgment',
+    '--format',
+    'json',
+    '--model',
+    'opencode/first'
+  ]);
+  assert.notEqual(result.cwd, repoRoot);
+  const readDirectory = realpathSync(repoRoot);
+  assert.deepEqual(result.config.agents.judgment.permissions, [
+    { action: '*', resource: '*', effect: 'deny' },
+    { action: 'external_directory', resource: `${readDirectory}/*`, effect: 'allow' },
+    { action: 'read', resource: readDirectory, effect: 'allow' },
+    { action: 'read', resource: `${readDirectory}/*`, effect: 'allow' }
+  ]);
+  assert.equal(result.githubToken === undefined || result.githubToken === '', true);
+  assert.equal(result.apiKey, 'test-key');
+  assert.match(result.prompt, /judge this diff/);
+  assert.match(result.prompt, /\+change/);
+  assert.match(result.prompt, /Previous reply failed validation:\ninvalid JSON/);
+  assert.equal(existsSync(result.cwd), false);
 });
