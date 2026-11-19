@@ -7,10 +7,10 @@
 
 import * as NodeContext from '@effect/platform-node/NodeContext';
 import { GitHub } from '@salesforce/effect-octokit';
-import { ConfigProvider, Effect } from 'effect';
+import { ConfigProvider, Effect, Schema } from 'effect';
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
-import { mkdirSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { test } from 'node:test';
@@ -21,7 +21,8 @@ import {
   spliceManualTestPlan,
   type PromptInput
 } from '../../manualTestPlan.mts';
-import { CursorRunFailed } from '../../schema.mts';
+import { openCodePrompt, openCodeText, promptWithModels, retryableOpenCodeError } from '../../openCodePrompt.mts';
+import { OpenCodeRunFailed } from '../../schema.mts';
 import { videosEnd, videosStart } from '../../videoManifest.mts';
 
 const repoRoot = join(import.meta.dirname, '..', '..', '..', '..');
@@ -111,7 +112,7 @@ const initRepo = (skill: boolean) => {
 
 const run = (
   cwd: string,
-  prompt: (input: PromptInput) => Effect.Effect<string, CursorRunFailed>,
+  prompt: (input: PromptInput) => Effect.Effect<string, OpenCodeRunFailed>,
   state: { body: string; writes: string[] },
   headMoved = false
 ) =>
@@ -135,7 +136,7 @@ const run = (
 
 const replies =
   (lines: readonly string[]) =>
-  (input: PromptInput): Effect.Effect<string, CursorRunFailed> => {
+  (input: PromptInput): Effect.Effect<string, OpenCodeRunFailed> => {
     const index = input.correction === undefined ? 0 : 1;
     return Effect.succeed(lines[index] ?? '');
   };
@@ -241,14 +242,14 @@ test('inherited pre-push Git variables cannot redirect fixture Git commands', ()
   assert.equal(execFileSync('git', ['status', '--porcelain'], { cwd: hookRepo, env: gitEnv, encoding: 'utf8' }), '');
 });
 
-test('a cursor failure does not retry', async () => {
+test('an exhausted OpenCode failure does not request a correction or edit the body', async () => {
   const calls = { n: 0 };
   const state: { body: string; writes: string[] } = { body: '## Summary\n\nkept\n', writes: [] };
   const outcome = await run(
     initRepo(true),
     () => {
       calls.n += 1;
-      return Effect.fail(new CursorRunFailed({ status: 'error', message: 'boom' }));
+      return Effect.fail(new OpenCodeRunFailed({ status: 'error', retryable: false, message: 'boom' }));
     },
     state
   );
@@ -295,13 +296,17 @@ test('schema and watch-video failures retry once', async () => {
   assert.deepEqual(stuck.writes, []);
 });
 
-test('workflow uses the actions token and skips when the cursor key is empty', () => {
+test('workflow uses the OpenCode secret and model variable with the actions token', () => {
   const workflow = readFileSync(join(repoRoot, '.github', 'workflows', 'manual-test-plan.yml'), 'utf8');
   assert.match(workflow, /types: \[opened, synchronize\]/);
-  assert.match(workflow, /group: manual-test-plan-\$\{\{ github\.event\.pull_request\.number \}\}/);
+  assert.match(workflow, /group: manual-test-plan-\$\{\{ github\.event\.pull_request\.number \|\| github\.run_id \}\}/);
   assert.match(workflow, /cancel-in-progress: false/);
-  assert.match(workflow, /if: needs\.secret\.outputs\.has_key == 'true'/);
+  assert.match(workflow, /if: github\.event_name == 'pull_request' && needs\.secret\.outputs\.has_key == 'true'/);
   assert.match(workflow, /has_key=false/);
+  assert.match(workflow, /OPENCODE_API_KEY: \$\{\{ secrets\.OPENCODE_API_KEY \}\}/);
+  assert.match(workflow, /OPENCODE_MODELS: \$\{\{ vars\.OPENCODE_MODELS \}\}/);
+  assert.match(workflow, /npm install --global @opencode\/cli@2\.3\.0/);
+  assert.equal(workflow.includes('CURSOR'), false);
   assert.match(workflow, /GITHUB_TOKEN: \$\{\{ github\.token \}\}/);
   assert.match(workflow, /GITHUB_EVENT_PATH: \$\{\{ github\.event_path \}\}/);
   assert.match(workflow, /GITHUB_REPOSITORY: \$\{\{ github\.repository \}\}/);
@@ -313,4 +318,152 @@ test('workflow uses the actions token and skips when the cursor key is empty', (
   assert.match(workflow, /uses: \.\/\.github\/actions\/setup-pnpm/);
   assert.match(workflow, /ref: \$\{\{ github\.event\.pull_request\.head\.sha \}\}/);
   assert.match(workflow, /fetch-depth: 0/);
+});
+
+test('OpenCode extracts only final assistant text, ignoring tool output and earlier messages', async () => {
+  const stdout = [
+    { type: 'text', part: { messageID: 'first', text: 'Let me inspect the code.' } },
+    { type: 'tool_use', part: { text: 'not the result' } },
+    { type: 'text', part: { messageID: 'last', text: '{"kind":' } },
+    { type: 'text', part: { messageID: 'last', text: '"nothing"}' } },
+    { type: 'step_finish' }
+  ]
+    .map(event => JSON.stringify(event))
+    .join('\n');
+  assert.equal(await Effect.runPromise(openCodeText(stdout, 0, '')), '{"kind":"nothing"}');
+});
+
+test('OpenCode errors reject partial text, empty output, and malformed event streams', async () => {
+  const partial = JSON.stringify({ type: 'text', part: { text: '{"kind":"nothing"}' } });
+  const error = JSON.stringify({ type: 'error', error: { message: '429 Too many requests' } });
+  const result = await Effect.runPromise(Effect.either(openCodeText(`${partial}\n${error}`, 0, '')));
+  assert.equal(result._tag, 'Left');
+  if (result._tag === 'Left') assert.equal(result.left.retryable, true);
+  await assert.rejects(Effect.runPromise(openCodeText(partial, 1, 'failed')));
+  await assert.rejects(Effect.runPromise(openCodeText('', 0, '')));
+  await assert.rejects(Effect.runPromise(openCodeText('not-json', 0, '')));
+});
+
+test('transient failures fall back in configured order and stop on success', async () => {
+  const calls: string[] = [];
+  const result = await Effect.runPromise(
+    promptWithModels(['inkling', 'nemotron', 'unused'], model => {
+      calls.push(model);
+      return model === 'inkling'
+        ? Effect.fail(new OpenCodeRunFailed({ status: 'provider', retryable: true, message: '429' }))
+        : Effect.succeed('{"kind":"nothing"}');
+    })
+  );
+  assert.equal(result, '{"kind":"nothing"}');
+  assert.deepEqual(calls, ['inkling', 'nemotron']);
+});
+
+test('authentication and budget failures stop; exhausted transient failures return the final error', async () => {
+  for (const retryable of [false, true]) {
+    const calls: string[] = [];
+    await assert.rejects(
+      Effect.runPromise(
+        promptWithModels(['first', 'second'], model => {
+          calls.push(model);
+          return Effect.fail(new OpenCodeRunFailed({ status: 'provider', retryable, message: model }));
+        })
+      ),
+      new RegExp(retryable ? 'second' : 'first')
+    );
+    assert.deepEqual(calls, retryable ? ['first', 'second'] : ['first']);
+  }
+  assert.equal(retryableOpenCodeError('429 Too many requests'), true);
+  assert.equal(retryableOpenCodeError('503 overloaded'), true);
+  assert.equal(retryableOpenCodeError('Model unavailable: opencode/old-model'), true);
+  assert.equal(retryableOpenCodeError('429 Upstream request failed: Policy budget exceeded'), false);
+  assert.equal(retryableOpenCodeError('401 Unauthorized'), false);
+  assert.equal(retryableOpenCodeError('403 Forbidden'), false);
+  assert.equal(retryableOpenCodeError('insufficient credits'), false);
+});
+
+test('OpenCode subprocess receives isolated read-only configuration, stdin prompt, and no GitHub token', async () => {
+  const bin = mkdtempSync(join(tmpdir(), 'manual-plan-opencode-bin-'));
+  const executable = join(bin, 'opencode.cjs');
+  writeFileSync(
+    executable,
+    `
+const fs = require('node:fs');
+const config = JSON.parse(fs.readFileSync(process.env.OPENCODE_CONFIG_DIR + '/opencode.json', 'utf8'));
+const prompt = fs.readFileSync(0, 'utf8');
+process.stdout.write(JSON.stringify({type:'text',part:{messageID:'result',text:JSON.stringify({
+  args:process.argv.slice(2),
+  cwd:process.cwd(),
+  config,
+  prompt,
+  githubToken:process.env.GITHUB_TOKEN,
+  apiKey:process.env.OPENCODE_API_KEY
+})}}) + '\\n');
+`
+  );
+  const result = await openCodePrompt(
+    repoRoot,
+    {
+      skill: 'judge this diff',
+      diff: '+change',
+      correction: 'invalid JSON'
+    },
+    {
+      executable: process.execPath,
+      prefixArgs: [executable]
+    }
+  ).pipe(
+    Effect.provide(NodeContext.layer),
+    Effect.withConfigProvider(
+      ConfigProvider.fromMap(
+        new Map([
+          ['OPENCODE_API_KEY', 'test-key'],
+          ['OPENCODE_MODELS', '["opencode/inkling-2-small-free","opencode/nemotron-3.5-super-vl-free"]'],
+          ['PATH', bin]
+        ])
+      )
+    ),
+    Effect.flatMap(
+      Schema.decodeUnknown(
+        Schema.parseJson(
+          Schema.Struct({
+            args: Schema.Array(Schema.String),
+            cwd: Schema.String,
+            config: Schema.Struct({
+              permissions: Schema.Array(
+                Schema.Struct({ action: Schema.String, resource: Schema.String, effect: Schema.String })
+              )
+            }),
+            prompt: Schema.String,
+            githubToken: Schema.optional(Schema.String),
+            apiKey: Schema.String
+          })
+        )
+      )
+    ),
+    Effect.runPromise
+  );
+  assert.deepEqual(result.args, [
+    'run',
+    '--standalone',
+    '--format',
+    'json',
+    '--model',
+    'opencode/inkling-2-small-free',
+    '--title',
+    'Manual test plan'
+  ]);
+  assert.notEqual(result.cwd, repoRoot);
+  assert.deepEqual(result.config.permissions[0], { action: '*', resource: '*', effect: 'deny' });
+  assert.equal(
+    result.config.permissions.some(
+      rule => rule.action === 'external_directory' && rule.resource === `${repoRoot}/*` && rule.effect === 'allow'
+    ),
+    true
+  );
+  assert.equal(result.githubToken === undefined || result.githubToken === '', true);
+  assert.equal(result.apiKey, 'test-key');
+  assert.match(result.prompt, /judge this diff/);
+  assert.match(result.prompt, /\+change/);
+  assert.match(result.prompt, /Previous reply failed validation:\ninvalid JSON/);
+  assert.equal(existsSync(result.cwd), false);
 });
