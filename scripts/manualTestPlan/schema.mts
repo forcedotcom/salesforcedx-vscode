@@ -27,8 +27,9 @@ const Checklist = Schema.Struct({
 export const Judgment = Schema.Union(Nothing, Checklist);
 export type Judgment = typeof Judgment.Type;
 
-export class CursorRunFailed extends Schema.TaggedError<CursorRunFailed>()('CursorRunFailed', {
+export class OpenCodeRunFailed extends Schema.TaggedError<OpenCodeRunFailed>()('OpenCodeRunFailed', {
   status: Schema.String,
+  retryable: Schema.Boolean,
   message: Schema.String
 }) {}
 
