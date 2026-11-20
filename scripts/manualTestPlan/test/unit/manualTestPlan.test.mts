@@ -17,6 +17,7 @@ import { test } from 'node:test';
 import { commands, config as openCodeConfig, nodeCommand } from '../../../../test/ciAiFixtures.mts';
 import { OpenCodeRunFailed } from '../../../shared/openCode.mts';
 import {
+  isRelevantDiffPath,
   judgmentError,
   manualTestPlanPrompt,
   manualTestPlanProgram,
@@ -103,10 +104,24 @@ const initRepo = (skill: boolean) => {
     mkdirSync(skillDir, { recursive: true });
     writeFileSync(join(skillDir, 'SKILL.md'), 'reply with json\n');
   }
+  const featureDir = join(cwd, 'packages', 'salesforcedx-vscode-core', 'src');
+  mkdirSync(featureDir, { recursive: true });
+  writeFileSync(join(featureDir, 'feature.ts'), 'export const feature = "base";\n');
+  const testDir = join(cwd, 'packages', 'salesforcedx-vscode-core', 'test');
+  mkdirSync(testDir, { recursive: true });
+  writeFileSync(join(testDir, 'feature.test.ts'), 'test before\n');
+  const workflowDir = join(cwd, '.github', 'workflows');
+  mkdirSync(workflowDir, { recursive: true });
+  writeFileSync(join(workflowDir, 'ci.yml'), 'name: CI before\n');
   git(cwd, ['add', '-A']);
   git(cwd, ['commit', '--allow-empty', '-m', 'base']);
   git(cwd, ['remote', 'add', 'origin', remote]);
   git(cwd, ['push', '-u', 'origin', 'develop']);
+  writeFileSync(join(featureDir, 'feature.ts'), 'export const feature = "changed";\n');
+  writeFileSync(join(testDir, 'feature.test.ts'), 'test after\n');
+  writeFileSync(join(workflowDir, 'ci.yml'), 'name: CI after\n');
+  git(cwd, ['add', '-A']);
+  git(cwd, ['commit', '-m', 'change feature']);
   return cwd;
 };
 
@@ -263,11 +278,47 @@ test('schema and watch-video failures retry once', async () => {
   assert.deepEqual(stuck.writes, []);
 });
 
+test('manual test plan filters CI, utility-package, and test diffs', () => {
+  for (const file of [
+    '.github/workflows/manual-test-plan.yml',
+    'test/ci-ai.test.mts',
+    'packages/salesforcedx-vscode-core/test/unit/feature.test.ts',
+    'packages/drivable-vscode/src/index.ts',
+    'packages/effect-octokit/src/github.ts',
+    'packages/eslint-local-rules/src/index.ts',
+    'packages/playwright-vscode-ext/src/index.ts'
+  ]) {
+    assert.equal(isRelevantDiffPath(file), false, file);
+  }
+  for (const file of [
+    'packages/salesforcedx-vscode-core/src/feature.ts',
+    'packages/salesforcedx-vscode-core/package.json'
+  ]) {
+    assert.equal(isRelevantDiffPath(file), true, file);
+  }
+});
+
+test('manual test plan sends only product-code diffs to OpenCode', async () => {
+  const diffs: string[] = [];
+  const state: { body: string; writes: string[] } = { body: '', writes: [] };
+  await run(
+    initRepo(true),
+    input => {
+      diffs.push(input.diff);
+      return Effect.succeed('{"kind":"nothing"}');
+    },
+    state
+  );
+  assert.equal(diffs.length, 1);
+  assert.match(diffs[0], /feature = "changed"/);
+  assert.doesNotMatch(diffs[0], /feature\.test\.ts|test after|ci\.yml|CI after/);
+});
+
 test('workflow uses the OpenCode secret and model variable with the actions token and skips without a key', () => {
   const workflow = readFileSync(join(repoRoot, '.github', 'workflows', 'manual-test-plan.yml'), 'utf8');
   assert.match(workflow, /types: \[opened, synchronize\]/);
   assert.match(workflow, /group: manual-test-plan-\$\{\{ github\.event\.pull_request\.number \|\| github\.run_id \}\}/);
-  assert.match(workflow, /cancel-in-progress: false/);
+  assert.match(workflow, /cancel-in-progress: true/);
   assert.match(workflow, /if: github\.event_name == 'pull_request' && needs\.secret\.outputs\.has_key == 'true'/);
   assert.match(workflow, /has_key=false/);
   assert.match(workflow, /OPENCODE_API_KEY: \$\{\{ secrets\.OPENCODE_API_KEY \}\}/);

@@ -19,6 +19,16 @@ const skillPath = '.opencode/skills/manual-test-plan-judgment/SKILL.md';
 const startMarker = '<!-- manual-test-plan -->';
 const endMarker = '<!-- /manual-test-plan -->';
 const excludedWorkflows = new Set(['e2e.yml', 'playwrightE2EFullSuite.yml', 'rerunPushE2E.yml']);
+const ciPackages = new Set(['drivable-vscode', 'effect-octokit', 'eslint-local-rules', 'playwright-vscode-ext']);
+
+export const isRelevantDiffPath = (file: string) => {
+  const parts = file.split('/');
+  return (
+    !parts.includes('test') &&
+    !file.startsWith('.github/') &&
+    !(parts[0] === 'packages' && ciPackages.has(parts[1] ?? ''))
+  );
+};
 // Git hooks export these for their own worktree. This script's git calls use
 // an explicit cwd and must not inherit another worktree's repository or index.
 const gitLocalEnv = {
@@ -253,7 +263,11 @@ export const manualTestPlanProgram = Effect.fn('manualTestPlan.program')(functio
   yield* git(cwd, ['fetch', 'origin', base]);
   const skill = yield* git(cwd, ['show', `origin/${base}:${skillPath}`]).pipe(Effect.option);
   if (Option.isNone(skill)) return yield* skip('missing-skill', `origin/${base}:${skillPath} is missing`);
-  const diff = yield* git(cwd, ['diff', `origin/${base}...HEAD`]);
+  const changedPaths = yield* git(cwd, ['diff', '--name-only', '-z', `origin/${base}...HEAD`]);
+  const relevantPaths = changedPaths.split('\0').filter(path => path.length > 0 && isRelevantDiffPath(path));
+  if (relevantPaths.length === 0)
+    return yield* skip('no-user-facing-changes', 'PR diff only changes tests or CI tooling');
+  const diff = yield* git(cwd, ['diff', `origin/${base}...HEAD`, '--', ...relevantPaths]);
   const prompt = deps?.prompt ?? ((input: PromptInput) => manualTestPlanPrompt(cwd, input));
   const judged = yield* attempt(prompt, skill.value, diff, cwd, undefined).pipe(
     Effect.flatMap(first =>
