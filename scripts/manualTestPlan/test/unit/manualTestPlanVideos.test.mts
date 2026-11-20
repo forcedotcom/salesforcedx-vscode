@@ -47,10 +47,10 @@ const testingTarget = {
 const checklist = 'Human summary\n\n- [x] Keep manual checklist\n';
 const plan = renderManualTestPlan(
   {
-    kind: 'checklist',
+    _tag: 'Checklist',
     items: [
-      { ...target, kind: 'watch-video' },
-      { ...testingTarget, kind: 'watch-video' }
+      { ...target, _tag: 'WatchVideo' },
+      { ...testingTarget, _tag: 'WatchVideo' }
     ]
   },
   'head'
@@ -194,7 +194,7 @@ const withGitHub = async <A, E>(state: ReturnType<typeof fixture>, program: Effe
 
 const withSingleTarget = (state: ReturnType<typeof fixture>) => {
   state.body = `${checklist}${renderManualTestPlan(
-    { kind: 'checklist', items: [{ ...target, kind: 'watch-video' }] },
+    { _tag: 'Checklist', items: [{ ...target, _tag: 'WatchVideo' }] },
     'head'
   )}\n`;
 };

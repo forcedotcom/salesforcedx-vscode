@@ -147,8 +147,8 @@ test('splice keeps surrounding sections and replaces only the marked block', () 
     prefix,
     renderManualTestPlan(
       {
-        kind: 'checklist',
-        items: [{ kind: 'manual', step: 'Open the org browser' }]
+        _tag: 'Checklist',
+        items: [{ _tag: 'ManualItem', step: 'Open the org browser' }]
       },
       'head'
     )
@@ -156,7 +156,7 @@ test('splice keeps surrounding sections and replaces only the marked block', () 
   assert.equal(first.slice(0, prefix.length), prefix);
   assert.equal(first.includes('## Manual test plan'), true);
   assert.equal(first.includes('- [ ] Open the org browser'), true);
-  const second = spliceManualTestPlan(first, renderManualTestPlan({ kind: 'nothing' }, 'head'));
+  const second = spliceManualTestPlan(first, renderManualTestPlan({ _tag: 'Nothing' }, 'head'));
   assert.equal(second.slice(0, prefix.length), prefix);
   assert.equal(second.includes('Open the org browser'), false);
   assert.equal(second.includes('Nothing worth manually testing.'), true);
@@ -166,10 +166,10 @@ test('splice keeps surrounding sections and replaces only the marked block', () 
 test('watch-video renders the spec, workflow, and job', () => {
   const rendered = renderManualTestPlan(
     {
-      kind: 'checklist',
+      _tag: 'Checklist',
       items: [
         {
-          kind: 'watch-video',
+          _tag: 'WatchVideo',
           spec: 'packages/salesforcedx-vscode-core/test/playwright/specs/core.spec.ts',
           workflow: 'Core E2E (Playwright)',
           job: 'e2e-desktop'
@@ -187,13 +187,13 @@ test('watch-video renders the spec, workflow, and job', () => {
 test('a real core spec and job pass; a missing job does not', async () => {
   const spec = 'packages/salesforcedx-vscode-core/test/playwright/specs/coreOutputChannel.headless.spec.ts';
   const ok = await judgmentError(repoRoot, {
-    kind: 'checklist',
-    items: [{ kind: 'watch-video', spec, workflow: 'Core E2E (Playwright)', job: 'e2e-desktop' }]
+    _tag: 'Checklist',
+    items: [{ _tag: 'WatchVideo', spec, workflow: 'Core E2E (Playwright)', job: 'e2e-desktop' }]
   }).pipe(Effect.provide(NodeContext.layer), Effect.runPromise);
   assert.equal(ok, undefined);
   const missing = await judgmentError(repoRoot, {
-    kind: 'checklist',
-    items: [{ kind: 'watch-video', spec, workflow: 'Core E2E (Playwright)', job: 'e2e-web' }]
+    _tag: 'Checklist',
+    items: [{ _tag: 'WatchVideo', spec, workflow: 'Core E2E (Playwright)', job: 'e2e-web' }]
   }).pipe(Effect.provide(NodeContext.layer), Effect.runPromise);
   assert.equal(missing, 'job e2e-web is not in Core E2E (Playwright)');
 });
@@ -205,7 +205,7 @@ test('missing skill ref leaves the body unchanged', async () => {
     initRepo(false),
     () => {
       calls.n += 1;
-      return Effect.succeed('{"kind":"nothing"}');
+      return Effect.succeed('{"_tag":"Nothing"}');
     },
     state
   );
@@ -260,7 +260,7 @@ test('an exhausted OpenCode failure does not request a correction or edit the bo
 
 test('head moving during AI generation leaves the body intact', async () => {
   const state: { body: string; writes: string[] } = { body: 'Keep existing manual plan', writes: [] };
-  const result = await run(initRepo(true), replies(['{"kind":"nothing"}']), state, true);
+  const result = await run(initRepo(true), replies(['{"_tag":"Nothing"}']), state, true);
   assert.deepEqual(result, { edited: false });
   assert.equal(state.body, 'Keep existing manual plan');
   assert.deepEqual(state.writes, []);
@@ -269,10 +269,10 @@ test('head moving during AI generation leaves the body intact', async () => {
 test('an unchanged plan does not clear its already published videos', async () => {
   const cwd = initRepo(true);
   const state: { body: string; writes: string[] } = { body: 'Summary\n', writes: [] };
-  await run(cwd, replies(['{"kind":"nothing"}']), state);
+  await run(cwd, replies(['{"_tag":"Nothing"}']), state);
   state.body = `${state.body}${videosStart}\nvideo\n${videosEnd}`;
   const body = state.body;
-  assert.deepEqual(await run(cwd, replies(['{"kind":"nothing"}']), state), { edited: false });
+  assert.deepEqual(await run(cwd, replies(['{"_tag":"Nothing"}']), state), { edited: false });
   assert.equal(state.body, body);
   assert.equal(state.writes.length, 1);
 });
@@ -280,15 +280,15 @@ test('an unchanged plan does not clear its already published videos', async () =
 test('schema and watch-video failures retry once', async () => {
   const cwd = initRepo(true);
   const badVideo = JSON.stringify({
-    kind: 'checklist',
-    items: [{ kind: 'watch-video', spec: 'missing.spec.ts', workflow: 'Nope', job: 'e2e-web' }]
+    _tag: 'Checklist',
+    items: [{ _tag: 'WatchVideo', spec: 'missing.spec.ts', workflow: 'Nope', job: 'e2e-web' }]
   });
   const state: { body: string; writes: string[] } = { body: '## Summary\n\nkept\n', writes: [] };
-  const schema = await run(cwd, replies(['not-json', '{"kind":"nothing"}']), state);
+  const schema = await run(cwd, replies(['not-json', '{"_tag":"Nothing"}']), state);
   assert.deepEqual(schema, { edited: true });
   assert.equal(state.body.includes('Nothing worth manually testing.'), true);
   const again: { body: string; writes: string[] } = { body: '## Summary\n\nkept\n', writes: [] };
-  const video = await run(cwd, replies([badVideo, '{"kind":"nothing"}']), again);
+  const video = await run(cwd, replies([badVideo, '{"_tag":"Nothing"}']), again);
   assert.deepEqual(video, { edited: true });
   const stuck: { body: string; writes: string[] } = { body: '## Summary\n\nkept\n', writes: [] };
   const twice = await run(cwd, replies(['not-json', 'still-not-json']), stuck);
@@ -324,17 +324,17 @@ test('OpenCode extracts only final assistant text, ignoring tool output and earl
   const stdout = [
     { type: 'text', part: { messageID: 'first', text: 'Let me inspect the code.' } },
     { type: 'tool_use', part: { text: 'not the result' } },
-    { type: 'text', part: { messageID: 'last', text: '{"kind":' } },
-    { type: 'text', part: { messageID: 'last', text: '"nothing"}' } },
+    { type: 'text', part: { messageID: 'last', text: '{"_tag":' } },
+    { type: 'text', part: { messageID: 'last', text: '"Nothing"}' } },
     { type: 'step_finish' }
   ]
     .map(event => JSON.stringify(event))
     .join('\n');
-  assert.equal(await Effect.runPromise(openCodeText(stdout, 0, '')), '{"kind":"nothing"}');
+  assert.equal(await Effect.runPromise(openCodeText(stdout, 0, '')), '{"_tag":"Nothing"}');
 });
 
 test('OpenCode errors reject partial text, empty output, and malformed event streams', async () => {
-  const partial = JSON.stringify({ type: 'text', part: { text: '{"kind":"nothing"}' } });
+  const partial = JSON.stringify({ type: 'text', part: { text: '{"_tag":"Nothing"}' } });
   const error = JSON.stringify({ type: 'error', error: { message: '429 Too many requests' } });
   const result = await Effect.runPromise(Effect.either(openCodeText(`${partial}\n${error}`, 0, '')));
   assert.equal(result._tag, 'Left');
@@ -351,10 +351,10 @@ test('transient failures fall back in configured order and stop on success', asy
       calls.push(model);
       return model === 'inkling'
         ? Effect.fail(new OpenCodeRunFailed({ status: 'provider', retryable: true, message: '429' }))
-        : Effect.succeed('{"kind":"nothing"}');
+        : Effect.succeed('{"_tag":"Nothing"}');
     })
   );
-  assert.equal(result, '{"kind":"nothing"}');
+  assert.equal(result, '{"_tag":"Nothing"}');
   assert.deepEqual(calls, ['inkling', 'nemotron']);
 });
 

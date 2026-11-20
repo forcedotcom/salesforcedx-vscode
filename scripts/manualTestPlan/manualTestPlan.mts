@@ -11,6 +11,7 @@ import * as Path from '@effect/platform/Path';
 import * as NodeContext from '@effect/platform-node/NodeContext';
 import { actionsEnvironment, GitHub, readPullRequestEvent, type PullRequestState } from '@salesforce/effect-octokit';
 import { Effect, Either, Exit, Layer, Logger, Option, pipe, Schema, Stream } from 'effect';
+import * as Str from 'effect/String';
 import { pathToFileURL } from 'node:url';
 import { openCodePrompt } from './openCodePrompt.mts';
 import { CommandFailed, InvalidBaseRef, Judgment, type Item } from './schema.mts';
@@ -82,18 +83,18 @@ const playwrightSpec = (spec: string) => {
 };
 
 const itemLine = (item: Item) =>
-  item.kind === 'watch-video'
+  item._tag === 'WatchVideo'
     ? `- [ ] Watch video: \`${item.spec}\` in \`${item.workflow}\` (\`${item.job}\`)`
     : `- [ ] ${item.step}`;
 
 export const renderManualTestPlan = (judgment: typeof Judgment.Type, sha: string) => {
   const body =
-    judgment.kind === 'nothing' ? 'Nothing worth manually testing.' : judgment.items.map(itemLine).join('\n');
+    judgment._tag === 'Nothing' ? 'Nothing worth manually testing.' : judgment.items.map(itemLine).join('\n');
   const targets =
-    judgment.kind === 'nothing'
+    judgment._tag === 'Nothing'
       ? []
       : judgment.items.flatMap(item =>
-          item.kind === 'watch-video' ? [{ spec: item.spec, workflow: item.workflow, job: item.job }] : []
+          item._tag === 'WatchVideo' ? [{ spec: item.spec, workflow: item.workflow, job: item.job }] : []
         );
   return `${startMarker}\n## Manual test plan\n\n${body}\n${renderVideoManifest({ sha, targets })}\n${endMarker}`;
 };
@@ -155,7 +156,7 @@ const workflowCatalog = Effect.fn('manualTestPlan.workflowCatalog')(function* (c
 const watchVideoProblem = (
   exists: boolean,
   workflows: readonly WorkflowName[],
-  item: Item & { readonly kind: 'watch-video' }
+  item: Item & { readonly _tag: 'WatchVideo' }
 ) => {
   const named = workflows.filter(workflow => workflow.name === item.workflow);
   const problems = [
@@ -173,12 +174,12 @@ export const judgmentError = Effect.fn('manualTestPlan.judgmentError')(function*
   cwd: string,
   judgment: typeof Judgment.Type
 ) {
-  if (judgment.kind === 'nothing') return undefined;
+  if (judgment._tag === 'Nothing') return undefined;
   const fs = yield* FileSystem.FileSystem;
   const path = yield* Path.Path;
   const workflows = yield* workflowCatalog(cwd);
   const problems = yield* Effect.forEach(judgment.items, item =>
-    item.kind === 'manual'
+    item._tag === 'ManualItem'
       ? Effect.succeed(Option.none<string>())
       : fs
           .exists(path.join(cwd, item.spec))
@@ -248,9 +249,8 @@ export const manualTestPlanProgram = Effect.fn('manualTestPlan.program')(functio
         : Effect.fail(new InvalidBaseRef({ ref, message: `refused base ref ${ref}` }))
   });
   const pr = yield* readPullRequestEvent(env.eventPath).pipe(Effect.map(event => event.pull_request.number));
-  const cwd =
-    deps?.cwd ?? (yield* git(process.cwd(), ['rev-parse', '--show-toplevel']).pipe(Effect.map(root => root.trim())));
-  const sha = yield* git(cwd, ['rev-parse', 'HEAD']).pipe(Effect.map(head => head.trim()));
+  const cwd = deps?.cwd ?? (yield* git(process.cwd(), ['rev-parse', '--show-toplevel']).pipe(Effect.map(Str.trim)));
+  const sha = yield* git(cwd, ['rev-parse', 'HEAD']).pipe(Effect.map(Str.trim));
   yield* Effect.annotateCurrentSpan('pr', String(pr));
   yield* git(cwd, ['fetch', 'origin', base]);
   const skill = yield* git(cwd, ['show', `origin/${base}:${skillPath}`]).pipe(Effect.option);
