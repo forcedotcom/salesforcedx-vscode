@@ -6,27 +6,13 @@
  */
 
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
-import * as Data from 'effect/Data';
 import * as Effect from 'effect/Effect';
 import type { URI } from 'vscode-uri';
+import { ContextGatheringFailed, ResourceUriUnresolved } from '../errors';
 import { nls } from '../messages/nls';
 import { type OasSourceAnalysis } from '../oas/apexSourceMetadata';
 import { qualifyOasAnalysis, type OasQualification } from '../oas/oasQualification';
 import { ApexMetadataService } from '../services/apexMetadataService';
-
-export class ClassNotEligible extends Data.TaggedError('ClassNotEligible')<{
-  readonly message: string;
-}> {}
-
-export class ContextGatheringFailed extends Data.TaggedError('ContextGatheringFailed')<{
-  readonly message: string;
-  readonly cause?: unknown;
-}> {}
-
-/** @ExportTaggedError */
-export class ResourceUriUnresolved extends Data.TaggedError('ResourceUriUnresolved')<{
-  readonly message: string;
-}> {}
 
 type OasCommandAnalysis = {
   readonly source: OasSourceAnalysis;

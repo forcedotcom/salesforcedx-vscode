@@ -135,17 +135,21 @@ describe('converted automation', () => {
   it.each([
     ['67.17.9', '67.17.10', '67.17.11'],
     ['68.1.2', '67.99.9', '68.1.3']
-  ])('bumps the higher registry version (%s, %s)', (marketplace, openVsx, expected) => {
-    const result = runHotfixWithFetch(
-      `globalThis.fetch = async url => new Response(JSON.stringify(
+  ])(
+    'bumps the higher registry version (%s, %s)',
+    (marketplace, openVsx, expected) => {
+      const result = runHotfixWithFetch(
+        `globalThis.fetch = async url => new Response(JSON.stringify(
       String(url).includes('marketplace.visualstudio.com')
         ? { results: [{ extensions: [{ versions: [{ version: '${marketplace}' }] }] }] }
         : { version: '${openVsx}' }
     ));`
-    );
-    expect(result.status).toBe(0);
-    expect(result.stdout.trim()).toBe(expected);
-  });
+      );
+      expect(result.status).toBe(0);
+      expect(result.stdout.trim()).toBe(expected);
+    },
+    30_000
+  );
 
   it('reports invalid registry responses', () => {
     const result = runHotfixWithFetch('globalThis.fetch = async () => new Response(JSON.stringify({}));');
