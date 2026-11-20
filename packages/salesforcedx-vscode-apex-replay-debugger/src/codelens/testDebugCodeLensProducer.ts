@@ -5,7 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { CallableSchema, ExtensionProviderService, getExtensionExports } from '@salesforce/effect-ext-utils';
+import { isApexExtensionApi, type ApexCodeLensRegistry } from '@salesforce/apex-language-server-extension-api';
+import { ExtensionProviderService, getExtensionExports } from '@salesforce/effect-ext-utils';
 import * as Data from 'effect/Data';
 import * as Effect from 'effect/Effect';
 import * as Option from 'effect/Option';
@@ -25,29 +26,17 @@ const testDebugDescriptors = [...commandMappings.keys()];
 
 const APEX_LANGUAGE_SERVER_EXTENSION_ID = 'salesforce.apex-language-server-extension';
 
-type ApexLanguageServerApi = {
-  readonly codeLens: {
-    register: (
-      descriptor: string,
-      callback: (lens: vscode.CodeLens) => vscode.CodeLens | null | Promise<vscode.CodeLens | null>
-    ) => vscode.Disposable;
-  };
-};
+type ApexLanguageServerApi = { readonly codeLens: ApexCodeLensRegistry<vscode.CodeLens> };
 
 class CodeLensRegistrationError extends Data.TaggedError('CodeLensRegistrationError')<{
   readonly cause: Error;
 }> {}
 
-const CodeLensApiSchema = Schema.Struct({
-  register: CallableSchema<ApexLanguageServerApi['codeLens']['register']>()
-});
-
-const ApexLanguageServerApiSchema = Schema.Struct({
+const ApexLanguageServerApiSchema = Schema.declare<ApexLanguageServerApi>(
   // Preserve the extension-owned CodeLens API because register may rely on its receiver.
-  codeLens: Schema.declare<ApexLanguageServerApi['codeLens']>(value => Schema.is(CodeLensApiSchema)(value), {
-    identifier: 'ApexLanguageServerCodeLensApi'
-  })
-});
+  (value): value is ApexLanguageServerApi => isApexExtensionApi(value) && value.codeLens !== undefined,
+  { identifier: 'ApexLanguageServerCodeLensApi' }
+);
 
 const getApexLanguageServer = () =>
   getExtensionExports({

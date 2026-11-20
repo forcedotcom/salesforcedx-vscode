@@ -5,8 +5,12 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import {
+  hasApexClientCapabilities,
+  isApexExtensionApi,
+  type ApexClient
+} from '@salesforce/apex-language-server-extension-api';
 import { getExtensionExports, getMessageFromError } from '@salesforce/effect-ext-utils';
-import type { LineBreakpointInfo } from '@salesforce/salesforcedx-utils';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
 import * as Runtime from 'effect/Runtime';
@@ -22,28 +26,18 @@ const DOCUMENT_STATE_READY_SCHEDULE = Schedule.fixed(Duration.millis(100)).pipe(
   Schedule.intersect(Schedule.recurs(30))
 );
 
-type ApexExtensionApi = {
-  readonly client: {
-    getLineBreakpointInfo(uri: string): Promise<LineBreakpointInfo[]>;
-  };
-};
+type ApexExtensionApi = { readonly client: Pick<ApexClient, 'getLineBreakpointInfo'> };
 
 class ApexLanguageServerBreakpointInfoError extends Schema.TaggedError<ApexLanguageServerBreakpointInfoError>()(
   'ApexLanguageServerBreakpointInfoError',
   { message: Schema.String }
 ) {}
 
-const ApexExtensionApiSchema = Schema.Struct({
-  // ApexClientCore exposes methods on its prototype, so Schema.Struct would reject the live class instance.
-  client: Schema.declare<ApexExtensionApi['client']>(
-    (value): value is ApexExtensionApi['client'] =>
-      typeof value === 'object' &&
-      value !== null &&
-      'getLineBreakpointInfo' in value &&
-      typeof value.getLineBreakpointInfo === 'function',
-    { identifier: 'ApexClient' }
-  )
-});
+const ApexExtensionApiSchema = Schema.declare<ApexExtensionApi>(
+  (value): value is ApexExtensionApi =>
+    isApexExtensionApi(value) && hasApexClientCapabilities(value.client, ['lineBreakpointInfo']),
+  { identifier: 'ApexExtensionApi' }
+);
 
 export class LineBreakpointMetadataService extends Effect.Service<LineBreakpointMetadataService>()(
   'LineBreakpointMetadataService',
@@ -79,7 +73,7 @@ export class LineBreakpointMetadataService extends Effect.Service<LineBreakpoint
           )
         );
         yield* Effect.annotateCurrentSpan('breakpointInfoCount', lineBreakpointInfo.length);
-        return lineBreakpointInfo;
+        return [...lineBreakpointInfo];
       });
       const runtime = yield* Effect.runtime<Effect.Effect.Context<ReturnType<typeof getLineBreakpointInfo>>>();
       return yield* makeLineBreakpointMetadataCache(

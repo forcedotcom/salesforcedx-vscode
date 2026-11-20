@@ -28,6 +28,7 @@
     "Debuggers"
   ],
   "dependencies": {
+    "@salesforce/apex-language-server-extension-api": "^0.11.83-nightly.20261120",
     "@salesforce/apex-node": "workspace:*",
     "@salesforce/effect-ext-utils": "workspace:*",
     "@salesforce/salesforcedx-apex-replay-debugger": "workspace:*",
@@ -41,6 +42,7 @@
     "@playwright/test": "^1.64.1",
     "@salesforce/core": "^9.4.1",
     "@salesforce/playwright-vscode-ext": "workspace:*",
+    "salesforcedx-vscode-apex": "workspace:*",
     "salesforcedx-vscode-apex-testing": "workspace:*",
     "salesforcedx-vscode-metadata": "workspace:*",
     "salesforcedx-vscode-services": "workspace:*"
@@ -77,6 +79,7 @@
         "../salesforcedx-utils:compile",
         "../salesforcedx-vscode-apex-log:compile",
         "../salesforcedx-vscode-i18n:compile",
+        "../salesforcedx-vscode-apex:compile",
         "../salesforcedx-vscode-services:compile",
         "../effect-ext-utils:compile",
         "../salesforcedx-vscode-metadata:compile"
@@ -226,6 +229,7 @@
         "vscode:package",
         "../salesforcedx-vscode-services:vscode:package",
         "../salesforcedx-vscode-core:vscode:package",
+        "../salesforcedx-vscode-apex:vscode:package",
         "../salesforcedx-vscode-apex-log:vscode:package",
         "../salesforcedx-vscode-apex-testing:vscode:package",
         "../salesforcedx-vscode-metadata:vscode:package",

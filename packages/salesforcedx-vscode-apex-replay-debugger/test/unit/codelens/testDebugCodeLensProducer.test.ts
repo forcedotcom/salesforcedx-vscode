@@ -59,7 +59,7 @@ describe('testDebugCodeLensProducer', () => {
       registerTestDebugCodeLensProducer(
         context,
         () => Promise.resolve(false),
-        () => Effect.succeed({ codeLens: { register } })
+        () => Effect.succeed({ client: {}, codeLens: { register, resolve: vi.fn() } })
       )
     );
 
@@ -94,7 +94,7 @@ describe('testDebugCodeLensProducer', () => {
   it('does not register producers when language server exports are incompatible', async () => {
     vi.mocked(vscode.extensions.getExtension).mockReturnValue({
       isActive: true,
-      exports: { codeLens: { register: 'not callable' } }
+      exports: { client: {}, codeLens: { register: 'not callable', resolve: vi.fn() } }
     } as unknown as vscode.Extension<unknown>);
     const context = { subscriptions: [] as vscode.Disposable[] } as vscode.ExtensionContext;
 

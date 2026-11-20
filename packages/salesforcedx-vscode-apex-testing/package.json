@@ -28,6 +28,7 @@
     "Other"
   ],
   "dependencies": {
+    "@salesforce/apex-language-server-extension-api": "^0.11.83-nightly.20261120",
     "@salesforce/apex-node": "workspace:*",
     "@salesforce/effect-ext-utils": "workspace:*",
     "@salesforce/types": "^1.8.0",

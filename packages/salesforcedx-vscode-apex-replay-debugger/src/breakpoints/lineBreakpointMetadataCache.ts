@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import type { LineBreakpointInfo } from '@salesforce/salesforcedx-utils';
+import type { LineBreakpointInfo } from '@salesforce/apex-language-server-extension-api';
 import * as Cache from 'effect/Cache';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
