@@ -372,15 +372,15 @@ describe('externalServiceRegistrationManager', () => {
       expect(parsed.ExternalServiceRegistration.description).toBe('existing');
     });
 
-    it('strips merge timestamp suffix from className', async () => {
+    it('strips a locale-formatted merge timestamp suffix from className', async () => {
       const ctx = buildCtx({
-        newPath: '/ws/esr_files_for_merge/MyClass_01012025_120000.externalServiceRegistration-meta.xml',
+        newPath: '/ws/esr_files_for_merge/My_Class_01-01-2025-12-00-00.externalServiceRegistration-meta.xml',
         originalPath: '/ws/esr/MyClass.externalServiceRegistration-meta.xml'
       });
       const result = await runBuild(ctx, undefined);
       const parser = new XMLParser({ ignoreAttributes: false });
       const parsed = parser.parse(result);
-      expect(parsed.ExternalServiceRegistration.label).toBe('MyClass');
+      expect(parsed.ExternalServiceRegistration.label).toBe('My_Class');
     });
   });
 

@@ -5,8 +5,9 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { ExtensionProviderService, getServicesApi } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
-import * as Runtime from 'effect/Runtime';
+import * as Layer from 'effect/Layer';
 import * as vscode from 'vscode';
 import type { URI } from 'vscode-uri';
 import { OasUiRequestFailed } from '../errors';
@@ -14,7 +15,14 @@ import { nls } from '../messages/nls';
 
 export class OasUiService extends Effect.Service<OasUiService>()('OasUiService', {
   accessors: true,
+  dependencies: [
+    Layer.service(ExtensionProviderService),
+    Layer.unwrapEffect(Effect.map(getServicesApi, api => Layer.service(api.services.PromptService)))
+  ],
   effect: Effect.gen(function* () {
+    const api = yield* (yield* ExtensionProviderService).getServicesApi;
+    const promptService = yield* api.services.PromptService;
+
     const chooseExistingEsrAction = Effect.fn('OasUiService.chooseExistingEsrAction')(function* () {
       return yield* Effect.tryPromise({
         try: () =>
@@ -38,17 +46,8 @@ export class OasUiService extends Effect.Service<OasUiService>()('OasUiService',
     const withSteppedProgress =
       (title: string, location: vscode.ProgressLocation = vscode.ProgressLocation.Notification) =>
       <A, E, R>(body: (report: (message: string) => Effect.Effect<void>) => Effect.Effect<A, E, R>) =>
-        Effect.runtime<R>().pipe(
-          Effect.flatMap(runtime =>
-            Effect.async<A, E>(resume => {
-              void vscode.window.withProgress({ location, title, cancellable: false }, progress => {
-                const report = (message: string) => Effect.sync(() => progress.report({ message }));
-                return Runtime.runPromiseExit(runtime)(body(report)).then(exit => {
-                  resume(exit._tag === 'Success' ? Effect.succeed(exit.value) : Effect.failCause(exit.cause));
-                });
-              });
-            })
-          )
+        promptService.withProgressReporting({ title, location, cancellable: false })(progress =>
+          body(message => Effect.sync(() => progress.report({ message })))
         );
 
     return { chooseExistingEsrAction, openDiff, withSteppedProgress };
