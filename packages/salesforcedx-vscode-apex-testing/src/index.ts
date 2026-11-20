@@ -12,16 +12,15 @@ import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import { CodeCoverageHandler, watchActiveEditorForCoverage } from './codecoverage/colorizer';
 import { StatusBarToggle } from './codecoverage/statusBarToggle';
+import { registerTestRunCodeLensProducer } from './codelens/testRunCodeLensProducer';
 import { apexTestRun } from './commands/apexTestRun';
 import {
   apexDebugClassRunCodeActionDelegate,
   apexDebugMethodRunCodeActionDelegate,
   apexTestClassRunCodeAction,
-  apexTestClassRunCodeActionDelegate,
   apexTestLastClassRunCodeAction,
   apexTestLastMethodRunCodeAction,
-  apexTestMethodRunCodeAction,
-  apexTestMethodRunCodeActionDelegate
+  apexTestMethodRunCodeAction
 } from './commands/apexTestRunCodeAction';
 import { apexTestSuiteCreate, apexTestSuiteEdit, apexTestSuiteRun } from './commands/apexTestSuite';
 import { nls } from './messages';
@@ -39,6 +38,7 @@ const activateEffect = Effect.fn('apex-testing.activation')(function* (context: 
 
   // Check if we're in a Salesforce project (also sets VS Code context as side effect)
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  yield* registerTestRunCodeLensProducer(context);
   const projectService = yield* api.services.ProjectService;
   const isSalesforceProject = yield* projectService.isSalesforceProject();
 
@@ -103,17 +103,9 @@ const registerCommands = (): { commands: vscode.Disposable; statusBarToggle: Sta
   );
 
   // Customer-facing commands
-  const apexTestClassRunDelegateCmd = vscode.commands.registerCommand(
-    'sf.apex.test.class.run.delegate',
-    apexTestClassRunCodeActionDelegate
-  );
   const apexDebugClassRunDelegateCmd = vscode.commands.registerCommand(
     'sf.apex.debug.class.run.delegate',
     apexDebugClassRunCodeActionDelegate
-  );
-  const apexTestMethodRunDelegateCmd = vscode.commands.registerCommand(
-    'sf.apex.test.method.run.delegate',
-    apexTestMethodRunCodeActionDelegate
   );
   const apexDebugMethodRunDelegateCmd = vscode.commands.registerCommand(
     'sf.apex.debug.method.run.delegate',
@@ -159,9 +151,7 @@ const registerCommands = (): { commands: vscode.Disposable; statusBarToggle: Sta
   const commands = vscode.Disposable.from(
     apexToggleColorizerCmd,
     statusBarToggle,
-    apexTestClassRunDelegateCmd,
     apexDebugClassRunDelegateCmd,
-    apexTestMethodRunDelegateCmd,
     apexDebugMethodRunDelegateCmd,
     retrieveOrgOnlyClassCmd,
     openOrgOnlyTestCmd,
