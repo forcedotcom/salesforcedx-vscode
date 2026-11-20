@@ -10,7 +10,7 @@ import * as FileSystem from '@effect/platform/FileSystem';
 import * as Path from '@effect/platform/Path';
 import * as NodeContext from '@effect/platform-node/NodeContext';
 import { actionsEnvironment, GitHub, readPullRequestEvent, type PullRequestState } from '@salesforce/effect-octokit';
-import { Effect, Either, Exit, Layer, Logger, Option, pipe, Schema, Stream } from 'effect';
+import { Effect, Either, Exit, Layer, Logger, Match, Option, pipe, Schema, Stream } from 'effect';
 import * as Str from 'effect/String';
 import { pathToFileURL } from 'node:url';
 import { openCodePrompt } from './openCodePrompt.mts';
@@ -83,19 +83,34 @@ const playwrightSpec = (spec: string) => {
 };
 
 const itemLine = (item: Item) =>
-  item._tag === 'WatchVideo'
-    ? `- [ ] Watch video: \`${item.spec}\` in \`${item.workflow}\` (\`${item.job}\`)`
-    : `- [ ] ${item.step}`;
+  Match.value(item).pipe(
+    Match.tag(
+      'WatchVideo',
+      video => `- [ ] Watch video: \`${video.spec}\` in \`${video.workflow}\` (\`${video.job}\`)`
+    ),
+    Match.tag('ManualItem', manual => `- [ ] ${manual.step}`),
+    Match.exhaustive
+  );
 
 export const renderManualTestPlan = (judgment: typeof Judgment.Type, sha: string) => {
-  const body =
-    judgment._tag === 'Nothing' ? 'Nothing worth manually testing.' : judgment.items.map(itemLine).join('\n');
-  const targets =
-    judgment._tag === 'Nothing'
-      ? []
-      : judgment.items.flatMap(item =>
-          item._tag === 'WatchVideo' ? [{ spec: item.spec, workflow: item.workflow, job: item.job }] : []
-        );
+  const [body, targets] = Match.value(judgment).pipe(
+    Match.tag('Nothing', () => ['Nothing worth manually testing.', []] as const),
+    Match.tag(
+      'Checklist',
+      ({ items }) =>
+        [
+          items.map(itemLine).join('\n'),
+          items.flatMap(item =>
+            Match.value(item).pipe(
+              Match.tag('WatchVideo', ({ spec, workflow, job }) => [{ spec, workflow, job }]),
+              Match.tag('ManualItem', () => []),
+              Match.exhaustive
+            )
+          )
+        ] as const
+    ),
+    Match.exhaustive
+  );
   return `${startMarker}\n## Manual test plan\n\n${body}\n${renderVideoManifest({ sha, targets })}\n${endMarker}`;
 };
 
@@ -174,16 +189,30 @@ export const judgmentError = Effect.fn('manualTestPlan.judgmentError')(function*
   cwd: string,
   judgment: typeof Judgment.Type
 ) {
-  if (judgment._tag === 'Nothing') return undefined;
+  return yield* Match.value(judgment).pipe(
+    Match.tag('Nothing', () => Effect.void),
+    Match.tag('Checklist', ({ items }) => checklistError(cwd, items)),
+    Match.exhaustive
+  );
+});
+
+const checklistError = Effect.fn('manualTestPlan.checklistError')(function* (
+  cwd: string,
+  items: Extract<typeof Judgment.Type, { readonly _tag: 'Checklist' }>['items']
+) {
   const fs = yield* FileSystem.FileSystem;
   const path = yield* Path.Path;
   const workflows = yield* workflowCatalog(cwd);
-  const problems = yield* Effect.forEach(judgment.items, item =>
-    item._tag === 'ManualItem'
-      ? Effect.succeed(Option.none<string>())
-      : fs
-          .exists(path.join(cwd, item.spec))
-          .pipe(Effect.map(exists => Option.fromNullable(watchVideoProblem(exists, workflows, item))))
+  const problems = yield* Effect.forEach(items, item =>
+    Match.value(item).pipe(
+      Match.tag('ManualItem', () => Effect.succeed(Option.none<string>())),
+      Match.tag('WatchVideo', video =>
+        fs
+          .exists(path.join(cwd, video.spec))
+          .pipe(Effect.map(exists => Option.fromNullable(watchVideoProblem(exists, workflows, video))))
+      ),
+      Match.exhaustive
+    )
   );
   const messages = problems.flatMap(problem => (Option.isNone(problem) ? [] : [problem.value]));
   return messages.length === 0 ? undefined : messages.join('\n');
@@ -259,24 +288,60 @@ export const manualTestPlanProgram = Effect.fn('manualTestPlan.program')(functio
   const prompt = deps?.prompt ?? ((input: PromptInput) => openCodePrompt(cwd, input));
   const judged = yield* attempt(prompt, skill.value, diff, cwd, undefined).pipe(
     Effect.flatMap(first =>
-      first._tag === 'retry'
-        ? attempt(prompt, skill.value, diff, cwd, `${first.error}\n\nPrevious reply:\n${first.text}`)
-        : Effect.succeed(first)
+      Match.value(first).pipe(
+        Match.tag('opencode', () => Effect.succeed(first)),
+        Match.tag('retry', retry =>
+          attempt(prompt, skill.value, diff, cwd, `${retry.error}\n\nPrevious reply:\n${retry.text}`)
+        ),
+        Match.tag('ok', () => Effect.succeed(first)),
+        Match.exhaustive
+      )
     )
   );
-  if (judged._tag === 'opencode') return yield* skip('opencode', judged.message);
-  if (judged._tag === 'retry') return yield* skip('schema', judged.error);
-  const block = renderManualTestPlan(judged.judgment, sha);
-  const current = yield* deps?.readBody === undefined ? readPrBody(env.owner, env.repo, pr) : deps.readBody(pr);
-  const latest = yield* deps?.readHead === undefined ? GitHub.pullRequest(env.owner, env.repo, pr) : deps.readHead(pr);
-  if (latest?.state !== 'OPEN' || latest.headRefOid !== sha)
+  return yield* Match.value(judged).pipe(
+    Match.tag('opencode', ({ message }) => skip('opencode', message)),
+    Match.tag('retry', ({ error }) => skip('schema', error)),
+    Match.tag('ok', ({ judgment }) =>
+      writeManualTestPlan({
+        cwd,
+        owner: env.owner,
+        repo: env.repo,
+        pr,
+        sha,
+        judgment,
+        deps
+      })
+    ),
+    Match.exhaustive
+  );
+});
+
+const writeManualTestPlan = Effect.fn('manualTestPlan.writeManualTestPlan')(function* (input: {
+  readonly cwd: string;
+  readonly owner: string;
+  readonly repo: string;
+  readonly pr: number;
+  readonly sha: string;
+  readonly judgment: typeof Judgment.Type;
+  readonly deps: ManualTestPlanDeps | undefined;
+}) {
+  const block = renderManualTestPlan(input.judgment, input.sha);
+  const current =
+    input.deps?.readBody === undefined
+      ? yield* readPrBody(input.owner, input.repo, input.pr)
+      : yield* input.deps.readBody(input.pr);
+  const latest =
+    input.deps?.readHead === undefined
+      ? yield* GitHub.pullRequest(input.owner, input.repo, input.pr)
+      : yield* input.deps.readHead(input.pr);
+  if (latest?.state !== 'OPEN' || latest.headRefOid !== input.sha)
     return yield* skip('stale-head', 'PR closed or head moved during manual plan generation');
   const next = spliceManualTestPlan(current, block);
   if (next === current) return { edited: false } satisfies Outcome;
-  yield* deps?.writeBody === undefined
-    ? writePrBody(env.owner, env.repo, pr, removeVideoSection(next))
-    : deps.writeBody(pr, removeVideoSection(next));
-  yield* Effect.logInfo('manual test plan updated', { pr });
+  yield* input.deps?.writeBody === undefined
+    ? writePrBody(input.owner, input.repo, input.pr, removeVideoSection(next))
+    : input.deps.writeBody(input.pr, removeVideoSection(next));
+  yield* Effect.logInfo('manual test plan updated', { pr: input.pr });
   return { edited: true } satisfies Outcome;
 });
 
