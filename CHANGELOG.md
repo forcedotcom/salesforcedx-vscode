@@ -16,7 +16,7 @@
 
 - We made some under the hood changes. ([PR #8541](https://github.com/forcedotcom/salesforcedx-vscode/pull/8541), [PR #8624](https://github.com/forcedotcom/salesforcedx-vscode/pull/8624))
 
-# 68.11.7 - November 18, 2026
+# 68.12.0 - November 18, 2026
 
 ## Added
 
@@ -26,7 +26,7 @@
 
 ## Under the Hood
 
-- We made some under the hood changes. ([PR #8592](https://github.com/forcedotcom/salesforcedx-vscode/pull/8592), [PR #8591](https://github.com/forcedotcom/salesforcedx-vscode/pull/8591), [PR #8537](https://github.com/forcedotcom/salesforcedx-vscode/pull/8537))
+- We made some under the hood changes. ([PR #8537](https://github.com/forcedotcom/salesforcedx-vscode/pull/8537), [PR #8591](https://github.com/forcedotcom/salesforcedx-vscode/pull/8591), [PR #8592](https://github.com/forcedotcom/salesforcedx-vscode/pull/8592))
 
 # 68.10.0 - November 11, 2026
 
