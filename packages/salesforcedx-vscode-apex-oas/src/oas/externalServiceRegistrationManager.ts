@@ -213,8 +213,7 @@ export const buildESRXml = Effect.fn('ApexOas.Esr.buildESRXml')(function* (
 ) {
   const baseName = path.basename(ctx.newPath).split('.')[0];
   const className = ctx.newPath.includes('esr_files_for_merge')
-    ? // The class name is the part before the second to last underscore
-      baseName.split('_').slice(0, -2).join('_')
+    ? baseName.slice(0, baseName.lastIndexOf('_'))
     : baseName;
   const { description } = extractInfoProperties(ctx.oasSpec);
   const operations = getOperationsFromYaml(ctx.oasSpec);

@@ -7,7 +7,7 @@
 /* eslint-disable @typescript-eslint/consistent-type-assertions */
 
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
-import * as Clock from 'effect/Clock';
+import * as DateTime from 'effect/DateTime';
 import * as Effect from 'effect/Effect';
 import { isNotUndefined } from 'effect/Predicate';
 import type { OpenAPIV3 } from 'openapi-types';
@@ -103,15 +103,13 @@ export const summarizeDiagnostics = (diagnostics: vscode.Diagnostic[]): number[]
   );
 
 export const getCurrentTimestamp = Effect.fn('ApexOas.getCurrentTimestamp')(function* () {
-  const now = new Date(yield* Clock.currentTimeMillis);
-  const month = String(now.getMonth() + 1).padStart(2, '0');
-  const day = String(now.getDate()).padStart(2, '0');
-  const year = now.getFullYear();
-  const hours = String(now.getHours()).padStart(2, '0');
-  const minutes = String(now.getMinutes()).padStart(2, '0');
-  const seconds = String(now.getSeconds()).padStart(2, '0');
-  const formattedDate = `${month}${day}${year}_${hours}${minutes}${seconds}`;
-  return formattedDate;
+  return DateTime.formatLocal(yield* DateTime.now, {
+    dateStyle: 'short',
+    timeStyle: 'medium',
+    hourCycle: 'h23'
+  })
+    .replaceAll(/[^\p{L}\p{N}]+/gu, '-')
+    .replaceAll(/^-|-$/g, '');
 });
 
 /**

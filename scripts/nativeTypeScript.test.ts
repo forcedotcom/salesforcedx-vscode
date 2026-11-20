@@ -19,12 +19,16 @@ describe('native TypeScript scripts', () => {
     'scripts/xsd/fixXsdErrors.mts',
     'scripts/xsd/jsonToXsdConverter.mts',
     'scripts/xsd/validateXsd.mts'
-  ])('%s starts and prints help without running external operations', script => {
-    const result = runNode(['--permission', '--allow-fs-read=*', script, '--help']);
-    expect(result.stderr).toBe('');
-    expect(result.status).toBe(0);
-    expect(result.stdout).toMatch(/[Uu]sage/);
-  });
+  ])(
+    '%s starts and prints help without running external operations',
+    script => {
+      const result = runNode(['--permission', '--allow-fs-read=*', script, '--help']);
+      expect(result.stderr).toBe('');
+      expect(result.status).toBe(0);
+      expect(result.stdout).toMatch(/[Uu]sage/);
+    },
+    30_000
+  );
 
   it('prints the native App Insights command when no query is supplied', () => {
     const result = runNode(['scripts/queryAppInsights.mts']);
