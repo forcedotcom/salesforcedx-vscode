@@ -8,6 +8,7 @@
 import { CallableSchema, ExtensionProviderService, getExtensionExports } from '@salesforce/effect-ext-utils';
 import * as Data from 'effect/Data';
 import * as Effect from 'effect/Effect';
+import * as Option from 'effect/Option';
 import { isError } from 'effect/Predicate';
 import * as Schema from 'effect/Schema';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
@@ -82,7 +83,7 @@ export const registerTestRunCodeLensProducer = Effect.fn('ApexTesting.registerTe
   getLanguageServer: GetLanguageServer = getApexLanguageServer
 ) {
   const languageServer = yield* getLanguageServer().pipe(Effect.option);
-  if (languageServer._tag === 'None') return;
+  if (Option.isNone(languageServer)) return;
 
   const registrations = yield* Effect.try({
     try: () =>
@@ -93,7 +94,7 @@ export const registerTestRunCodeLensProducer = Effect.fn('ApexTesting.registerTe
       ),
     catch: cause => new CodeLensRegistrationError({ cause: isError(cause) ? cause : new Error(String(cause)) })
   }).pipe(Effect.option);
-  if (registrations._tag === 'None') {
+  if (Option.isNone(registrations)) {
     yield* Effect.sync(
       () => void vscode.window.showErrorMessage(nls.localize('apex_test_codelens_registration_failed'))
     );

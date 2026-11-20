@@ -13,9 +13,7 @@ import * as Cause from 'effect/Cause';
 import * as Deferred from 'effect/Deferred';
 import * as Effect from 'effect/Effect';
 import * as Exit from 'effect/Exit';
-import { isError } from 'effect/Predicate';
 import type { NotificationModeService } from 'salesforcedx-vscode-services';
-import { PromptService } from 'salesforcedx-vscode-services/src/vscode/prompts/promptService';
 import * as vscode from 'vscode';
 import { Utils } from 'vscode-uri';
 import { checkpointService, sfCreateCheckpointsCommand } from '../breakpoints/checkpointService';
@@ -157,7 +155,8 @@ const launchAndAwaitEnd = Effect.fn('ApexReplayDebugger.launchAndAwaitEnd')(func
  * which stops before the next log.
  */
 export const replayInOrder = Effect.fn('ApexReplayDebugger.replayInOrder')(function* (logs: readonly ReplayLog[]) {
-  const promptService = yield* PromptService;
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const promptService = yield* api.services.PromptService;
   yield* promptService
     .withProgressReporting({
       title: nls.localize('debug_test_replay_progress_title'),
@@ -258,15 +257,11 @@ const debugTests = Effect.fn('ApexReplayDebugger.debugTests')(function* (targets
   return true;
 });
 
-export const getDebugTestFailureMessage = (cause: Cause.Cause<unknown>): string => {
-  const error = Cause.squash(cause);
-  return isError(error) ? error.message : String(error);
-};
-
 const setupAndDebugTests = Effect.fn('ApexReplayDebugger.setupAndDebugTests')(function* (
   targets: readonly DebugTarget[]
 ) {
-  const promptService = yield* PromptService;
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const promptService = yield* api.services.PromptService;
   yield* debugTests(targets).pipe(
     promptService.withProgress({
       command: COMMAND,
