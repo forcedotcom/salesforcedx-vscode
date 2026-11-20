@@ -180,6 +180,14 @@ await Effect.runPromise(
 
 The Effect entry point has no Node file/stream dependencies. Existing class and Node stream reporters remain available.
 
+### Result-file output
+
+`writeResultFiles(result, outputDirConfig, options?)` uses the caller's `FileOutput`. The existing `TestService.writeResultFiles` Promise adapter defaults to the Node implementation. As specified by [ADR 0003](docs/adr/0003-node-filesystem-with-web-polyfill.md), that implementation uses Node filesystem APIs; consuming web bundles substitute the `@salesforce/core/fs` memfs facade, not a second writer implementation.
+
+Each result file streams directly to its destination through Effect Platform `FileSystem.sink`. A failed or interrupted stream removes the partial destination; any previous file is not preserved. The file handle is scoped by the platform sink. `FileOutputLayer` requires caller-provided `FileSystem` and `Path` services; `NodeFileOutputLayer` supplies the Node defaults and can be replaced with platform layers by Effect consumers. The existing Promise/class API continues to default to Node filesystem behavior. Filenames, contents, and output order are unchanged.
+
+Filesystem and serialization failures use `FileOutputError` with operation, destination path, message, and optional cause text. Failures after earlier files succeeded use `PartialResultFilesError`, carrying the nonempty `writtenFiles` list and the typed `FileOutputError` or `ApexReportError` cause. Earlier files remain committed; no later files start. Run-ID sidecar failures are no longer logged and ignored. Custom `FileOutput` implementations own their filesystem's commit and cleanup behavior.
+
 ## Getting Started
 
 If you're interested in contributing, take a look at the [CONTRIBUTING](./CONTRIBUTING.md) guide.

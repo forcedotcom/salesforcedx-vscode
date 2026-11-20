@@ -5,35 +5,78 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import * as FileSystem from '@effect/platform/FileSystem';
+import * as Path from '@effect/platform/Path';
+import * as Cause from 'effect/Cause';
 import * as Effect from 'effect/Effect';
+import * as Exit from 'effect/Exit';
 import * as Layer from 'effect/Layer';
 import * as Stream from 'effect/Stream';
-import { createWriteStream } from 'node:fs';
-import { mkdir } from 'node:fs/promises';
-import * as path from 'node:path';
-import { pipeline } from 'node:stream/promises';
+import { causeMessage } from './errors';
 import { FileOutput, FileOutputError } from './fileOutput';
 
 const toFileOutputError = (operation: string, filePath: string, cause: unknown): FileOutputError =>
-  new FileOutputError({ operation, path: filePath, message: cause instanceof Error ? cause.message : String(cause) });
+  new FileOutputError({ operation, path: filePath, message: causeMessage(cause), cause: causeMessage(cause) });
 
-/** Node implementation. Writes streams to disk without collecting the full report in memory. */
-export const NodeFileOutput: typeof FileOutput.Service = {
+export const makeFileOutput = (
+  fileSystem: FileSystem.FileSystem,
+  path: Path.Path,
+  encode: (text: string) => Uint8Array = text => new TextEncoder().encode(text)
+): typeof FileOutput.Service => ({
   createDirectory: Effect.fn('NodeFileOutput.createDirectory')((directory: string) =>
-    Effect.tryPromise({
-      try: () => mkdir(directory, { recursive: true }).then(() => undefined),
-      catch: cause => toFileOutputError('createDirectory', directory, cause)
-    })
+    fileSystem
+      .makeDirectory(directory, { recursive: true })
+      .pipe(Effect.mapError(error => toFileOutputError('createDirectory', directory, error)))
   ),
-  writeFile: Effect.fn('NodeFileOutput.writeFile')(
-    (directory: string, fileName: string, content: Stream.Stream<string, never, never>) => {
-      const filePath = path.join(directory, fileName);
-      return Effect.tryPromise({
-        try: () => pipeline(Stream.toAsyncIterable(content), createWriteStream(filePath)).then(() => filePath),
-        catch: cause => toFileOutputError('writeFile', filePath, cause)
-      });
-    }
-  )
+  writeFile: Effect.fn('NodeFileOutput.writeFile')(function* (
+    directory: string,
+    fileName: string,
+    content: Stream.Stream<string>
+  ) {
+    const filePath = path.join(directory, fileName);
+    return yield* content.pipe(
+      Stream.map(encode),
+      Stream.run(fileSystem.sink(filePath)),
+      Effect.mapError(error => toFileOutputError('writeFile', filePath, error)),
+      Effect.onExit(exit =>
+        Exit.isSuccess(exit)
+          ? Effect.void
+          : fileSystem.remove(filePath, { force: true }).pipe(Effect.catchAll(() => Effect.void))
+      ),
+      Effect.catchAllCause(cause =>
+        Cause.isInterrupted(cause)
+          ? Effect.failCause(cause)
+          : Effect.fail(toFileOutputError('writeFile', filePath, Cause.squash(cause)))
+      ),
+      Effect.as(filePath)
+    );
+  })
+});
+
+/** Effect Platform-backed file output; failed or interrupted writes remove partial output. */
+export const NodeFileOutput = {
+  createDirectory: Effect.fn('NodeFileOutput.createDirectory')(function* (directory: string) {
+    const fileSystem = yield* FileSystem.FileSystem;
+    const path = yield* Path.Path;
+    return yield* makeFileOutput(fileSystem, path).createDirectory(directory);
+  }),
+  writeFile: Effect.fn('NodeFileOutput.writeFile')(function* (
+    directory: string,
+    fileName: string,
+    content: Stream.Stream<string>
+  ) {
+    const fileSystem = yield* FileSystem.FileSystem;
+    const path = yield* Path.Path;
+    return yield* makeFileOutput(fileSystem, path).writeFile(directory, fileName, content);
+  })
 };
 
-export const NodeFileOutputLayer = Layer.succeed(FileOutput, NodeFileOutput);
+/** FileOutput implementation layer; callers provide Effect Platform FileSystem and Path services. */
+export const FileOutputLayer = Layer.effect(
+  FileOutput,
+  Effect.gen(function* () {
+    const fileSystem = yield* FileSystem.FileSystem;
+    const path = yield* Path.Path;
+    return makeFileOutput(fileSystem, path);
+  })
+);

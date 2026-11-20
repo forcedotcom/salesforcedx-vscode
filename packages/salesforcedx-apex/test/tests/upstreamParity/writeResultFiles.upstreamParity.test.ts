@@ -10,7 +10,7 @@ import { mkdir, readdir, readFile, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import * as Effect from 'effect/Effect';
-import { NodeFileOutputLayer } from '../../../src/effect/nodeFileOutput';
+import { NodeFileOutputLayer } from '../../../src/effect/nodeFileOutputLayer';
 import { writeResultFiles } from '../../../src/effect/writeResultFiles';
 import { parityFileInfos, parityFormats, parityResults, parityScenarios } from './fixtures';
 
