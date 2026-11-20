@@ -13,7 +13,7 @@ Validate the integrated behavior of this stack:
 
 1. Check out the top stack branch, `ph/W-24703759-effectify-oas`. It already includes the commits from #8559, #8562, #8573, and #8575; checking out individual lower stack branches is not required.
 2. Build and launch the local extension set using the team's normal local-development workflow.
-3. Install and enable the prerelease `salesforce.apex-language-server-extension` version under verification in the `0.11.70`+ range.
+3. Install and enable `salesforce.apex-language-server-extension` prerelease `0.11.83-nightly.20261120`.
 4. In the Extension Development Host, verify these local extensions are enabled: Salesforce Apex, Apex Testing, Apex Replay Debugger, Apex OAS, Salesforce Core, Salesforce Metadata, and Salesforce VS Code Services.
    - Apex Testing and Apex Replay Debugger independently control whether their run and debug CodeLenses appear.
    - The `0.11.x` Apex Language Server prerelease enables CodeLenses by default; do not change `salesforcedx-vscode-apex.advanced.capabilities.codeLenses` for this plan.
