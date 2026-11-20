@@ -5,9 +5,16 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
+import * as Layer from 'effect/Layer';
+import * as SubscriptionRef from 'effect/SubscriptionRef';
 import * as vscode from 'vscode';
-import { produceTestRunCodeLens, registerTestRunCodeLensProducer } from '../../../src/codelens/testRunCodeLensProducer';
+import {
+  hasDefaultOrg,
+  produceTestRunCodeLens,
+  registerTestRunCodeLensProducer
+} from '../../../src/codelens/testRunCodeLensProducer';
 
 const range = { start: { line: 2, character: 0 }, end: { line: 2, character: 10 } } as vscode.Range;
 
@@ -15,6 +22,17 @@ const lens = (command: string, arguments_: unknown[] = ['ExampleTest']) =>
   ({ range, command: { command, title: 'Run Test', arguments: arguments_ } }) as vscode.CodeLens;
 
 describe('testRunCodeLensProducer', () => {
+  it('accepts a default org before its org ID is resolved', async () => {
+    const targetOrgRef = await Effect.runPromise(SubscriptionRef.make({ username: 'user@example.com' }));
+    const extensionProviderLayer = Layer.succeed(ExtensionProviderService, {
+      getServicesApi: Effect.succeed({
+        services: { TargetOrgRef: () => Effect.succeed(targetOrgRef) }
+      })
+    } as unknown as ExtensionProviderService);
+
+    await expect(Effect.runPromise(hasDefaultOrg().pipe(Effect.provide(extensionProviderLayer)))).resolves.toBe(true);
+  });
+
   it.each(['sf.apex.test.class.run', 'sf.apex.test.method.run'])(
     'preserves %s without changing its range',
     (command: string) => {
