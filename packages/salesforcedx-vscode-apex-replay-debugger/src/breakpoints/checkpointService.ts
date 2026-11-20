@@ -24,8 +24,7 @@ import * as Stream from 'effect/Stream';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
 import * as vscode from 'vscode';
 import { type Event, EventEmitter, type TreeDataProvider, TreeItem, TreeItemCollapsibleState } from 'vscode';
-import { type URI, URI as Uri } from 'vscode-uri';
-import { PromptService } from 'salesforcedx-vscode-services/src/vscode/prompts/promptService';
+import { URI } from 'vscode-uri';
 import { writeToDebuggerOutputWindow } from '../channels';
 import {
   type ActionScriptType,
@@ -583,7 +582,7 @@ const uploadCheckpoints = Effect.fn('uploadCheckpoints')(
     );
     const enabledCheckpointUris = (checkpointService.getChildren() as CheckpointNode[])
       .filter(cpNode => cpNode.isCheckpointEnabled())
-      .map(cpNode => Uri.parse(cpNode.getCheckpointUri()));
+      .map(cpNode => URI.parse(cpNode.getCheckpointUri()));
     const lineBreakpointInfo = yield* Effect.tryPromise(() => ensureLineBreakpointMetadata(enabledCheckpointUris));
     const mappings = createBreakpointMappings(lineBreakpointInfo);
 
@@ -638,7 +637,8 @@ const createCheckpoints = Effect.fn('createCheckpoints')(function* () {
 
   // The status message isn't changing, localize it once and reuse it in the progress report.
   const localizedProgressMessage = nls.localize('sf_update_checkpoints_in_org');
-  const promptService = yield* PromptService;
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const promptService = yield* api.services.PromptService;
 
   const succeeded = yield* Effect.zipRight(
     Effect.sync(() => writeToDebuggerOutputWindow(`${nls.localize('long_command_start')} ${localizedProgressMessage}`)),
