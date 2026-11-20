@@ -77,7 +77,7 @@ jobs:
         run: pnpm --filter @salesforce/effect-octokit compile
       - name: Install OpenCode CLI
         if: steps.preflight.outputs.result == 'true' && steps.approver.outputs.cli == 'opencode'
-        run: npm install --global @opencode/cli@2.2.5
+        run: npm install --global --allow-scripts=@opencode/cli @opencode/cli@2.2.5
       - name: Install Cursor CLI for legacy trusted approver
         if: steps.preflight.outputs.result == 'true' && steps.approver.outputs.cli == 'cursor'
         run: curl https://cursor.com/install -fsS | bash
