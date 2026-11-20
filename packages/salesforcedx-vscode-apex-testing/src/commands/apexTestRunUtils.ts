@@ -76,8 +76,9 @@ export const getRunCommandContext = Effect.fn('getRunCommandContext')(function* 
 
 /**
  * Shared prelude for the quick-pick + code-action run commands: read the codeCoverage/concise settings,
- * then resolve the payload (built from a fresh TestService on the cached connection) and outputDir
- * concurrently. `buildPayload`/`outputDir` are the only bits that differ between the two callers.
+ * then resolve the default connection before resolving the payload and output directory concurrently.
+ * Resolving the connection populates the default-org identity used by the org-scoped output directory.
+ * `buildPayload`/`outputDir` are the only bits that differ between the two callers.
  */
 export const resolveRunInputs = <E, R>(
   buildPayload: (testService: TestService, codeCoverage: boolean) => Promise<AsyncTestConfiguration>,
@@ -88,11 +89,10 @@ export const resolveRunInputs = <E, R>(
     const settings = yield* api.services.SettingsService;
     const codeCoverage = yield* settings.getValueOrElse(APEX_TESTING_SECTION, 'retrieve-test-code-coverage', false);
     const concise = yield* settings.getValueOrElse(APEX_TESTING_SECTION, 'test-run-concise', false);
+    const connection = yield* api.services.ConnectionService.getConnection();
     const resolved = yield* Effect.all(
       {
-        payload: api.services.ConnectionService.getConnection().pipe(
-          Effect.flatMap(connection => Effect.promise(() => buildPayload(new TestService(connection), codeCoverage)))
-        ),
+        payload: Effect.promise(() => buildPayload(new TestService(connection), codeCoverage)),
         outputDir
       },
       { concurrency: 'unbounded' }
