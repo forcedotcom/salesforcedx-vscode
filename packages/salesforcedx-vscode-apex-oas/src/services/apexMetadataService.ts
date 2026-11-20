@@ -5,6 +5,11 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import {
+  hasApexClientCapabilities,
+  isApexExtensionApi,
+  type ApexClient
+} from '@salesforce/apex-language-server-extension-api';
 import { getExtensionExports, ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
@@ -14,7 +19,7 @@ import * as vscode from 'vscode';
 import type { DocumentSymbol, SymbolInformation } from 'vscode-languageserver-protocol';
 import { URI } from 'vscode-uri';
 import { ApexExtensionUnavailable, ApexLspRequestFailed } from '../errors';
-import { analyzeApexSource, type OasSourceToken } from '../oas/apexSourceMetadata';
+import { analyzeApexSource } from '../oas/apexSourceMetadata';
 import { resolveSourceText } from '../oas/sourceTextResolver';
 
 const APEX_LANGUAGE_SERVER_EXTENSION_ID = 'salesforce.apex-language-server-extension';
@@ -24,29 +29,14 @@ const DOCUMENT_STATE_READY_SCHEDULE = Schedule.fixed(Duration.millis(100)).pipe(
 );
 
 type ApexExtensionApi = {
-  readonly client: {
-    readonly semanticTokens: (params: {
-      readonly textDocument: { readonly uri: string };
-    }) => Promise<readonly OasSourceToken[] | undefined>;
-    readonly documentSymbol: (params: {
-      readonly textDocument: { readonly uri: string };
-    }) => Promise<DocumentSymbol[] | SymbolInformation[] | null>;
-  };
+  readonly client: Pick<ApexClient, 'semanticTokens' | 'documentSymbol'>;
 };
 
-const ApexExtensionApiSchema = Schema.Struct({
-  // The concrete client exposes methods on its prototype, so validate the narrow consumer surface explicitly.
-  client: Schema.declare<ApexExtensionApi['client']>(
-    (value): value is ApexExtensionApi['client'] =>
-      typeof value === 'object' &&
-      value !== null &&
-      'semanticTokens' in value &&
-      typeof value.semanticTokens === 'function' &&
-      'documentSymbol' in value &&
-      typeof value.documentSymbol === 'function',
-    { identifier: 'ApexClient' }
-  )
-});
+const ApexExtensionApiSchema = Schema.declare<ApexExtensionApi>(
+  (value): value is ApexExtensionApi =>
+    isApexExtensionApi(value) && hasApexClientCapabilities(value.client, ['semanticTokens', 'documentSymbol']),
+  { identifier: 'ApexExtensionApi' }
+);
 
 const getApexClient = Effect.fn('ApexOas.Lsp.getApexClient')(function* () {
   return yield* getExtensionExports({ extId: APEX_LANGUAGE_SERVER_EXTENSION_ID, schema: ApexExtensionApiSchema }).pipe(
