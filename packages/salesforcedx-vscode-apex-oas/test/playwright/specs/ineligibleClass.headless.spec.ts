@@ -14,7 +14,7 @@ import {
   openFileByName
 } from '@salesforce/playwright-vscode-ext';
 import { ineligibleApexClassText } from '../testData/sampleClassData';
-import { pushSource, setupWorkbenchAndAuth, waitForA4VAndOasCommands } from '../utils/oasHelpers';
+import { pushSource, setupWorkbenchAndAuth, waitForOasCommands } from '../utils/oasHelpers';
 
 test.setTimeout(360_000);
 
@@ -23,8 +23,8 @@ test('OAS: ineligible Apex class shows error notification', async ({ page }) => 
     await setupWorkbenchAndAuth(page);
   });
 
-  await test.step('wait for A4V + OAS commands available', async () => {
-    await waitForA4VAndOasCommands(page);
+  await test.step('wait for OAS commands available', async () => {
+    await waitForOasCommands(page);
   });
 
   await test.step('create ineligible class and push', async () => {

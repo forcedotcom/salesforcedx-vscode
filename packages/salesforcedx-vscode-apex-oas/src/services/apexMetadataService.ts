@@ -5,113 +5,119 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { CallableSchema, getExtensionExports } from '@salesforce/effect-ext-utils';
+import { getExtensionExports, ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
-import { isNotUndefined } from 'effect/Predicate';
 import * as Schedule from 'effect/Schedule';
 import * as Schema from 'effect/Schema';
-import type { ApexOASEligiblePayload, ApexVSCodeApi } from 'salesforcedx-vscode-apex';
-import type { URI } from 'vscode-uri';
-import { ApexExtensionUnavailable, ApexLspNotReady, ApexLspRequestFailed } from '../errors';
-import { nls } from '../messages/nls';
+import * as vscode from 'vscode';
+import type { DocumentSymbol, SymbolInformation } from 'vscode-languageserver-protocol';
+import { URI } from 'vscode-uri';
+import { ApexExtensionUnavailable, ApexLspRequestFailed } from '../errors';
+import { analyzeApexSource, type OasSourceToken } from '../oas/apexSourceMetadata';
+import { resolveSourceText } from '../oas/sourceTextResolver';
 
-const APEX_EXTENSION_ID = 'salesforce.salesforcedx-vscode-apex';
-
-// Preserve the manager instance because its methods read state through `this`.
-const languageClientManagerSchema: Schema.Schema<
-  Pick<ApexVSCodeApi['languageClientManager'], 'getStatus' | 'getClientInstance'>
-> = Schema.declare(
-  Schema.is(
-    Schema.Struct({
-      getStatus: CallableSchema<ApexVSCodeApi['languageClientManager']['getStatus']>(),
-      getClientInstance: CallableSchema<ApexVSCodeApi['languageClientManager']['getClientInstance']>()
-    }),
-    { exact: false }
-  )
+const APEX_LANGUAGE_SERVER_EXTENSION_ID = 'salesforce.apex-language-server-extension';
+const DOCUMENT_STATE_UNAVAILABLE = 'No document state is available';
+const DOCUMENT_STATE_READY_SCHEDULE = Schedule.fixed(Duration.millis(100)).pipe(
+  Schedule.intersect(Schedule.recurs(30))
 );
 
-// The Apex LS reports Indexing until it finishes; poll every 500ms for up to 2 minutes.
-const LSP_READY_SCHEDULE = Schedule.fixed(Duration.millis(500)).pipe(Schedule.intersect(Schedule.recurs(240)));
+type ApexExtensionApi = {
+  readonly client: {
+    readonly semanticTokens: (params: {
+      readonly textDocument: { readonly uri: string };
+    }) => Promise<readonly OasSourceToken[] | undefined>;
+    readonly documentSymbol: (params: {
+      readonly textDocument: { readonly uri: string };
+    }) => Promise<DocumentSymbol[] | SymbolInformation[] | null>;
+  };
+};
 
-// One readiness probe: ready → succeed; init failed → fail fast (non-retryable); still indexing → retryable.
-export const probeReady = Effect.fn('ApexOas.Lsp.probeReady')(function* (
-  manager: Pick<ApexVSCodeApi['languageClientManager'], 'getStatus' | 'getClientInstance'>
-) {
-  const apexClient = manager.getClientInstance();
-  const languageClientStatus = manager.getStatus();
-  yield* Effect.succeed(languageClientStatus).pipe(
-    Effect.filterOrFail(
-      status => !status.failedToInitialize(),
-      status =>
-        new ApexLspRequestFailed({
-          message: `Apex Language Server failed to initialize: ${status.getStatusMessage()}`
-        })
-    )
-  );
-  yield* Effect.succeed(apexClient).pipe(
-    Effect.filterOrFail(
-      (client): client is NonNullable<typeof apexClient> => isNotUndefined(client) && languageClientStatus.isReady(),
-      () => new ApexLspNotReady({ message: nls.localize('apex_lsp_not_ready') })
-    ),
-    Effect.asVoid
+const ApexExtensionApiSchema = Schema.Struct({
+  // The concrete client exposes methods on its prototype, so validate the narrow consumer surface explicitly.
+  client: Schema.declare<ApexExtensionApi['client']>(
+    (value): value is ApexExtensionApi['client'] =>
+      typeof value === 'object' &&
+      value !== null &&
+      'semanticTokens' in value &&
+      typeof value.semanticTokens === 'function' &&
+      'documentSymbol' in value &&
+      typeof value.documentSymbol === 'function',
+    { identifier: 'ApexClient' }
+  )
+});
+
+const getApexClient = Effect.fn('ApexOas.Lsp.getApexClient')(function* () {
+  return yield* getExtensionExports({ extId: APEX_LANGUAGE_SERVER_EXTENSION_ID, schema: ApexExtensionApiSchema }).pipe(
+    Effect.map(api => api.client),
+    Effect.catchTags({
+      ExtensionNotFoundError: () =>
+        Effect.fail(new ApexExtensionUnavailable({ message: 'Apex Language Server extension is not installed' })),
+      ExtensionActivationError: ({ cause }) =>
+        Effect.fail(
+          new ApexExtensionUnavailable({
+            message: `Failed to activate Apex Language Server extension: ${String(cause)}`
+          })
+        )
+    })
   );
 });
 
-const getApexApi = Effect.fn('ApexOas.Lsp.getApexApi')(function* () {
-  const apexApi = yield* getExtensionExports({
-    extId: APEX_EXTENSION_ID,
-    schema: Schema.Struct({
-      isOpenAPIEligible: CallableSchema<ApexVSCodeApi['isOpenAPIEligible']>(),
-      gatherOpenAPIContext: CallableSchema<ApexVSCodeApi['gatherOpenAPIContext']>(),
-      languageClientManager: languageClientManagerSchema
-    })
-  }).pipe(
-    Effect.catchTags({
-      ExtensionNotFoundError: () =>
-        Effect.fail(new ApexExtensionUnavailable({ message: 'Apex extension is not installed' })),
-      ExtensionActivationError: ({ cause }) =>
-        Effect.fail(new ApexExtensionUnavailable({ message: `Failed to activate Apex extension: ${String(cause)}` }))
-    })
-  );
-  // The OAS commands can fire before indexing completes (activation is deferred), so wait for Ready.
-  yield* probeReady(apexApi.languageClientManager).pipe(
-    Effect.retry({ schedule: LSP_READY_SCHEDULE, while: error => error._tag === 'ApexLspNotReady' })
-  );
-  return apexApi;
+/** Verifies that the new Apex LS is installed, activatable, and exposes OAS-required requests. */
+export const ensureApexLsAvailable = Effect.fn('ApexOas.Lsp.ensureAvailable')(function* () {
+  yield* getApexClient();
+});
+
+const isDocumentSymbol = (symbol: DocumentSymbol | SymbolInformation): symbol is DocumentSymbol =>
+  'selectionRange' in symbol;
+
+const ensureDocumentOpen = Effect.fn('ApexOas.Lsp.ensureDocumentOpen')(function* (resourceUri: URI) {
+  // This registers an Explorer-selected file with the LS without revealing an editor.
+  yield* Effect.promise(() => vscode.workspace.openTextDocument(URI.parse(resourceUri.toString())));
 });
 
 export class ApexMetadataService extends Effect.Service<ApexMetadataService>()('ApexMetadataService', {
   accessors: true,
   effect: Effect.gen(function* () {
-    const isOpenAPIEligible = Effect.fn('ApexOas.Lsp.isOpenAPIEligible')(function* (requests: ApexOASEligiblePayload) {
-      const apexApi = yield* getApexApi();
-      return yield* Effect.tryPromise({
-        try: () => apexApi.isOpenAPIEligible(requests),
-        catch: cause =>
-          new ApexLspRequestFailed({ message: `apexoas/isEligible request failed: ${String(cause)}`, cause })
-      }).pipe(
-        Effect.filterOrFail(
-          isNotUndefined,
-          () => new ApexLspRequestFailed({ message: 'apexoas/isEligible returned no response' })
-        )
+    const analyze = Effect.fn('ApexOas.Lsp.analyze')(function* (resourceUri: URI) {
+      const client = yield* getApexClient();
+      yield* ensureDocumentOpen(resourceUri);
+      const api = yield* (yield* ExtensionProviderService).getServicesApi;
+      const text = yield* resolveSourceText(
+        resourceUri,
+        vscode.workspace.textDocuments,
+        api.services.FsService.readFile
       );
-    });
-
-    const gatherOpenAPIContext = Effect.fn('ApexOas.Lsp.gatherOpenAPIContext')(function* (sourceUri: URI) {
-      const apexApi = yield* getApexApi();
-      return yield* Effect.tryPromise({
-        try: () => apexApi.gatherOpenAPIContext(sourceUri),
-        catch: cause =>
-          new ApexLspRequestFailed({ message: `apexoas/gatherContext request failed: ${String(cause)}`, cause })
-      }).pipe(
-        Effect.filterOrFail(
-          isNotUndefined,
-          () => new ApexLspRequestFailed({ message: 'apexoas/gatherContext returned no response' })
-        )
+      const params = { textDocument: { uri: resourceUri.toString() } };
+      const [tokens, symbols] = yield* Effect.all([
+        Effect.tryPromise({
+          try: () => client.semanticTokens(params),
+          catch: cause =>
+            new ApexLspRequestFailed({ message: `semantic tokens request failed: ${String(cause)}`, cause })
+        }),
+        Effect.tryPromise({
+          try: () => client.documentSymbol(params),
+          catch: cause =>
+            new ApexLspRequestFailed({ message: `document symbol request failed: ${String(cause)}`, cause })
+        })
+      ]).pipe(
+        Effect.retry({
+          schedule: DOCUMENT_STATE_READY_SCHEDULE,
+          while: error => error.message.includes(DOCUMENT_STATE_UNAVAILABLE)
+        })
       );
+      if (!tokens)
+        return yield* new ApexLspRequestFailed({ message: 'Apex Language Server does not provide semantic tokens' });
+      if (!symbols?.every(isDocumentSymbol)) {
+        return yield* new ApexLspRequestFailed({
+          message: 'Apex Language Server did not provide hierarchical document symbols'
+        });
+      }
+      const analysis = analyzeApexSource(resourceUri, text, tokens, symbols);
+      if (!analysis) return yield* new ApexLspRequestFailed({ message: 'No Apex class declaration found in document' });
+      return analysis;
     });
-
-    return { isOpenAPIEligible, gatherOpenAPIContext };
+    return { analyze };
   })
 }) {}

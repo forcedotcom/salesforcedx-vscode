@@ -43,37 +43,6 @@ components:
     expect(JSON.stringify(result)).toMatch(/oas3-api-servers/);
   });
 
-  it('apex REST supports these authentication mechanisms: Type: OAuth2 or Type: HTTP, Scheme: Bearer, at global level', async () => {
-    const inputYaml = `openapi: 3.0.0
-info:
-  title: demoClass API
-  version: '1.0.0'
-  description: demoClass API
-paths:
-  /demoClass/doDelete:
-    delete:
-      summary: delete method
-      operationId: doDelete
-      responses:
-        '200':
-          description: OK
-components:
-  schemas:
-    Account:
-      type: object
-      properties:
-        Id:
-          type: string
-  securitySchemes:
-    basicAuth: # <-- arbitrary name for the security scheme
-      type: http
-      scheme: basic`;
-
-    const result = await runRulesetAgainstYaml(inputYaml);
-
-    expect(JSON.stringify(result)).toMatch(/security-schemes/);
-  });
-
   it('paths.<method>.description is required', async () => {
     const inputYaml = `openapi: 3.0.0
 info:
@@ -1193,7 +1162,7 @@ info:
   version: '1.0.0'
   description: 'great description'
 servers:
-  - url: /services/apexrest
+  - url: /aura-controllers/custom
     description: 'description at its best'
 paths:
   /demoClass/doDelete:
@@ -1237,7 +1206,6 @@ components:
 
     expect(JSON.stringify(result)).not.toMatch(/openapi-version/);
     expect(JSON.stringify(result)).not.toMatch(/oas3-api-servers/);
-    expect(JSON.stringify(result)).not.toMatch(/security-schemes/);
     expect(JSON.stringify(result)).not.toMatch(/paths-method-description/);
     expect(JSON.stringify(result)).not.toMatch(/paths-method-servers/);
     expect(JSON.stringify(result)).not.toMatch(/paths-method-options/);
@@ -1273,11 +1241,11 @@ components:
 it('should not throw false positives when `parameters` property is missing', async () => {
   const inputYaml = `openapi: 3.0.0
 info:
-  title: MyRestResource
+  title: ExampleResource
   version: 1.0.0
-  description: This is auto-generated OpenAPI v3 spec for MyRestResource.
+  description: This is auto-generated OpenAPI v3 spec for ExampleResource.
 paths:
-  /MyRestResource/doGet:
+  /ExampleResource/doGet:
     get:
       summary: Retrieves an Account record by ID.
       description: >-
@@ -1296,7 +1264,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Account'
-  /MyRestResource/doPut:
+  /ExampleResource/doPut:
     put:
       summary: doPut
       description: Creates a new Account record

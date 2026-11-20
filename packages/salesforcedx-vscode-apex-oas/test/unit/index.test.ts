@@ -37,10 +37,7 @@ describe('OAS Extension Activation', () => {
 });
 
 describe('package.json settings', () => {
-  it('contributes enableRestOASGen as a boolean defaulting to false (REST path blocked by default)', () => {
-    const setting = pkg.contributes.configuration.properties['salesforcedx-vscode-apex-oas.enableRestOASGen'];
-    expect(setting).toBeDefined();
-    expect(setting.type).toBe('boolean');
-    expect(setting.default).toBe(false);
+  it('does not contribute the retired REST generation setting', () => {
+    expect(pkg.contributes.configuration.properties['salesforcedx-vscode-apex-oas.enableRestOASGen']).toBeUndefined();
   });
 });

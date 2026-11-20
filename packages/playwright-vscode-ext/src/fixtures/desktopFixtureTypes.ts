@@ -22,6 +22,7 @@ export type WorkerFixtures = {
  */
 type ElectronAppHandle = {
   app: ElectronApplication;
+  marketplaceExtensionVersions: Readonly<Record<string, string>>;
   relaunch: () => Promise<ElectronApplication>;
 };
 
