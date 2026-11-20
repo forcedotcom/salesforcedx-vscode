@@ -11,7 +11,7 @@ permissions:
 
 concurrency:
   group: manual-test-plan-${{ github.event.pull_request.number || github.run_id }}
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 jobs:
   secret:
@@ -49,8 +49,7 @@ jobs:
           node-version: 24
       - name: Compile effect-octokit
         run: pnpm --filter @salesforce/effect-octokit compile
-      - name: Install OpenCode CLI
-        run: npm install --global @opencode/cli@2.3.0
+      - uses: ./.github/actions/setup-opencode
       - name: Write manual test plan
         env:
           OPENCODE_API_KEY: ${{ secrets.OPENCODE_API_KEY }}
@@ -79,8 +78,9 @@ jobs:
       - uses: ./.github/actions/setup-pnpm
         with:
           node-version: 24
-      - name: Install OpenCode CLI
-        run: npm install --global @opencode/cli@2.3.0
+      - name: Compile effect-octokit
+        run: pnpm --filter @salesforce/effect-octokit compile
+      - uses: ./.github/actions/setup-opencode
       - name: Verify authenticated inference and repository reads
         env:
           OPENCODE_API_KEY: ${{ secrets.OPENCODE_API_KEY }}
