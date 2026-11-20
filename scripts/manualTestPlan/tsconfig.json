@@ -10,6 +10,7 @@
           "globalRandomInEffect": "error",
           "globalFetchInEffect": "error",
           "globalTimersInEffect": "error",
+          "strictEffectProvide": "off",
           "missedPipeableOpportunity": "error"
         }
       }

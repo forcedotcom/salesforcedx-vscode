@@ -1,5 +1,9 @@
 # Engineering working agreements
 
+- Write scripts in TypeScript with Effect; prefer this over Bash or Python.
+- Prefer unary, pipeable helpers. When a helper takes both data and configuration/callbacks, curry the configuration first so the returned function accepts the data (`withArchive(use)(bytes)`), rather than `withArchive(bytes, use)`; this lets callers compose it with `.pipe` / `Effect.flatMap`.
+- Use `@salesforce/effect-octokit` for GitHub API interactions in scripts. Use the GitHub CLI only for operations the local package does not support.
+- Before editing, inventory existing package APIs and schemas; reuse them first, and add new ones only for a demonstrated gap.
 - Never bypass Git hooks or use `--no-verify`.
 - Do not set environment variables intended to skip quality gates.
 - When committing, allow the repository's configured pre-commit workflow to run normally.
