@@ -566,7 +566,7 @@ test('manifest escapes HTML comments; updater triggers match approval workflows 
   assert.match(workflow, /group: manual-test-plan-\$\{\{ matrix.pull.pr \}\}/);
   assert.match(workflow, /persist-credentials: false/);
   assert.match(workflow, /queue: max/);
-  assert.match(readFileSync('.github/workflows/manual-test-plan.yml', 'utf8'), /queue: max/);
+  assert.match(readFileSync('.github/workflows/manual-test-plan.yml', 'utf8'), /cancel-in-progress: true/);
   assert.equal(workflow.includes('pull_request.head'), false);
   assert.equal(workflow.includes('CURSOR_API_KEY'), false);
   assert.ok(videoSection(initialBody) === undefined);
