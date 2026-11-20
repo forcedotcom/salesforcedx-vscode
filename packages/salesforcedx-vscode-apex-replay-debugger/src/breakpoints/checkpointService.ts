@@ -25,6 +25,7 @@ import * as SubscriptionRef from 'effect/SubscriptionRef';
 import * as vscode from 'vscode';
 import { type Event, EventEmitter, type TreeDataProvider, TreeItem, TreeItemCollapsibleState } from 'vscode';
 import { type URI, URI as Uri } from 'vscode-uri';
+import { PromptService } from 'salesforcedx-vscode-services/src/vscode/prompts/promptService';
 import { writeToDebuggerOutputWindow } from '../channels';
 import {
   type ActionScriptType,
@@ -637,22 +638,12 @@ const createCheckpoints = Effect.fn('createCheckpoints')(function* () {
 
   // The status message isn't changing, localize it once and reuse it in the progress report.
   const localizedProgressMessage = nls.localize('sf_update_checkpoints_in_org');
-  const progressLocation = yield* (yield* ExtensionProviderService).getServicesApi.pipe(
-    Effect.flatMap(api => api.services.NotificationModeService),
-    Effect.flatMap(notificationMode => notificationMode.getProgressLocation(COMMAND))
-  );
+  const promptService = yield* PromptService;
 
   const succeeded = yield* Effect.zipRight(
     Effect.sync(() => writeToDebuggerOutputWindow(`${nls.localize('long_command_start')} ${localizedProgressMessage}`)),
-    Effect.promise(() =>
-      vscode.window.withProgress(
-        {
-          location: progressLocation,
-          title: localizedProgressMessage,
-          cancellable: false
-        },
-        (progress, _token) => getRuntime().runPromise(uploadCheckpoints(progress, localizedProgressMessage))
-      )
+    promptService.withProgressReporting({ command: COMMAND, title: localizedProgressMessage, cancellable: false })(
+      progress => uploadCheckpoints(progress, localizedProgressMessage)
     )
   ).pipe(
     // The lock prevents deleting the underlying breakpoints attached to the
