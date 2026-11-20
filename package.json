@@ -24,7 +24,6 @@
     "@actions/github": "^8.0.1",
     "@commitlint/cli": "^19.8.1",
     "@commitlint/config-conventional": "^19.8.1",
-    "@cursor/sdk": "1.0.35",
     "@effect/eslint-plugin": "0.3.2",
     "@effect/language-service": "^0.87.2",
     "@effect/platform": "0.96.1",
@@ -141,6 +140,7 @@
     "test": "wireit",
     "test:ai-safeguards": "wireit",
     "test:manual-test-plan": "wireit",
+    "test:ci-ai": "wireit",
     "test:scripts": "wireit",
     "test-vsix": "wireit",
     "test:container:local": "wireit",
@@ -280,6 +280,7 @@
         "check:extension-launch",
         "test:ai-safeguards",
         "test:manual-test-plan",
+        "test:ci-ai",
         "test:scripts",
         "./packages/eslint-local-rules:test",
         "./packages/salesforcedx-utils:test",
@@ -336,6 +337,7 @@
         "scripts/shared/categoryGates.cjs",
         "scripts/shared/categoryGates.d.cts",
         "scripts/shared/categoryDecision.mts",
+        "scripts/shared/openCode.mts",
         "scripts/shared/scriptErrors.mts",
         ".github/workflows/categoryApprove.yml",
         "APPROVAL_POLICY.md",
@@ -354,11 +356,28 @@
       ],
       "files": [
         "scripts/manualTestPlan/**/*.mts",
+        "scripts/shared/openCode.mts",
+        ".opencode/skills/manual-test-plan-judgment/SKILL.md",
         "scripts/manualTestPlan/tsconfig.json",
         "scripts/shared/validateWorkflow.mts",
         ".github/workflows/manual-test-plan*.yml",
         ".github/workflows/*E2E.yml",
         ".github/workflows/aiAutoApprove.yml"
+      ],
+      "output": []
+    },
+    "test:ci-ai": {
+      "command": "node --test test/ci-ai.test.mts",
+      "files": [
+        "scripts/shared/openCode.mts",
+        "scripts/shared/categoryDecision.mts",
+        "scripts/changelogBody/**/*.mts",
+        "scripts/manualTestPlan/**/*.mts",
+        ".opencode/skills/{changelog-judgment,manual-test-plan-judgment}/SKILL.md",
+        ".github/actions/setup-opencode/action.yml",
+        ".github/workflows/{changelog-body,categoryApprove,manual-test-plan,ci-ai-smoke}.yml",
+        "test/ci-ai*.mts",
+        "test/ciAiFixtures.mts"
       ],
       "output": []
     },

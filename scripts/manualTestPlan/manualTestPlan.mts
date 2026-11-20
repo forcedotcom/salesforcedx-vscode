@@ -13,14 +13,24 @@ import { actionsEnvironment, GitHub, readPullRequestEvent, type PullRequestState
 import { Effect, Either, Exit, Layer, Logger, Match, Option, pipe, Schema, Stream } from 'effect';
 import * as Str from 'effect/String';
 import { pathToFileURL } from 'node:url';
-import { openCodePrompt } from './openCodePrompt.mts';
+import { openCodePrompt } from '../shared/openCode.mts';
 import { CommandFailed, InvalidBaseRef, Judgment, type Item } from './schema.mts';
 import { removeVideoSection, renderVideoManifest } from './videoManifest.mts';
 
-const skillPath = '.cursor/skills/manual-test-plan-judgment/SKILL.md';
+const skillPath = '.opencode/skills/manual-test-plan-judgment/SKILL.md';
 const startMarker = '<!-- manual-test-plan -->';
 const endMarker = '<!-- /manual-test-plan -->';
 const excludedWorkflows = new Set(['e2e.yml', 'playwrightE2EFullSuite.yml', 'rerunPushE2E.yml']);
+const ciPackages = new Set(['drivable-vscode', 'effect-octokit', 'eslint-local-rules', 'playwright-vscode-ext']);
+
+export const isRelevantDiffPath = (file: string) => {
+  const parts = file.split('/');
+  return (
+    !parts.includes('test') &&
+    !file.startsWith('.github/') &&
+    !(parts[0] === 'packages' && ciPackages.has(parts[1] ?? ''))
+  );
+};
 // Git hooks export these for their own worktree. This script's git calls use
 // an explicit cwd and must not inherit another worktree's repository or index.
 const gitLocalEnv = {
@@ -218,6 +228,15 @@ const checklistError = Effect.fn('manualTestPlan.checklistError')(function* (
   return messages.length === 0 ? undefined : messages.join('\n');
 });
 
+export const manualTestPlanPrompt = Effect.fn('manualTestPlan.prompt')(function* (cwd: string, input: PromptInput) {
+  const readDirectory = yield* FileSystem.FileSystem.pipe(Effect.flatMap(fs => fs.realPath(cwd)));
+  const correction = input.correction === undefined ? '' : `\n\nPrevious reply failed validation:\n${input.correction}`;
+  return yield* openCodePrompt({
+    prompt: `${input.skill}\n\nRepository (read-only): ${readDirectory}\n\nDiff:\n${input.diff}${correction}`,
+    readDirectory
+  });
+});
+
 const readPrBody = Effect.fn('manualTestPlan.readPrBody')(function* (owner: string, repo: string, pr: number) {
   return yield* GitHub.pullBody(owner, repo, pr);
 });
@@ -237,7 +256,7 @@ const skip = (reason: string, message: string) =>
   );
 
 const attempt = Effect.fn('manualTestPlan.attempt')(function* (
-  prompt: (input: PromptInput) => ReturnType<typeof openCodePrompt>,
+  prompt: (input: PromptInput) => ReturnType<typeof manualTestPlanPrompt>,
   skill: string,
   diff: string,
   cwd: string,
@@ -260,7 +279,7 @@ const attempt = Effect.fn('manualTestPlan.attempt')(function* (
 
 export type ManualTestPlanDeps = {
   readonly cwd?: string;
-  readonly prompt?: (input: PromptInput) => ReturnType<typeof openCodePrompt>;
+  readonly prompt?: (input: PromptInput) => ReturnType<typeof manualTestPlanPrompt>;
   readonly readBody?: (pr: number) => Effect.Effect<string>;
   readonly writeBody?: (pr: number, body: string) => Effect.Effect<void>;
   readonly readHead?: (
@@ -284,8 +303,12 @@ export const manualTestPlanProgram = Effect.fn('manualTestPlan.program')(functio
   yield* git(cwd, ['fetch', 'origin', base]);
   const skill = yield* git(cwd, ['show', `origin/${base}:${skillPath}`]).pipe(Effect.option);
   if (Option.isNone(skill)) return yield* skip('missing-skill', `origin/${base}:${skillPath} is missing`);
-  const diff = yield* git(cwd, ['diff', `origin/${base}...HEAD`]);
-  const prompt = deps?.prompt ?? ((input: PromptInput) => openCodePrompt(cwd, input));
+  const changedPaths = yield* git(cwd, ['diff', '--name-only', '-z', `origin/${base}...HEAD`]);
+  const relevantPaths = changedPaths.split('\0').filter(path => path.length > 0 && isRelevantDiffPath(path));
+  if (relevantPaths.length === 0)
+    return yield* skip('no-user-facing-changes', 'PR diff only changes tests or CI tooling');
+  const diff = yield* git(cwd, ['diff', `origin/${base}...HEAD`, '--', ...relevantPaths]);
+  const prompt = deps?.prompt ?? ((input: PromptInput) => manualTestPlanPrompt(cwd, input));
   const judged = yield* attempt(prompt, skill.value, diff, cwd, undefined).pipe(
     Effect.flatMap(first =>
       Match.value(first).pipe(

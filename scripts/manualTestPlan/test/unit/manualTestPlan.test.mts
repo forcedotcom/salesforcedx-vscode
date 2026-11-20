@@ -7,22 +7,24 @@
 
 import * as NodeContext from '@effect/platform-node/NodeContext';
 import { GitHub } from '@salesforce/effect-octokit';
-import { ConfigProvider, Effect, Schema } from 'effect';
+import { ConfigProvider, Effect, Layer, Schema } from 'effect';
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
-import { existsSync, mkdirSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, realpathSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { test } from 'node:test';
+import { commands, config as openCodeConfig, nodeCommand } from '../../../../test/ciAiFixtures.mts';
+import { OpenCodeRunFailed } from '../../../shared/openCode.mts';
 import {
+  isRelevantDiffPath,
   judgmentError,
+  manualTestPlanPrompt,
   manualTestPlanProgram,
   renderManualTestPlan,
   spliceManualTestPlan,
   type PromptInput
 } from '../../manualTestPlan.mts';
-import { openCodePrompt, openCodeText, promptWithModels, retryableOpenCodeError } from '../../openCodePrompt.mts';
-import { OpenCodeRunFailed } from '../../schema.mts';
 import { videosEnd, videosStart } from '../../videoManifest.mts';
 
 const repoRoot = join(import.meta.dirname, '..', '..', '..', '..');
@@ -99,14 +101,28 @@ const initRepo = (skill: boolean) => {
   git(remote, ['init', '--bare', '-b', 'develop']);
   git(cwd, ['init', '-b', 'develop']);
   if (skill) {
-    const skillDir = join(cwd, '.cursor', 'skills', 'manual-test-plan-judgment');
+    const skillDir = join(cwd, '.opencode', 'skills', 'manual-test-plan-judgment');
     mkdirSync(skillDir, { recursive: true });
     writeFileSync(join(skillDir, 'SKILL.md'), 'reply with json\n');
   }
+  const featureDir = join(cwd, 'packages', 'salesforcedx-vscode-core', 'src');
+  mkdirSync(featureDir, { recursive: true });
+  writeFileSync(join(featureDir, 'feature.ts'), 'export const feature = "base";\n');
+  const testDir = join(cwd, 'packages', 'salesforcedx-vscode-core', 'test');
+  mkdirSync(testDir, { recursive: true });
+  writeFileSync(join(testDir, 'feature.test.ts'), 'test before\n');
+  const workflowDir = join(cwd, '.github', 'workflows');
+  mkdirSync(workflowDir, { recursive: true });
+  writeFileSync(join(workflowDir, 'ci.yml'), 'name: CI before\n');
   git(cwd, ['add', '-A']);
   git(cwd, ['commit', '--allow-empty', '-m', 'base']);
   git(cwd, ['remote', 'add', 'origin', remote]);
   git(cwd, ['push', '-u', 'origin', 'develop']);
+  writeFileSync(join(featureDir, 'feature.ts'), 'export const feature = "changed";\n');
+  writeFileSync(join(testDir, 'feature.test.ts'), 'test after\n');
+  writeFileSync(join(workflowDir, 'ci.yml'), 'name: CI after\n');
+  git(cwd, ['add', '-A']);
+  git(cwd, ['commit', '-m', 'change feature']);
   return cwd;
 };
 
@@ -242,14 +258,14 @@ test('inherited pre-push Git variables cannot redirect fixture Git commands', ()
   assert.equal(execFileSync('git', ['status', '--porcelain'], { cwd: hookRepo, env: gitEnv, encoding: 'utf8' }), '');
 });
 
-test('an exhausted OpenCode failure does not request a correction or edit the body', async () => {
+test('an OpenCode failure does not retry', async () => {
   const calls = { n: 0 };
   const state: { body: string; writes: string[] } = { body: '## Summary\n\nkept\n', writes: [] };
   const outcome = await run(
     initRepo(true),
     () => {
       calls.n += 1;
-      return Effect.fail(new OpenCodeRunFailed({ status: 'error', retryable: false, message: 'boom' }));
+      return Effect.fail(new OpenCodeRunFailed({ message: 'boom' }));
     },
     state
   );
@@ -296,16 +312,52 @@ test('schema and watch-video failures retry once', async () => {
   assert.deepEqual(stuck.writes, []);
 });
 
-test('workflow uses the OpenCode secret and model variable with the actions token', () => {
+test('manual test plan filters CI, utility-package, and test diffs', () => {
+  for (const file of [
+    '.github/workflows/manual-test-plan.yml',
+    'test/ci-ai.test.mts',
+    'packages/salesforcedx-vscode-core/test/unit/feature.test.ts',
+    'packages/drivable-vscode/src/index.ts',
+    'packages/effect-octokit/src/github.ts',
+    'packages/eslint-local-rules/src/index.ts',
+    'packages/playwright-vscode-ext/src/index.ts'
+  ]) {
+    assert.equal(isRelevantDiffPath(file), false, file);
+  }
+  for (const file of [
+    'packages/salesforcedx-vscode-core/src/feature.ts',
+    'packages/salesforcedx-vscode-core/package.json'
+  ]) {
+    assert.equal(isRelevantDiffPath(file), true, file);
+  }
+});
+
+test('manual test plan sends only product-code diffs to OpenCode', async () => {
+  const diffs: string[] = [];
+  const state: { body: string; writes: string[] } = { body: '', writes: [] };
+  await run(
+    initRepo(true),
+    input => {
+      diffs.push(input.diff);
+      return Effect.succeed('{"_tag":"Nothing"}');
+    },
+    state
+  );
+  assert.equal(diffs.length, 1);
+  assert.match(diffs[0], /feature = "changed"/);
+  assert.doesNotMatch(diffs[0], /feature\.test\.ts|test after|ci\.yml|CI after/);
+});
+
+test('workflow uses the OpenCode secret and model variable with the actions token and skips without a key', () => {
   const workflow = readFileSync(join(repoRoot, '.github', 'workflows', 'manual-test-plan.yml'), 'utf8');
   assert.match(workflow, /types: \[opened, synchronize\]/);
   assert.match(workflow, /group: manual-test-plan-\$\{\{ github\.event\.pull_request\.number \|\| github\.run_id \}\}/);
-  assert.match(workflow, /cancel-in-progress: false/);
+  assert.match(workflow, /cancel-in-progress: true/);
   assert.match(workflow, /if: github\.event_name == 'pull_request' && needs\.secret\.outputs\.has_key == 'true'/);
   assert.match(workflow, /has_key=false/);
   assert.match(workflow, /OPENCODE_API_KEY: \$\{\{ secrets\.OPENCODE_API_KEY \}\}/);
   assert.match(workflow, /OPENCODE_MODELS: \$\{\{ vars\.OPENCODE_MODELS \}\}/);
-  assert.match(workflow, /npm install --global @opencode\/cli@2\.3\.0/);
+  assert.match(workflow, /uses: \.\/\.github\/actions\/setup-opencode/);
   assert.equal(workflow.includes('CURSOR'), false);
   assert.match(workflow, /GITHUB_TOKEN: \$\{\{ github\.token \}\}/);
   assert.match(workflow, /GITHUB_EVENT_PATH: \$\{\{ github\.event_path \}\}/);
@@ -320,108 +372,41 @@ test('workflow uses the OpenCode secret and model variable with the actions toke
   assert.match(workflow, /fetch-depth: 0/);
 });
 
-test('OpenCode extracts only final assistant text, ignoring tool output and earlier messages', async () => {
-  const stdout = [
-    { type: 'text', part: { messageID: 'first', text: 'Let me inspect the code.' } },
-    { type: 'tool_use', part: { text: 'not the result' } },
-    { type: 'text', part: { messageID: 'last', text: '{"_tag":' } },
-    { type: 'text', part: { messageID: 'last', text: '"Nothing"}' } },
-    { type: 'step_finish' }
-  ]
-    .map(event => JSON.stringify(event))
-    .join('\n');
-  assert.equal(await Effect.runPromise(openCodeText(stdout, 0, '')), '{"_tag":"Nothing"}');
-});
-
-test('OpenCode errors reject partial text, empty output, and malformed event streams', async () => {
-  const partial = JSON.stringify({ type: 'text', part: { text: '{"_tag":"Nothing"}' } });
-  const error = JSON.stringify({ type: 'error', error: { message: '429 Too many requests' } });
-  const result = await Effect.runPromise(Effect.either(openCodeText(`${partial}\n${error}`, 0, '')));
-  assert.equal(result._tag, 'Left');
-  if (result._tag === 'Left') assert.equal(result.left.retryable, true);
-  await assert.rejects(Effect.runPromise(openCodeText(partial, 1, 'failed')));
-  await assert.rejects(Effect.runPromise(openCodeText('', 0, '')));
-  await assert.rejects(Effect.runPromise(openCodeText('not-json', 0, '')));
-});
-
-test('transient failures fall back in configured order and stop on success', async () => {
-  const calls: string[] = [];
-  const result = await Effect.runPromise(
-    promptWithModels(['inkling', 'nemotron', 'unused'], model => {
-      calls.push(model);
-      return model === 'inkling'
-        ? Effect.fail(new OpenCodeRunFailed({ status: 'provider', retryable: true, message: '429' }))
-        : Effect.succeed('{"_tag":"Nothing"}');
-    })
-  );
-  assert.equal(result, '{"_tag":"Nothing"}');
-  assert.deepEqual(calls, ['inkling', 'nemotron']);
-});
-
-test('authentication and budget failures stop; exhausted transient failures return the final error', async () => {
-  for (const retryable of [false, true]) {
-    const calls: string[] = [];
-    await assert.rejects(
-      Effect.runPromise(
-        promptWithModels(['first', 'second'], model => {
-          calls.push(model);
-          return Effect.fail(new OpenCodeRunFailed({ status: 'provider', retryable, message: model }));
-        })
-      ),
-      new RegExp(retryable ? 'second' : 'first')
-    );
-    assert.deepEqual(calls, retryable ? ['first', 'second'] : ['first']);
-  }
-  assert.equal(retryableOpenCodeError('429 Too many requests'), true);
-  assert.equal(retryableOpenCodeError('503 overloaded'), true);
-  assert.equal(retryableOpenCodeError('Model unavailable: opencode/old-model'), true);
-  assert.equal(retryableOpenCodeError('429 Upstream request failed: Policy budget exceeded'), false);
-  assert.equal(retryableOpenCodeError('401 Unauthorized'), false);
-  assert.equal(retryableOpenCodeError('403 Forbidden'), false);
-  assert.equal(retryableOpenCodeError('insufficient credits'), false);
-});
-
 test('OpenCode subprocess receives isolated read-only configuration, stdin prompt, and no GitHub token', async () => {
-  const bin = mkdtempSync(join(tmpdir(), 'manual-plan-opencode-bin-'));
-  const executable = join(bin, 'opencode.cjs');
-  writeFileSync(
-    executable,
-    `
+  const result = await manualTestPlanPrompt(repoRoot, {
+    skill: 'judge this diff',
+    diff: '+change',
+    correction: 'invalid JSON'
+  }).pipe(
+    Effect.provide(
+      Layer.mergeAll(
+        NodeContext.layer,
+        commands(command =>
+          nodeCommand(
+            command,
+            `
 const fs = require('node:fs');
-const config = JSON.parse(fs.readFileSync(process.env.OPENCODE_CONFIG_DIR + '/opencode.json', 'utf8'));
+const config = JSON.parse(fs.readFileSync('opencode.json', 'utf8'));
 const prompt = fs.readFileSync(0, 'utf8');
-process.stdout.write(JSON.stringify({type:'text',part:{messageID:'result',text:JSON.stringify({
-  args:process.argv.slice(2),
+const text = JSON.stringify({
+  args:process.argv.slice(1),
   cwd:process.cwd(),
   config,
   prompt,
   githubToken:process.env.GITHUB_TOKEN,
   apiKey:process.env.OPENCODE_API_KEY
-})}}) + '\\n');
+});
+process.stdout.write([
+  {type:'step_start'},
+  {type:'text',part:{text}},
+  {type:'step_finish',part:{reason:'stop'}}
+].map(event => JSON.stringify(event)).join('\\n') + '\\n');
 `
-  );
-  const result = await openCodePrompt(
-    repoRoot,
-    {
-      skill: 'judge this diff',
-      diff: '+change',
-      correction: 'invalid JSON'
-    },
-    {
-      executable: process.execPath,
-      prefixArgs: [executable]
-    }
-  ).pipe(
-    Effect.provide(NodeContext.layer),
-    Effect.withConfigProvider(
-      ConfigProvider.fromMap(
-        new Map([
-          ['OPENCODE_API_KEY', 'test-key'],
-          ['OPENCODE_MODELS', '["opencode/inkling-2-small-free","opencode/nemotron-3.5-super-vl-free"]'],
-          ['PATH', bin]
-        ])
+          )
+        )
       )
     ),
+    Effect.withConfigProvider(openCodeConfig()),
     Effect.flatMap(
       Schema.decodeUnknown(
         Schema.parseJson(
@@ -429,9 +414,13 @@ process.stdout.write(JSON.stringify({type:'text',part:{messageID:'result',text:J
             args: Schema.Array(Schema.String),
             cwd: Schema.String,
             config: Schema.Struct({
-              permissions: Schema.Array(
-                Schema.Struct({ action: Schema.String, resource: Schema.String, effect: Schema.String })
-              )
+              agents: Schema.Struct({
+                judgment: Schema.Struct({
+                  permissions: Schema.Array(
+                    Schema.Struct({ action: Schema.String, resource: Schema.String, effect: Schema.String })
+                  )
+                })
+              })
             }),
             prompt: Schema.String,
             githubToken: Schema.optional(Schema.String),
@@ -443,23 +432,23 @@ process.stdout.write(JSON.stringify({type:'text',part:{messageID:'result',text:J
     Effect.runPromise
   );
   assert.deepEqual(result.args, [
-    'run',
     '--standalone',
+    'run',
+    '--agent',
+    'judgment',
     '--format',
     'json',
     '--model',
-    'opencode/inkling-2-small-free',
-    '--title',
-    'Manual test plan'
+    'opencode/first'
   ]);
   assert.notEqual(result.cwd, repoRoot);
-  assert.deepEqual(result.config.permissions[0], { action: '*', resource: '*', effect: 'deny' });
-  assert.equal(
-    result.config.permissions.some(
-      rule => rule.action === 'external_directory' && rule.resource === `${repoRoot}/*` && rule.effect === 'allow'
-    ),
-    true
-  );
+  const readDirectory = realpathSync(repoRoot);
+  assert.deepEqual(result.config.agents.judgment.permissions, [
+    { action: '*', resource: '*', effect: 'deny' },
+    { action: 'external_directory', resource: `${readDirectory}/*`, effect: 'allow' },
+    { action: 'read', resource: readDirectory, effect: 'allow' },
+    { action: 'read', resource: `${readDirectory}/*`, effect: 'allow' }
+  ]);
   assert.equal(result.githubToken === undefined || result.githubToken === '', true);
   assert.equal(result.apiKey, 'test-key');
   assert.match(result.prompt, /judge this diff/);

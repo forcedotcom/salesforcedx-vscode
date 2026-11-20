@@ -7,9 +7,9 @@
 
 import * as NodeContext from '@effect/platform-node/NodeContext';
 import { Effect, Schema } from 'effect';
-import { openCodePrompt } from './openCodePrompt.mts';
+import { manualTestPlanPrompt } from './manualTestPlan.mts';
 
-await openCodePrompt(process.cwd(), {
+await manualTestPlanPrompt(process.cwd(), {
   skill:
     'Read .github/workflows/manual-test-plan.yml in the repository. Do not read any other files. Reply with only a JSON object: {"name": "<workflow name>", "referencesModelVariable": <boolean indicating whether it references vars.OPENCODE_MODELS>}. No fences or other text.',
   diff: ''
