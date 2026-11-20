@@ -29,7 +29,6 @@ describe('testRunCodeLensProducer', () => {
         services: { TargetOrgRef: () => Effect.succeed(targetOrgRef) }
       })
     } as unknown as ExtensionProviderService);
-
     await expect(Effect.runPromise(hasDefaultOrg().pipe(Effect.provide(extensionProviderLayer)))).resolves.toBe(true);
   });
 
