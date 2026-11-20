@@ -9,7 +9,6 @@
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import { isNotUndefined } from 'effect/Predicate';
-import * as Runtime from 'effect/Runtime';
 import type { OpenAPIV3 } from 'openapi-types';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
@@ -32,18 +31,16 @@ export const withSteppedProgress = <A, E, R>(
   body: (report: ProgressReporter) => Effect.Effect<A, E, R>,
   location: vscode.ProgressLocation = vscode.ProgressLocation.Notification
 ) =>
-  Effect.runtime<R>().pipe(
-    Effect.flatMap(runtime =>
-      Effect.async<A, E>(resume => {
-        void vscode.window.withProgress({ location, title, cancellable: false }, progress => {
-          const report: ProgressReporter = message => Effect.sync(() => progress.report({ message }));
-          return Runtime.runPromiseExit(runtime)(body(report)).then(exit => {
-            resume(exit._tag === 'Success' ? Effect.succeed(exit.value) : Effect.failCause(exit.cause));
-          });
-        });
-      })
-    )
-  );
+  Effect.gen(function* () {
+    const api = yield* (yield* ExtensionProviderService).getServicesApi;
+    const promptService = yield* api.services.PromptService;
+    return yield* promptService.withProgressReporting({
+      title,
+      location,
+      cancellable: false,
+      interruptOnCancel: false
+    })(progress => body(message => Effect.sync(() => progress.report({ message }))));
+  });
 
 /**
  * Creates problem tab entries for an OAS document.
