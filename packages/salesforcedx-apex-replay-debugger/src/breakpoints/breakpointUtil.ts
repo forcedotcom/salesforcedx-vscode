@@ -5,66 +5,51 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { type LineBreakpointInfo } from '@salesforce/salesforcedx-utils';
+import type { LineBreakpointInfo } from '@salesforce/salesforcedx-utils';
 import type { DebugProtocol } from '@vscode/debugprotocol';
 
-export class BreakpointUtil {
-  private static instance: BreakpointUtil;
-  private lineNumberMapping: Map<string, number[]> = new Map();
-  private typerefMapping: Map<string, string> = new Map();
+export type BreakpointMappings = {
+  readonly lineNumbers: ReadonlyMap<string, readonly number[]>;
+  readonly typerefs: ReadonlyMap<string, string>;
+};
 
-  public setValidLines(lineNumberMapping: Map<string, number[]>, typerefMapping: Map<string, string>): void {
-    this.lineNumberMapping = lineNumberMapping;
-    this.typerefMapping = typerefMapping;
-  }
+export const emptyBreakpointMappings = (): BreakpointMappings => ({ lineNumbers: new Map(), typerefs: new Map() });
 
-  public static getInstance(): BreakpointUtil {
-    if (!BreakpointUtil.instance) {
-      BreakpointUtil.instance = new BreakpointUtil();
-    }
-    return BreakpointUtil.instance;
-  }
+export const createBreakpointMappings = (lineBreakpointInfo: readonly LineBreakpointInfo[]): BreakpointMappings =>
+  lineBreakpointInfo.reduce<BreakpointMappings>(
+    (mappings, { uri, typeref, lines }) => ({
+      lineNumbers: new Map(mappings.lineNumbers).set(uri, [...(mappings.lineNumbers.get(uri) ?? []), ...lines]),
+      typerefs: new Map(mappings.typerefs).set(typeref, uri)
+    }),
+    emptyBreakpointMappings()
+  );
 
-  public getLineNumberMapping(): Map<string, number[]> {
-    return this.lineNumberMapping;
-  }
+export const replaceBreakpointMappingsForUri = (
+  mappings: BreakpointMappings,
+  uri: string,
+  lineBreakpointInfo: readonly LineBreakpointInfo[]
+): BreakpointMappings => {
+  const lineNumbers = new Map(mappings.lineNumbers);
+  lineNumbers.delete(uri);
+  const typerefs = new Map([...mappings.typerefs].filter(([, mappedUri]) => mappedUri !== uri));
 
-  public getTyperefMapping(): Map<string, string> {
-    return this.typerefMapping;
-  }
+  return lineBreakpointInfo
+    .filter(info => info.uri === uri)
+    .reduce<BreakpointMappings>(
+      (updated, { typeref, lines }) => ({
+        lineNumbers: new Map(updated.lineNumbers).set(uri, [...(updated.lineNumbers.get(uri) ?? []), ...lines]),
+        typerefs: new Map(updated.typerefs).set(typeref, uri)
+      }),
+      { lineNumbers, typerefs }
+    );
+};
 
-  public canSetLineBreakpoint(uri: string, line: number): boolean {
-    return this.lineNumberMapping.has(uri) && this.lineNumberMapping.get(uri)!.includes(line);
-  }
+export const canSetLineBreakpoint = (mappings: BreakpointMappings, uri: string, line: number): boolean =>
+  mappings.lineNumbers.get(uri)?.includes(line) ?? false;
 
-  public createMappingsFromLineBreakpointInfo(lineBpInfo: LineBreakpointInfo[]): void {
-    // clear out any existing mapping
-    this.lineNumberMapping.clear();
-    this.typerefMapping.clear();
+export const getTopLevelTyperefForUri = (mappings: BreakpointMappings, uri: string): string =>
+  [...mappings.typerefs].find(([typeref, mappedUri]) => mappedUri === uri && !typeref.includes('$'))?.[0] ?? '';
 
-    // set the mapping from the source line info
-    for (const info of lineBpInfo) {
-      if (!this.lineNumberMapping.has(info.uri)) {
-        this.lineNumberMapping.set(info.uri, []);
-      }
-      this.lineNumberMapping.set(info.uri, this.lineNumberMapping.get(info.uri)!.concat(info.lines));
-      this.typerefMapping.set(info.typeref, info.uri);
-    }
-  }
-
-  public returnLinesForLoggingFromBreakpointArgs(bpArr: DebugProtocol.SourceBreakpoint[]): string {
-    return bpArr.map(bp => bp.line).join(',');
-  }
-
-  public getTopLevelTyperefForUri(uriInput: string): string {
-    let returnValue = '';
-    this.typerefMapping.forEach((value, key) => {
-      if (value === uriInput) {
-        if (!key.includes('$')) {
-          returnValue = key;
-        }
-      }
-    });
-    return returnValue;
-  }
-}
+export const returnLinesForLoggingFromBreakpointArgs = (
+  breakpoints: readonly DebugProtocol.SourceBreakpoint[]
+): string => breakpoints.map(breakpoint => breakpoint.line).join(',');

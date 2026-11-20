@@ -5,8 +5,10 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import type { LineBreakpointInfo } from '@salesforce/salesforcedx-utils';
 import {
   DebugSession,
+  BreakpointEvent,
   Event,
   InitializedEvent,
   logger,
@@ -24,7 +26,14 @@ import * as Either from 'effect/Either';
 import * as Predicate from 'effect/Predicate';
 import * as Schema from 'effect/Schema';
 import { EOL } from 'node:os';
-import { breakpointUtil } from '../breakpoints';
+import {
+  canSetLineBreakpoint,
+  createBreakpointMappings,
+  emptyBreakpointMappings,
+  replaceBreakpointMappingsForUri,
+  returnLinesForLoggingFromBreakpointArgs,
+  type BreakpointMappings
+} from '../breakpoints/breakpointUtil';
 import { SEND_METRIC_GENERAL_EVENT, SEND_METRIC_ERROR_EVENT, SEND_METRIC_LAUNCH_EVENT } from '../constants';
 import { HeapDumpService } from '../core/heapDumpService';
 import { LogContext } from '../core/logContext';
@@ -38,6 +47,15 @@ const TRACE_CATEGORY_LOGFILE = 'logfile';
 const TRACE_CATEGORY_LAUNCH = 'launch';
 const TRACE_CATEGORY_BREAKPOINTS = 'breakpoints';
 
+const LineBreakpointInfoSchema = Schema.Struct({
+  uri: Schema.String,
+  typeref: Schema.String,
+  lines: Schema.Array(Schema.Number)
+});
+
+const isLineBreakpointInfo = (value: unknown): value is LineBreakpointInfo =>
+  Schema.is(LineBreakpointInfoSchema)(value);
+
 export class ApexReplayDebug extends LoggingDebugSession {
   public static THREAD_ID = 1;
   protected logContext!: LogContext;
@@ -46,6 +64,12 @@ export class ApexReplayDebug extends LoggingDebugSession {
   protected traceAll = false;
   private initializedResponse!: DebugProtocol.InitializeResponse;
   protected breakpoints: Map<string, number[]> = new Map();
+  protected requestedBreakpoints: Map<string, number[]> = new Map();
+  protected breakpointMappings: BreakpointMappings = emptyBreakpointMappings();
+
+  public getBreakpointMappings(): BreakpointMappings {
+    return this.breakpointMappings;
+  }
 
   constructor() {
     super('apex-replay-debug-adapter.log');
@@ -92,7 +116,7 @@ export class ApexReplayDebug extends LoggingDebugSession {
     let lineBreakpointInfoAvailable = false;
     if (args?.lineBreakpointInfo) {
       lineBreakpointInfoAvailable = true;
-      breakpointUtil.createMappingsFromLineBreakpointInfo(args.lineBreakpointInfo);
+      this.breakpointMappings = createBreakpointMappings(args.lineBreakpointInfo);
       delete args.lineBreakpointInfo;
     }
     response.success = false;
@@ -400,13 +424,17 @@ export class ApexReplayDebug extends LoggingDebugSession {
         TRACE_CATEGORY_BREAKPOINTS,
         `setBreakPointsRequest: path=${
           args.source.path
-        } uri=${uri} lines=${breakpointUtil.returnLinesForLoggingFromBreakpointArgs(args.breakpoints)}`
+        } uri=${uri} lines=${returnLinesForLoggingFromBreakpointArgs(args.breakpoints)}`
       );
       this.breakpoints.set(uri, []);
+      this.requestedBreakpoints.set(
+        uri,
+        args.breakpoints.map(bp => this.convertClientLineToDebugger(bp.line))
+      );
       const isAnonApex = args.source.path?.endsWith('.apex') ?? false;
       for (const bp of args.breakpoints) {
         const isVerified =
-          isAnonApex || breakpointUtil.canSetLineBreakpoint(uri, this.convertClientLineToDebugger(bp.line));
+          isAnonApex || canSetLineBreakpoint(this.breakpointMappings, uri, this.convertClientLineToDebugger(bp.line));
         response.body.breakpoints.push({
           verified: isVerified,
           source: args.source,
@@ -448,6 +476,32 @@ export class ApexReplayDebug extends LoggingDebugSession {
     this.sendResponse(response);
   }
 
+  protected customRequest(command: string, response: DebugProtocol.Response, args: unknown): void {
+    if (command === 'apexReplayDebugger/updateLineBreakpointInfo' && isLineBreakpointInfoUpdate(args)) {
+      this.breakpointMappings = replaceBreakpointMappingsForUri(
+        this.breakpointMappings,
+        args.uri,
+        args.lineBreakpointInfo
+      );
+      const requestedLines = this.requestedBreakpoints.get(args.uri) ?? [];
+      const previousVerifiedLines = new Set(this.breakpoints.get(args.uri));
+      const verifiedLines = requestedLines.filter(line =>
+        canSetLineBreakpoint(this.breakpointMappings, args.uri, line)
+      );
+      const verifiedLineSet = new Set(verifiedLines);
+      this.breakpoints.set(args.uri, verifiedLines);
+      for (const line of requestedLines) {
+        const wasVerified = previousVerifiedLines.has(line);
+        const isVerified = verifiedLineSet.has(line);
+        if (wasVerified !== isVerified) {
+          this.sendEvent(new BreakpointEvent('changed', { verified: isVerified, line }));
+        }
+      }
+    }
+    response.success = true;
+    this.sendResponse(response);
+  }
+
   public log(traceCategory: TraceCategory, message: string) {
     if (this.trace && (this.traceAll || this.trace.includes(traceCategory))) {
       this.printToDebugConsole(`${process.pid}: ${message}`);
@@ -476,5 +530,16 @@ export class ApexReplayDebug extends LoggingDebugSession {
     this.printToDebugConsole(msg, sourceFile, sourceLine, 'stderr');
   }
 }
+
+const isLineBreakpointInfoUpdate = (
+  args: unknown
+): args is { readonly uri: string; readonly lineBreakpointInfo: LineBreakpointInfo[] } =>
+  typeof args === 'object' &&
+  args !== null &&
+  'uri' in args &&
+  typeof args.uri === 'string' &&
+  'lineBreakpointInfo' in args &&
+  Array.isArray(args.lineBreakpointInfo) &&
+  args.lineBreakpointInfo.every(isLineBreakpointInfo);
 
 DebugSession.run(ApexReplayDebug);

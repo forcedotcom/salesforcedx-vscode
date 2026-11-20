@@ -11,7 +11,6 @@ import { type ApexDebugStackFrameInfo } from '../adapter/apexDebugStackFrameInfo
 import { type ApexReplayDebug } from '../adapter/apexReplayDebug';
 import { type HeapDumpResult, type LaunchRequestArguments } from '../adapter/types';
 import { ApexVariableContainer } from '../adapter/variableContainer';
-import { breakpointUtil } from '../breakpoints';
 import {
   EVENT_CODE_UNIT_FINISHED,
   EVENT_CODE_UNIT_STARTED,
@@ -297,7 +296,7 @@ export class LogContext {
       return this.launchArgs.anonApexFilePath ?? this.getLogFilePath();
     }
     return (
-      getSourceUri(signature, breakpointUtil.getTyperefMapping()) ??
+      getSourceUri(signature, this.session.getBreakpointMappings().typerefs) ??
       getSourceUri(signature, Object.entries(this.launchArgs.sourceUriMapping ?? {})) ??
       ''
     );
