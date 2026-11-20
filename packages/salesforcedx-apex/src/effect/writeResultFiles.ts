@@ -9,6 +9,7 @@ import type { ApexReportError } from './errors';
 import type { MarkdownTextReporterOptions } from '../reporters/markdownTextReporter';
 import * as Arr from 'effect/Array';
 import * as Effect from 'effect/Effect';
+import * as Match from 'effect/Match';
 import { isNotUndefined } from 'effect/Predicate';
 import * as Ref from 'effect/Ref';
 import * as Schema from 'effect/Schema';
@@ -94,28 +95,25 @@ const writeFiles = Effect.fn('Apex.writeResultFiles.writeFiles')(function* (
     testResult ? fileFormats.map(format => ({ format, testResult })) : [],
     Effect.fn('Apex.writeResultFiles.writeReport')(function* ({ format, testResult }) {
       const fileName = fileNameForResultFormat(format, fileId);
-
-      switch (format) {
-        case 'json':
-          return yield* fileOutput.writeFile(
+      return yield* Match.value(format).pipe(
+        Match.when('json', () =>
+          fileOutput.writeFile(
             dirPath,
             fileName,
             Stream.fromIterable(stringifyTestResultChunks(testResult, { includeSetup: options.includeSetup }))
-          );
-        case 'tap':
-          return yield* fileOutput.writeFile(dirPath, fileName, formatTapChunks(testResult));
-        case 'junit':
-          return yield* fileOutput.writeFile(dirPath, fileName, formatJUnitChunks(testResult));
-        case 'markdown':
-        case 'text': {
-          const chunks = yield* formatMarkdownTextReportStream(testResult, {
+          )
+        ),
+        Match.when('tap', () => fileOutput.writeFile(dirPath, fileName, formatTapChunks(testResult))),
+        Match.when('junit', () => fileOutput.writeFile(dirPath, fileName, formatJUnitChunks(testResult))),
+        Match.whenOr('markdown', 'text', format =>
+          formatMarkdownTextReportStream(testResult, {
             ...options,
             format,
             codeCoverage: options.codeCoverage
-          });
-          return yield* fileOutput.writeFile(dirPath, fileName, chunks);
-        }
-      }
+          }).pipe(Effect.flatMap(chunks => fileOutput.writeFile(dirPath, fileName, chunks)))
+        ),
+        Match.exhaustive
+      );
     }),
     { concurrency: 1 }
   );
