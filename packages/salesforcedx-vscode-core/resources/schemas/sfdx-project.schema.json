@@ -7,8 +7,6 @@
       "type": "string"
     },
     "packageDirectories": {
-      "title": "Package Directories",
-      "description": "Package directories indicate which directories to target when syncing source to and from the scratch org. These directories can contain source from your managed package, unmanaged package, or unpackaged source, for example, ant tool or change set.",
       "minItems": 1,
       "type": "array",
       "items": {
@@ -22,9 +20,9 @@
                 "type": "boolean"
               },
               "path": {
+                "type": "string",
                 "title": "Path",
-                "description": "If you don't specify a path, the Salesforce CLI uses a placeholder when you create a package.",
-                "type": "string"
+                "description": "If you don't specify a path, the Salesforce CLI uses a placeholder when you create a package."
               }
             },
             "required": [
@@ -41,9 +39,9 @@
                 "type": "boolean"
               },
               "path": {
+                "type": "string",
                 "title": "Path",
-                "description": "If you don't specify a path, the Salesforce CLI uses a placeholder when you create a package.",
-                "type": "string"
+                "description": "If you don't specify a path, the Salesforce CLI uses a placeholder when you create a package."
               },
               "ancestorId": {
                 "title": "Ancestor ID",
@@ -60,8 +58,6 @@
                 "type": "object",
                 "properties": {
                   "permissionSets": {
-                    "title": "Permission Sets",
-                    "description": "The list of permission sets to enable while running Apex tests",
                     "anyOf": [
                       {
                         "type": "array",
@@ -72,11 +68,11 @@
                       {
                         "type": "string"
                       }
-                    ]
+                    ],
+                    "title": "Permission Sets",
+                    "description": "The list of permission sets to enable while running Apex tests"
                   },
                   "permissionSetLicenses": {
-                    "title": "Permission Set Licenses",
-                    "description": "The list of permission sets licenses to enable while running Apex tests",
                     "anyOf": [
                       {
                         "type": "array",
@@ -87,7 +83,9 @@
                       {
                         "type": "string"
                       }
-                    ]
+                    ],
+                    "title": "Permission Set Licenses",
+                    "description": "The list of permission sets licenses to enable while running Apex tests"
                   }
                 },
                 "required": [
@@ -130,9 +128,9 @@
                 "type": "boolean"
               },
               "package": {
+                "type": "string",
                 "title": "Package Identifier",
-                "description": "The package name you specified when creating the package.",
-                "type": "string"
+                "description": "The package name you specified when creating the package."
               },
               "packageMetadataAccess": {
                 "title": "Package Metadata Access",
@@ -140,8 +138,6 @@
                 "type": "object",
                 "properties": {
                   "permissionSets": {
-                    "title": "Permission Sets",
-                    "description": "The list of permission sets to enable while deploying package metadata",
                     "anyOf": [
                       {
                         "type": "string"
@@ -152,11 +148,11 @@
                           "type": "string"
                         }
                       }
-                    ]
+                    ],
+                    "title": "Permission Sets",
+                    "description": "The list of permission sets to enable while deploying package metadata"
                   },
                   "permissionSetLicenses": {
-                    "title": "Permission Set Licenses",
-                    "description": "The list of permission set licenses to enable while deploying package metadata",
                     "anyOf": [
                       {
                         "type": "string"
@@ -167,7 +163,9 @@
                           "type": "string"
                         }
                       }
-                    ]
+                    ],
+                    "title": "Permission Set Licenses",
+                    "description": "The list of permission set licenses to enable while deploying package metadata"
                   }
                 },
                 "required": [
@@ -219,9 +217,9 @@
                 "type": "string"
               },
               "versionNumber": {
+                "type": "string",
                 "title": "Version Number",
-                "description": "Version numbers are formatted as major.minor.patch.build. For example, 1.2.1.8. Required when package is specified.",
-                "type": "string"
+                "description": "Version numbers are formatted as major.minor.patch.build. For example, 1.2.1.8. Required when package is specified."
               },
               "unpackagedMetadata": {
                 "title": "Unpackaged Metadata",
@@ -229,9 +227,9 @@
                 "type": "object",
                 "properties": {
                   "path": {
+                    "type": "string",
                     "title": "Path",
-                    "description": "The path name of the package directory containing the unpackaged metadata",
-                    "type": "string"
+                    "description": "The path name of the package directory containing the unpackaged metadata"
                   }
                 },
                 "required": [
@@ -245,9 +243,9 @@
                 "type": "object",
                 "properties": {
                   "path": {
+                    "type": "string",
                     "title": "Path",
-                    "description": "The path name of the package directory containing the seed metadata",
-                    "type": "string"
+                    "description": "The path name of the package directory containing the seed metadata"
                   }
                 },
                 "required": [
@@ -271,7 +269,9 @@
             "additionalProperties": false
           }
         ]
-      }
+      },
+      "title": "Package Directories",
+      "description": "Package directories indicate which directories to target when syncing source to and from the scratch org. These directories can contain source from your managed package, unmanaged package, or unpackaged source, for example, ant tool or change set."
     },
     "namespace": {
       "description": "A namespace is an alphanumeric identifier that distinguishes your package and its contents from other packages in your customer's org. For steps on how to register a namespace and link it to your Dev Hub org, see Create and Register Your Namespace for Second-Generation Managed Packages on developer.salesforce.com. If you're creating an unlocked package, you can create it without a namespace.",
@@ -334,20 +334,20 @@
         "type": "object",
         "properties": {
           "name": {
+            "type": "string",
             "title": "Bundle Name",
-            "description": "The name of the bundle.",
-            "type": "string"
+            "description": "The name of the bundle."
           },
           "versionName": {
+            "type": "string",
             "title": "Version Name",
-            "description": "Human readable name for the version.",
-            "type": "string"
+            "description": "Human readable name for the version."
           },
           "versionNumber": {
-            "title": "Version Number",
-            "description": "The version number in the format major.minor (e.g., 1.0).",
             "type": "string",
-            "pattern": "^\\d+\\.\\d+$"
+            "pattern": "^\\d+\\.\\d+$",
+            "title": "Version Number",
+            "description": "The version number in the format major.minor (e.g., 1.0)."
           },
           "versionDescription": {
             "title": "Version Description",

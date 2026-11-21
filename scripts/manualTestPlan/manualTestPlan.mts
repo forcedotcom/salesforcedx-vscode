@@ -12,6 +12,7 @@ import * as FileSystem from 'effect/FileSystem';
 import * as Path from 'effect/Path';
 import { pathToFileURL } from 'node:url';
 import { commandOutput } from '../commandOutput.mts';
+import { gitLocalEnv } from '../shared/gitLocalEnv.mts';
 import { openCodePrompt } from '../shared/openCode.mts';
 import { CommandFailed, InvalidBaseRef, Judgment, type Item } from './schema.mts';
 
@@ -29,26 +30,6 @@ export const isRelevantDiffPath = (file: string) => {
     !(parts[0] === 'packages' && ciPackages.has(parts[1] ?? ''))
   );
 };
-// Git hooks export these for their own worktree. This script's git calls use
-// an explicit cwd and must not inherit another worktree's repository or index.
-const gitLocalEnv = {
-  GIT_ALTERNATE_OBJECT_DIRECTORIES: undefined,
-  GIT_CONFIG: undefined,
-  GIT_CONFIG_PARAMETERS: undefined,
-  GIT_CONFIG_COUNT: undefined,
-  GIT_OBJECT_DIRECTORY: undefined,
-  GIT_DIR: undefined,
-  GIT_WORK_TREE: undefined,
-  GIT_IMPLICIT_WORK_TREE: undefined,
-  GIT_GRAFT_FILE: undefined,
-  GIT_INDEX_FILE: undefined,
-  GIT_NO_REPLACE_OBJECTS: undefined,
-  GIT_REPLACE_REF_BASE: undefined,
-  GIT_PREFIX: undefined,
-  GIT_SHALLOW_FILE: undefined,
-  GIT_COMMON_DIR: undefined
-};
-
 type Outcome = { readonly edited: boolean };
 export type PromptInput = { readonly skill: string; readonly diff: string; readonly correction?: string };
 type Attempt =

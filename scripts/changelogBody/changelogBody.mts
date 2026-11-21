@@ -12,6 +12,7 @@ import * as Path from 'effect/Path';
 import { isNotUndefined, isUndefined } from 'effect/Predicate';
 import { pathToFileURL } from 'node:url';
 import { commandOutput } from '../commandOutput.mts';
+import { gitLocalEnv } from '../shared/gitLocalEnv.mts';
 import { openCodePrompt } from '../shared/openCode.mts';
 
 const repo = 'forcedotcom/salesforcedx-vscode';
@@ -63,7 +64,12 @@ const runCommand = Effect.fn('changelogBody.runCommand')(function* (
   command: string,
   args: readonly string[]
 ) {
-  return yield* commandOutput({ executable: command, args, cwd }).pipe(Effect.map(({ stdout }) => stdout));
+  return yield* commandOutput({
+    executable: command,
+    args,
+    cwd,
+    ...(command === 'git' ? { env: gitLocalEnv, extendEnv: true } : {})
+  }).pipe(Effect.map(({ stdout }) => stdout));
 });
 
 const git = Effect.fn('changelogBody.git')(function* (cwd: string, args: readonly string[]) {
