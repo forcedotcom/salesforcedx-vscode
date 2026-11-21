@@ -29,7 +29,7 @@ import { ApexOperationError, ApexResponseDecodeError } from '../effect/schema/er
 import { ApexTestSuiteId } from '../effect/schema/salesforceId';
 import { buildAsyncPayload, buildSyncPayload } from '../effect/testPayloads';
 import { buildSuite, getTestsInSuite, retrieveAllSuites, retrieveSuiteId } from '../effect/testSuites';
-import { type WriteResultFilesOptions, writeResultFiles as writeResultFilesEffect } from '../effect/writeResultFiles';
+import { writeResultFiles as writeResultFilesEffect } from '../effect/writeResultFiles';
 import { nls } from '../i18n';
 import { elapsedTime } from '../utils/elapsedTime';
 import { HeapMonitor } from '../utils/heapMonitor';
@@ -38,6 +38,16 @@ import { type CancellationToken } from './cancellation';
 import { formatTestErrors } from './diagnosticUtil';
 import { SyncTests } from './syncTests';
 
+type WriteTestResultOptions = {
+  format?: 'markdown' | 'text';
+  sortOrder?: 'runtime' | 'coverage' | 'severity';
+  performanceThresholdMs?: number;
+  coverageThresholdPercent?: number;
+  timestamp?: Date;
+  lineEnding?: '\n' | '\r\n';
+  writeTestRunId?: boolean;
+  includeSetup?: boolean;
+};
 /** Keeps typed failures as ordinary Promise rejections for existing class consumers. */
 const runTestServiceOperation = async <A, E extends Error>(operation: Effect.Effect<A, E>): Promise<A> =>
   Result.getOrThrowWith(await operation.pipe(Effect.result, Effect.runPromise), formatTestErrors);
@@ -49,13 +59,11 @@ export class TestService {
   private readonly connection: Connection;
   private readonly asyncService: AsyncTests;
   private readonly syncService: SyncTests;
-  private readonly fileOutput: typeof FileOutput.Service;
 
-  constructor(connection: Connection, fileOutput: typeof FileOutput.Service = NodeFileOutput) {
+  constructor(connection: Connection) {
     this.connection = connection;
-    this.fileOutput = fileOutput;
     this.syncService = new SyncTests(connection);
-    this.asyncService = new AsyncTests(connection, fileOutput);
+    this.asyncService = new AsyncTests(connection, NodeFileOutput);
   }
 
   /**
@@ -217,14 +225,14 @@ export class TestService {
     result: TestResult | TestRunIdResult,
     outputDirConfig: OutputDirConfig,
     codeCoverage = false,
-    reportOptions: Omit<WriteResultFilesOptions, 'codeCoverage'> = {}
+    reportOptions: Omit<WriteTestResultOptions, 'codeCoverage'> = {}
   ): Promise<string[]> {
     HeapMonitor.getInstance().startMonitoring();
     HeapMonitor.getInstance().checkHeapSize('testService.writeResultFiles');
     try {
       return await runTestServiceOperation(
         writeResultFilesEffect(result, outputDirConfig, { ...reportOptions, codeCoverage }).pipe(
-          Effect.provideService(FileOutput, this.fileOutput)
+          Effect.provideService(FileOutput, NodeFileOutput)
         )
       );
     } finally {
