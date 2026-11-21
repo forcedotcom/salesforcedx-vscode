@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "dependencies": {
-    "@salesforce/core": "9.3.6",
+    "@salesforce/core": "^9.4.1",
     "@salesforce/apex-node": "file:./apex.tgz",
     "@salesforce/salesforcedx-utils": "file:./utils.tgz",
     "@salesforce/vscode-services": "file:./legacy.tgz",

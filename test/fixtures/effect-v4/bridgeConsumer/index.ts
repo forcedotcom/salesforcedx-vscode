@@ -27,7 +27,7 @@ const sdkVersion = (require: ReturnType<typeof createRequire>) => JSON.parse(
   readFileSync(new URL('../package.json', pathToFileURL(require.resolve('@salesforce/core'))), 'utf8')
 ).version;
 assert.equal(sdkVersion(requireConsumer), '8.31.3');
-assert.equal(sdkVersion(requireHost), '9.3.6');
+assert.equal(sdkVersion(requireHost), '9.6.0');
 assert.notEqual(requireConsumer.resolve('@salesforce/core'), requireHost.resolve('@salesforce/core'));
 
 const connection = await createOfflineConnection();
@@ -69,7 +69,7 @@ const result = await basicConformance(connection, async value => {
     native.instanceUrl = originalUrl;
     await new Promise<void>((resolve, reject) => server.close(error => error ? reject(error) : resolve()));
   }
-  console.log('PASS producer Core 9.3.6 / consumer Core 8.31.3: genuine V3 bridge, same native Connection, consumer Org.create, native SOQL and Organization lookup');
+  console.log('PASS producer Core 9.6.0 / consumer Core 8.31.3: genuine V3 bridge, same native Connection, consumer Org.create, native SOQL and Organization lookup');
 });
 assert.equal(result.sameConnection, true);
 assert.equal(result.stableRef, true);
