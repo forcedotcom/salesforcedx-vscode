@@ -145,6 +145,7 @@
     "@salesforce/core": "^9.4.1",
     "@salesforce/source-deploy-retrieve": "^13.13.0",
     "@salesforce/source-tracking": "^8.1.16",
+    "@salesforce/templates": "^66.19.0",
     "@types/vscode": "^1.129.0",
     "effect": "^4.1.4",
     "effect-v3": "npm:effect@^3.21.2",
@@ -152,7 +153,6 @@
     "vscode-uri": "^3.1.0"
   },
   "devDependencies": {
-    "@salesforce/templates": "^66.19.0",
     "@salesforce/vscode-services-v3-compat": "*",
     "shx": "^0.4.0"
   },

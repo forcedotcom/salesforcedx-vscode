@@ -1623,6 +1623,9 @@ importers:
       '@salesforce/source-tracking':
         specifier: ^8.1.16
         version: 8.1.16(supports-color@8.1.1)
+      '@salesforce/templates':
+        specifier: ^66.19.0
+        version: 66.20.4
       '@types/vscode':
         specifier: ^1.129.0
         version: 1.146.0
@@ -1639,9 +1642,6 @@ importers:
         specifier: ^3.1.0
         version: 3.2.0
     devDependencies:
-      '@salesforce/templates':
-        specifier: ^66.19.0
-        version: 66.20.4
       '@salesforce/vscode-services-v3-compat':
         specifier: '*'
         version: link:../salesforcedx-vscode-services-v3-compat
