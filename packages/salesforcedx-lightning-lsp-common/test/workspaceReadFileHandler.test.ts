@@ -50,7 +50,7 @@ describe.each(['file', 'memfs'])('workspace filesystem handlers (%s)', scheme =>
       ['example.js', vscode.FileType.File],
       ['nested', vscode.FileType.Directory]
     ]);
-    runtime = ManagedRuntime.make(Layer.setTracer(recordingTracer));
+    runtime = ManagedRuntime.make(Layer.succeed(Tracer.Tracer, recordingTracer));
     registerWorkspaceReadFileHandler(
       client,
       {
