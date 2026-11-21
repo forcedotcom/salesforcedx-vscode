@@ -164,6 +164,8 @@ settings:
 
 overrides:
   '@azure/monitor-opentelemetry-exporter': 1.0.0-beta.47
+  '@salesforce/vscode-services>effect-v3': npm:effect@3.21.2
+  effect@^3.21.2: 3.21.2
   '@effect/platform-node@4.1.4>@effect/platform-node-shared': 4.1.4
   '@vscode/test-web>playwright': ^1.64.1
   '@vscode/test-web>@playwright/browser-chromium': ^1.64.1
@@ -1633,8 +1635,8 @@ importers:
         specifier: ^4.1.4
         version: 4.1.4
       effect-v3:
-        specifier: npm:effect@^3.21.2
-        version: effect@3.22.4
+        specifier: npm:effect@3.21.2
+        version: effect@3.21.2
       jsforce:
         specifier: ^3.10.26
         version: 3.13.1(@types/node@24.19.2)
@@ -1653,10 +1655,10 @@ importers:
     dependencies:
       '@effect/opentelemetry':
         specifier: ^0.63.0
-        version: 0.63.0(@effect/platform@0.96.3(effect@3.22.4))(@opentelemetry/api@1.9.1)(@opentelemetry/resources@2.12.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-logs@0.221.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-metrics@2.12.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-base@2.10.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-node@2.8.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-web@2.8.0(@opentelemetry/api@1.9.1))(@opentelemetry/semantic-conventions@1.45.0)(effect@3.22.4)
+        version: 0.63.0(@effect/platform@0.96.1(effect@3.21.2))(@opentelemetry/api@1.9.1)(@opentelemetry/resources@2.12.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-logs@0.221.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-metrics@2.12.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-base@2.10.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-node@2.8.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-web@2.8.0(@opentelemetry/api@1.9.1))(@opentelemetry/semantic-conventions@1.45.0)(effect@3.21.2)
       '@effect/platform':
-        specifier: ^0.96.1
-        version: 0.96.3(effect@3.22.4)
+        specifier: 0.96.1
+        version: 0.96.1(effect@3.21.2)
       '@jsforce/jsforce-node':
         specifier: ^3.10.24
         version: 3.13.1
@@ -1676,8 +1678,8 @@ importers:
         specifier: ^1.129.0
         version: 1.146.0
       effect:
-        specifier: ^3.21.2
-        version: 3.22.4
+        specifier: 3.21.2
+        version: 3.21.2
       jsforce:
         specifier: ^3.10.26
         version: 3.13.1(@types/node@24.19.2)
@@ -2470,7 +2472,7 @@ packages:
       '@opentelemetry/sdk-trace-node': ^2.0.0
       '@opentelemetry/sdk-trace-web': ^2.0.0
       '@opentelemetry/semantic-conventions': ^1.33.0
-      effect: ^3.21.0
+      effect: 3.21.2
 
   '@effect/opentelemetry@4.1.4':
     resolution: {integrity: sha512-VJnookNrIWk0ZHl51DYMTRHXZrogR13kSSOJzcDxGhyUNDHvgWg217OY4R6bOrtdgM3mrPQiLRGNZ0a7bGyAJg==}
@@ -2517,10 +2519,10 @@ packages:
       effect: ^4.1.4
       redis: '>=5.1.0 <7.0.0'
 
-  '@effect/platform@0.96.3':
-    resolution: {integrity: sha512-LzvIj4HYE++TcTv/cVTCI/GRvQTV0ymwRmgjZMzNB5dU4OS05pTN36RKN0npiOm5orLJgw4yjIv1dNZoYGh/vg==}
+  '@effect/platform@0.96.1':
+    resolution: {integrity: sha512-cjB1QZZYEP8JXCFNGvBLVi0T6YUBQTmOVEUA3SDbiQ6RUO+p6CE3eyD2vMWmrz5nE8yY5QSAuOV9v0boEcUv+A==}
     peerDependencies:
-      effect: ^3.21.5
+      effect: 3.21.2
 
   '@emnapi/core@1.11.2':
     resolution: {integrity: sha512-TC8MkTuZUtcTSiFeuC0ksCh9QIJ5+F21MvZ4Wn4ORfYaFJ/0dsiudv5tVkejgwZlwQ39jL9WWDe2lz8x0WglOA==}
@@ -6802,8 +6804,8 @@ packages:
   ee-first@1.1.1:
     resolution: {integrity: sha512-WMwm9LhRUo+WUaRN+vRuETqG89IgZphVSNkdFgeb6sS/E4OrDIN7t48CAewSHXc6C8lefD8KKfr5vY61brQlow==}
 
-  effect@3.22.4:
-    resolution: {integrity: sha512-RNshu7AXVxxDh6aS4lothhJ+QoZ4xSykbWNaaVdvDN72RMyVwhCGdALkyl1TbEydgAmRIdD1eTyJqBUGwSBGDA==}
+  effect@3.21.2:
+    resolution: {integrity: sha512-rXd2FGDM8KdjSIrc+mqEELo7ScW7xTVxEf1iInmPSpIde9/nyGuFM710cjTo7/EreGXiUX2MOonPpprbz2XHCg==}
 
   effect@4.1.4:
     resolution: {integrity: sha512-Tgrv/9FN+TZYyOn8XSli+fVqAfwDrDAkiX5Uu9vztINb675VTQdhD0gWI5Kzvhlh9QqzjZvw72iugqw5pwoghQ==}
@@ -12674,9 +12676,9 @@ snapshots:
 
   '@effect/language-service@0.87.5': {}
 
-  '@effect/opentelemetry@0.63.0(@effect/platform@0.96.3(effect@3.22.4))(@opentelemetry/api@1.9.1)(@opentelemetry/resources@2.12.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-logs@0.221.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-metrics@2.12.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-base@2.10.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-node@2.8.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-web@2.8.0(@opentelemetry/api@1.9.1))(@opentelemetry/semantic-conventions@1.45.0)(effect@3.22.4)':
+  '@effect/opentelemetry@0.63.0(@effect/platform@0.96.1(effect@3.21.2))(@opentelemetry/api@1.9.1)(@opentelemetry/resources@2.12.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-logs@0.221.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-metrics@2.12.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-base@2.10.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-node@2.8.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-web@2.8.0(@opentelemetry/api@1.9.1))(@opentelemetry/semantic-conventions@1.45.0)(effect@3.21.2)':
     dependencies:
-      '@effect/platform': 0.96.3(effect@3.22.4)
+      '@effect/platform': 0.96.1(effect@3.21.2)
       '@opentelemetry/api': 1.9.1
       '@opentelemetry/resources': 2.12.0(@opentelemetry/api@1.9.1)
       '@opentelemetry/sdk-logs': 0.221.0(@opentelemetry/api@1.9.1)
@@ -12685,7 +12687,7 @@ snapshots:
       '@opentelemetry/sdk-trace-node': 2.8.0(@opentelemetry/api@1.9.1)
       '@opentelemetry/sdk-trace-web': 2.8.0(@opentelemetry/api@1.9.1)
       '@opentelemetry/semantic-conventions': 1.45.0
-      effect: 3.22.4
+      effect: 3.21.2
 
   '@effect/opentelemetry@4.1.4(@opentelemetry/api-logs@0.221.0)(@opentelemetry/api@1.9.1)(@opentelemetry/resources@2.11.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-logs@0.219.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-metrics@2.12.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-base@2.10.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-node@2.8.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-web@2.8.0(@opentelemetry/api@1.9.1))(@opentelemetry/semantic-conventions@1.45.0)(effect@4.1.4)':
     dependencies:
@@ -12734,9 +12736,9 @@ snapshots:
       - bufferutil
       - utf-8-validate
 
-  '@effect/platform@0.96.3(effect@3.22.4)':
+  '@effect/platform@0.96.1(effect@3.21.2)':
     dependencies:
-      effect: 3.22.4
+      effect: 3.21.2
       find-my-way-ts: 0.1.6
       msgpackr: 1.12.1
       multipasta: 0.2.9
@@ -17361,7 +17363,7 @@ snapshots:
 
   ee-first@1.1.1: {}
 
-  effect@3.22.4:
+  effect@3.21.2:
     dependencies:
       '@standard-schema/spec': 1.1.0
       fast-check: 3.23.2

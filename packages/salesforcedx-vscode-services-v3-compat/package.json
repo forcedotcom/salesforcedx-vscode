@@ -50,7 +50,7 @@
   },
   "dependencies": {
     "@effect/opentelemetry": "^0.63.0",
-    "@effect/platform": "^0.96.1",
+    "@effect/platform": "0.96.1",
     "@jsforce/jsforce-node": "^3.10.24",
     "@salesforce/core": "^9.3.6",
     "@salesforce/source-deploy-retrieve": "^13.11.1",
