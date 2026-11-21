@@ -50,17 +50,6 @@ jobs:
             fs.writeFileSync(`${process.env.RUNNER_TEMP}/category-approve-event.json`, JSON.stringify(context.payload));
             const preflightPath = `${process.env.RUNNER_TEMP}/trusted-approver/scripts/category-approve-preflight.cjs`;
             return await require(preflightPath)({ github, context });
-      # Select from trusted code before execution; never retry a failed judgment with another CLI.
-      # Remove Cursor compatibility once develop contains the OpenCode migration.
-      - name: Select trusted approver CLI
-        id: approver
-        if: steps.preflight.outputs.result == 'true'
-        run: |
-          if grep -q "'./shared/openCode.mts'" "$RUNNER_TEMP/trusted-approver/scripts/categoryApprove.mts"; then
-            echo "cli=opencode" >> "$GITHUB_OUTPUT"
-          else
-            echo "cli=cursor" >> "$GITHUB_OUTPUT"
-          fi
       - uses: ./.github/actions/setup-pnpm
         if: steps.preflight.outputs.result == 'true'
         with:
@@ -76,18 +65,14 @@ jobs:
         working-directory: ${{ runner.temp }}/trusted-approver
         run: pnpm --filter @salesforce/effect-octokit compile
       - name: Install OpenCode CLI
-        if: steps.preflight.outputs.result == 'true' && steps.approver.outputs.cli == 'opencode'
-        run: npm install --global @opencode/cli@2.2.5
-      - name: Install Cursor CLI for legacy trusted approver
-        if: steps.preflight.outputs.result == 'true' && steps.approver.outputs.cli == 'cursor'
-        run: curl https://cursor.com/install -fsS | bash
+        if: steps.preflight.outputs.result == 'true'
+        run: npm install --global --allow-scripts=@opencode/cli @opencode/cli@2.2.5
       - name: Decide and approve
         if: steps.preflight.outputs.result == 'true'
         env:
           IDEE_GH_TOKEN: ${{ secrets.IDEE_GH_TOKEN }}
           OPENCODE_API_KEY: ${{ secrets.OPENCODE_API_KEY }}
           OPENCODE_MODELS: ${{ vars.OPENCODE_MODELS }}
-          CURSOR_API_KEY: ${{ steps.approver.outputs.cli == 'cursor' && secrets.IDEE_CURSOR_API_KEY || '' }}
           GITHUB_REPOSITORY: ${{ github.repository }}
           GITHUB_RUN_ID: ${{ github.run_id }}
         run: |
