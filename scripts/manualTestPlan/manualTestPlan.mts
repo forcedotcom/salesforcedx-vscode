@@ -138,7 +138,7 @@ const git = Effect.fn('manualTestPlan.git')(function* (cwd: string, args: readon
   const [text, code] = yield* pipe(
     Command.make('git', ...args),
     Command.workingDirectory(cwd),
-    Command.env(gitLocalEnv),
+    Command.env({ ...process.env, ...gitLocalEnv }, { extendEnv: false }),
     Command.start,
     Effect.flatMap(proc =>
       Effect.all(
