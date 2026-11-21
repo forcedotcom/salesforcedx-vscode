@@ -1,8 +1,7 @@
 import * as NodeServices from '@effect/platform-node/NodeServices';
 import { ConfigProvider, Effect, Result } from 'effect';
 import assert from 'node:assert/strict';
-import { execFileSync } from 'node:child_process';
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { test } from 'node:test';
 import { parse } from 'yaml';
@@ -217,41 +216,12 @@ test('workflows keep trusted approval execution and share the OpenCode key and m
     const text = readFileSync(new URL(`../.github/workflows/${name}.yml`, import.meta.url), 'utf8');
     assert.match(text, /OPENCODE_API_KEY: \$\{\{ secrets.OPENCODE_API_KEY \}\}/);
     assert.match(text, /OPENCODE_MODELS: \$\{\{ vars.OPENCODE_MODELS \}\}/);
-    if (name !== 'categoryApprove') assert.doesNotMatch(text, /CURSOR|cursor|elif/);
+    assert.doesNotMatch(text, /CURSOR|cursor|elif/);
   }
   const workflow = parse(readFileSync(new URL('../.github/workflows/categoryApprove.yml', import.meta.url), 'utf8'));
   const steps = workflow.jobs['category-approve'].steps;
   const install = steps.find((step: { name?: string }) => step.name === 'Install OpenCode CLI');
-  assert.equal(install.if, "steps.preflight.outputs.result == 'true' && steps.approver.outputs.cli == 'opencode'");
+  assert.equal(install.if, "steps.preflight.outputs.result == 'true'");
+  assert.match(install.run, /--allow-scripts=@opencode\/cli/);
   assert.match(steps.at(-1).run, /node "\$RUNNER_TEMP\/trusted-approver\/scripts\/categoryApprove.mts"/);
-});
-
-test('category approval selects the runtime and credentials matching trusted develop during rollout', t => {
-  const workflow = parse(readFileSync(new URL('../.github/workflows/categoryApprove.yml', import.meta.url), 'utf8'));
-  const steps = workflow.jobs['category-approve'].steps;
-  const select = steps.find((step: { id?: string }) => step.id === 'approver');
-  assert.equal(select.if, "steps.preflight.outputs.result == 'true'");
-  const directory = tempDirectory(t);
-  const scripts = join(directory, 'trusted-approver/scripts');
-  mkdirSync(scripts, { recursive: true });
-  for (const [cli, source] of [
-    ['cursor', "Command.make('agent'); Config.string('CURSOR_API_KEY');"],
-    ['opencode', readFileSync(new URL('../scripts/categoryApprove.mts', import.meta.url), 'utf8')]
-  ]) {
-    const output = join(directory, `${cli}.txt`);
-    writeFileSync(join(scripts, 'categoryApprove.mts'), source);
-    execFileSync('bash', ['-eu', '-c', select.run], {
-      env: { ...process.env, RUNNER_TEMP: directory, GITHUB_OUTPUT: output }
-    });
-    assert.equal(readFileSync(output, 'utf8'), `cli=${cli}\n`);
-  }
-  const legacyInstall = steps.find(
-    (step: { name?: string }) => step.name === 'Install Cursor CLI for legacy trusted approver'
-  );
-  assert.equal(legacyInstall.if, "steps.preflight.outputs.result == 'true' && steps.approver.outputs.cli == 'cursor'");
-  assert.match(legacyInstall.run, /curl https:\/\/cursor.com\/install -fsS \| bash/);
-  assert.equal(
-    steps.at(-1).env.CURSOR_API_KEY,
-    "${{ steps.approver.outputs.cli == 'cursor' && secrets.IDEE_CURSOR_API_KEY || '' }}"
-  );
 });
