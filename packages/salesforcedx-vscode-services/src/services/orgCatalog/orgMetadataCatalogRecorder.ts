@@ -18,7 +18,6 @@ import {
   type MetadataOperationEvent,
   type OrgId,
   type OrgMetadataCatalogInternalEntry,
-  type OrgMetadataComponentReference,
   type OrgSObjectDescription,
   type OrgSObjectSummary
 } from '@salesforce/vscode-services/v2';
@@ -30,6 +29,9 @@ import * as HashMap from 'effect/HashMap';
 import * as Layer from 'effect/Layer';
 import * as Option from 'effect/Option';
 import * as PubSub from 'effect/PubSub';
+import * as Result from 'effect/Result';
+import * as Schedule from 'effect/Schedule';
+import * as Stream from 'effect/Stream';
 import * as Struct from 'effect/Struct';
 import type { URI } from 'vscode-uri';
 import { ConnectionHost } from '../connectionHost.js';
@@ -84,49 +86,74 @@ type RecordSObjectDescription = (
   Effect.Error<ReturnType<TransmogrifierService['Service']['toMinimalSObject']>> | InactiveOrgOperationError
 >;
 const observedAt = DateTime.now.pipe(Effect.map(DateTime.formatIso));
-const compareTrackingObservations = (
-  previous: RemoteTrackingObservations,
-  current: RemoteTrackingObservations
-): OrgMetadataComponentReference[] =>
-  Arr.dedupe([...previous.identityOrder, ...current.identityOrder]).flatMap(identity => {
-    const before = Option.getOrUndefined(HashMap.get(previous.byIdentity, identity));
-    const after = Option.getOrUndefined(HashMap.get(current.byIdentity, identity));
-    return before?.signature === after?.signature ? [] : after ? [after.reference] : before ? [before.reference] : [];
-  });
-const trackingObservations = (
+export const compareTrackingObservations = Effect.fn('OrgMetadataCatalogRecorder.compareTrackingObservations')(
+  (previous: RemoteTrackingObservations, current: RemoteTrackingObservations) =>
+    Stream.fromIterable(previous).pipe(
+      Stream.filterMap(([identity, previousObservation]) =>
+        Option.match(HashMap.get(current, identity), {
+          onNone: () => Result.succeed(previousObservation.reference),
+          onSome: currentObservation =>
+            previousObservation.signature === currentObservation.signature
+              ? Result.fail(undefined)
+              : Result.succeed(currentObservation.reference)
+        })
+      ),
+      Stream.concat(
+        Stream.fromIterable(current).pipe(
+          Stream.filterMap(([identity, observation]) =>
+            HashMap.has(previous, identity) ? Result.fail(undefined) : Result.succeed(observation.reference)
+          )
+        )
+      ),
+      Stream.runCollect
+    )
+);
+const trackingBatches = <A>(values: readonly A[]) =>
+  Stream.fromIterable(values).pipe(Stream.grouped(1024), stream =>
+    values.length > 1024 ? stream.pipe(Stream.schedule(Schedule.spaced('1 millis'))) : stream
+  );
+const trackingObservations = Effect.fn('OrgMetadataCatalogRecorder.trackingObservations')(function* (
   status: readonly TrackingStatusRow[],
   changes: readonly TrackingRemoteChange[]
-): RemoteTrackingObservations => {
-  const revisions = HashMap.fromIterable(
-    changes.map(
-      change =>
-        [
-          componentIdentity({ xmlName: change.type, fullName: change.name }),
-          JSON.stringify([
-            change.revisionCounter,
-            change.lastModifiedDate,
-            change.memberIdOrName,
-            change.deleted,
-            change.modified
-          ])
-        ] as const
-    )
-  );
-  const remote = status.filter(row => row.origin === 'remote');
-  return {
-    byIdentity: HashMap.fromIterable(
-      remote.map((row): readonly [string, RemoteTrackingObservation] => {
-        const reference = { xmlName: row.type, fullName: row.fullName };
-        const identity = componentIdentity(reference);
-        return [
-          identity,
-          { reference, signature: `${row.state}\0${Option.getOrElse(HashMap.get(revisions, identity), () => '')}` }
-        ];
-      })
+) {
+  const revisions = yield* trackingBatches(changes).pipe(
+    Stream.runFold(
+      () => HashMap.beginMutation(HashMap.empty<string, string>()),
+      (revisionMap, batch) =>
+        batch.reduce(
+          (current, change) =>
+            HashMap.set(
+              current,
+              componentIdentity({ xmlName: change.type, fullName: change.name }),
+              JSON.stringify([
+                change.revisionCounter,
+                change.lastModifiedDate,
+                change.memberIdOrName,
+                change.deleted,
+                change.modified
+              ])
+            ),
+          revisionMap
+        )
     ),
-    identityOrder: Arr.dedupe(remote.map(row => componentIdentity({ xmlName: row.type, fullName: row.fullName })))
-  };
-};
+    Effect.map(HashMap.endMutation)
+  );
+  return yield* trackingBatches(status.filter(row => row.origin === 'remote')).pipe(
+    Stream.runFold(
+      () => HashMap.beginMutation(HashMap.empty<string, RemoteTrackingObservation>()),
+      (tracking, batch) =>
+        batch.reduce((current, row) => {
+          const reference = { xmlName: row.type, fullName: row.fullName };
+          const key = componentIdentity(reference);
+          return HashMap.set(tracking, key, {
+            reference,
+            signature: `${row.state}\0${Option.getOrElse(HashMap.get(revisions, key), () => '')}`
+          });
+        }, tracking)
+    ),
+    Effect.map(HashMap.endMutation)
+  );
+});
 
 const makeOrgMetadataCatalogRecorder = Effect.gen(function* () {
   const state = yield* OrgCatalogState;
@@ -340,8 +367,9 @@ const makeOrgMetadataCatalogRecorder = Effect.gen(function* () {
     remote: readonly TrackingRemoteChange[]
   ) {
     yield* state.ensureHydrated(orgId);
-    const observations = trackingObservations(status, remote);
-    return { observations, references: compareTrackingObservations(yield* state.getTracking(orgId), observations) };
+    const observations = yield* trackingObservations(status, remote);
+    const references = yield* compareTrackingObservations(yield* state.getTracking(orgId), observations);
+    return { observations, references };
   }, operations.run);
   const commitTrackingStatus = Effect.fn('OrgMetadataCatalogRecorder.commitTrackingStatus')(function* (
     orgId: OrgId,

@@ -19,7 +19,8 @@ import {
   createMinimalOrg,
   validateNoCriticalErrors,
   waitForVSCodeWorkbench,
-  ensureSecondarySideBarHidden
+  ensureSecondarySideBarHidden,
+  startVideoRecording
 } from '@salesforce/playwright-vscode-ext';
 import { upsertRetrieveOnLoadSetting } from '../pages/settingsPage';
 import { SERVICES_CHANNEL_NAME } from '../../../src/constants';
@@ -30,33 +31,45 @@ test.beforeEach(async ({ page }) => {
   await ensureSecondarySideBarHidden(page);
 });
 
-test('handles project resolution with retry logic', async ({ page }) => {
+test('handles project resolution with retry logic', async ({ page }, testInfo) => {
   test.setTimeout(10 * 60 * 1000);
 
   const consoleErrors = setupConsoleMonitoring(page);
   const networkErrors = setupNetworkMonitoring(page);
 
-  await test.step('setup org auth and configure retrieveOnLoad setting', async () => {
+  await test.step('setup org auth', async () => {
     const orgAuth = await createMinimalOrg();
     await upsertScratchOrgAuthFieldsToSettings(page, orgAuth);
-    await upsertRetrieveOnLoadSetting(page, 'CustomObject:Account');
   });
 
-  await test.step('verify project resolution succeeds', async () => {
-    await ensureOutputPanelOpen(page);
-    await selectOutputChannel(page, SERVICES_CHANNEL_NAME);
+  const videoName = [testInfo.project.name, ...testInfo.titlePath, 'project-resolution', `retry-${testInfo.retry}`]
+    .join('-')
+    .replaceAll(/[^a-zA-Z0-9._-]+/g, '-')
+    .replaceAll(/^-+|-+$/g, '');
+  const stopRecording = await startVideoRecording(page, testInfo, videoName);
+  try {
+    await test.step('configure retrieveOnLoad setting', async () => {
+      await upsertRetrieveOnLoadSetting(page, 'CustomObject:Account');
+    });
 
-    // Should not see project resolution failure message
-    await waitForOutputChannelText(page, { expectedText: 'Retrieving metadata on load', timeout: 90_000 });
+    await test.step('verify project resolution succeeds', async () => {
+      await ensureOutputPanelOpen(page);
+      await selectOutputChannel(page, SERVICES_CHANNEL_NAME);
 
-    const hasProjectFailure = await outputChannelContains(page, 'Project resolution failed');
-    expect(hasProjectFailure, 'Should not fail project resolution with retry logic').toBe(false);
-  });
+      // Should not see project resolution failure message
+      await waitForOutputChannelText(page, { expectedText: 'Retrieving metadata on load', timeout: 90_000 });
 
-  await test.step('verify retrieval completes successfully', async () => {
-    await waitForOutputChannelText(page, { expectedText: 'Retrieve on load completed', timeout: 300_000 });
-    await waitForOutputChannelText(page, { expectedText: 'files retrieved successfully' });
-  });
+      const hasProjectFailure = await outputChannelContains(page, 'Project resolution failed');
+      expect(hasProjectFailure, 'Should not fail project resolution with retry logic').toBe(false);
+    });
 
-  await validateNoCriticalErrors(test, consoleErrors, networkErrors);
+    await test.step('verify retrieval completes successfully', async () => {
+      await waitForOutputChannelText(page, { expectedText: 'Retrieve on load completed', timeout: 300_000 });
+      await waitForOutputChannelText(page, { expectedText: 'files retrieved successfully' });
+    });
+
+    await validateNoCriticalErrors(test, consoleErrors, networkErrors);
+  } finally {
+    await stopRecording();
+  }
 });

@@ -24,7 +24,6 @@
     "@actions/github": "^8.0.1",
     "@commitlint/cli": "^19.8.1",
     "@commitlint/config-conventional": "^19.8.1",
-    "@cursor/sdk": "1.0.35",
     "@effect/eslint-plugin": "^0.3.2",
     "@effect/language-service": "^0.87.5",
     "@effect/platform-node": "^4.1.4",
@@ -40,7 +39,7 @@
     "@octokit/webhooks-types": "7.6.1",
     "@playwright/test": "^1.64.1",
     "@salesforce/apex-tmlanguage": "^2.0.3",
-    "@salesforce/core": "^9.3.6",
+    "@salesforce/core": "^9.4.1",
     "@salesforce/dev-config": "^4.3.2",
     "@salesforce/effect-octokit": "workspace:*",
     "@secretlint/node": "11.7.1",
@@ -139,12 +138,13 @@
     "test": "wireit",
     "test:ai-safeguards": "wireit",
     "test:manual-test-plan": "wireit",
+    "test:ci-ai": "wireit",
     "test:scripts": "wireit",
     "test:effect-v4-compat": "wireit",
     "test:effect-v3-bridge": "wireit",
     "test:foundational-services": "wireit",
     "test:packed-services": "wireit",
-    "test-vsix": "node scripts/installVsixFromBranch.mts code",
+    "test-vsix": "wireit",
     "test:container:local": "wireit",
     "check:links": "find . -name \\*.md -not -path '*/node_modules/*' -print0 | xargs -0 -n1 pnpm exec markdown-link-check --quiet --alive 200,206,429",
     "check:dupes": "pnpm exec jscpd",
@@ -285,6 +285,7 @@
         "check:extension-launch",
         "test:ai-safeguards",
         "test:manual-test-plan",
+        "test:ci-ai",
         "test:scripts",
         "test:effect-v4-compat",
         "test:effect-v3-bridge",
@@ -345,6 +346,7 @@
         "scripts/shared/categoryGates.cjs",
         "scripts/shared/categoryGates.d.cts",
         "scripts/shared/categoryDecision.mts",
+        "scripts/shared/openCode.mts",
         "scripts/shared/scriptErrors.mts",
         ".github/workflows/categoryApprove.yml",
         "APPROVAL_POLICY.md",
@@ -362,8 +364,25 @@
       ],
       "files": [
         "scripts/manualTestPlan/**/*.mts",
+        "scripts/shared/openCode.mts",
+        ".opencode/skills/manual-test-plan-judgment/SKILL.md",
         "scripts/manualTestPlan/tsconfig.json",
         ".github/workflows/manual-test-plan.yml"
+      ],
+      "output": []
+    },
+    "test:ci-ai": {
+      "command": "node --test test/ci-ai.test.mts",
+      "files": [
+        "scripts/shared/openCode.mts",
+        "scripts/shared/categoryDecision.mts",
+        "scripts/changelogBody/**/*.mts",
+        "scripts/manualTestPlan/**/*.mts",
+        ".opencode/skills/{changelog-judgment,manual-test-plan-judgment}/SKILL.md",
+        ".github/actions/setup-opencode/action.yml",
+        ".github/workflows/{changelog-body,categoryApprove,manual-test-plan,ci-ai-smoke}.yml",
+        "test/ci-ai*.mts",
+        "test/ciAiFixtures.mts"
       ],
       "output": []
     },
@@ -483,6 +502,12 @@
         "pnpm-lock.yaml"
       ],
       "output": []
+    },
+    "test-vsix": {
+      "command": "node scripts/installVsixFromCurrentBranch.mts code",
+      "dependencies": [
+        "./packages/effect-octokit:compile"
+      ]
     },
     "test:container:local": {
       "command": "node scripts/codeBuilderLocalE2E.mts",

@@ -7,7 +7,7 @@
   "repository": {
     "url": "https://github.com/forcedotcom/salesforcedx-vscode"
   },
-  "version": "68.13.1",
+  "version": "68.15.2",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -35,7 +35,7 @@
     "@salesforce/vscode-services": "*"
   },
   "devDependencies": {
-    "@salesforce/core": "^9.3.0",
+    "@salesforce/core": "^9.4.1",
     "@salesforce/playwright-vscode-ext": "workspace:*",
     "salesforcedx-vscode-services": "workspace:*"
   },

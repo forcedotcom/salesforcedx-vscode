@@ -17,7 +17,9 @@ import type {
 } from './apiTypes';
 import { type Connection } from '@salesforce/core';
 import { type Duration } from '@salesforce/kit';
+import * as Arr from 'effect/Array';
 import * as Effect from 'effect/Effect';
+import * as Logger from 'effect/Logger';
 import * as Option from 'effect/Option';
 import * as Result from 'effect/Result';
 import * as Schema from 'effect/Schema';
@@ -27,7 +29,7 @@ import { ApexOperationError, ApexResponseDecodeError } from '../effect/schema/er
 import { ApexTestSuiteId } from '../effect/schema/salesforceId';
 import { buildAsyncPayload, buildSyncPayload } from '../effect/testPayloads';
 import { buildSuite, getTestsInSuite, retrieveAllSuites, retrieveSuiteId } from '../effect/testSuites';
-import { writeResultFiles as writeResultFilesEffect } from '../effect/writeResultFiles';
+import { type WriteResultFilesOptions, writeResultFiles as writeResultFilesEffect } from '../effect/writeResultFiles';
 import { nls } from '../i18n';
 import { elapsedTime } from '../utils/elapsedTime';
 import { HeapMonitor } from '../utils/heapMonitor';
@@ -36,29 +38,24 @@ import { type CancellationToken } from './cancellation';
 import { formatTestErrors } from './diagnosticUtil';
 import { SyncTests } from './syncTests';
 
-type WriteTestResultOptions = {
-  format?: 'markdown' | 'text';
-  sortOrder?: 'runtime' | 'coverage' | 'severity';
-  performanceThresholdMs?: number;
-  coverageThresholdPercent?: number;
-  timestamp?: Date;
-  lineEnding?: '\n' | '\r\n';
-  writeTestRunId?: boolean;
-  includeSetup?: boolean;
-};
 /** Keeps typed failures as ordinary Promise rejections for existing class consumers. */
 const runTestServiceOperation = async <A, E extends Error>(operation: Effect.Effect<A, E>): Promise<A> =>
   Result.getOrThrowWith(await operation.pipe(Effect.result, Effect.runPromise), formatTestErrors);
+
+// Preserve the class API's plain console messages while Effect consumers select their own logger.
+const suiteConsoleLogger = Logger.make(({ message }) => console.log(...Arr.ensure(message)));
 
 export class TestService {
   private readonly connection: Connection;
   private readonly asyncService: AsyncTests;
   private readonly syncService: SyncTests;
+  private readonly fileOutput: typeof FileOutput.Service;
 
-  constructor(connection: Connection) {
+  constructor(connection: Connection, fileOutput: typeof FileOutput.Service = NodeFileOutput) {
     this.connection = connection;
+    this.fileOutput = fileOutput;
     this.syncService = new SyncTests(connection);
-    this.asyncService = new AsyncTests(connection, NodeFileOutput);
+    this.asyncService = new AsyncTests(connection, fileOutput);
   }
 
   /**
@@ -119,7 +116,18 @@ export class TestService {
    * @internal Used by the co-repo Apex Testing extension; not part of the supported npm API.
    */
   public async buildSuite(suitename: string, testClasses: string[]): Promise<void> {
-    return runTestServiceOperation(buildSuite(this.connection, suitename, testClasses));
+    const connection = this.connection;
+    return runTestServiceOperation(
+      Effect.gen(function* () {
+        const loggers = yield* Effect.service(Logger.CurrentLoggers);
+        return yield* buildSuite(connection, suitename, testClasses).pipe(
+          Effect.provideService(
+            Logger.CurrentLoggers,
+            new Set([...loggers].filter(logger => logger !== Logger.defaultLogger).concat(suiteConsoleLogger))
+          )
+        );
+      })
+    );
   }
 
   /**
@@ -209,14 +217,14 @@ export class TestService {
     result: TestResult | TestRunIdResult,
     outputDirConfig: OutputDirConfig,
     codeCoverage = false,
-    reportOptions: Omit<WriteTestResultOptions, 'codeCoverage'> = {}
+    reportOptions: Omit<WriteResultFilesOptions, 'codeCoverage'> = {}
   ): Promise<string[]> {
     HeapMonitor.getInstance().startMonitoring();
     HeapMonitor.getInstance().checkHeapSize('testService.writeResultFiles');
     try {
       return await runTestServiceOperation(
         writeResultFilesEffect(result, outputDirConfig, { ...reportOptions, codeCoverage }).pipe(
-          Effect.provideService(FileOutput, NodeFileOutput)
+          Effect.provideService(FileOutput, this.fileOutput)
         )
       );
     } finally {

@@ -357,7 +357,7 @@ it('does not resurrect inventory, SObject, or tracking removals during late hydr
     expect(await runtime.runPromise(state.getSObjectList(orgId))).toBeUndefined();
     expect(await runtime.runPromise(state.getSObjectDescription(orgId, 'Account'))).toBeUndefined();
     expect(await runtime.runPromise(state.getSObjectDescription(orgId, 'Contact'))).toBeDefined();
-    expect((await runtime.runPromise(state.getTracking(orgId))).identityOrder).toEqual([]);
+    expect(Array.from(await runtime.runPromise(state.getTracking(orgId)))).toEqual([]);
   } finally {
     await runtime.dispose();
   }

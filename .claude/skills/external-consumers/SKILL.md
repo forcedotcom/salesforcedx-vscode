@@ -73,7 +73,7 @@ Via `vscode.extensions.getExtension('salesforce.salesforcedx-vscode-services')`:
 
 > **einstein-gpt directly consumes the services extension API** (separate from its core dependency and its `@salesforce/vscode-service-provider` telemetry use). `packages/extension/src/services/auth/org-service.ts` (on the actively-shipping `main` branch, which now builds `afv-v4` via `release.yml`) resolves `salesforce.salesforcedx-vscode-services`, duplicates a local `SalesforceVSCodeServicesApi` type, and calls `api.services.ConnectionService.getConnection()`, `api.services.TargetOrgRef()`, and reads `api.services.prebuiltServicesDependencies`. **Check changes to `ConnectionService.getConnection`, `TargetOrgRef`, or `prebuiltServicesDependencies` against this consumer** — breaking any of them is a breaking change even though code search on `main` may not surface the duplicated type.
 
-> **debug-log-analyzer still consumes the root V3 API, not `/v2`.** `lana/package.json` declares `@salesforce/vscode-services` `^68.4.1` and Effect `^3.22.2`. `lana/src/services/servicesRuntime.ts` rejects startup unless the legacy context contains `ApexLogService` and `FsService`; `lana/src/services/salesforceServices.ts` calls `listLogs`, `getLogBody`, `safeWriteFile`, and `TargetOrgRef()`. When changing V4 implementations, verify both the V3 bridge used today and the corresponding `/v2` public services.
+> **debug-log-analyzer directly consumes the services extension API.** `lana/src/services/servicesRuntime.ts` validates `ApexLogService.listLogs/getLogBody` and `FsService.safeWriteFile` in `prebuiltServicesDependencies`; `lana/src/services/salesforceServices.ts` calls them and `TargetOrgRef()`. Check changes to these APIs against this consumer.
 
 ## `@salesforce/vscode-service-provider` consumers
 
@@ -104,7 +104,7 @@ No current in-repo `.exports` consumers of `SalesforceVSCodeCoreApi`.
 
 ## Keeping current
 
-Last full inventory audit: 2026-09-29; `debug-log-analyzer` checked 2026-11-13. Before asserting "nobody uses X":
+Last full inventory audit: 2026-09-29; `debug-log-analyzer` added 2026-11-13. Before asserting "nobody uses X":
 1. Grep monorepo for `\.exports\.MEMBER`
 2. Search `org:forcedotcom` and `org:salesforcecli` via `gh api`
 3. Read private repos via contents API

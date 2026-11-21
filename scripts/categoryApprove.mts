@@ -5,33 +5,27 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import * as FileSystem from 'effect/FileSystem';
-import * as Path from 'effect/Path';
-import * as ChildProcess from 'effect/process/ChildProcess';
-import * as ChildProcessSpawner from 'effect/process/ChildProcessSpawner';
+
 import * as NodeServices from '@effect/platform-node/NodeServices';
-import * as Config from 'effect/Config';
+import {
+  actionsEnvironment,
+  findApprovedReviewOnHead,
+  GitHub,
+  GitHubLayer,
+  readCheckEvent,
+  type CheckEvent,
+  withoutWorkflowRun
+} from '@salesforce/effect-octokit';
 import * as Cause from 'effect/Cause';
 import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
 import * as Match from 'effect/Match';
 import * as Option from 'effect/Option';
 import { isNumber, isUndefined } from 'effect/Predicate';
-import * as Stream from 'effect/Stream';
-import {
-  actionsEnvironment,
-  type CheckEvent,
-  findApprovedReviewOnHead,
-  GitHub,
-  GitHubLayer,
-  readCheckEvent,
-  withoutWorkflowRun
-} from '@salesforce/effect-octokit';
-import { AgentError, GitError } from './shared/scriptErrors.mts';
+import { commandOutput } from './commandOutput.mts';
 import {
   BASE_BRANCH,
   BOT_LOGIN,
-  MODEL,
   TEAM_ORG,
   TEAM_SLUG,
   type Decision,
@@ -42,39 +36,13 @@ import {
   decideCategoryApprove,
   parseAgentResult
 } from './shared/categoryDecision.mts';
+import { openCodePrompt } from './shared/openCode.mts';
+import { GitError } from './shared/scriptErrors.mts';
 
-// Blank inherited values so the agent only sees its allowlist.
-const agentEnvironment = (home: string, pathEnv: string, apiKey: string) => ({
-  ...Object.fromEntries(
-    Object.entries(process.env).flatMap(([key, value]) => (value === undefined ? [] : [[key, '']]))
-  ),
-  PATH: `${home}/.local/bin:${pathEnv}`,
-  HOME: home,
-  CURSOR_API_KEY: apiKey
-});
-
-const commandOutput = Effect.fn('categoryApprove.commandOutput')(function* (command: ChildProcess.Command) {
-  const spawner = yield* ChildProcessSpawner.ChildProcessSpawner;
-  const handle = yield* spawner.spawn(command);
-  return yield* Effect.all(
-    [
-      Stream.mkString(Stream.decodeText(handle.stdout)),
-      Stream.mkString(Stream.decodeText(handle.stderr)),
-      handle.exitCode
-    ],
-    { concurrency: 'unbounded' }
-  );
-});
-
-const gitText = (args: ReadonlyArray<string>) =>
-  commandOutput(ChildProcess.make('git', args)).pipe(
-    Effect.scoped,
-    Effect.filterOrFail(
-      ([, , code]) => code === 0,
-      ([, stderr, code]) =>
-        new GitError({ message: stderr.length === 0 ? `git ${args.join(' ')} exited ${code}` : stderr })
-    ),
-    Effect.map(([stdout]) => stdout)
+const gitText = (args: readonly string[]) =>
+  commandOutput({ executable: 'git', args }).pipe(
+    Effect.map(({ stdout }) => stdout),
+    Effect.catchTag('CommandFailed', error => Effect.fail(new GitError({ message: error.message })))
   );
 
 const listChecks = Effect.fn('categoryApprove.listChecks')(function* (
@@ -91,39 +59,9 @@ const listChecks = Effect.fn('categoryApprove.listChecks')(function* (
   return { statuses: status.statuses, checkRuns: withoutWorkflowRun(runs, runId) };
 });
 
-const classify = Effect.fn('categoryApprove.classify')(function* (policy: string, diffPath: string) {
-  return yield* Effect.all([Config.String('CURSOR_API_KEY'), Config.String('PATH'), Config.String('HOME')], {
-    concurrency: 'unbounded'
-  }).pipe(
-    Effect.flatMap(([apiKey, pathEnv, home]) =>
-      commandOutput(
-        ChildProcess.make(
-          'agent',
-          ['--trust', '-p', '--model', MODEL, '--output-format', 'json', buildPrompt(policy, diffPath)],
-          {
-            env: agentEnvironment(home, pathEnv, apiKey),
-            extendEnv: true,
-            stdin: Stream.empty
-          }
-        )
-      ).pipe(Effect.scoped)
-    ),
-    Effect.filterOrFail(
-      ([, , code]) => code === 0,
-      ([, stderr, code]) => new AgentError({ message: `agent exited ${code}: ${stderr}` })
-    ),
-    Effect.map(([stdout]) => parseAgentResult(stdout))
-  );
-});
-
-const writeDiff = Effect.fn('categoryApprove.writeDiff')(function* (policy: string, diff: string) {
-  const fs = yield* FileSystem.FileSystem;
-  const dir = yield* fs.makeTempDirectoryScoped({ prefix: 'category-approve-' });
-  const path = yield* Path.Path;
-  const diffPath = path.join(dir, 'pr.diff');
-  yield* fs.writeFileString(diffPath, diff);
-  return yield* classify(policy, diffPath);
-});
+const classify = Effect.fn('categoryApprove.classify')((policy: string, diff: string) =>
+  openCodePrompt({ prompt: buildPrompt(policy, diff) }).pipe(Effect.map(parseAgentResult))
+);
 
 const approve = Effect.fn('categoryApprove.approve')(function* (
   owner: string,
@@ -247,10 +185,7 @@ const onePull = Effect.fn('categoryApprove.onePull')(function* (
       () => Effect.succeed([])
     ),
     Match.orElse(() =>
-      gitText(['diff', `origin/${baseRef}...${headSha}`]).pipe(
-        Effect.flatMap(diff => writeDiff(policy, diff)),
-        Effect.scoped
-      )
+      gitText(['diff', `origin/${baseRef}...${headSha}`]).pipe(Effect.flatMap(diff => classify(policy, diff)))
     ),
     Effect.flatMap(categories =>
       listChecks(owner, repo, headSha, runId).pipe(

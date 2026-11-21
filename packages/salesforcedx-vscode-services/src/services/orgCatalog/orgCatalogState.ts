@@ -44,7 +44,7 @@ import {
 } from './orgMetadataCatalogStore.js';
 
 const hierarchyGenerationKey = (orgId: OrgId, xmlName?: string) => `${orgId}\0${xmlName ?? ''}`;
-const emptyTracking = (): RemoteTrackingObservations => ({ byIdentity: HashMap.empty(), identityOrder: [] });
+const emptyTracking = (): RemoteTrackingObservations => HashMap.empty();
 const setIfChanged = <K, V>(cache: Ref.Ref<HashMap.HashMap<K, V>>, key: K, value: V) =>
   Ref.modify(cache, current => {
     const changed = JSON.stringify(Option.getOrUndefined(HashMap.get(current, key))) !== JSON.stringify(value);
@@ -171,7 +171,7 @@ const makeOrgCatalogState = Effect.gen(function* () {
               .map(([, value]) => value)
               .toSorted(bySObjectName)
           },
-          tracking: HashMap.toValues(Option.getOrElse(HashMap.get(tracking, orgId), emptyTracking).byIdentity)
+          tracking: HashMap.toValues(Option.getOrElse(HashMap.get(tracking, orgId), emptyTracking))
             .map(value => ({
               xmlName: value.reference.xmlName,
               fullName: value.reference.fullName,
@@ -301,8 +301,10 @@ const makeOrgCatalogState = Effect.gen(function* () {
           yield* Ref.update(remoteTrackingCache, current =>
             HashMap.has(current, orgId)
               ? current
-              : HashMap.set(current, orgId, {
-                  byIdentity: HashMap.fromIterable(
+              : HashMap.set(
+                  current,
+                  orgId,
+                  HashMap.fromIterable(
                     tracking.map(
                       value =>
                         [
@@ -313,11 +315,8 @@ const makeOrgCatalogState = Effect.gen(function* () {
                           }
                         ] as const
                     )
-                  ),
-                  identityOrder: tracking.map(value =>
-                    componentIdentity({ xmlName: value.xmlName, fullName: value.fullName })
                   )
-                })
+                )
           );
           yield* Ref.update(metadataTypeCache, current =>
             HashMap.has(current, orgId) ? current : HashMap.set(current, orgId, snapshot.metadataTypes)
@@ -650,11 +649,7 @@ const makeOrgCatalogState = Effect.gen(function* () {
             Ref.update(remoteTrackingCache, current =>
               Option.match(HashMap.get(current, orgId), {
                 onNone: () => current,
-                onSome: rows =>
-                  HashMap.set(current, orgId, {
-                    byIdentity: HashMap.filter(rows.byIdentity, (_value, identity) => !identities.has(identity)),
-                    identityOrder: rows.identityOrder.filter(identity => !identities.has(identity))
-                  })
+                onSome: rows => HashMap.set(current, orgId, HashMap.removeMany(rows, identities))
               })
             )
           ),

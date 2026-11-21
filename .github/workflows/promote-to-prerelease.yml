@@ -148,7 +148,7 @@ jobs:
             echo "from-ref=$FROM_REF" >> "$GITHUB_OUTPUT"
           fi
 
-  # Step 3b: Ask the Cursor-backed changelog body action (.github/workflows/changelog-body.yml)
+  # Step 3b: Ask the OpenCode-backed changelog body action (.github/workflows/changelog-body.yml)
   # to turn this week's commits into a polished, customer-facing markdown body -- no GUS refs,
   # package dedupe and Under-the-Hood consolidation already applied -- before it ever reaches
   # develop or a marketplace VSIX.

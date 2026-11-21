@@ -49,9 +49,18 @@ jobs:
             const fs = require('node:fs');
             fs.writeFileSync(`${process.env.RUNNER_TEMP}/category-approve-event.json`, JSON.stringify(context.payload));
             const preflightPath = `${process.env.RUNNER_TEMP}/trusted-approver/scripts/category-approve-preflight.cjs`;
-            // Until develop contains the helper, run the existing trusted approver without preflight skips.
-            if (!fs.existsSync(preflightPath)) return true;
             return await require(preflightPath)({ github, context });
+      # Select from trusted code before execution; never retry a failed judgment with another CLI.
+      # Remove Cursor compatibility once develop contains the OpenCode migration.
+      - name: Select trusted approver CLI
+        id: approver
+        if: steps.preflight.outputs.result == 'true'
+        run: |
+          if grep -q "'./shared/openCode.mts'" "$RUNNER_TEMP/trusted-approver/scripts/categoryApprove.mts"; then
+            echo "cli=opencode" >> "$GITHUB_OUTPUT"
+          else
+            echo "cli=cursor" >> "$GITHUB_OUTPUT"
+          fi
       - uses: ./.github/actions/setup-pnpm
         if: steps.preflight.outputs.result == 'true'
         with:
@@ -66,24 +75,21 @@ jobs:
         if: steps.preflight.outputs.result == 'true'
         working-directory: ${{ runner.temp }}/trusted-approver
         run: pnpm --filter @salesforce/effect-octokit compile
-      - name: Install Cursor CLI
-        if: steps.preflight.outputs.result == 'true'
+      - name: Install OpenCode CLI
+        if: steps.preflight.outputs.result == 'true' && steps.approver.outputs.cli == 'opencode'
+        run: npm install --global @opencode/cli@2.2.5
+      - name: Install Cursor CLI for legacy trusted approver
+        if: steps.preflight.outputs.result == 'true' && steps.approver.outputs.cli == 'cursor'
         run: curl https://cursor.com/install -fsS | bash
       - name: Decide and approve
         if: steps.preflight.outputs.result == 'true'
         env:
           IDEE_GH_TOKEN: ${{ secrets.IDEE_GH_TOKEN }}
-          CURSOR_API_KEY: ${{ secrets.IDEE_CURSOR_API_KEY }}
+          OPENCODE_API_KEY: ${{ secrets.OPENCODE_API_KEY }}
+          OPENCODE_MODELS: ${{ vars.OPENCODE_MODELS }}
+          CURSOR_API_KEY: ${{ steps.approver.outputs.cli == 'cursor' && secrets.IDEE_CURSOR_API_KEY || '' }}
           GITHUB_REPOSITORY: ${{ github.repository }}
           GITHUB_RUN_ID: ${{ github.run_id }}
         run: |
           export GITHUB_EVENT_PATH="$RUNNER_TEMP/category-approve-event.json"
-          if [ -f "$RUNNER_TEMP/trusted-approver/scripts/categoryApprove.mts" ]; then
-            node "$RUNNER_TEMP/trusted-approver/scripts/categoryApprove.mts"
-          elif [ -f "$RUNNER_TEMP/trusted-approver/scripts/category-approve.mts" ]; then
-            # Develop keeps this filename until the native-script rename merges.
-            node "$RUNNER_TEMP/trusted-approver/scripts/category-approve.mts"
-          else
-            # Until develop contains the native ESM entry point, run its trusted .ts script.
-            node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON "$RUNNER_TEMP/trusted-approver/scripts/categoryApprove.ts"
-          fi
+          node "$RUNNER_TEMP/trusted-approver/scripts/categoryApprove.mts"

@@ -55,6 +55,10 @@ export class MetadataDescribeService extends Context.Service<
       folder?: string,
       expectedOrgId?: OrgId
     ) => Effect.Effect<(typeof FilePropertiesSchema.Type)[], MetadataListReadError>;
+    readonly listMetadataFolders: (
+      type: string,
+      expectedOrgId?: OrgId
+    ) => Effect.Effect<(typeof FilePropertiesSchema.Type)[], MetadataListReadError>;
     readonly listMetadataCached: (
       type: string,
       folder?: string,

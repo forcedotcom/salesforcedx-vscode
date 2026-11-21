@@ -292,7 +292,7 @@ export abstract class BaseWorkspaceContext {
     options?: BaseWorkspaceContextOptions
   ) {
     // Normalize workspaceRoots to ensure consistent path format (especially Windows drive letter casing)
-    this.workspaceRoots = Array.isArray(workspaceRoots) ? workspaceRoots : [workspaceRoots];
+    this.workspaceRoots = Arr.ensure(workspaceRoots);
 
     this.findNamespaceRootsUsingTypeCache = utils.memoize(() => this.findNamespaceRootsUsingType());
     this.initSfdxProjectConfigCache = utils.memoize(async () => this.initSfdxProject());

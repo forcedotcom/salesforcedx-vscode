@@ -357,6 +357,37 @@ it('projects nested folders and preserves empty folders with no local source', a
   }
 });
 
+it('discovers Classic and Lightning EmailTemplate folders without duplicate names', async () => {
+  const { runtime, connection, org, inventory } = await start();
+  const list = vi.spyOn(connection.metadata, 'list').mockImplementation(request => {
+    const query = Array.isArray(request) ? request[0]! : request;
+    const rows =
+      query.type === 'EmailFolder'
+        ? [{ fullName: 'Classic', type: 'EmailFolder' }]
+        : query.type === 'EmailTemplateFolder'
+          ? [
+              { fullName: 'Lightning', type: 'EmailTemplateFolder' },
+              { fullName: 'Classic', type: 'EmailTemplateFolder' }
+            ]
+          : [{ fullName: `${query.folder}/Welcome`, type: 'EmailTemplate' }];
+    return Promise.resolve(rows) as ReturnType<typeof connection.metadata.list>;
+  });
+  try {
+    const value = await runtime.runPromise(inventory.loadType(org, 'EmailTemplate'));
+    const folders = await runtime.runPromise(projectChildren(orgId, 'EmailTemplate', undefined, value));
+    expect(folders.map(entry => entry.name)).toEqual(['Classic', 'Lightning']);
+    expect(HashMap.size(value.components)).toBe(2);
+    const requestedTypes = list.mock.calls.map(([request]) =>
+      Array.isArray(request) ? request[0]!.type : request.type
+    );
+    expect(new Set(requestedTypes.slice(0, 2))).toEqual(new Set(['EmailFolder', 'EmailTemplateFolder']));
+    expect(requestedTypes.slice(2)).toHaveLength(2);
+    expect(requestedTypes.slice(2)).toEqual(['EmailTemplate', 'EmailTemplate']);
+  } finally {
+    await runtime.dispose();
+  }
+});
+
 it('uses a genuinely cache-only cold hierarchy, then combines remote and SDK-discovered workspace root types', async () => {
   const { runtime, connection, org, tree } = await start();
   const describe = vi.spyOn(connection.metadata, 'describe').mockResolvedValue({

@@ -482,7 +482,7 @@ it('prepares tracking without advancing signatures; committed observations publi
         const subscription = yield* OrgMetadataCatalogChangePubSub.pipe(Effect.flatMap(PubSub.subscribe));
         const rows = [{ origin: 'remote', type: 'ApexClass', fullName: 'Example', state: 'changed' }];
         const prepared = yield* recorder.prepareTrackingStatus(orgId, rows, []);
-        expect((yield* state.getTracking(orgId)).identityOrder).toEqual([]);
+        expect(Array.from(yield* state.getTracking(orgId))).toEqual([]);
         expect(yield* PubSub.remaining(subscription)).toBe(0);
         expect(prepared.references).toEqual([{ xmlName: 'ApexClass', fullName: 'Example' }]);
         yield* recorder.commitTrackingStatus(orgId, generation, prepared);

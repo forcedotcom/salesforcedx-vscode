@@ -397,7 +397,7 @@ it('invalidates describe before tracking publication and retries failed invalida
       .mockImplementationOnce(() => Effect.die(failure))
       .mockImplementation(nativeInvalidation);
     expect(Exit.isFailure(await runtime.runPromise(service.getStatus({ remote: true }).pipe(Effect.exit)))).toBe(true);
-    expect((await runtime.runPromise(state.getTracking(orgId))).identityOrder).toEqual([]);
+    expect(Array.from(await runtime.runPromise(state.getTracking(orgId)))).toEqual([]);
     await runtime.runPromise(
       Effect.gen(function* () {
         const subscription = yield* OrgMetadataCatalogChangePubSub.pipe(Effect.flatMap(PubSub.subscribe));
@@ -840,7 +840,7 @@ it('rejects a delayed old-epoch status before describe invalidation, signature r
       }).pipe(Effect.scoped)
     );
     const state = await runtime.runPromise(OrgCatalogState);
-    expect((await runtime.runPromise(state.getTracking(orgId))).identityOrder).toEqual([]);
+    expect(Array.from(await runtime.runPromise(state.getTracking(orgId)))).toEqual([]);
     expect(Option.isSome(await runtime.runPromise(descriptions.listMetadataCached('ApexClass')))).toBe(true);
     expect(listing).toHaveBeenCalledTimes(1);
   } finally {

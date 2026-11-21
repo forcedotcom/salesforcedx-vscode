@@ -7,21 +7,24 @@
 
 import * as NodeServices from '@effect/platform-node/NodeServices';
 import { GitHubLayer } from '@salesforce/effect-octokit';
-import { ConfigProvider, Effect, Layer } from 'effect';
+import { ConfigProvider, Effect, Layer, Schema } from 'effect';
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
-import { mkdirSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, realpathSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { test } from 'node:test';
+import { commands, config as openCodeConfig, nodeCommand } from '../../../../test/ciAiFixtures.mts';
+import { OpenCodeRunFailed } from '../../../shared/openCode.mts';
 import {
+  isRelevantDiffPath,
   judgmentError,
+  manualTestPlanPrompt,
   manualTestPlanProgram,
   renderManualTestPlan,
   spliceManualTestPlan,
   type PromptInput
 } from '../../manualTestPlan.mts';
-import { CursorRunFailed } from '../../schema.mts';
 
 const repoRoot = join(import.meta.dirname, '..', '..', '..', '..');
 
@@ -43,6 +46,7 @@ const config = ConfigProvider.fromEnvRecord({
   GITHUB_EVENT_NAME: 'pull_request',
   GITHUB_EVENT_PATH: eventPath,
   GITHUB_GRAPHQL_URL: 'https://api.github.com/graphql',
+  GITHUB_TOKEN: 'test-token',
   GITHUB_JOB: 'body',
   GITHUB_OUTPUT: '/tmp/output',
   GITHUB_PATH: '/tmp/path',
@@ -93,20 +97,34 @@ const initRepo = (skill: boolean) => {
   git(remote, ['init', '--bare', '-b', 'develop']);
   git(cwd, ['init', '-b', 'develop']);
   if (skill) {
-    const skillDir = join(cwd, '.cursor', 'skills', 'manual-test-plan-judgment');
+    const skillDir = join(cwd, '.opencode', 'skills', 'manual-test-plan-judgment');
     mkdirSync(skillDir, { recursive: true });
     writeFileSync(join(skillDir, 'SKILL.md'), 'reply with json\n');
   }
+  const featureDir = join(cwd, 'packages', 'salesforcedx-vscode-core', 'src');
+  mkdirSync(featureDir, { recursive: true });
+  writeFileSync(join(featureDir, 'feature.ts'), 'export const feature = "base";\n');
+  const testDir = join(cwd, 'packages', 'salesforcedx-vscode-core', 'test');
+  mkdirSync(testDir, { recursive: true });
+  writeFileSync(join(testDir, 'feature.test.ts'), 'test before\n');
+  const workflowDir = join(cwd, '.github', 'workflows');
+  mkdirSync(workflowDir, { recursive: true });
+  writeFileSync(join(workflowDir, 'ci.yml'), 'name: CI before\n');
   git(cwd, ['add', '-A']);
   git(cwd, ['commit', '--allow-empty', '-m', 'base']);
   git(cwd, ['remote', 'add', 'origin', remote]);
   git(cwd, ['push', '-u', 'origin', 'develop']);
+  writeFileSync(join(featureDir, 'feature.ts'), 'export const feature = "changed";\n');
+  writeFileSync(join(testDir, 'feature.test.ts'), 'test after\n');
+  writeFileSync(join(workflowDir, 'ci.yml'), 'name: CI after\n');
+  git(cwd, ['add', '-A']);
+  git(cwd, ['commit', '-m', 'change feature']);
   return cwd;
 };
 
 const run = (
   cwd: string,
-  prompt: (input: PromptInput) => Effect.Effect<string, CursorRunFailed>,
+  prompt: (input: PromptInput) => Effect.Effect<string, OpenCodeRunFailed>,
   state: { body: string; writes: string[] }
 ) =>
   manualTestPlanProgram({
@@ -119,13 +137,17 @@ const run = (
         state.writes.push(body);
       })
   }).pipe(
-    Effect.provide([NodeServices.layer, GitHubLayer.pipe(Layer.provideMerge(ConfigProvider.layer(config)))]),
+    Effect.provide([
+      NodeServices.layer,
+      ConfigProvider.layer(config),
+      GitHubLayer.pipe(Layer.provide(ConfigProvider.layer(config)))
+    ]),
     Effect.runPromise
   );
 
 const replies =
   (lines: readonly string[]) =>
-  (input: PromptInput): Effect.Effect<string, CursorRunFailed> => {
+  (input: PromptInput): Effect.Effect<string, OpenCodeRunFailed> => {
     const index = input.correction === undefined ? 0 : 1;
     return Effect.succeed(lines[index] ?? '');
   };
@@ -225,14 +247,14 @@ test('inherited pre-push Git variables cannot redirect fixture Git commands', ()
   assert.equal(execFileSync('git', ['status', '--porcelain'], { cwd: hookRepo, env: gitEnv, encoding: 'utf8' }), '');
 });
 
-test('a cursor failure does not retry', async () => {
+test('an OpenCode failure does not retry', async () => {
   const calls = { n: 0 };
   const state: { body: string; writes: string[] } = { body: '## Summary\n\nkept\n', writes: [] };
   const outcome = await run(
     initRepo(true),
     () => {
       calls.n += 1;
-      return Effect.fail(new CursorRunFailed({ status: 'error', message: 'boom' }));
+      return Effect.fail(new OpenCodeRunFailed({ message: 'boom' }));
     },
     state
   );
@@ -260,13 +282,53 @@ test('schema and watch-video failures retry once', async () => {
   assert.deepEqual(stuck.writes, []);
 });
 
-test('workflow uses the actions token and skips when the cursor key is empty', () => {
+test('manual test plan filters CI, utility-package, and test diffs', () => {
+  for (const file of [
+    '.github/workflows/manual-test-plan.yml',
+    'test/ci-ai.test.mts',
+    'packages/salesforcedx-vscode-core/test/unit/feature.test.ts',
+    'packages/drivable-vscode/src/index.ts',
+    'packages/effect-octokit/src/github.ts',
+    'packages/eslint-local-rules/src/index.ts',
+    'packages/playwright-vscode-ext/src/index.ts'
+  ]) {
+    assert.equal(isRelevantDiffPath(file), false, file);
+  }
+  for (const file of [
+    'packages/salesforcedx-vscode-core/src/feature.ts',
+    'packages/salesforcedx-vscode-core/package.json'
+  ]) {
+    assert.equal(isRelevantDiffPath(file), true, file);
+  }
+});
+
+test('manual test plan sends only product-code diffs to OpenCode', async () => {
+  const diffs: string[] = [];
+  const state: { body: string; writes: string[] } = { body: '', writes: [] };
+  await run(
+    initRepo(true),
+    input => {
+      diffs.push(input.diff);
+      return Effect.succeed('{"kind":"nothing"}');
+    },
+    state
+  );
+  assert.equal(diffs.length, 1);
+  assert.match(diffs[0], /feature = "changed"/);
+  assert.doesNotMatch(diffs[0], /feature\.test\.ts|test after|ci\.yml|CI after/);
+});
+
+test('workflow uses the OpenCode secret and model variable with the actions token and skips without a key', () => {
   const workflow = readFileSync(join(repoRoot, '.github', 'workflows', 'manual-test-plan.yml'), 'utf8');
   assert.match(workflow, /types: \[opened, synchronize\]/);
-  assert.match(workflow, /group: manual-test-plan-\$\{\{ github\.event\.pull_request\.number \}\}/);
-  assert.match(workflow, /cancel-in-progress: false/);
-  assert.match(workflow, /if: needs\.secret\.outputs\.has_key == 'true'/);
+  assert.match(workflow, /group: manual-test-plan-\$\{\{ github\.event\.pull_request\.number \|\| github\.run_id \}\}/);
+  assert.match(workflow, /cancel-in-progress: true/);
+  assert.match(workflow, /if: github\.event_name == 'pull_request' && needs\.secret\.outputs\.has_key == 'true'/);
   assert.match(workflow, /has_key=false/);
+  assert.match(workflow, /OPENCODE_API_KEY: \$\{\{ secrets\.OPENCODE_API_KEY \}\}/);
+  assert.match(workflow, /OPENCODE_MODELS: \$\{\{ vars\.OPENCODE_MODELS \}\}/);
+  assert.match(workflow, /uses: \.\/\.github\/actions\/setup-opencode/);
+  assert.equal(workflow.includes('CURSOR'), false);
   assert.match(workflow, /GITHUB_TOKEN: \$\{\{ github\.token \}\}/);
   assert.match(workflow, /GITHUB_EVENT_PATH: \$\{\{ github\.event_path \}\}/);
   assert.match(workflow, /GITHUB_REPOSITORY: \$\{\{ github\.repository \}\}/);
@@ -278,4 +340,89 @@ test('workflow uses the actions token and skips when the cursor key is empty', (
   assert.match(workflow, /uses: \.\/\.github\/actions\/setup-pnpm/);
   assert.match(workflow, /ref: \$\{\{ github\.event\.pull_request\.head\.sha \}\}/);
   assert.match(workflow, /fetch-depth: 0/);
+});
+
+test('OpenCode subprocess receives isolated read-only configuration, stdin prompt, and no GitHub token', async () => {
+  const result = await manualTestPlanPrompt(repoRoot, {
+    skill: 'judge this diff',
+    diff: '+change',
+    correction: 'invalid JSON'
+  }).pipe(
+    Effect.provide(
+      Layer.mergeAll(
+        NodeServices.layer,
+        commands(command =>
+          nodeCommand(
+            command,
+            `
+const fs = require('node:fs');
+const config = JSON.parse(fs.readFileSync('opencode.json', 'utf8'));
+const prompt = fs.readFileSync(0, 'utf8');
+const text = JSON.stringify({
+  args:process.argv.slice(1),
+  cwd:process.cwd(),
+  config,
+  prompt,
+  githubToken:process.env.GITHUB_TOKEN,
+  apiKey:process.env.OPENCODE_API_KEY
+});
+process.stdout.write([
+  {type:'step_start'},
+  {type:'text',part:{text}},
+  {type:'step_finish',part:{reason:'stop'}}
+].map(event => JSON.stringify(event)).join('\\n') + '\\n');
+`
+          )
+        )
+      )
+    ),
+    Effect.provide(ConfigProvider.layer(openCodeConfig())),
+    Effect.flatMap(
+      Schema.decodeUnknownEffect(
+        Schema.fromJsonString(
+          Schema.Struct({
+            args: Schema.Array(Schema.String),
+            cwd: Schema.String,
+            config: Schema.Struct({
+              agents: Schema.Struct({
+                judgment: Schema.Struct({
+                  permissions: Schema.Array(
+                    Schema.Struct({ action: Schema.String, resource: Schema.String, effect: Schema.String })
+                  )
+                })
+              })
+            }),
+            prompt: Schema.String,
+            githubToken: Schema.optional(Schema.String),
+            apiKey: Schema.String
+          })
+        )
+      )
+    ),
+    Effect.runPromise
+  );
+  assert.deepEqual(result.args, [
+    '--standalone',
+    'run',
+    '--agent',
+    'judgment',
+    '--format',
+    'json',
+    '--model',
+    'opencode/first'
+  ]);
+  assert.notEqual(result.cwd, repoRoot);
+  const readDirectory = realpathSync(repoRoot);
+  assert.deepEqual(result.config.agents.judgment.permissions, [
+    { action: '*', resource: '*', effect: 'deny' },
+    { action: 'external_directory', resource: `${readDirectory}/*`, effect: 'allow' },
+    { action: 'read', resource: readDirectory, effect: 'allow' },
+    { action: 'read', resource: `${readDirectory}/*`, effect: 'allow' }
+  ]);
+  assert.equal(result.githubToken === undefined || result.githubToken === '', true);
+  assert.equal(result.apiKey, 'test-key');
+  assert.match(result.prompt, /judge this diff/);
+  assert.match(result.prompt, /\+change/);
+  assert.match(result.prompt, /Previous reply failed validation:\ninvalid JSON/);
+  assert.equal(existsSync(result.cwd), false);
 });

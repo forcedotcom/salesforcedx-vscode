@@ -8,11 +8,11 @@
 - Regenerate the lockfile without a runner-specific override. Repository Jest configs are JavaScript; Jest's optional runner peer remains uninstalled. The lock removes the runner and 12 otherwise-unused packages; no package versions change.
 - No tracked executable/configuration references `ts-node` outside the lockfile. The lockfile retains only upstream optional-peer metadata, not an installed runner. Historical documentation is not an executable dependency.
 
-## Controlled comparison
+## Historical controlled comparison
 
-Run on macOS arm64, Node **24.20.0**, pnpm **12.14.0**, VSCE **3.5.0**. Source: `d27f29877260364122e84b7ec508dd4c96a87bc8`, plus this change's Aura Wireit inputs. Extension version: **68.13.0**.
+Recorded environment: macOS arm64, Node **24.20.0**, pnpm **12.14.0**, VSCE **3.5.0**. Source: `d27f29877260364122e84b7ec508dd4c96a87bc8`, plus this change's Aura Wireit inputs. Extension version: **68.13.0**.
 
-The baseline is the **unmodified** legacy script from `8b70427360c24dc0d5f711411fd5d12ca3d746cb` (`4566c0da14^`), not an older extension bundle. Execute it with installed **ts-node 10.9.2**, `--project scripts/tsconfig.json`, and the current Aura package directory as cwd. Candidate: the native script through the root stable/prerelease Wireit commands.
+The historical baseline used the **unmodified** legacy script from `8b70427360c24dc0d5f711411fd5d12ca3d746cb` (`4566c0da14^`), not an older extension bundle. It used the then-installed **ts-node 10.9.2**, `--project scripts/tsconfig.json`, and the Aura package directory as cwd. That runner has been removed; the baseline procedure below is historical and not reproducible from the current workspace. Candidate: the native script through the root stable/prerelease Wireit commands.
 
 Both runners use the same current manifest, compiled bundles, assets, Node executable, VSCE, and temporary build directory. Build the bundle once before the comparison. Baseline first, then candidate, separately for stable and prerelease. The legacy script's `npm install` reuses the same staging lock; assert that lock's SHA-256 does not change. No `node_modules` directories are copied or linked between checkouts.
 

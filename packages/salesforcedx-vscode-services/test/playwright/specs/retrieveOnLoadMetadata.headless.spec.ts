@@ -19,7 +19,8 @@ import {
   validateNoCriticalErrors,
   TAB,
   waitForVSCodeWorkbench,
-  ensureSecondarySideBarHidden
+  ensureSecondarySideBarHidden,
+  startVideoRecording
 } from '@salesforce/playwright-vscode-ext';
 import { upsertRetrieveOnLoadSetting } from '../pages/settingsPage';
 import { SERVICES_CHANNEL_NAME } from '../../../src/constants';
@@ -30,47 +31,58 @@ test.beforeEach(async ({ page }) => {
   await ensureSecondarySideBarHidden(page);
 });
 
-test('retrieves metadata on load for CustomObject:Activity and Workflow:Case', async ({ page }) => {
+test('retrieves metadata on load for CustomObject:Activity and Workflow:Case', async ({ page }, testInfo) => {
   test.setTimeout(10 * 60 * 1000); // 10 minutes for org creation and metadata retrieval
 
   const consoleErrors = setupConsoleMonitoring(page);
   const networkErrors = setupNetworkMonitoring(page);
 
-  await test.step('setup org auth and configure retrieveOnLoad setting', async () => {
+  await test.step('setup org auth', async () => {
     const orgAuth = await createMinimalOrg();
     await upsertScratchOrgAuthFieldsToSettings(page, orgAuth);
-
-    // Set the retrieveOnLoad setting
-    await upsertRetrieveOnLoadSetting(page, 'CustomObject:Activity, Workflow:Case');
   });
 
-  await test.step('verify output channel shows retrieval message', async () => {
-    await ensureOutputPanelOpen(page);
-    await selectOutputChannel(page, SERVICES_CHANNEL_NAME);
+  const videoName = [testInfo.project.name, ...testInfo.titlePath, 'retrieve-metadata', `retry-${testInfo.retry}`]
+    .join('-')
+    .replaceAll(/[^a-zA-Z0-9._-]+/g, '-')
+    .replaceAll(/^-+|-+$/g, '');
+  const stopRecording = await startVideoRecording(page, testInfo, videoName);
+  try {
+    await test.step('configure retrieveOnLoad setting', async () => {
+      // Set the retrieveOnLoad setting
+      await upsertRetrieveOnLoadSetting(page, 'CustomObject:Activity, Workflow:Case');
+    });
 
-    await waitForOutputChannelText(page, { expectedText: 'Retrieving metadata on load', timeout: 60_000 });
-    await waitForOutputChannelText(page, { expectedText: 'CustomObject:Activity' });
-    await waitForOutputChannelText(page, { expectedText: 'Workflow:Case' });
-  });
+    await test.step('verify output channel shows retrieval message', async () => {
+      await ensureOutputPanelOpen(page);
+      await selectOutputChannel(page, SERVICES_CHANNEL_NAME);
 
-  await test.step('verify success message in output channel', async () => {
-    await waitForOutputChannelText(page, { expectedText: 'Retrieve on load completed', timeout: 300_000 });
-    await waitForOutputChannelText(page, { expectedText: 'files retrieved successfully' });
-  });
+      await waitForOutputChannelText(page, { expectedText: 'Retrieving metadata on load', timeout: 60_000 });
+      await waitForOutputChannelText(page, { expectedText: 'CustomObject:Activity' });
+      await waitForOutputChannelText(page, { expectedText: 'Workflow:Case' });
+    });
 
-  await test.step('verify editor tabs contain retrieved files', async () => {
-    const tabs = page.locator(TAB);
-    const tabTexts = await tabs.allTextContents();
+    await test.step('verify success message in output channel', async () => {
+      await waitForOutputChannelText(page, { expectedText: 'Retrieve on load completed', timeout: 300_000 });
+      await waitForOutputChannelText(page, { expectedText: 'files retrieved successfully' });
+    });
 
-    // Should have at least 1 file open (Activity object and/or Case workflow)
-    expect(tabTexts.length, `Should have opened files, got: ${tabTexts.join(', ')}`).toBeGreaterThanOrEqual(1);
+    await test.step('verify editor tabs contain retrieved files', async () => {
+      const tabs = page.locator(TAB);
+      const tabTexts = await tabs.allTextContents();
 
-    // Check that we have files related to our metadata
-    const hasActivityOrCase = tabTexts.some(
-      text => text.toLowerCase().includes('activity') || text.toLowerCase().includes('case')
-    );
-    expect(hasActivityOrCase, `Expected Activity or Case related files, got: ${tabTexts.join(', ')}`).toBe(true);
-  });
+      // Should have at least 1 file open (Activity object and/or Case workflow)
+      expect(tabTexts.length, `Should have opened files, got: ${tabTexts.join(', ')}`).toBeGreaterThanOrEqual(1);
 
-  await validateNoCriticalErrors(test, consoleErrors, networkErrors);
+      // Check that we have files related to our metadata
+      const hasActivityOrCase = tabTexts.some(
+        text => text.toLowerCase().includes('activity') || text.toLowerCase().includes('case')
+      );
+      expect(hasActivityOrCase, `Expected Activity or Case related files, got: ${tabTexts.join(', ')}`).toBe(true);
+    });
+
+    await validateNoCriticalErrors(test, consoleErrors, networkErrors);
+  } finally {
+    await stopRecording();
+  }
 });

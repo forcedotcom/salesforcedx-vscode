@@ -120,7 +120,7 @@ const makeOrgCatalogInventory = Effect.gen(function* () {
             () => Effect.succeed({ components: restored!.components, folders: restored!.folders })
           ),
           Match.when({ foldered: true }, () =>
-            descriptions.listMetadata(`${xmlName}Folder`, undefined, org.orgId).pipe(
+            descriptions.listMetadataFolders(xmlName, org.orgId).pipe(
               Effect.flatMap(folders =>
                 Effect.forEach(folders, folder => descriptions.listMetadata(xmlName, folder.fullName, org.orgId), {
                   concurrency: 10

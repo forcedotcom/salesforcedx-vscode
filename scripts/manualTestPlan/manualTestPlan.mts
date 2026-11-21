@@ -5,22 +5,30 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { Agent, type ToolName } from '@cursor/sdk';
-import * as FileSystem from 'effect/FileSystem';
-import * as Path from 'effect/Path';
-import * as ChildProcess from 'effect/process/ChildProcess';
-import * as ChildProcessSpawner from 'effect/process/ChildProcessSpawner';
 import * as NodeServices from '@effect/platform-node/NodeServices';
 import { actionsEnvironment, GitHub, GitHubLayer, readPullRequestEvent } from '@salesforce/effect-octokit';
-import { Config, Effect, Exit, Layer, Logger, Option, pipe, Redacted, Result, Schema, Stream } from 'effect';
+import { Effect, Exit, Layer, Logger, Option, Result, Schema } from 'effect';
+import * as FileSystem from 'effect/FileSystem';
+import * as Path from 'effect/Path';
 import { pathToFileURL } from 'node:url';
-import { CommandFailed, CursorRunFailed, InvalidBaseRef, Judgment, type Item } from './schema.mts';
+import { commandOutput } from '../commandOutput.mts';
+import { openCodePrompt } from '../shared/openCode.mts';
+import { CommandFailed, InvalidBaseRef, Judgment, type Item } from './schema.mts';
 
-const skillPath = '.cursor/skills/manual-test-plan-judgment/SKILL.md';
+const skillPath = '.opencode/skills/manual-test-plan-judgment/SKILL.md';
 const startMarker = '<!-- manual-test-plan -->';
 const endMarker = '<!-- /manual-test-plan -->';
 const excludedWorkflows = new Set(['e2e.yml', 'playwrightE2EFullSuite.yml', 'rerunPushE2E.yml']);
-const tools: ToolName[] = ['read', 'grep', 'glob', 'ls'];
+const ciPackages = new Set(['drivable-vscode', 'effect-octokit', 'eslint-local-rules', 'playwright-vscode-ext']);
+
+export const isRelevantDiffPath = (file: string) => {
+  const parts = file.split('/');
+  return (
+    !parts.includes('test') &&
+    !file.startsWith('.github/') &&
+    !(parts[0] === 'packages' && ciPackages.has(parts[1] ?? ''))
+  );
+};
 // Git hooks export these for their own worktree. This script's git calls use
 // an explicit cwd and must not inherit another worktree's repository or index.
 const gitLocalEnv = {
@@ -44,11 +52,9 @@ const gitLocalEnv = {
 type Outcome = { readonly edited: boolean };
 export type PromptInput = { readonly skill: string; readonly diff: string; readonly correction?: string };
 type Attempt =
-  | { readonly _tag: 'cursor'; readonly message: string }
+  | { readonly _tag: 'opencode'; readonly message: string }
   | { readonly _tag: 'retry'; readonly text: string; readonly error: string }
   | { readonly _tag: 'ok'; readonly judgment: typeof Judgment.Type };
-
-const messageOf = (error: unknown, fallback: string) => (error instanceof Error ? error.message : fallback);
 
 const baseRefOk = (ref: string) => /^[A-Za-z0-9._/-]+$/.test(ref) && !ref.split('/').includes('..');
 
@@ -106,26 +112,12 @@ export const spliceManualTestPlan = (body: string, block: string) => {
 };
 
 const git = Effect.fn('manualTestPlan.git')(function* (cwd: string, args: readonly string[]) {
-  const spawner = yield* ChildProcessSpawner.ChildProcessSpawner;
-  const [text, code] = yield* pipe(
-    ChildProcess.make('git', args, { cwd, env: gitLocalEnv, extendEnv: true }),
-    spawner.spawn,
-    Effect.flatMap(proc =>
-      Effect.all(
-        [
-          Stream.mkString(Stream.decodeText(proc.stdout)),
-          Stream.runDrain(Stream.decodeText(proc.stderr)),
-          proc.exitCode
-        ],
-        { concurrency: 'unbounded' }
-      )
-    ),
-    Effect.map(([stdout, , exitCode]) => [stdout, exitCode] as const),
-    Effect.scoped
+  return yield* commandOutput({ executable: 'git', args, cwd, env: gitLocalEnv, extendEnv: true }).pipe(
+    Effect.map(({ stdout }) => stdout),
+    Effect.catchTag('CommandFailed', error =>
+      Effect.fail(new CommandFailed({ command: 'git', code: error.exitCode, message: error.message }))
+    )
   );
-  return code === 0
-    ? text
-    : yield* new CommandFailed({ command: 'git', code: Number(code), message: `git exited ${String(code)}` });
 });
 
 type WorkflowName = { readonly name: string; readonly jobs: readonly string[] };
@@ -184,41 +176,17 @@ export const judgmentError = Effect.fn('manualTestPlan.judgmentError')(function*
   return messages.length === 0 ? undefined : messages.join('\n');
 });
 
-const finishedText = (run: {
-  readonly status: string;
-  readonly result?: string;
-  readonly error?: { readonly message: string };
-}) =>
-  run.status === 'finished'
-    ? Option.match(Option.fromUndefinedOr(run.result), {
-        onNone: () =>
-          Effect.fail(new CursorRunFailed({ status: run.status, message: 'Cursor run finished without text' })),
-        onSome: Effect.succeed
-      })
-    : Effect.fail(
-        new CursorRunFailed({ status: run.status, message: run.error?.message ?? `Cursor run ${run.status}` })
-      );
-
-const cursorPrompt = Effect.fn('manualTestPlan.cursorPrompt')(function* (cwd: string, input: PromptInput) {
-  const apiKey = yield* Config.Redacted('CURSOR_API_KEY').pipe(
-    Effect.mapError(error => new CursorRunFailed({ status: 'config', message: error.message }))
-  );
+export const manualTestPlanPrompt = Effect.fn('manualTestPlan.prompt')(function* (cwd: string, input: PromptInput) {
+  const readDirectory = yield* FileSystem.FileSystem.pipe(Effect.flatMap(fs => fs.realPath(cwd)));
   const correction = input.correction === undefined ? '' : `\n\nPrevious reply failed validation:\n${input.correction}`;
-  return yield* Effect.tryPromise({
-    try: () =>
-      Agent.prompt(`${input.skill}\n\nDiff:\n${input.diff}${correction}`, {
-        apiKey: Redacted.value(apiKey),
-        model: { id: 'auto' },
-        tools,
-        local: { cwd }
-      }),
-    catch: error => new CursorRunFailed({ status: 'startup', message: messageOf(error, 'Cursor SDK failed to start') })
-  }).pipe(Effect.flatMap(finishedText));
+  return yield* openCodePrompt({
+    prompt: `${input.skill}\n\nRepository (read-only): ${readDirectory}\n\nDiff:\n${input.diff}${correction}`,
+    readDirectory
+  });
 });
 
 const readPrBody = Effect.fn('manualTestPlan.readPrBody')(function* (owner: string, repo: string, pr: number) {
-  const github = yield* GitHub;
-  return yield* github.pullBody(owner, repo, pr);
+  return yield* GitHub.pipe(Effect.flatMap(github => github.pullBody(owner, repo, pr)));
 });
 
 const writePrBody = Effect.fn('manualTestPlan.writePrBody')(function* (
@@ -227,8 +195,7 @@ const writePrBody = Effect.fn('manualTestPlan.writePrBody')(function* (
   pr: number,
   body: string
 ) {
-  const github = yield* GitHub;
-  yield* github.updatePullBody(owner, repo, pr, body);
+  yield* GitHub.pipe(Effect.flatMap(github => github.updatePullBody(owner, repo, pr, body)));
 });
 
 const skip = (reason: string, message: string) =>
@@ -237,15 +204,15 @@ const skip = (reason: string, message: string) =>
   );
 
 const attempt = Effect.fn('manualTestPlan.attempt')(function* (
-  prompt: (input: PromptInput) => Effect.Effect<string, CursorRunFailed>,
+  prompt: (input: PromptInput) => ReturnType<typeof manualTestPlanPrompt>,
   skill: string,
   diff: string,
   cwd: string,
   correction: string | undefined
 ) {
   const text = yield* prompt({ skill, diff, ...(correction === undefined ? {} : { correction }) }).pipe(Effect.result);
-  if (Result.isFailure(text)) return { _tag: 'cursor', message: text.failure.message } satisfies Attempt;
-  const decoded = Schema.decodeUnknownResult(Schema.fromJsonString(Judgment))(text.success);
+  if (Result.isFailure(text)) return { _tag: 'opencode', message: text.failure.message } satisfies Attempt;
+  const decoded = yield* Schema.decodeUnknownEffect(Schema.fromJsonString(Judgment))(text.success).pipe(Effect.result);
   if (Result.isFailure(decoded))
     return {
       _tag: 'retry',
@@ -260,7 +227,7 @@ const attempt = Effect.fn('manualTestPlan.attempt')(function* (
 
 export type ManualTestPlanDeps = {
   readonly cwd?: string;
-  readonly prompt?: (input: PromptInput) => Effect.Effect<string, CursorRunFailed>;
+  readonly prompt?: (input: PromptInput) => ReturnType<typeof manualTestPlanPrompt>;
   readonly readBody?: (pr: number) => Effect.Effect<string>;
   readonly writeBody?: (pr: number, body: string) => Effect.Effect<void>;
 };
@@ -281,8 +248,12 @@ export const manualTestPlanProgram = Effect.fn('manualTestPlan.program')(functio
   yield* git(cwd, ['fetch', 'origin', base]);
   const skill = yield* git(cwd, ['show', `origin/${base}:${skillPath}`]).pipe(Effect.option);
   if (Option.isNone(skill)) return yield* skip('missing-skill', `origin/${base}:${skillPath} is missing`);
-  const diff = yield* git(cwd, ['diff', `origin/${base}...HEAD`]);
-  const prompt = deps?.prompt ?? ((input: PromptInput) => cursorPrompt(cwd, input));
+  const changedPaths = yield* git(cwd, ['diff', '--name-only', '-z', `origin/${base}...HEAD`]);
+  const relevantPaths = changedPaths.split('\0').filter(path => path.length > 0 && isRelevantDiffPath(path));
+  if (relevantPaths.length === 0)
+    return yield* skip('no-user-facing-changes', 'PR diff only changes tests or CI tooling');
+  const diff = yield* git(cwd, ['diff', `origin/${base}...HEAD`, '--', ...relevantPaths]);
+  const prompt = deps?.prompt ?? ((input: PromptInput) => manualTestPlanPrompt(cwd, input));
   const judged = yield* attempt(prompt, skill.value, diff, cwd, undefined).pipe(
     Effect.flatMap(first =>
       first._tag === 'retry'
@@ -290,7 +261,7 @@ export const manualTestPlanProgram = Effect.fn('manualTestPlan.program')(functio
         : Effect.succeed(first)
     )
   );
-  if (judged._tag === 'cursor') return yield* skip('cursor', judged.message);
+  if (judged._tag === 'opencode') return yield* skip('opencode', judged.message);
   if (judged._tag === 'retry') return yield* skip('schema', judged.error);
   const block = renderManualTestPlan(judged.judgment);
   const current = yield* deps?.readBody === undefined ? readPrBody(env.owner, env.repo, pr) : deps.readBody(pr);
@@ -316,9 +287,7 @@ if (isDirectRun) {
         if (Exit.isFailure(exit)) process.exitCode = 1;
       })
     ),
-    Effect.provide(
-      Layer.mergeAll(GitHubLayer, NodeServices.layer, Logger.layer([stderrLogger], { mergeWithExisting: false }))
-    ),
+    Effect.provide(Layer.mergeAll(GitHubLayer, NodeServices.layer, Logger.layer([stderrLogger]))),
     Effect.runPromise
   );
 }

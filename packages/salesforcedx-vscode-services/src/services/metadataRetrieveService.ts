@@ -21,6 +21,7 @@ import {
   type NonEmptyComponentSet,
   type OrgId
 } from '@salesforce/vscode-services/v2';
+import * as Arr from 'effect/Array';
 import * as Cause from 'effect/Cause';
 import * as Effect from 'effect/Effect';
 import * as Exit from 'effect/Exit';
@@ -127,9 +128,7 @@ export const MetadataRetrieveServiceLayer = Layer.effect(
           `Retrieving ${components.size} component${components.size === 1 ? '' : 's'} for diff`,
           options?.progressLocation
         );
-        const properties = Array.isArray(result.response.fileProperties)
-          ? result.response.fileProperties
-          : [result.response.fileProperties];
+        const properties = Arr.ensure(result.response.fileProperties);
         const observations = new Map(
           properties.flatMap(property =>
             property?.type && property.fullName

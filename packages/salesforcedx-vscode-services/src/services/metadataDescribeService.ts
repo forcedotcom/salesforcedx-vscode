@@ -213,9 +213,7 @@ export const MetadataDescribeServiceLayer = Layer.effectContext(
                         message: `Failed to list metadata type ${request.type}${request.folder ? ` in folder ${request.folder}` : ''}: ${unknownToErrorCause(cause).message}`
                       })
                   });
-                  return yield* Schema.decodeUnknownEffect(Schema.Array(FilePropertiesSchema))(
-                    Array.isArray(result) ? result : [result]
-                  ).pipe(
+                  return yield* Schema.decodeUnknownEffect(Schema.Array(FilePropertiesSchema))(Arr.ensure(result)).pipe(
                     Effect.map(values =>
                       Arr.dedupeAdjacentWith(
                         values.toSorted((left, right) => left.fullName.localeCompare(right.fullName)),
@@ -379,6 +377,17 @@ export const MetadataDescribeServiceLayer = Layer.effectContext(
         )
       );
     }, operations.run);
+    const listMetadataFolders = Effect.fn('MetadataDescribeService.listMetadataFolders')(function* (
+      type: string,
+      expectedOrgId?: OrgId
+    ) {
+      const { orgId } = yield* capture(expectedOrgId);
+      return yield* Effect.forEach(
+        type === 'EmailTemplate' ? ['EmailFolder', 'EmailTemplateFolder'] : [`${type}Folder`],
+        folderType => listMetadata(folderType, undefined, orgId),
+        { concurrency: 'unbounded' }
+      ).pipe(Effect.map(Arr.flatten), Effect.map(Arr.dedupeWith(FilePropertiesByFullName)));
+    }, operations.run);
     const listMetadataCached = Effect.fn('MetadataDescribeService.listMetadataCached')(function* (
       type: string,
       folder?: string,
@@ -521,6 +530,7 @@ export const MetadataDescribeServiceLayer = Layer.effectContext(
       describeCustomObject,
       describeCustomObjects,
       listMetadata,
+      listMetadataFolders,
       listMetadataCached,
       invalidateDescribe,
       invalidateListSObjects,

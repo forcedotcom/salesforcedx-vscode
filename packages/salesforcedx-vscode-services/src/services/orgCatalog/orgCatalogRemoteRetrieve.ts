@@ -109,9 +109,7 @@ const makeOrgCatalogRemoteRetrieve = Effect.gen(function* () {
       const sources = [...result.components.getSourceComponents()];
       const responses = result.getFileResponses();
       const files = yield* listStagedFiles(staging);
-      const properties = Array.isArray(result.response.fileProperties)
-        ? result.response.fileProperties
-        : [result.response.fileProperties];
+      const properties = Arr.ensure(result.response.fileProperties);
       const artifacts = yield* Effect.forEach(
         requests,
         request =>
