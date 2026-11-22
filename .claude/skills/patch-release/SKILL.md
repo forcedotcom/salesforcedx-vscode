@@ -23,7 +23,7 @@ emergency prereleases, and later stable candidates from patched sources.
      exact stable release tag, not its original nightly; `releaseBranch` input.
    - [Emergency prerelease](../../../docs/release-testing-guide.md#emergency-pre-release-workflow):
      exact published prerelease source; commit package/lockfile version changes
-     using `node scripts/update-release-versions.js <version>` before building.
+     using `node scripts/updateReleaseVersions.mts <version>` before building.
      Emergency `releaseVersion` names the tag only, not the VSIX version.
    - [Later stable candidate](../../../docs/release-testing-guide.md#later-stable-candidate-from-a-patched-prerelease):
      separate decision/build; explicit patched `startFromRef`, unused

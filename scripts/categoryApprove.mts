@@ -1,4 +1,11 @@
 #!/usr/bin/env node
+/*
+ * Copyright (c) 2026, salesforce.com, inc.
+ * All rights reserved.
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ */
+
 import * as Command from '@effect/platform/Command';
 import * as FileSystem from '@effect/platform/FileSystem';
 import * as Path from '@effect/platform/Path';
@@ -18,7 +25,6 @@ import * as Layer from 'effect/Layer';
 import * as Match from 'effect/Match';
 import * as Option from 'effect/Option';
 import { isNumber, isUndefined } from 'effect/Predicate';
-import * as Schema from 'effect/Schema';
 import * as Stream from 'effect/Stream';
 import {
   BASE_BRANCH,
@@ -58,7 +64,7 @@ const commandOutput = Effect.fn('categoryApprove.commandOutput')(function* (comm
   );
 });
 
-const gitText = (args: ReadonlyArray<string>) =>
+const gitText = (args: readonly string[]) =>
   commandOutput(Command.make('git', ...args)).pipe(
     Effect.scoped,
     Effect.filterOrFail(
@@ -122,7 +128,7 @@ const approve = Effect.fn('categoryApprove.approve')(function* (
   repo: string,
   pullNumber: number,
   headSha: string,
-  categories: ReadonlyArray<string>
+  categories: readonly string[]
 ) {
   yield* GitHub.pipe(
     Effect.flatMap(github =>
@@ -221,7 +227,10 @@ const onePull = Effect.fn('categoryApprove.onePull')(function* (
   const policy = yield* gitText(['show', `origin/${baseRef}:APPROVAL_POLICY.md`]);
   yield* Match.value(files).pipe(
     Match.when(
-      files => files.length === 1 && files[0]?.filename === '.git2gus/config.json' && files[0].status === 'modified',
+      changedFiles =>
+        changedFiles.length === 1 &&
+        changedFiles[0]?.filename === '.git2gus/config.json' &&
+        changedFiles[0].status === 'modified',
       () =>
         Effect.all([
           gitText(['show', `origin/${baseRef}:.git2gus/config.json`]),
@@ -229,8 +238,8 @@ const onePull = Effect.fn('categoryApprove.onePull')(function* (
         ]).pipe(Effect.map(([before, after]) => classifyGit2GusConfig(files, before, after)))
     ),
     Match.when(
-      files =>
-        files.some(
+      changedFiles =>
+        changedFiles.some(
           file => file.filename === '.git2gus/config.json' || file.previous_filename === '.git2gus/config.json'
         ),
       () => Effect.succeed([])

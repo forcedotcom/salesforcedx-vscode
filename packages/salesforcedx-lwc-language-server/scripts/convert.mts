@@ -1,12 +1,20 @@
-const fs = require('fs');
-const path = require('path');
+/*
+ * Copyright (c) 2026, salesforce.com, inc.
+ * All rights reserved.
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ */
 
-function getComponentLibraryLink(name) {
-  return '[View in Component Library](https://developer.salesforce.com/docs/component-library/bundle/' + name + ')';
-}
+import fs from 'node:fs';
+import data from '../src/build-time-resources/lwc-standard.json' with { type: 'json' };
 
-function getHover(tag, name) {
-  let retVal = tag.description + '\n' + getComponentLibraryLink(name) + '\n### Attributes\n';
+type Tag = (typeof data)[keyof typeof data];
+
+const getComponentLibraryLink = (name: string) =>
+  `[View in Component Library](https://developer.salesforce.com/docs/component-library/bundle/${name})`;
+
+const getHover = (tag: Tag, name: string) => {
+  let retVal = `${tag.description}\n${getComponentLibraryLink(name)}\n### Attributes\n`;
 
   for (const info of tag.attributes) {
     retVal += getAttributeMarkdown(info);
@@ -14,41 +22,25 @@ function getHover(tag, name) {
   }
 
   return retVal;
-}
+};
 
-function getAttributeMarkdown(attribute) {
-  if (attribute.name && attribute.type && attribute.description) {
-    return '* **' + attribute.name + '**: *' + attribute.type + '* ' + attribute.description;
-  }
-
-  if (attribute.name && attribute.type) {
-    return '* **' + attribute.name + '**: *' + attribute.type + '*';
-  }
-
-  if (attribute.name) {
-    return '* **' + attribute.name + '**';
-  }
-
-  return '';
-}
-
-// read old file
-const lwcStandard = path.join(__dirname, '..', 'src', 'build-time-resources', 'lwc-standard.json');
-const f = fs.readFileSync(lwcStandard, { encoding: 'utf-8' });
-const data = JSON.parse(f.toString());
+const getAttributeMarkdown = (attribute: Tag['attributes'][number]) => {
+  if (!attribute.name) return '';
+  const name = `* **${attribute.name}**`;
+  if (!attribute.type) return name;
+  const withType = `${name}: *${attribute.type}*`;
+  return attribute.description ? `${withType} ${attribute.description}` : withType;
+};
 
 // create tags from old file
-const tags = Object.keys(data).map(key => {
-  const tag = data[key];
-  return {
-    name: key,
-    description: getHover(tag, key),
-    attributes: tag.attributes.map(({ name, description }) => ({
-      name,
-      description
-    }))
-  };
-});
+const tags = Object.entries(data).map(([key, tag]) => ({
+  name: key,
+  description: getHover(tag, key),
+  attributes: tag.attributes.map(({ name, description }) => ({
+    name,
+    description
+  }))
+}));
 
 // make globalAttribute changes here, not in transformed-lwc-standard.json as they'll be overwritten
 const globalAttributes = [
@@ -157,7 +149,7 @@ const newJson = {
   globalAttributes
 };
 
-const transformedLWC = path.join(__dirname, '..', 'src', 'resources', 'transformed-lwc-standard.json');
+const transformedLWC = new URL('../src/resources/transformed-lwc-standard.json', import.meta.url);
 fs.writeFileSync(transformedLWC, JSON.stringify(newJson, null, 2));
 
 console.log('done building transformed-lwc-standard.json');

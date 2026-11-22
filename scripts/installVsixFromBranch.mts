@@ -10,7 +10,7 @@ import { existsSync, rmSync } from 'node:fs';
 
 if (process.argv.includes('--help')) {
   console.log(
-    'Usage: node scripts/installVSIXFromBranch.mts <ide>\nDownload and install VSIX files from the current branch.'
+    'Usage: node scripts/installVsixFromBranch.mts <ide>\nDownload and install VSIX files from the current branch.'
   );
   process.exit(0);
 }
@@ -33,7 +33,11 @@ const EXTENSION_IDS = [
 ];
 
 const SAVE_DIRECTORY = './extensions';
-const IDE = process.argv[2] as string;
+const IDE = process.argv[2];
+if (IDE === undefined) {
+  console.error('An IDE executable is required. Use --help for usage.');
+  process.exit(1);
+}
 
 const logger = (msg: string, obj?: unknown) => {
   if (!obj) {

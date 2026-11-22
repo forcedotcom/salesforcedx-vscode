@@ -1,6 +1,12 @@
 #!/usr/bin/env node
+/*
+ * Copyright (c) 2026, salesforce.com, inc.
+ * All rights reserved.
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ */
 
-/**
+/*
  * Folds every pre-release section of the root CHANGELOG.md that a stable release contains into one
  * `# <version> - <date>` section.
  *
@@ -15,7 +21,7 @@
  *   - no nightly tag (a stable section): stop; everything from here down is shipped history
  *
  * Usage:
- *   node scripts/fold-stable-changelog.js --changelog <file> --ref <git-ref> --version <X.Y.Z>
+ *   node scripts/foldStableChangelog.mts --changelog <file> --ref <git-ref> --version <X.Y.Z>
  *     [--date <"Month D, YYYY">]   stable section date. Defaults to the newest folded section's date, which
  *                                  promote-to-prerelease.yml sets to the expected stable ship date, so the build
  *                                  (stable VSIX) and publish (develop history) runs agree whatever day each runs
@@ -31,8 +37,8 @@
  * Idempotent: if `# <version>` is already in --changelog, --write is a no-op and --section-out uses that section.
  */
 
-const { execFileSync } = require('child_process');
-const fs = require('fs');
+import { execFileSync } from 'node:child_process';
+import fs from 'node:fs';
 
 const HEADER = /^# (\d+\.\d+\.\d+)(?:\s.*)?$/;
 const HEADER_DATE = /^# \d+\.\d+\.\d+ - (.+)$/;
@@ -40,59 +46,75 @@ const GENERIC_UNDER_THE_HOOD = /^- We made some under the hood changes\. \((.*)\
 const CATEGORY_ORDER = ['Added', 'Changed', 'Deprecated', 'Removed', 'Fixed', 'Security'];
 const UNDER_THE_HOOD = 'Under the Hood';
 
-const fail = message => {
+const fail: (message: string) => never = message => {
   console.error(`Error: ${message}`);
   process.exit(1);
 };
 
-const parseArgs = argv => {
-  const opts = { write: false };
+const parseArgs = (argv: string[]) => {
+  const opts: { write: boolean } & Record<string, string | boolean | undefined> = { write: false };
   for (let i = 0; i < argv.length; i++) {
     const arg = argv[i];
     if (arg === '--write') {
       opts.write = true;
     } else if (arg.startsWith('--') && i + 1 < argv.length) {
-      opts[arg.slice(2).replace(/-(\w)/g, (_, c) => c.toUpperCase())] = argv[++i];
+      opts[arg.slice(2).replaceAll(/-(\w)/g, (_, c: string) => c.toUpperCase())] = argv[++i];
     } else {
       fail(`Unexpected argument: ${arg}`);
     }
   }
-  for (const required of ['changelog', 'ref', 'version']) {
-    if (!opts[required]) fail(`--${required} is required`);
-  }
-  if (!/^\d+\.\d+\.\d+$/.test(opts.version)) fail(`--version must be X.Y.Z, got ${opts.version}`);
+  const { changelog, ref, version, date, sectionOut, overlay, fallbackSection } = opts;
+  if (typeof changelog !== 'string' || !changelog) fail('--changelog is required');
+  if (typeof ref !== 'string' || !ref) fail('--ref is required');
+  if (typeof version !== 'string' || !version) fail('--version is required');
+  if (!/^\d+\.\d+\.\d+$/.test(version)) fail(`--version must be X.Y.Z, got ${version}`);
   if (!opts.write && !opts.sectionOut) fail('Pass --write and/or --section-out');
-  return opts;
+  return {
+    changelog,
+    ref,
+    version,
+    write: opts.write,
+    date: typeof date === 'string' ? date : undefined,
+    sectionOut: typeof sectionOut === 'string' ? sectionOut : undefined,
+    overlay: typeof overlay === 'string' ? overlay : undefined,
+    fallbackSection: typeof fallbackSection === 'string' ? fallbackSection : undefined
+  };
 };
 
+type Section = { version: string; lines: string[] };
+type Entries = Map<string, Map<string, string[][]>>;
+
 /** Splits changelog text into leading lines and `# X.Y.Z` sections; joining all lines round-trips. */
-const splitSections = text => {
-  const lead = [];
-  const sections = [];
+const splitSections = (text: string) => {
+  const lead: string[] = [];
+  const sections: Section[] = [];
   for (const line of text.split('\n')) {
     const match = HEADER.exec(line);
+    const lastSection = sections.at(-1);
     if (match) sections.push({ version: match[1], lines: [line] });
-    else if (sections.length > 0) sections.at(-1).lines.push(line);
+    else if (lastSection) lastSection.lines.push(line);
     else lead.push(line);
   }
   return { lead, sections };
 };
 
-const withTrailingBlank = lines => (lines.at(-1) === '' ? lines : [...lines, '']);
+const withTrailingBlank = (lines: string[]) => (lines.at(-1) === '' ? lines : [...lines, '']);
 
-const topSection = file => splitSections(fs.readFileSync(file, 'utf8')).sections[0];
+const topSection = (file: string) => splitSections(fs.readFileSync(file, 'utf8')).sections[0];
 
-const isAncestor = (tag, ref) => {
+const isAncestor = (tag: string, ref: string) => {
   try {
     execFileSync('git', ['merge-base', '--is-ancestor', tag, ref], { stdio: 'pipe' });
     return true;
   } catch (error) {
-    if (error.status === 1) return false;
-    return fail(`git merge-base --is-ancestor ${tag} ${ref} failed: ${String(error.stderr).trim()}`);
+    if (error instanceof Error && 'status' in error && error.status === 1) return false;
+    return fail(
+      `git merge-base --is-ancestor ${tag} ${ref} failed: ${String(error instanceof Error && 'stderr' in error ? error.stderr : error).trim()}`
+    );
   }
 };
 
-const classify = ref => version => {
+const classify = (ref: string) => (version: string) => {
   const tags = execFileSync('git', ['tag', '--list', `v${version}-nightly.develop.*`], { encoding: 'utf8' })
     .split('\n')
     .filter(Boolean);
@@ -101,11 +123,11 @@ const classify = ref => version => {
 };
 
 /** category -> package ('' when none) -> entries, each entry being a bullet's lines. */
-const parseEntries = section => {
-  const categories = new Map();
-  let category;
+const parseEntries = (section: Section) => {
+  const categories: Entries = new Map();
+  let category: string | undefined;
   let pkg = '';
-  let entry;
+  let entry: string[] | undefined;
   for (const line of section.lines.slice(1)) {
     if (line.startsWith('## ')) {
       category = line.slice(3).trim();
@@ -122,45 +144,46 @@ const parseEntries = section => {
       entry.push(line);
     } else {
       entry = [line];
-      if (!categories.has(category)) categories.set(category, new Map());
-      const packages = categories.get(category);
-      if (!packages.has(pkg)) packages.set(pkg, []);
-      packages.get(pkg).push(entry);
+      const packages = categories.get(category) ?? new Map<string, string[][]>();
+      categories.set(category, packages);
+      const entries = packages.get(pkg) ?? [];
+      packages.set(pkg, entries);
+      entries.push(entry);
     }
   }
   return categories;
 };
 
-const prNumber = link => Number(/#(\d+)\]/.exec(link)?.[1] ?? Number.MAX_SAFE_INTEGER);
+const prNumber = (link: string) => Number(/#(\d+)\]/.exec(link)?.[1] ?? Number.MAX_SAFE_INTEGER);
 
 /** Collapses generic "under the hood changes" bullets into one, keeping links unique and ascending. */
-const mergeGenericBullets = entries => {
-  const links = entries
-    .map(entry => entry.length === 1 && GENERIC_UNDER_THE_HOOD.exec(entry[0]))
-    .filter(Boolean)
-    .flatMap(match => match[1].split(/, (?=\[)/));
+const mergeGenericBullets = (entries: string[][]) => {
+  const links = entries.flatMap(entry =>
+    entry.length === 1 ? (GENERIC_UNDER_THE_HOOD.exec(entry[0])?.[1].split(/, (?=\[)/) ?? []) : []
+  );
   if (links.length === 0) return entries;
   const merged = [
-    `- We made some under the hood changes. (${[...new Set(links)].sort((a, b) => prNumber(a) - prNumber(b)).join(', ')})`
+    `- We made some under the hood changes. (${[...new Set(links)].toSorted((a, b) => prNumber(a) - prNumber(b)).join(', ')})`
   ];
   const firstGeneric = entries.findIndex(entry => entry.length === 1 && GENERIC_UNDER_THE_HOOD.test(entry[0]));
   const rest = entries.filter(entry => !(entry.length === 1 && GENERIC_UNDER_THE_HOOD.test(entry[0])));
   return [...rest.slice(0, firstGeneric), merged, ...rest.slice(firstGeneric)];
 };
 
-const categoryRank = category => {
+const categoryRank = (category: string) => {
   if (category === UNDER_THE_HOOD) return CATEGORY_ORDER.length + 1;
   const index = CATEGORY_ORDER.indexOf(category);
   return index === -1 ? CATEGORY_ORDER.length : index;
 };
 
-const renderStableSection = (version, date, sections) => {
-  const merged = new Map();
+const renderStableSection = (version: string, date: string, sections: Section[]) => {
+  const merged: Entries = new Map();
   for (const section of sections) {
     for (const [category, packages] of parseEntries(section)) {
-      if (!merged.has(category)) merged.set(category, new Map());
+      const mergedPackages = merged.get(category) ?? new Map<string, string[][]>();
+      merged.set(category, mergedPackages);
       for (const [pkg, entries] of packages) {
-        merged.get(category).set(pkg, [...(merged.get(category).get(pkg) ?? []), ...entries]);
+        mergedPackages.set(pkg, [...(mergedPackages.get(pkg) ?? []), ...entries]);
       }
     }
   }
@@ -168,12 +191,11 @@ const renderStableSection = (version, date, sections) => {
   const lines = [`# ${version} - ${date}`, ''];
   if (merged.size === 0) lines.push('No customer-facing changes.', '');
   // Stable sort keeps first-seen order among categories outside CATEGORY_ORDER.
-  for (const category of [...merged.keys()].sort((a, b) => categoryRank(a) - categoryRank(b))) {
+  for (const [category, packages] of [...merged.entries()].toSorted(([a], [b]) => categoryRank(a) - categoryRank(b))) {
     lines.push(`## ${category}`, '');
-    const packages = merged.get(category);
-    for (const pkg of [...packages.keys()].sort((a, b) => a.localeCompare(b))) {
+    for (const [pkg, packageEntries] of [...packages.entries()].toSorted(([a], [b]) => a.localeCompare(b))) {
       if (pkg) lines.push(`#### ${pkg}`, '');
-      const entries = category === UNDER_THE_HOOD ? mergeGenericBullets(packages.get(pkg)) : packages.get(pkg);
+      const entries = category === UNDER_THE_HOOD ? mergeGenericBullets(packageEntries) : packageEntries;
       for (const entry of entries) lines.push(...entry, '');
     }
   }
@@ -184,7 +206,7 @@ const todayUtc = () =>
   new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric', timeZone: 'UTC' });
 
 /** --date, else the newest folded section's date, else today (a header without a date). */
-const stableDate = (opts, folded) => {
+const stableDate = (opts: ReturnType<typeof parseArgs>, folded: Section[]) => {
   if (opts.date) return opts.date;
   const fromSection = HEADER_DATE.exec(folded[0].lines[0])?.[1].trim();
   if (fromSection) return fromSection;
@@ -207,7 +229,7 @@ const main = () => {
 
   const existing = sections.find(section => section.version === opts.version);
   const classifyVersion = classify(opts.ref);
-  const folded = [];
+  const folded: Section[] = [];
   let stopAt = sections.length;
   if (!existing) {
     for (let i = 0; i < sections.length; i++) {
@@ -244,7 +266,7 @@ const main = () => {
 
   if (opts.write && !existing) {
     let updated;
-    if (folded.length > 0) {
+    if (folded.length > 0 && stableSection) {
       const insertAt = sections.indexOf(folded[0]);
       updated = sections.filter(section => !folded.includes(section));
       updated.splice(insertAt, 0, { version: opts.version, lines: stableSection });
@@ -263,6 +285,6 @@ const main = () => {
   }
 };
 
-if (require.main === module) {
+if (import.meta.main) {
   main();
 }

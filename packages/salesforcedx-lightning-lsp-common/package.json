@@ -60,7 +60,7 @@
   },
   "wireit": {
     "compile": {
-      "command": "tsc --pretty && node scripts/build.js",
+      "command": "tsc --pretty && node scripts/build.mts",
       "clean": "if-file-deleted",
       "dependencies": [
         "../effect-ext-utils:compile",
@@ -68,7 +68,8 @@
       ],
       "files": [
         "src/**/*.ts",
-        "scripts/**/*.js",
+        "scripts/**/*.{mts,ts}",
+        "scripts/tsconfig.json",
         "tsconfig.json",
         "../../tsconfig.common.json"
       ],
@@ -104,6 +105,9 @@
         "src/**/*.ts",
         "test/**/*.ts",
         "vitest/**/*.ts",
+        "scripts/**/*.{mts,ts}",
+        "scripts/tsconfig.json",
+        "../../scripts/tsconfig.native.json",
         "../../eslint.config.mjs"
       ],
       "output": []

@@ -675,7 +675,7 @@ export default [
       'packages/playwright-vscode-ext/**/*.ts',
       'packages/effect-octokit/test/**/*',
       'packages/playwright-vscode-ext/**/*.ts',
-      'scripts/**/*.test.ts'
+      'scripts/**/*.test.{ts,mts}'
     ],
     ignores: ['**/locators.ts'],
     plugins: {
@@ -980,12 +980,24 @@ export default [
   },
   {
     files: [
-      'scripts/validateActions.mts',
-      'scripts/changelogBody/changelogBody.mts',
-      'scripts/manualTestPlan/**/*.mts'
+      'scripts/**/*.mts',
+      'packages/salesforcedx-lightning-lsp-common/scripts/**/*.mts',
+      'packages/salesforcedx-aura-language-server/scripts/**/*.mts',
+      'packages/salesforcedx-lwc-language-server/scripts/**/*.mts'
     ],
     rules: {
-      'no-restricted-imports': 'off'
+      // Native automation uses Node filesystem APIs, not VS Code's filesystem.
+      'no-restricted-imports': [
+        'error',
+        {
+          paths: [
+            {
+              name: '@effect/platform',
+              message: 'Import from a submodule instead of the @effect/platform barrel.'
+            }
+          ]
+        }
+      ]
     }
   },
   {

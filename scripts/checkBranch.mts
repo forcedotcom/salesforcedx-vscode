@@ -1,4 +1,10 @@
 #!/usr/bin/env node
+/*
+ * Copyright (c) 2026, salesforce.com, inc.
+ * All rights reserved.
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ */
 /**
  * Block commits and pushes to develop/main on the upstream repo from local dev machines.
  * Skipped in GitHub Actions: GITHUB_ACTIONS is always "true" when running there.
@@ -6,9 +12,9 @@
  *
  * Skipped on forks: only enforced when origin points to forcedotcom/salesforcedx-vscode.
  */
-const { execSync } = require('child_process');
+import { execSync } from 'node:child_process';
 
-const run = cmd => execSync(cmd, { encoding: 'utf8' }).trim();
+const run = (cmd: string) => execSync(cmd, { encoding: 'utf8' }).trim();
 
 if (process.env.GITHUB_ACTIONS === 'true') process.exit(0);
 

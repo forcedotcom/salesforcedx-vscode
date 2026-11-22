@@ -1,33 +1,39 @@
 #!/usr/bin/env node
+/*
+ * Copyright (c) 2026, salesforce.com, inc.
+ * All rights reserved.
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ */
 /**
  * Removes compiled outputs and Wireit caches across the repo without deleting
  * node_modules, without `git clean`, and without unlinking npm-linked packages.
  * For full reset (including deps), use `pnpm clean`.
  */
 
-const fs = require('fs');
-const path = require('path');
-const { spawnSync } = require('child_process');
+import { spawnSync } from 'node:child_process';
+import fs from 'node:fs';
+import path from 'node:path';
 
-const repoRoot = path.resolve(__dirname, '..');
+const repoRoot = path.resolve(import.meta.dirname, '..');
 
-function rmPath(p) {
+const rmPath = (p: string) => {
   try {
     fs.rmSync(p, { recursive: true, force: true });
   } catch (err) {
-    console.error(`Failed to remove ${p}:`, err.message);
+    console.error(`Failed to remove ${p}:`, err instanceof Error ? err.message : String(err));
     process.exitCode = 1;
   }
-}
+};
 
-function rmIfExists(p) {
+const rmIfExists = (p: string) => {
   if (fs.existsSync(p)) {
     rmPath(p);
   }
-}
+};
 
-function rmVsixInDir(dir) {
-  let names;
+const rmVsixInDir = (dir: string) => {
+  let names: string[];
   try {
     names = fs.readdirSync(dir);
   } catch {
@@ -38,10 +44,10 @@ function rmVsixInDir(dir) {
       rmIfExists(path.join(dir, name));
     }
   }
-}
+};
 
-function rmTgzInDir(dir) {
-  let names;
+const rmTgzInDir = (dir: string) => {
+  let names: string[];
   try {
     names = fs.readdirSync(dir);
   } catch {
@@ -52,11 +58,14 @@ function rmTgzInDir(dir) {
       rmIfExists(path.join(dir, name));
     }
   }
-}
+};
 
 /** Default outputs matching workspace `clean` scripts minus node_modules. */
-function cleanPackageStandard(pkgRoot) {
-  for (const d of ['out', 'dist', 'lib', 'coverage', '.nyc_output', '.wireit']) {
+const cleanPackageStandard = (
+  pkgRoot: string,
+  directories = ['out', 'dist', 'lib', 'coverage', '.nyc_output', '.wireit']
+) => {
+  for (const d of directories) {
     rmIfExists(path.join(pkgRoot, d));
   }
   for (const f of ['.eslintcache', '.circular-deps.json']) {
@@ -64,9 +73,9 @@ function cleanPackageStandard(pkgRoot) {
   }
   rmVsixInDir(pkgRoot);
   rmIfExists(path.join(pkgRoot, 'tsconfig.tsbuildinfo'));
-}
+};
 
-function cleanGithubActionsLib() {
+const cleanGithubActionsLib = () => {
   const actionsRoot = path.join(repoRoot, '.github', 'actions');
   if (!fs.existsSync(actionsRoot)) {
     return;
@@ -74,21 +83,14 @@ function cleanGithubActionsLib() {
   for (const name of fs.readdirSync(actionsRoot)) {
     rmIfExists(path.join(actionsRoot, name, 'lib'));
   }
-}
+};
 
 /** Aligns with packages/salesforcedx-vscode-apex `clean` but skips node_modules. */
-function cleanApexPackage(pkgRoot) {
-  for (const d of ['dist', 'lib', 'coverage', '.nyc_output', '.wireit']) {
-    rmIfExists(path.join(pkgRoot, d));
-  }
-  for (const f of ['.eslintcache', '.circular-deps.json']) {
-    rmIfExists(path.join(pkgRoot, f));
-  }
-  rmVsixInDir(pkgRoot);
-  rmIfExists(path.join(pkgRoot, 'tsconfig.tsbuildinfo'));
+const cleanApexPackage = (pkgRoot: string) => {
+  cleanPackageStandard(pkgRoot, ['dist', 'lib', 'coverage', '.nyc_output', '.wireit']);
   const outDir = path.join(pkgRoot, 'out');
   if (fs.existsSync(outDir)) {
-    const jarCleaner = path.join(repoRoot, 'scripts', 'clean-all-but-jar.js');
+    const jarCleaner = path.join(repoRoot, 'scripts', 'cleanAllButJar.mts');
     const r = spawnSync(process.execPath, [jarCleaner], {
       cwd: outDir,
       stdio: 'inherit'
@@ -97,17 +99,17 @@ function cleanApexPackage(pkgRoot) {
       process.exitCode = r.status ?? 1;
     }
   }
-}
+};
 
-function cleanServicesTypes(pkgRoot) {
+const cleanServicesTypes = (pkgRoot: string) => {
   for (const d of ['out', 'dist', '.wireit']) {
     rmIfExists(path.join(pkgRoot, d));
   }
   rmIfExists(path.join(pkgRoot, '.eslintcache'));
   rmTgzInDir(pkgRoot);
-}
+};
 
-function main() {
+const main = () => {
   rmIfExists(path.join(repoRoot, '.wireit'));
   rmIfExists(path.join(repoRoot, 'coverage'));
   cleanGithubActionsLib();
@@ -139,6 +141,6 @@ function main() {
         break;
     }
   }
-}
+};
 
 main();

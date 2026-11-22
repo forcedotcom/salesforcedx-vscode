@@ -103,6 +103,14 @@ type Options = {
   debug: boolean;
 };
 
+const need = (flag: string, value: string | undefined): string => {
+  if (value === undefined || value.startsWith('-')) {
+    console.error(`Option ${flag} requires a value.`);
+    process.exit(2);
+  }
+  return value;
+};
+
 const parseArgs = (argv: string[]): Options => {
   const parsed: Options = { teardown: true, imageTag: 'latest', debug: false };
   // A value-consuming flag given without its value (e.g. trailing `--run-id`) would otherwise read
@@ -110,13 +118,6 @@ const parseArgs = (argv: string[]): Options => {
   // instead of the intended artifact run. A flag directly followed by another flag (`--run-id
   // --debug`) is the same mistake: it would swallow `--debug` as the value. Reject both — a value
   // that starts with `-` is never a legitimate run id / grep pattern / image tag here.
-  const need = (flag: string, value: string | undefined): string => {
-    if (value === undefined || value.startsWith('-')) {
-      console.error(`Option ${flag} requires a value.`);
-      process.exit(2);
-    }
-    return value;
-  };
   for (let i = 0; i < argv.length; i++) {
     const arg = argv[i];
     switch (arg) {
@@ -289,7 +290,7 @@ const problems: string[] = [];
 
 if (!has('docker')) {
   problems.push(
-    `docker — not installed. Needed to run the Code Builder image.\n` +
+    'docker — not installed. Needed to run the Code Builder image.\n' +
       `      Install Docker Desktop: ${brewOr('--cask docker', 'https://docs.docker.com/engine/install/')}`
   );
 } else if (spawnSync('docker', ['info'], { stdio: 'ignore' }).status !== 0) {
@@ -303,9 +304,9 @@ if (!has('docker')) {
 if (!process.env.CR_PAT) {
   if (!has('gh')) {
     problems.push(
-      `gh (GitHub CLI) — not installed. Used to authenticate the image pull as your GitHub user.\n` +
+      'gh (GitHub CLI) — not installed. Used to authenticate the image pull as your GitHub user.\n' +
         `      Install: ${brewOr('gh', 'https://github.com/cli/cli#installation')}, then: gh auth login\n` +
-        `      (Or set CR_PAT to a classic PAT with read:packages, SSO-authorized for forcedotcom.)`
+        '      (Or set CR_PAT to a classic PAT with read:packages, SSO-authorized for forcedotcom.)'
     );
   } else if (spawnSync('gh', ['auth', 'status', '-h', 'github.com'], { stdio: 'ignore' }).status !== 0) {
     problems.push('gh (GitHub CLI) — not logged in to github.com. Run: gh auth login');

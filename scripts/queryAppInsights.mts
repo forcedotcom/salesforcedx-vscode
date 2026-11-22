@@ -5,29 +5,36 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { Option, Schema } from 'effect';
 import process from 'node:process';
 
-type AppInsightsQueryResponse = {
-  tables: {
-    name: string;
-    columns: { name: string; type: string }[];
-    rows: unknown[][];
-  }[];
-  error?: {
-    code: string;
-    message: string;
-    innererror?: {
-      code: string;
-      message: string;
-    };
-  };
-};
+const AppInsightsErrorSchema = Schema.Struct({
+  code: Schema.String,
+  message: Schema.String,
+  innererror: Schema.optional(Schema.Struct({ code: Schema.String, message: Schema.String }))
+});
+const AppInsightsErrorResponseSchema = Schema.Struct({ error: AppInsightsErrorSchema });
+const AppInsightsQueryResponseSchema = Schema.Struct({
+  tables: Schema.Array(
+    Schema.Struct({
+      name: Schema.String,
+      columns: Schema.Array(Schema.Struct({ name: Schema.String, type: Schema.String })),
+      rows: Schema.Array(Schema.Array(Schema.Unknown))
+    })
+  ),
+  error: Schema.optional(AppInsightsErrorSchema)
+});
+
+type AppInsightsQueryResponse = Schema.Schema.Type<typeof AppInsightsQueryResponseSchema>;
 
 type QueryResult = {
   success: boolean;
   data?: AppInsightsQueryResponse;
   error?: string;
 };
+
+const firstErrorMessage = (...messages: readonly (string | undefined)[]) =>
+  messages.find(message => message !== undefined && message.length > 0);
 
 const validateEnvVars = (): { apiKey: string; clientId: string } | undefined => {
   const apiKey = process.env.APP_INSIGHTS_API_KEY;
@@ -65,8 +72,11 @@ const queryAppInsights = async (kqlQuery: string): Promise<QueryResult> => {
     if (!response.ok) {
       let errorMsg = `HTTP ${response.status}: ${response.statusText}`;
       try {
-        const errorData = (await response.json()) as AppInsightsQueryResponse;
-        errorMsg = errorData.error?.message || errorData.error?.innererror?.message || errorMsg;
+        const errorData = Schema.decodeUnknownOption(AppInsightsErrorResponseSchema)(await response.json());
+        errorMsg = Option.match(errorData, {
+          onNone: () => errorMsg,
+          onSome: ({ error }) => firstErrorMessage(error.message, error.innererror?.message) ?? errorMsg
+        });
       } catch {
         // If response body is not JSON, use the status text
       }
@@ -76,12 +86,12 @@ const queryAppInsights = async (kqlQuery: string): Promise<QueryResult> => {
       };
     }
 
-    const data = (await response.json()) as AppInsightsQueryResponse;
+    const data = Schema.decodeUnknownSync(AppInsightsQueryResponseSchema)(await response.json());
 
     if (data.error) {
       return {
         success: false,
-        error: data.error.message || data.error.innererror?.message || 'Unknown query error'
+        error: firstErrorMessage(data.error.message, data.error.innererror?.message) ?? 'Unknown query error'
       };
     }
 
