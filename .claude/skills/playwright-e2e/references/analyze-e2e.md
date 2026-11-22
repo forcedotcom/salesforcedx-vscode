@@ -107,6 +107,7 @@ Filter `workflowName` containing "(Playwright)". Examples: Metadata E2E, Service
 - Open the downloaded GHA Playwright HTML report, select the failed test + retry, and inspect its attached flow video (`video/webm`). Match the platform/lane to the downloaded artifact.
 - Use the report attachment to identify the exact `.webm` under `playwright-report/` or `playwright-test-results-*/`; filename or file size alone does not identify a test.
 - Compare the recorded actions and UI state with the failed assertion and job log. Flow recordings exclude fixture setup and teardown; timestamps are relative to recording start. A setup failure can occur before any flow video exists.
+- If a test is absent from the final report/results artifact even though its log shows it ran, inspect the job log for retries (`--last-failed`). The retry invocation can replace Playwright's report and `test-results` directory with only the retried tests, omitting videos from tests that passed in the first invocation. Check earlier runs and earlier commits of the same PR; do not assume the latest commit has the newest available recording.
 - Automatic test/trace screenshots are not expected. Inspect explicit diagnostic/product screenshots only when present; their APIs remain supported.
 
 ## Optional frame extraction

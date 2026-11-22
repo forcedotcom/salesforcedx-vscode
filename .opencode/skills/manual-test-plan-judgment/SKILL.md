@@ -2,19 +2,20 @@
 name: manual-test-plan-judgment
 description: Manual test plan JSON for one PR. Only caller is the manual test plan script.
 review: never
-disable-model-invocation: true
+metadata:
+  opencode/autoinvoke: false
 ---
 
 # Manual test plan judgment
 
 Read the diff and the code. Reply with one JSON object. No other text. No fences.
 
-`{ "kind": "nothing" }` when no extension surface (CI, docs, types-only, tooling), or every changed surface is already asserted.
+`{ "_tag": "Nothing" }` when no extension surface (CI, docs, types-only, tooling), or every changed surface is already asserted.
 
-`{ "kind": "checklist", "items": [ ... ] }` with 1+ items:
+`{ "_tag": "Checklist", "items": [ ... ] }` with 1+ items:
 
-- `{ "kind": "watch-video", "spec": "<path>", "workflow": "<workflow name>", "job": "<job key>" }`
-- `{ "kind": "manual", "step": "<what to look at>" }`
+- `{ "_tag": "WatchVideo", "spec": "<path>", "workflow": "<workflow name>", "job": "<job key>" }`
+- `{ "_tag": "ManualItem", "step": "<what to look at>" }`
 
 `spec`: repo-relative path, `test/playwright` then a `.spec.ts` file that exists.
 `workflow`: `name:` of a leaf `*E2E.yml`. Not `e2e.yml`, `playwrightE2EFullSuite.yml`, `rerunPushE2E.yml`.

@@ -7,21 +7,25 @@
 
 import * as NodeContext from '@effect/platform-node/NodeContext';
 import { GitHub } from '@salesforce/effect-octokit';
-import { ConfigProvider, Effect } from 'effect';
+import { ConfigProvider, Effect, Layer, Schema } from 'effect';
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
-import { mkdirSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, realpathSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { test } from 'node:test';
+import { commands, config as openCodeConfig, nodeCommand } from '../../../../test/ciAiFixtures.mts';
+import { OpenCodeRunFailed } from '../../../shared/openCode.mts';
 import {
+  isRelevantDiffPath,
   judgmentError,
+  manualTestPlanPrompt,
   manualTestPlanProgram,
   renderManualTestPlan,
   spliceManualTestPlan,
   type PromptInput
 } from '../../manualTestPlan.mts';
-import { CursorRunFailed } from '../../schema.mts';
+import { videosEnd, videosStart } from '../../videoManifest.mts';
 
 const repoRoot = join(import.meta.dirname, '..', '..', '..', '..');
 
@@ -97,25 +101,47 @@ const initRepo = (skill: boolean) => {
   git(remote, ['init', '--bare', '-b', 'develop']);
   git(cwd, ['init', '-b', 'develop']);
   if (skill) {
-    const skillDir = join(cwd, '.cursor', 'skills', 'manual-test-plan-judgment');
+    const skillDir = join(cwd, '.opencode', 'skills', 'manual-test-plan-judgment');
     mkdirSync(skillDir, { recursive: true });
     writeFileSync(join(skillDir, 'SKILL.md'), 'reply with json\n');
   }
+  const featureDir = join(cwd, 'packages', 'salesforcedx-vscode-core', 'src');
+  mkdirSync(featureDir, { recursive: true });
+  writeFileSync(join(featureDir, 'feature.ts'), 'export const feature = "base";\n');
+  const testDir = join(cwd, 'packages', 'salesforcedx-vscode-core', 'test');
+  mkdirSync(testDir, { recursive: true });
+  writeFileSync(join(testDir, 'feature.test.ts'), 'test before\n');
+  const workflowDir = join(cwd, '.github', 'workflows');
+  mkdirSync(workflowDir, { recursive: true });
+  writeFileSync(join(workflowDir, 'ci.yml'), 'name: CI before\n');
   git(cwd, ['add', '-A']);
   git(cwd, ['commit', '--allow-empty', '-m', 'base']);
   git(cwd, ['remote', 'add', 'origin', remote]);
   git(cwd, ['push', '-u', 'origin', 'develop']);
+  writeFileSync(join(featureDir, 'feature.ts'), 'export const feature = "changed";\n');
+  writeFileSync(join(testDir, 'feature.test.ts'), 'test after\n');
+  writeFileSync(join(workflowDir, 'ci.yml'), 'name: CI after\n');
+  git(cwd, ['add', '-A']);
+  git(cwd, ['commit', '-m', 'change feature']);
   return cwd;
 };
 
 const run = (
   cwd: string,
-  prompt: (input: PromptInput) => Effect.Effect<string, CursorRunFailed>,
-  state: { body: string; writes: string[] }
+  prompt: (input: PromptInput) => Effect.Effect<string, OpenCodeRunFailed>,
+  state: { body: string; writes: string[] },
+  headMoved = false
 ) =>
   manualTestPlanProgram({
     cwd,
     prompt,
+    readHead: () =>
+      Effect.succeed({
+        state: 'OPEN',
+        headRefOid: headMoved
+          ? 'different-head'
+          : execFileSync('git', ['rev-parse', 'HEAD'], { cwd, env: gitEnv, encoding: 'utf8' }).trim()
+      }),
     readBody: () => Effect.succeed(state.body),
     writeBody: (_pr, body) =>
       Effect.sync(() => {
@@ -126,7 +152,7 @@ const run = (
 
 const replies =
   (lines: readonly string[]) =>
-  (input: PromptInput): Effect.Effect<string, CursorRunFailed> => {
+  (input: PromptInput): Effect.Effect<string, OpenCodeRunFailed> => {
     const index = input.correction === undefined ? 0 : 1;
     return Effect.succeed(lines[index] ?? '');
   };
@@ -135,15 +161,18 @@ test('splice keeps surrounding sections and replaces only the marked block', () 
   const prefix = '## Summary\n\nkept\n\n## Plan\n\nlink\n';
   const first = spliceManualTestPlan(
     prefix,
-    renderManualTestPlan({
-      kind: 'checklist',
-      items: [{ kind: 'manual', step: 'Open the org browser' }]
-    })
+    renderManualTestPlan(
+      {
+        _tag: 'Checklist',
+        items: [{ _tag: 'ManualItem', step: 'Open the org browser' }]
+      },
+      'head'
+    )
   );
   assert.equal(first.slice(0, prefix.length), prefix);
   assert.equal(first.includes('## Manual test plan'), true);
   assert.equal(first.includes('- [ ] Open the org browser'), true);
-  const second = spliceManualTestPlan(first, renderManualTestPlan({ kind: 'nothing' }));
+  const second = spliceManualTestPlan(first, renderManualTestPlan({ _tag: 'Nothing' }, 'head'));
   assert.equal(second.slice(0, prefix.length), prefix);
   assert.equal(second.includes('Open the org browser'), false);
   assert.equal(second.includes('Nothing worth manually testing.'), true);
@@ -151,17 +180,20 @@ test('splice keeps surrounding sections and replaces only the marked block', () 
 });
 
 test('watch-video renders the spec, workflow, and job', () => {
-  const rendered = renderManualTestPlan({
-    kind: 'checklist',
-    items: [
-      {
-        kind: 'watch-video',
-        spec: 'packages/salesforcedx-vscode-core/test/playwright/specs/core.spec.ts',
-        workflow: 'Core E2E (Playwright)',
-        job: 'e2e-desktop'
-      }
-    ]
-  });
+  const rendered = renderManualTestPlan(
+    {
+      _tag: 'Checklist',
+      items: [
+        {
+          _tag: 'WatchVideo',
+          spec: 'packages/salesforcedx-vscode-core/test/playwright/specs/core.spec.ts',
+          workflow: 'Core E2E (Playwright)',
+          job: 'e2e-desktop'
+        }
+      ]
+    },
+    'head'
+  );
   assert.match(
     rendered,
     /- \[ \] Watch video: `packages\/salesforcedx-vscode-core\/test\/playwright\/specs\/core\.spec\.ts` in `Core E2E \(Playwright\)` \(`e2e-desktop`\)/
@@ -171,13 +203,13 @@ test('watch-video renders the spec, workflow, and job', () => {
 test('a real core spec and job pass; a missing job does not', async () => {
   const spec = 'packages/salesforcedx-vscode-core/test/playwright/specs/coreOutputChannel.headless.spec.ts';
   const ok = await judgmentError(repoRoot, {
-    kind: 'checklist',
-    items: [{ kind: 'watch-video', spec, workflow: 'Core E2E (Playwright)', job: 'e2e-desktop' }]
+    _tag: 'Checklist',
+    items: [{ _tag: 'WatchVideo', spec, workflow: 'Core E2E (Playwright)', job: 'e2e-desktop' }]
   }).pipe(Effect.provide(NodeContext.layer), Effect.runPromise);
   assert.equal(ok, undefined);
   const missing = await judgmentError(repoRoot, {
-    kind: 'checklist',
-    items: [{ kind: 'watch-video', spec, workflow: 'Core E2E (Playwright)', job: 'e2e-web' }]
+    _tag: 'Checklist',
+    items: [{ _tag: 'WatchVideo', spec, workflow: 'Core E2E (Playwright)', job: 'e2e-web' }]
   }).pipe(Effect.provide(NodeContext.layer), Effect.runPromise);
   assert.equal(missing, 'job e2e-web is not in Core E2E (Playwright)');
 });
@@ -189,7 +221,7 @@ test('missing skill ref leaves the body unchanged', async () => {
     initRepo(false),
     () => {
       calls.n += 1;
-      return Effect.succeed('{"kind":"nothing"}');
+      return Effect.succeed('{"_tag":"Nothing"}');
     },
     state
   );
@@ -226,14 +258,14 @@ test('inherited pre-push Git variables cannot redirect fixture Git commands', ()
   assert.equal(execFileSync('git', ['status', '--porcelain'], { cwd: hookRepo, env: gitEnv, encoding: 'utf8' }), '');
 });
 
-test('a cursor failure does not retry', async () => {
+test('an OpenCode failure does not retry', async () => {
   const calls = { n: 0 };
   const state: { body: string; writes: string[] } = { body: '## Summary\n\nkept\n', writes: [] };
   const outcome = await run(
     initRepo(true),
     () => {
       calls.n += 1;
-      return Effect.fail(new CursorRunFailed({ status: 'error', message: 'boom' }));
+      return Effect.fail(new OpenCodeRunFailed({ message: 'boom' }));
     },
     state
   );
@@ -242,18 +274,37 @@ test('a cursor failure does not retry', async () => {
   assert.deepEqual(state.writes, []);
 });
 
+test('head moving during AI generation leaves the body intact', async () => {
+  const state: { body: string; writes: string[] } = { body: 'Keep existing manual plan', writes: [] };
+  const result = await run(initRepo(true), replies(['{"_tag":"Nothing"}']), state, true);
+  assert.deepEqual(result, { edited: false });
+  assert.equal(state.body, 'Keep existing manual plan');
+  assert.deepEqual(state.writes, []);
+});
+
+test('an unchanged plan does not clear its already published videos', async () => {
+  const cwd = initRepo(true);
+  const state: { body: string; writes: string[] } = { body: 'Summary\n', writes: [] };
+  await run(cwd, replies(['{"_tag":"Nothing"}']), state);
+  state.body = `${state.body}${videosStart}\nvideo\n${videosEnd}`;
+  const body = state.body;
+  assert.deepEqual(await run(cwd, replies(['{"_tag":"Nothing"}']), state), { edited: false });
+  assert.equal(state.body, body);
+  assert.equal(state.writes.length, 1);
+});
+
 test('schema and watch-video failures retry once', async () => {
   const cwd = initRepo(true);
   const badVideo = JSON.stringify({
-    kind: 'checklist',
-    items: [{ kind: 'watch-video', spec: 'missing.spec.ts', workflow: 'Nope', job: 'e2e-web' }]
+    _tag: 'Checklist',
+    items: [{ _tag: 'WatchVideo', spec: 'missing.spec.ts', workflow: 'Nope', job: 'e2e-web' }]
   });
   const state: { body: string; writes: string[] } = { body: '## Summary\n\nkept\n', writes: [] };
-  const schema = await run(cwd, replies(['not-json', '{"kind":"nothing"}']), state);
+  const schema = await run(cwd, replies(['not-json', '{"_tag":"Nothing"}']), state);
   assert.deepEqual(schema, { edited: true });
   assert.equal(state.body.includes('Nothing worth manually testing.'), true);
   const again: { body: string; writes: string[] } = { body: '## Summary\n\nkept\n', writes: [] };
-  const video = await run(cwd, replies([badVideo, '{"kind":"nothing"}']), again);
+  const video = await run(cwd, replies([badVideo, '{"_tag":"Nothing"}']), again);
   assert.deepEqual(video, { edited: true });
   const stuck: { body: string; writes: string[] } = { body: '## Summary\n\nkept\n', writes: [] };
   const twice = await run(cwd, replies(['not-json', 'still-not-json']), stuck);
@@ -261,13 +312,53 @@ test('schema and watch-video failures retry once', async () => {
   assert.deepEqual(stuck.writes, []);
 });
 
-test('workflow uses the actions token and skips when the cursor key is empty', () => {
+test('manual test plan filters CI, utility-package, and test diffs', () => {
+  for (const file of [
+    '.github/workflows/manual-test-plan.yml',
+    'test/ci-ai.test.mts',
+    'packages/salesforcedx-vscode-core/test/unit/feature.test.ts',
+    'packages/drivable-vscode/src/index.ts',
+    'packages/effect-octokit/src/github.ts',
+    'packages/eslint-local-rules/src/index.ts',
+    'packages/playwright-vscode-ext/src/index.ts'
+  ]) {
+    assert.equal(isRelevantDiffPath(file), false, file);
+  }
+  for (const file of [
+    'packages/salesforcedx-vscode-core/src/feature.ts',
+    'packages/salesforcedx-vscode-core/package.json'
+  ]) {
+    assert.equal(isRelevantDiffPath(file), true, file);
+  }
+});
+
+test('manual test plan sends only product-code diffs to OpenCode', async () => {
+  const diffs: string[] = [];
+  const state: { body: string; writes: string[] } = { body: '', writes: [] };
+  await run(
+    initRepo(true),
+    input => {
+      diffs.push(input.diff);
+      return Effect.succeed('{"_tag":"Nothing"}');
+    },
+    state
+  );
+  assert.equal(diffs.length, 1);
+  assert.match(diffs[0], /feature = "changed"/);
+  assert.doesNotMatch(diffs[0], /feature\.test\.ts|test after|ci\.yml|CI after/);
+});
+
+test('workflow uses the OpenCode secret and model variable with the actions token and skips without a key', () => {
   const workflow = readFileSync(join(repoRoot, '.github', 'workflows', 'manual-test-plan.yml'), 'utf8');
   assert.match(workflow, /types: \[opened, synchronize\]/);
-  assert.match(workflow, /group: manual-test-plan-\$\{\{ github\.event\.pull_request\.number \}\}/);
-  assert.match(workflow, /cancel-in-progress: false/);
-  assert.match(workflow, /if: needs\.secret\.outputs\.has_key == 'true'/);
+  assert.match(workflow, /group: manual-test-plan-\$\{\{ github\.event\.pull_request\.number \|\| github\.run_id \}\}/);
+  assert.match(workflow, /cancel-in-progress: true/);
+  assert.match(workflow, /if: github\.event_name == 'pull_request' && needs\.secret\.outputs\.has_key == 'true'/);
   assert.match(workflow, /has_key=false/);
+  assert.match(workflow, /OPENCODE_API_KEY: \$\{\{ secrets\.OPENCODE_API_KEY \}\}/);
+  assert.match(workflow, /OPENCODE_MODELS: \$\{\{ vars\.OPENCODE_MODELS \}\}/);
+  assert.match(workflow, /uses: \.\/\.github\/actions\/setup-opencode/);
+  assert.equal(workflow.includes('CURSOR'), false);
   assert.match(workflow, /GITHUB_TOKEN: \$\{\{ github\.token \}\}/);
   assert.match(workflow, /GITHUB_EVENT_PATH: \$\{\{ github\.event_path \}\}/);
   assert.match(workflow, /GITHUB_REPOSITORY: \$\{\{ github\.repository \}\}/);
@@ -279,4 +370,89 @@ test('workflow uses the actions token and skips when the cursor key is empty', (
   assert.match(workflow, /uses: \.\/\.github\/actions\/setup-pnpm/);
   assert.match(workflow, /ref: \$\{\{ github\.event\.pull_request\.head\.sha \}\}/);
   assert.match(workflow, /fetch-depth: 0/);
+});
+
+test('OpenCode subprocess receives isolated read-only configuration, stdin prompt, and no GitHub token', async () => {
+  const result = await manualTestPlanPrompt(repoRoot, {
+    skill: 'judge this diff',
+    diff: '+change',
+    correction: 'invalid JSON'
+  }).pipe(
+    Effect.provide(
+      Layer.mergeAll(
+        NodeContext.layer,
+        commands(command =>
+          nodeCommand(
+            command,
+            `
+const fs = require('node:fs');
+const config = JSON.parse(fs.readFileSync('opencode.json', 'utf8'));
+const prompt = fs.readFileSync(0, 'utf8');
+const text = JSON.stringify({
+  args:process.argv.slice(1),
+  cwd:process.cwd(),
+  config,
+  prompt,
+  githubToken:process.env.GITHUB_TOKEN,
+  apiKey:process.env.OPENCODE_API_KEY
+});
+process.stdout.write([
+  {type:'step_start'},
+  {type:'text',part:{text}},
+  {type:'step_finish',part:{reason:'stop'}}
+].map(event => JSON.stringify(event)).join('\\n') + '\\n');
+`
+          )
+        )
+      )
+    ),
+    Effect.withConfigProvider(openCodeConfig()),
+    Effect.flatMap(
+      Schema.decodeUnknown(
+        Schema.parseJson(
+          Schema.Struct({
+            args: Schema.Array(Schema.String),
+            cwd: Schema.String,
+            config: Schema.Struct({
+              agents: Schema.Struct({
+                judgment: Schema.Struct({
+                  permissions: Schema.Array(
+                    Schema.Struct({ action: Schema.String, resource: Schema.String, effect: Schema.String })
+                  )
+                })
+              })
+            }),
+            prompt: Schema.String,
+            githubToken: Schema.optional(Schema.String),
+            apiKey: Schema.String
+          })
+        )
+      )
+    ),
+    Effect.runPromise
+  );
+  assert.deepEqual(result.args, [
+    '--standalone',
+    'run',
+    '--agent',
+    'judgment',
+    '--format',
+    'json',
+    '--model',
+    'opencode/first'
+  ]);
+  assert.notEqual(result.cwd, repoRoot);
+  const readDirectory = realpathSync(repoRoot);
+  assert.deepEqual(result.config.agents.judgment.permissions, [
+    { action: '*', resource: '*', effect: 'deny' },
+    { action: 'external_directory', resource: `${readDirectory}/*`, effect: 'allow' },
+    { action: 'read', resource: readDirectory, effect: 'allow' },
+    { action: 'read', resource: `${readDirectory}/*`, effect: 'allow' }
+  ]);
+  assert.equal(result.githubToken === undefined || result.githubToken === '', true);
+  assert.equal(result.apiKey, 'test-key');
+  assert.match(result.prompt, /judge this diff/);
+  assert.match(result.prompt, /\+change/);
+  assert.match(result.prompt, /Previous reply failed validation:\ninvalid JSON/);
+  assert.equal(existsSync(result.cwd), false);
 });

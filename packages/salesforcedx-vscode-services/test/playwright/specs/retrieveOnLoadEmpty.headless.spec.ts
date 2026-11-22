@@ -18,7 +18,8 @@ import {
   createMinimalOrg,
   validateNoCriticalErrors,
   waitForVSCodeWorkbench,
-  ensureSecondarySideBarHidden
+  ensureSecondarySideBarHidden,
+  startVideoRecording
 } from '@salesforce/playwright-vscode-ext';
 import { SERVICES_CHANNEL_NAME } from '../../../src/constants';
 
@@ -28,7 +29,7 @@ test.beforeEach(async ({ page }) => {
   await ensureSecondarySideBarHidden(page);
 });
 
-test('handles empty retrieveOnLoad setting gracefully', async ({ page }) => {
+test('handles empty retrieveOnLoad setting gracefully', async ({ page }, testInfo) => {
   test.setTimeout(5 * 60 * 1000);
   const consoleErrors = setupConsoleMonitoring(page);
 
@@ -37,16 +38,25 @@ test('handles empty retrieveOnLoad setting gracefully', async ({ page }) => {
     await upsertScratchOrgAuthFieldsToSettings(page, orgAuth);
   });
 
-  await test.step('verify no retrieval attempt', async () => {
-    await ensureOutputPanelOpen(page);
-    await selectOutputChannel(page, SERVICES_CHANNEL_NAME);
+  const videoName = [testInfo.project.name, ...testInfo.titlePath, 'empty-retrieve-on-load', `retry-${testInfo.retry}`]
+    .join('-')
+    .replaceAll(/[^a-zA-Z0-9._-]+/g, '-')
+    .replaceAll(/^-+|-+$/g, '');
+  const stopRecording = await startVideoRecording(page, testInfo, videoName);
+  try {
+    await test.step('verify no retrieval attempt', async () => {
+      await ensureOutputPanelOpen(page);
+      await selectOutputChannel(page, SERVICES_CHANNEL_NAME);
 
-    // Wait for the extension to activate and process settings
-    await waitForOutputChannelText(page, { expectedText: SERVICES_CHANNEL_NAME, timeout: 30_000 });
+      // Wait for the extension to activate and process settings
+      await waitForOutputChannelText(page, { expectedText: SERVICES_CHANNEL_NAME, timeout: 30_000 });
 
-    const hasRetrieving = await outputChannelContains(page, 'Retrieving metadata on load');
-    expect(hasRetrieving, 'Should not attempt retrieval with empty setting').toBe(false);
-  });
+      const hasRetrieving = await outputChannelContains(page, 'Retrieving metadata on load');
+      expect(hasRetrieving, 'Should not attempt retrieval with empty setting').toBe(false);
+    });
 
-  await validateNoCriticalErrors(test, consoleErrors);
+    await validateNoCriticalErrors(test, consoleErrors);
+  } finally {
+    await stopRecording();
+  }
 });

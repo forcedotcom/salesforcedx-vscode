@@ -5,32 +5,18 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { Agent, type ToolName } from '@cursor/sdk';
 import * as Command from '@effect/platform/Command';
 import * as FileSystem from '@effect/platform/FileSystem';
 import * as Path from '@effect/platform/Path';
 import * as NodeContext from '@effect/platform-node/NodeContext';
-import {
-  Array as Arr,
-  Config,
-  Effect,
-  Exit,
-  HashMap,
-  HashSet,
-  Layer,
-  Logger,
-  Match,
-  Option,
-  pipe,
-  Redacted,
-  Schema
-} from 'effect';
+import { Array as Arr, Effect, Exit, HashMap, HashSet, Layer, Logger, Option, pipe, Schema } from 'effect';
 import { isNotUndefined, isUndefined } from 'effect/Predicate';
+import { pathToFileURL } from 'node:url';
+import { openCodePrompt } from '../shared/openCode.mts';
 
 const repo = 'forcedotcom/salesforcedx-vscode';
 const keptTypes = ['feat', 'fix', 'perf'] as const;
 const sectionNames = ['Added', 'Fixed', 'Changed', 'Under the Hood'] as const;
-const tools: ToolName[] = [];
 
 const Fact = Schema.Struct({
   sha: Schema.String,
@@ -67,17 +53,10 @@ class IdenticalChangelogRefs extends Schema.TaggedError<IdenticalChangelogRefs>(
   message: Schema.String
 }) {}
 
-class CursorRunFailed extends Schema.TaggedError<CursorRunFailed>()('CursorRunFailed', {
-  status: Schema.String,
-  message: Schema.String
-}) {}
-
 class MissingChangelogFact extends Schema.TaggedError<MissingChangelogFact>()('MissingChangelogFact', {
   pr: Schema.Number,
   message: Schema.String
 }) {}
-
-const messageOf = (error: unknown, fallback: string) => (error instanceof Error ? error.message : fallback);
 
 const runCommand = Effect.fn('changelogBody.runCommand')(function* (
   cwd: string,
@@ -319,34 +298,15 @@ const toMarkdown = Effect.fn('changelogBody.toMarkdown')(function* (
     .join('\n\n');
 });
 
-const finishedText = (run: {
-  readonly status: string;
-  readonly result?: string;
-  readonly error?: { readonly message: string };
-}) =>
-  Match.value(run).pipe(
-    Match.when({ status: 'finished' }, finished =>
-      Option.match(Option.fromNullable(finished.result), {
-        onNone: () =>
-          Effect.fail(new CursorRunFailed({ status: finished.status, message: 'Cursor run finished without text' })),
-        onSome: Effect.succeed
-      })
-    ),
-    Match.orElse(other =>
-      Effect.fail(
-        new CursorRunFailed({
-          status: other.status,
-          message: other.error?.message ?? `Cursor run ${other.status}`
-        })
-      )
-    )
-  );
-
-const program = Effect.gen(function* () {
-  const [from, to] = yield* Schema.decodeUnknown(
-    Schema.Tuple(Schema.String.pipe(Schema.nonEmptyString()), Schema.String.pipe(Schema.nonEmptyString()))
-  )(process.argv.slice(2));
-  const cwd = yield* git(process.cwd(), ['rev-parse', '--show-toplevel']).pipe(Effect.map(root => root.trim()));
+export const changelogBody = Effect.fn('changelogBody.program')(function* ({
+  cwd,
+  from,
+  to
+}: {
+  readonly cwd: string;
+  readonly from: string;
+  readonly to: string;
+}) {
   const [fromSha, toSha] = yield* Effect.all([revParse(cwd, from), revParse(cwd, to)], {
     concurrency: 'unbounded'
   });
@@ -364,54 +324,41 @@ const program = Effect.gen(function* () {
     Effect.map(Arr.getSomes)
   );
   if (facts.length === 0) return '';
-  const [skill, apiKey, workspace] = yield* Effect.all(
-    [
-      Effect.all([Path.Path, FileSystem.FileSystem], { concurrency: 'unbounded' }).pipe(
-        Effect.flatMap(([path, fs]) =>
-          fs.readFileString(path.join(cwd, '.cursor', 'skills', 'changelog-judgment', 'SKILL.md'))
-        )
-      ),
-      Config.redacted('CURSOR_API_KEY'),
-      Effect.flatMap(FileSystem.FileSystem, fs => fs.makeTempDirectory({ prefix: 'changelog-body-' }))
-    ],
-    { concurrency: 'unbounded' }
+  const skill = yield* Effect.all([Path.Path, FileSystem.FileSystem], { concurrency: 'unbounded' }).pipe(
+    Effect.flatMap(([path, fs]) =>
+      fs.readFileString(path.join(cwd, '.opencode', 'skills', 'changelog-judgment', 'SKILL.md'))
+    )
   );
-  const text = yield* Effect.tryPromise({
-    try: () =>
-      Agent.prompt(`${skill}\n\nChangelog facts:\n${JSON.stringify(facts)}`, {
-        apiKey: Redacted.value(apiKey),
-        model: { id: 'auto' },
-        tools,
-        local: { cwd: workspace }
-      }),
-    catch: error =>
-      new CursorRunFailed({
-        status: 'startup',
-        message: messageOf(error, 'Cursor SDK failed to start')
-      })
-  }).pipe(Effect.flatMap(finishedText));
+  const text = yield* openCodePrompt({ prompt: `${skill}\n\nChangelog facts:\n${JSON.stringify(facts)}` });
   return yield* Schema.decodeUnknown(Schema.parseJson(sectionsSchema(facts)))(text).pipe(
     Effect.flatMap(sections => toMarkdown(sections, facts))
   );
-}).pipe(Effect.withSpan('changelogBody.program'));
+});
 
 const stderrLogger = Logger.make(({ message }) => {
   process.stderr.write(`${typeof message === 'string' ? message : JSON.stringify(message)}\n`);
 });
 
-await program.pipe(
-  Effect.tap(body =>
-    Effect.sync(() => {
-      process.stdout.write(body.length === 0 ? body : `${body}\n`);
-    })
-  ),
-  Effect.tapError(error => Effect.logError('changelog body failed', { error })),
-  Effect.exit,
-  Effect.tap(exit =>
-    Effect.sync(() => {
-      if (Exit.isFailure(exit)) process.exitCode = 1;
-    })
-  ),
-  Effect.provide(Layer.mergeAll(NodeContext.layer, Logger.replace(Logger.defaultLogger, stderrLogger))),
-  Effect.runPromise
-);
+if (process.argv[1] !== undefined && import.meta.url === pathToFileURL(process.argv[1]).href) {
+  await Schema.decodeUnknown(Schema.Tuple(Schema.NonEmptyString, Schema.NonEmptyString))(process.argv.slice(2)).pipe(
+    Effect.flatMap(([from, to]) =>
+      git(process.cwd(), ['rev-parse', '--show-toplevel']).pipe(
+        Effect.flatMap(cwd => changelogBody({ cwd: cwd.trim(), from, to }))
+      )
+    ),
+    Effect.tap(body =>
+      Effect.sync(() => {
+        process.stdout.write(body.length === 0 ? body : `${body}\n`);
+      })
+    ),
+    Effect.tapError(error => Effect.logError('changelog body failed', { error })),
+    Effect.exit,
+    Effect.tap(exit =>
+      Effect.sync(() => {
+        if (Exit.isFailure(exit)) process.exitCode = 1;
+      })
+    ),
+    Effect.provide(Layer.mergeAll(NodeContext.layer, Logger.replace(Logger.defaultLogger, stderrLogger))),
+    Effect.runPromise
+  );
+}
