@@ -35,7 +35,7 @@
     "soql builder"
   ],
   "dependencies": {
-    "@jsforce/jsforce-node": "3.13.1",
+    "@jsforce/jsforce-node": "^3.13.1",
     "@salesforce/effect-ext-utils": "workspace:*",
     "@salesforce/soql-builder-ui": "workspace:*",
     "@salesforce/soql-common": "workspace:*",
