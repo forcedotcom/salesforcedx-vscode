@@ -7,23 +7,16 @@
 
 import { Schema } from 'effect';
 
-const WatchVideo = Schema.Struct({
-  kind: Schema.Literal('watch-video'),
+const WatchVideo = Schema.TaggedStruct('WatchVideo', {
   spec: Schema.NonEmptyString,
   workflow: Schema.NonEmptyString,
   job: Schema.NonEmptyString
 });
-const ManualItem = Schema.Struct({
-  kind: Schema.Literal('manual'),
-  step: Schema.NonEmptyString
-});
+const ManualItem = Schema.TaggedStruct('ManualItem', { step: Schema.NonEmptyString });
 const Item = Schema.Union(WatchVideo, ManualItem);
 export type Item = typeof Item.Type;
-const Nothing = Schema.Struct({ kind: Schema.Literal('nothing') });
-const Checklist = Schema.Struct({
-  kind: Schema.Literal('checklist'),
-  items: Schema.NonEmptyArray(Item)
-});
+const Nothing = Schema.TaggedStruct('Nothing', {});
+const Checklist = Schema.TaggedStruct('Checklist', { items: Schema.NonEmptyArray(Item) });
 export const Judgment = Schema.Union(Nothing, Checklist);
 export type Judgment = typeof Judgment.Type;
 
