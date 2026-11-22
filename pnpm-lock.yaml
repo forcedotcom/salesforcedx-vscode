@@ -187,7 +187,7 @@ importers:
         specifier: workspace:*
         version: link:packages/salesforcedx-utils
       jsforce:
-        specifier: 3.13.1
+        specifier: ^3.13.1
         version: 3.13.1(@types/node@24.19.2)
       memfs:
         specifier: ^4.32.0
@@ -1542,7 +1542,7 @@ importers:
         specifier: ^3.22.4
         version: 3.22.4
       jsforce:
-        specifier: 3.13.1
+        specifier: ^3.13.1
         version: 3.13.1(@types/node@24.19.2)
       o11y_schema:
         specifier: ^264.89.0
@@ -1615,7 +1615,7 @@ importers:
         specifier: ^3.22.4
         version: 3.22.4
       jsforce:
-        specifier: 3.13.1
+        specifier: ^3.13.1
         version: 3.13.1(@types/node@24.19.2)
       vscode-uri:
         specifier: ^3.1.0
