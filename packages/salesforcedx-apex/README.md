@@ -92,7 +92,9 @@ The Effect API returns a success-only outcome. Compilation and runtime failures 
 
 ### Logs
 
-`listLogs(connection, options?)` retrieves every matching Tooling API log page in descending start-time order. Options filter by `userIds`, operation substring, and inclusive start time. `getLogBody(connection, logId)` retrieves the body using a validated `ApexLogId`.
+`listLogs(connection, options?)` retrieves every matching Tooling API log page in descending start-time order. Options filter by `userId` or `userIds`, operation substring, inclusive start time, and cursor. It returns the services projection; `getLogRecords(connection, numberOfLogs?)` returns the combined CLI/services record model and preserves the CLI's positive-count validation and 25-record cap. `getLogBody(connection, logId)` retrieves a body using a validated `ApexLogId`.
+
+`getLogs(connection, options, writeLog?)` retrieves bodies selected by `options.logId` or `options.numberOfLogs`. When supplied, `writeLog(fileName, body)` is the host-provided Effect operation used to write each body; no filesystem implementation is built into the Effect API.
 
 `streamLogs(connection, options)` collects immediately and then on the supplied Effect schedule. `pollOptions(index)` returns `Option.none()` to skip a poll or `Option.some(filters)` to query; `filterLogs` selects records before body retrieval. The stream emits `Log`, `QueryError`, and `BodyError` events, continuing after request failures. Consumers own window gating, trace flags, org changes, deduplication, storage, and interruption.
 

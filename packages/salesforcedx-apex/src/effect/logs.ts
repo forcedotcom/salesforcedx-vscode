@@ -15,41 +15,58 @@ import { isNotUndefined, isString, isUndefined } from 'effect/Predicate';
 import type * as Schedule from 'effect/Schedule';
 import * as Schema from 'effect/Schema';
 import * as Stream from 'effect/Stream';
+import { nls } from '../i18n';
+import { MAX_NUM_LOGS } from '../logs/constants';
 import { queryRecordPages } from './records';
-import { ApexLogBodyFetchError, ApexLogQueryError } from './schema/errors';
+import { ApexLogBodyFetchError, ApexLogQueryError, ApexOperationError } from './schema/errors';
 import {
+  EffectApexLogGetOptionsSchema,
   ListLogsOptionsSchema,
+  type ApexLogResult,
   type DecodedListLogsOptions,
+  type EffectApexLogGetOptions,
   type ListLogsOptions,
   type LogStreamEvent as LogStreamEventShape
 } from './schema/logs';
-import { ApexLogListItem } from './schema/wire/logs';
+import { ApexLogListItem, ApexLogRecordSchema } from './schema/wire/logs';
+
+const operationError = (operation: string, cause: unknown, message = getErrorMessage(cause)) =>
+  new ApexOperationError({ operation, message, cause: getErrorMessage(cause) });
+
+const toSoqlTimestamp = (value: string) => new Date(value).toISOString();
 
 const buildListLogsQuery = (options?: DecodedListLogsOptions): string => {
   const userIds = options?.userIds ?? [];
   const userIdCondition =
-    userIds.length > 0 ? `LogUserId IN (${userIds.map(id => `'${id.replaceAll("'", "''")}'`).join(',')})` : undefined;
+    userIds.length > 0
+      ? `LogUserId IN (${userIds.map(id => `'${id.replaceAll("'", "''")}'`).join(',')})`
+      : options?.userId
+        ? `LogUserId = '${options.userId.replaceAll("'", "''")}'`
+        : undefined;
   const operationCondition = options?.operationContains
     ? `Operation LIKE '%${options.operationContains.replaceAll("'", "''")}%'`
     : undefined;
-  const startTimeCondition = options?.startTimeAfter ? `StartTime >= ${options.startTimeAfter}` : undefined;
+  const startTimeCondition = options?.startTimeAfter
+    ? `StartTime >= ${toSoqlTimestamp(options.startTimeAfter)}`
+    : undefined;
   const cursorCondition = options?.cursor
     ? isUndefined(options.cursor.id)
-      ? `StartTime >= ${options.cursor.startTime}`
-      : `(StartTime > ${options.cursor.startTime} OR (StartTime = ${options.cursor.startTime} AND Id > '${options.cursor.id.replaceAll("'", "''")}'))`
+      ? `StartTime >= ${toSoqlTimestamp(options.cursor.startTime)}`
+      : `(StartTime > ${toSoqlTimestamp(options.cursor.startTime)} OR (StartTime = ${toSoqlTimestamp(options.cursor.startTime)} AND Id > '${options.cursor.id.replaceAll("'", "''")}'))`
     : undefined;
   const conditions = [userIdCondition, operationCondition, startTimeCondition, cursorCondition].filter(isNotUndefined);
   const where = conditions.length > 0 ? ` WHERE ${conditions.join(' AND ')}` : '';
   const orderBy = options?.orderBy ?? (options?.cursor ? 'ASC' : 'DESC');
-  return `SELECT Id, Application, DurationMilliseconds, LogLength, LogUserId, LogUser.Name, Operation, StartTime, Status FROM ApexLog${where} ORDER BY StartTime ${orderBy}, Id ${orderBy}`;
+  const limit = isUndefined(options?.limit) ? '' : ` LIMIT ${options.limit}`;
+  return `SELECT Id, Application, DurationMilliseconds, Location, LogLength, LogUserId, LogUser.Name, Operation, Request, StartTime, Status FROM ApexLog${where} ORDER BY StartTime ${orderBy}, Id ${orderBy}${limit}`;
 };
 
-const streamLogPagesForSoql = (connection: Connection, soql: string) =>
+const streamLogPagesForSoql = <A, I>(connection: Connection, soql: string, recordSchema: Schema.Schema<A, I>) =>
   queryRecordPages({
     connection,
     operation: 'listLogs',
     soql,
-    recordSchema: ApexLogListItem,
+    recordSchema,
     tooling: true
   }).pipe(
     Stream.catchTag('ApexQueryRequestError', requestError =>
@@ -57,21 +74,44 @@ const streamLogPagesForSoql = (connection: Connection, soql: string) =>
     )
   );
 
-const streamLogPages = (connection: Connection, options?: ListLogsOptions) =>
+const streamLogPages = <A, I>(
+  connection: Connection,
+  options: ListLogsOptions | undefined,
+  recordSchema: Schema.Schema<A, I>
+) =>
   Schema.decodeUnknown(ListLogsOptionsSchema)(options ?? {}).pipe(
-    Effect.map(decodedOptions => streamLogPagesForSoql(connection, buildListLogsQuery(decodedOptions)))
+    Effect.map(decodedOptions => streamLogPagesForSoql(connection, buildListLogsQuery(decodedOptions), recordSchema))
+  );
+
+const collectLogs = <A, I>(
+  connection: Connection,
+  options: ListLogsOptions | undefined,
+  recordSchema: Schema.Schema<A, I>
+) =>
+  streamLogPages(connection, options, recordSchema).pipe(
+    Effect.flatMap(pages => pages.pipe(Stream.flatMap(Stream.fromIterable), Stream.runCollect)),
+    Effect.map(Chunk.toReadonlyArray)
   );
 
 /** Lists logs using the caller's connection, following Tooling API query pages. */
 export const listLogs = Effect.fn('Apex.listLogs')(function* (connection: Connection, options?: ListLogsOptions) {
-  return yield* streamLogPages(connection, options).pipe(
-    Effect.flatMap(pages => pages.pipe(Stream.flatMap(Stream.fromIterable), Stream.runCollect)),
-    Effect.map(Chunk.toReadonlyArray)
-  );
+  return yield* collectLogs(connection, options, ApexLogListItem);
 });
 
-export const getLogBody = Effect.fn('Apex.getLogBody')((connection: Connection, logId: ApexLogListItem['Id']) =>
-  Effect.tryPromise({
+/** Lists CLI log records, applying the CLI's positive-count validation and 25-record cap. */
+export const getLogRecords = Effect.fn('Apex.getLogRecords')(function* (connection: Connection, numberOfLogs?: number) {
+  if (!isUndefined(numberOfLogs) && numberOfLogs <= 0) {
+    return yield* operationError('listLogs', numberOfLogs, nls.localize('numLogsError'));
+  }
+  const options = isUndefined(numberOfLogs) ? {} : { limit: Math.min(numberOfLogs, MAX_NUM_LOGS) };
+  return yield* collectLogs(connection, options, ApexLogRecordSchema);
+});
+
+export const getLogBody = Effect.fn('Apex.getLogBody')(function* (
+  connection: Connection,
+  logId: ApexLogListItem['Id']
+) {
+  return yield* Effect.tryPromise({
     try: () =>
       connection.request({
         method: 'GET',
@@ -79,8 +119,42 @@ export const getLogBody = Effect.fn('Apex.getLogBody')((connection: Connection, 
       }),
     catch: cause =>
       new ApexLogBodyFetchError({ message: `Failed to fetch ApexLog body: ${getErrorMessage(cause)}`, cause })
-  }).pipe(Effect.map(body => (isString(body) ? body : String(body))))
-);
+  }).pipe(Effect.map(body => (isString(body) ? body : String(body))));
+});
+
+/** Writes the body through a host-provided Effect implementation. */
+export type ApexLogWriter<E = never, R = never> = (fileName: string, body: string) => Effect.Effect<string, E, R>;
+
+/** Retrieves selected logs and optionally writes each body through the caller's writer. */
+export const getLogs = Effect.fn('Apex.getLogs')(function* <E = never, R = never>(
+  connection: Connection,
+  options: EffectApexLogGetOptions,
+  writeLog?: ApexLogWriter<E, R>
+) {
+  const decoded = yield* Schema.decodeUnknown(EffectApexLogGetOptionsSchema)(options).pipe(
+    Effect.mapError(cause => operationError('getLogs', cause))
+  );
+  if (!(isString(decoded.logId) || typeof decoded.numberOfLogs === 'number')) {
+    return yield* operationError('getLogs', options, nls.localize('missingInfoLogError'));
+  }
+  const logIds =
+    typeof decoded.numberOfLogs === 'number'
+      ? (yield* getLogRecords(connection, decoded.numberOfLogs)).map(record => record.Id)
+      : decoded.logId
+        ? [decoded.logId]
+        : [];
+  const logs: ApexLogResult[] = yield* Effect.forEach(
+    logIds,
+    logId => getLogBody(connection, logId).pipe(Effect.map(log => ({ logId, log }))),
+    { concurrency: 'unbounded' }
+  );
+  if (isUndefined(writeLog)) return logs;
+  return yield* Effect.forEach(
+    logs,
+    ({ logId, log }) => writeLog(`${logId}.log`, log).pipe(Effect.map(logPath => ({ logId, log, logPath }))),
+    { concurrency: 'unbounded' }
+  );
+});
 
 export type LogStreamEvent = LogStreamEventShape;
 
@@ -104,7 +178,7 @@ const pollLogs = <R, ScheduleOutput>(
   filters: ListLogsOptions
 ): Stream.Stream<LogStreamEvent, never, R> => {
   const orderedFilters = { ...filters, orderBy: filters.orderBy ?? 'ASC' };
-  return Stream.unwrap(streamLogPages(connection, orderedFilters)).pipe(
+  return Stream.unwrap(streamLogPages(connection, orderedFilters, ApexLogListItem)).pipe(
     Stream.mapEffect(logs => (isUndefined(options.filterLogs) ? Effect.succeed(logs) : options.filterLogs(logs))),
     Stream.flatMap(Stream.fromIterable),
     Stream.mapEffect(log =>

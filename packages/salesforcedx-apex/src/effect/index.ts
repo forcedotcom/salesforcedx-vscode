@@ -53,12 +53,27 @@ export { FileOutput, FileOutputError, PartialResultFilesError } from './fileOutp
 export { NodeFileOutput, FileOutputLayer } from './nodeFileOutput';
 export { writeResultFiles } from './writeResultFiles';
 export type { WriteResultFilesOptions } from './writeResultFiles';
-export { listLogs, getLogBody, streamLogs } from './logs';
+export { listLogs, getLogRecords, getLogs, getLogBody, streamLogs } from './logs';
 export { ApexLogListItem } from './schema/wire/logs';
-export { ListLogsOptionsSchema, LogStreamEventSchema } from './schema/logs';
+export { ApexLogRecordSchema } from './schema/wire/logs';
+export {
+  ApexLogResultSchema,
+  ApexLogWithBodySchema,
+  EffectApexLogGetOptionsSchema,
+  ListLogsOptionsSchema,
+  LogStreamEventSchema
+} from './schema/logs';
 export { QueryPageSchema } from './schema/queryPage';
-export type { ListLogsOptions, LogStreamEvent } from './schema/logs';
+export type {
+  ApexLogResult,
+  ApexLogWithBody,
+  EffectApexLogGetOptions,
+  ListLogsOptions,
+  LogStreamEvent
+} from './schema/logs';
+export type { ApexLogRecord } from './schema/wire/logs';
 export type { StreamLogsOptions } from './logs';
+export type { ApexLogWriter } from './logs';
 export { BuildSyncPayloadOptionsSchema, BuildAsyncPayloadOptionsSchema } from './schema/testPayloads';
 export { buildSyncPayload, buildAsyncPayload } from './testPayloads';
 export type { BuildSyncPayloadOptions, BuildAsyncPayloadOptions } from './schema/testPayloads';
