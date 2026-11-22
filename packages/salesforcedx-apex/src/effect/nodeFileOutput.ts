@@ -9,7 +9,6 @@ import * as FileSystem from '@effect/platform/FileSystem';
 import * as Path from '@effect/platform/Path';
 import * as Cause from 'effect/Cause';
 import * as Effect from 'effect/Effect';
-import * as Exit from 'effect/Exit';
 import * as Layer from 'effect/Layer';
 import * as Stream from 'effect/Stream';
 import { causeMessage } from './errors';
@@ -34,26 +33,34 @@ export const makeFileOutput = (
     content: Stream.Stream<string>
   ) {
     const filePath = path.join(directory, fileName);
-    return yield* content.pipe(
-      Stream.map(encode),
-      Stream.run(fileSystem.sink(filePath)),
-      Effect.mapError(error => toFileOutputError('writeFile', filePath, error)),
-      Effect.onExit(exit =>
-        Exit.isSuccess(exit)
-          ? Effect.void
-          : fileSystem.remove(filePath, { force: true }).pipe(Effect.catchAll(() => Effect.void))
+    return yield* fileSystem.makeTempFileScoped({ directory: path.dirname(filePath), prefix: '.apex-result-' }).pipe(
+      Effect.flatMap(stagedPath =>
+        content.pipe(
+          Stream.map(encode),
+          Stream.run(fileSystem.sink(stagedPath)),
+          Effect.zipRight(fileSystem.rename(stagedPath, filePath).pipe(Effect.uninterruptible))
+        )
       ),
+      Effect.scoped,
+      Effect.mapError(error => toFileOutputError('writeFile', filePath, error)),
       Effect.catchAllCause(cause =>
         Cause.isInterrupted(cause)
           ? Effect.failCause(cause)
-          : Effect.fail(toFileOutputError('writeFile', filePath, Cause.squash(cause)))
+          : Effect.fail(
+              new FileOutputError({
+                operation: 'writeFile',
+                path: filePath,
+                message: cause.pipe(Cause.squash, causeMessage),
+                cause: Cause.pretty(cause)
+              })
+            )
       ),
       Effect.as(filePath)
     );
   })
 });
 
-/** Effect Platform-backed file output; failed or interrupted writes remove partial output. */
+/** Effect Platform-backed file output; only complete staged files replace the destination. */
 export const NodeFileOutput = {
   createDirectory: Effect.fn('NodeFileOutput.createDirectory')(function* (directory: string) {
     const fileSystem = yield* FileSystem.FileSystem;
