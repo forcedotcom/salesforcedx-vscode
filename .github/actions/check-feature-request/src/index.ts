@@ -9,7 +9,7 @@ import { getInput, setFailed } from "@actions/core";
 import { context } from "@actions/github";
 import { githubFromToken } from "@salesforce/effect-octokit";
 import * as Effect from "effect/Effect";
-import { isNotNullable, isNotUndefined } from "effect/Predicate";
+import { isNotNullable, isNotUndefined, isNull } from "effect/Predicate";
 
 async function run() {
   try {
@@ -54,7 +54,7 @@ async function run() {
     console.log('bodies.length = ' + bodies.length);
 
     const core = require('@actions/core');
-    if (bodies[0] === null) {
+    if (isNull(bodies[0])) {
       core.setOutput("is_feature_request", "false");
     } else {
       const bodyTexts = bodies.filter(isNotNullable);

@@ -9,7 +9,7 @@ import { getInput, setFailed } from '@actions/core';
 import { context } from '@actions/github';
 import { githubFromToken } from '@salesforce/effect-octokit';
 import * as Effect from 'effect/Effect';
-import { isNotNullable, isNotUndefined } from 'effect/Predicate';
+import { isNotNullable, isNotUndefined, isNull } from 'effect/Predicate';
 import * as Schema from 'effect/Schema';
 import { execSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
@@ -58,7 +58,7 @@ async function run() {
     console.log(`bodies = ${JSON.stringify(bodies)}`);
     console.log(`bodies.length = ${bodies.length}`);
 
-    if (bodies[0] === null) {
+    if (isNull(bodies[0])) {
       console.log('No content provided in issue body');
       const message = getFile('../messages/provide-version.md', {
         THE_AUTHOR: issue.user.login
@@ -312,11 +312,9 @@ async function run() {
     }
     async function postComment(body: string) {
       // Check that this comment has not been previously commented
-      if (comments.length > 0) {
-        if (comments.some(comment => comment.body === body)) {
-          console.log('Already commented');
-          return;
-        }
+      if (comments.some(comment => comment.body === body)) {
+        console.log('Already commented');
+        return;
       }
 
       return await github.createIssueComment(owner, repo, issue_number, body).pipe(Effect.runPromise);

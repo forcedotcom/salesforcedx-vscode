@@ -47,11 +47,9 @@ async function run() {
     const comments = await github.issueComments(owner, repo, issue.number).pipe(Effect.runPromise);
 
     // If we have comments check out that this comment has not been previously commented
-    if (comments.length) {
-      if (comments.some(comment => comment.body === message)) {
-        console.log('Already commented');
-        return;
-      }
+    if (comments.some(comment => comment.body === message)) {
+      console.log('Already commented');
+      return;
     }
 
     const response = await github.createIssueComment(owner, repo, issue.number, message).pipe(Effect.runPromise);

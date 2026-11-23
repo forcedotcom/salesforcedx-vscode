@@ -50,7 +50,7 @@ async function run() {
         const bodies = [body, ...authorComments.map(comment => comment.body)].filter(Predicate_1.isNotUndefined);
         console.log(`bodies = ${JSON.stringify(bodies)}`);
         console.log(`bodies.length = ${bodies.length}`);
-        if (bodies[0] === null) {
+        if ((0, Predicate_1.isNull)(bodies[0])) {
             console.log('No content provided in issue body');
             const message = getFile('../messages/provide-version.md', {
                 THE_AUTHOR: issue.user.login
@@ -276,11 +276,9 @@ async function run() {
         }
         async function postComment(body) {
             // Check that this comment has not been previously commented
-            if (comments.length > 0) {
-                if (comments.some(comment => comment.body === body)) {
-                    console.log('Already commented');
-                    return;
-                }
+            if (comments.some(comment => comment.body === body)) {
+                console.log('Already commented');
+                return;
             }
             return await github.createIssueComment(owner, repo, issue_number, body).pipe(Effect.runPromise);
         }
