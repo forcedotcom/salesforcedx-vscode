@@ -18,6 +18,72 @@ const node_fs_1 = require("node:fs");
 const path = require("node:path");
 const semver = require("semver");
 const nodeVersions_1 = require("./nodeVersions");
+const newIssueSkipLabels = [
+    'announcement',
+    'missing required information',
+    'validated',
+    'type:enhancements',
+    'feature',
+    'type:bug',
+    'pending release'
+];
+const validationSkipLabels = [
+    'announcement',
+    'validated',
+    'investigating',
+    'feature',
+    'type:enhancements',
+    'status:owned by another team',
+    'type:bug',
+    'pending release'
+];
+const featureLabels = ['feature', 'type:enhancements'];
+const ownedByOtherTeamLabel = 'status:owned by another team';
+const defaultNewIssueMessage = `${[
+    'Thank you for filing this issue.  We appreciate your feedback and will review the issue as soon as possible.',
+    "Remember, however, that GitHub isn't a mechanism for receiving support under any agreement or SLA.",
+    'If you require immediate assistance, contact Salesforce Customer Support.'
+].join(' ')}\n`;
+const featureRequestMessage = 'Thank you for filing this feature request. We appreciate your feedback and will review the feature at our next grooming session. We prioritize feature requests with more upvotes and comments.\n';
+const ownedByOtherTeamMessage = `${[
+    'We have determined that the issue you reported exists in code owned by another team that uses only the official support channels, and thus we are closing this issue.',
+    'To ensure that your issue is addressed, open an official [Salesforce customer support](https://help.salesforce.com/s/) ticket with a link to this issue.',
+    'We encourage anyone experiencing this issue to do the same to increase the priority.'
+].join(' ')}\n`;
+const featureOnOtherTeamMessage = `${[
+    "Thank you for filing this feature request. However, we've determined that the functionality you've requested must be completed by another team.",
+    'Please submit your request to the [Salesforce IdeaExchange](https://trailblazer.salesforce.com/ideaSearch). Then post a link to the request in this issue so that others can upvote your idea.'
+].join(' ')}\n`;
+const routeIssue = (eventName, action, eventLabel, issueState, issueLabels) => {
+    if (issueState === 'closed')
+        return { _tag: 'Skip' };
+    const labels = new Set(issueLabels?.map(label => label.name));
+    if (eventName === 'issues' && action === 'opened') {
+        return newIssueSkipLabels.some(label => labels.has(label)) ? { _tag: 'Skip' } : { _tag: 'NewIssue' };
+    }
+    if (eventName === 'issues' && action === 'labeled' && eventLabel !== undefined) {
+        const isFeature = featureLabels.some(label => labels.has(label));
+        const isOwnedByOtherTeam = labels.has(ownedByOtherTeamLabel);
+        if (isFeature &&
+            isOwnedByOtherTeam &&
+            [...featureLabels, ownedByOtherTeamLabel].includes(eventLabel)) {
+            return { _tag: 'Notify', message: featureOnOtherTeamMessage };
+        }
+        if (featureLabels.includes(eventLabel) && !isOwnedByOtherTeam) {
+            return { _tag: 'Notify', message: featureRequestMessage };
+        }
+        if (eventLabel === ownedByOtherTeamLabel && !isFeature) {
+            return { _tag: 'Notify', message: ownedByOtherTeamMessage };
+        }
+    }
+    const validationEvent = (eventName === 'issues' && (action === 'edited' || action === 'labeled')) ||
+        (eventName === 'issue_comment' && (action === 'created' || action === 'edited'));
+    return validationEvent &&
+        labels.has('missing required information') &&
+        !validationSkipLabels.some(label => labels.has(label))
+        ? { _tag: 'Validate' }
+        : { _tag: 'Skip' };
+};
 function run() {
     return Effect.gen(function* () {
         const issue = github_1.context.payload.issue;
@@ -25,7 +91,10 @@ function run() {
             (0, core_1.setFailed)('github.context.payload.issue does not exist');
             return;
         }
-        if ((0, core_1.getInput)('should-process-issue') === 'false')
+        const eventAction = typeof github_1.context.payload.action === 'string' ? github_1.context.payload.action : undefined;
+        const eventLabel = typeof github_1.context.payload.label?.name === 'string' ? github_1.context.payload.label.name : undefined;
+        const route = routeIssue(github_1.context.eventName, eventAction, eventLabel, issue.state, issue.labels);
+        if (route._tag === 'Skip')
             return;
         // Use only the action input, never a token inherited from the runner environment.
         const token = (0, core_1.getInput)('repo-token', { required: true });
@@ -44,39 +113,30 @@ function run() {
         const bodies = [body, ...authorComments.map(comment => comment.body)].filter(Predicate_1.isNotUndefined);
         console.log(`bodies = ${JSON.stringify(bodies)}`);
         console.log(`bodies.length = ${bodies.length}`);
-        const closeIssue = () => Effect.gen(function* () {
-            yield* github.request('PATCH /repos/{owner}/{repo}/issues/{issue_number}', {
-                owner,
-                repo,
-                issue_number,
-                state: 'closed'
-            });
-        }).pipe(Effect.withSpan('validateIssue.closeIssue'));
-        const postComment = (body) => Effect.gen(function* () {
-            if (comments.some(comment => comment.body === body)) {
-                console.log('Already commented');
-                return;
-            }
-            return yield* github.createIssueComment(owner, repo, issue_number, body);
-        }).pipe(Effect.withSpan('validateIssue.postComment'));
-        const addLabel = (label) => Effect.gen(function* () {
-            yield* github.addIssueLabels(owner, repo, issue_number, [label]);
-        }).pipe(Effect.withSpan('validateIssue.addLabel'));
-        const removeLabel = (label) => Effect.gen(function* () {
-            yield* github.removeIssueLabel(owner, repo, issue_number, label).pipe(Effect.catchTag('GitHubRequestError', error => error.status === 404
-                ? Effect.sync(() => console.log(`Cannot remove label '${label}' since it was not applied`))
-                : Effect.fail(error)));
-        }).pipe(Effect.withSpan('validateIssue.removeLabel'));
-        const getMinimumVSCodeVersion = () => Effect.gen(function* () {
-            const release = yield* github
-                .request('GET /repos/{owner}/{repo}/releases/latest', {
-                owner: 'microsoft',
-                repo: 'vscode'
-            })
-                .pipe(Effect.flatMap(Schema.decodeUnknown(Schema.Struct({ tag_name: Schema.optional(Schema.String) }))), Effect.catchAll(error => {
-                console.error('Failed to fetch latest VSCode version, falling back to default:', error);
-                return Effect.succeed(undefined);
-            }));
+        const closeIssue = Effect.fn('validateIssue.closeIssue')(() => github
+            .request('PATCH /repos/{owner}/{repo}/issues/{issue_number}', {
+            owner,
+            repo,
+            issue_number,
+            state: 'closed'
+        })
+            .pipe(Effect.asVoid));
+        const postComment = Effect.fn('validateIssue.postComment')((commentBody) => comments.some(comment => comment.body === commentBody)
+            ? Effect.void
+            : github.createIssueComment(owner, repo, issue_number, commentBody).pipe(Effect.asVoid));
+        const addLabel = Effect.fn('validateIssue.addLabel')((label) => github.addIssueLabels(owner, repo, issue_number, [label]));
+        const removeLabel = Effect.fn('validateIssue.removeLabel')((label) => github.removeIssueLabel(owner, repo, issue_number, label).pipe(Effect.catchTag('GitHubRequestError', error => error.status === 404
+            ? Effect.sync(() => console.log(`Cannot remove label '${label}' since it was not applied`))
+            : Effect.fail(error))));
+        const getMinimumVSCodeVersion = Effect.fn('validateIssue.getMinimumVSCodeVersion')(() => github
+            .request('GET /repos/{owner}/{repo}/releases/latest', {
+            owner: 'microsoft',
+            repo: 'vscode'
+        })
+            .pipe(Effect.flatMap(Schema.decodeUnknown(Schema.Struct({ tag_name: Schema.optional(Schema.String) }))), Effect.catchAll(error => {
+            console.error('Failed to fetch latest VSCode version, falling back to default:', error);
+            return Effect.void;
+        }), Effect.map(release => {
             const latestVersion = release?.tag_name ?? '1.103.0'; // e.g., "1.103.0"
             // Parse version numbers
             const versionParts = latestVersion.split('.').map(Number);
@@ -85,7 +145,19 @@ function run() {
             // Calculate minimum version (latest - 2 minor versions)
             const minMinor = Math.max(0, minor - 2);
             return `${major}.${minMinor}.0`;
-        }).pipe(Effect.withSpan('validateIssue.getMinimumVSCodeVersion'));
+        })));
+        if (route._tag === 'Notify') {
+            yield* postComment(route.message);
+            return;
+        }
+        if (route._tag === 'NewIssue') {
+            const isFeatureRequest = !(0, Predicate_1.isNull)(bodies[0]) && bodies.filter(Predicate_1.isNotNullable).some(commentBody => /feature\s*request/i.test(commentBody));
+            if (isFeatureRequest) {
+                yield* addLabel('type:enhancements');
+                return;
+            }
+            yield* postComment(defaultNewIssueMessage);
+        }
         if ((0, Predicate_1.isNull)(bodies[0])) {
             console.log('No content provided in issue body');
             const message = getFile('../messages/provide-version.md', {

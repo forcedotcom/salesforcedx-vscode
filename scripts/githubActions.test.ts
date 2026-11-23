@@ -23,10 +23,16 @@ const issue = {
   number: 8610,
   created_at: '2026-11-10T14:59:11Z',
   html_url: 'https://github.com/forcedotcom/salesforcedx-vscode/issues/8610',
+  state: 'open',
   user: { login: 'author' },
   labels: [] as Array<{ readonly name: string }>,
   body: 'A bug report'
 };
+const defaultNewIssueMessage = `${[
+  'Thank you for filing this issue.  We appreciate your feedback and will review the issue as soon as possible.',
+  "Remember, however, that GitHub isn't a mechanism for receiving support under any agreement or SLA.",
+  'If you require immediate assistance, contact Salesforce Customer Support.'
+].join(' ')}\n`;
 const validBody = [
   'Salesforce Extension Version in VS Code: 68.8.0',
   'VS Code version: 1.120.0',
@@ -45,6 +51,9 @@ const runAction = async (
     readonly comments?: readonly unknown[];
     readonly message?: string;
     readonly shouldProcessIssue?: boolean;
+    readonly eventName?: 'issues' | 'issue_comment';
+    readonly eventAction?: string;
+    readonly eventLabel?: string;
     readonly token?: string;
     readonly release?: unknown;
     readonly releaseStatus?: number;
@@ -58,6 +67,17 @@ const runAction = async (
   const log = vi.fn();
   const actionDir = resolve('.github/actions', action);
   const execSync = vi.fn(() => Buffer.from(JSON.stringify({ versions: [{ version: '68.8.0' }] })));
+  const eventName = options.eventName ?? (action === 'validate-issue' ? 'issue_comment' : 'issues');
+  const eventAction = options.eventAction ?? (action === 'validate-issue' ? 'created' : 'opened');
+  const issueFromOptions = options.issue === null ? undefined : (options.issue ?? issue);
+  const actionIssue =
+    action === 'validate-issue' && !(eventName === 'issues' && eventAction === 'opened') && issueFromOptions
+      ? {
+          ...issueFromOptions,
+          labels:
+            issueFromOptions.labels.length === 0 ? [{ name: 'missing required information' }] : issueFromOptions.labels
+        }
+      : issueFromOptions;
   vi.stubEnv('IDEE_GH_TOKEN', 'wrong-idee-token');
   vi.stubEnv('GITHUB_TOKEN', 'wrong-github-token');
   vi.stubEnv('INPUT_REPO-TOKEN', options.token ?? 'action-token');
@@ -99,7 +119,12 @@ const runAction = async (
       if (id === '@actions/github')
         return {
           context: {
-            payload: { issue: options.issue === null ? undefined : (options.issue ?? issue) },
+            eventName,
+            payload: {
+              issue: actionIssue,
+              action: eventAction,
+              ...(options.eventLabel === undefined ? {} : { label: { name: options.eventLabel } })
+            },
             repo: { owner: 'forcedotcom', repo: 'salesforcedx-vscode' }
           }
         };
@@ -144,19 +169,99 @@ describe('issue actions', () => {
 
   it('posts the default acknowledgement when no message is supplied', async () => {
     const { calls, setOutput } = await runAction('new-issue');
-    expect(calls[1]?.body).toEqual({
-      body:
-        [
-          'Thank you for filing this issue.  We appreciate your feedback and will review the issue as soon as possible.',
-          "Remember, however, that GitHub isn't a mechanism for receiving support under any agreement or SLA.",
-          'If you require immediate assistance, contact Salesforce Customer Support.'
-        ].join(' ') + '\n'
-    });
+    expect(calls[1]?.body).toEqual({ body: defaultNewIssueMessage });
     expect(setOutput).toHaveBeenCalledWith('comment-url', commentUrl);
   });
 
-  it.each(['new-issue', 'validate-issue'] as const)('%s skips when issue processing is disabled', async action => {
-    const { calls, setFailed } = await runAction(action, { shouldProcessIssue: false });
+  it('routes a new non-feature issue through acknowledgement and validation', async () => {
+    const { calls, setFailed } = await runAction('validate-issue', {
+      eventName: 'issues',
+      eventAction: 'opened',
+      issue: { ...issue, body: validBody }
+    });
+    expect(calls.map(({ method, path }) => [method, path])).toEqual([
+      ['GET', commentsPath],
+      ['POST', commentsPath],
+      ['GET', releasePath],
+      ['POST', labelsPath],
+      ['DELETE', `${labelsPath}/missing%20required%20information`]
+    ]);
+    expect(calls[1]?.body).toEqual({ body: defaultNewIssueMessage });
+    expect(calls[3]?.body).toEqual({ labels: ['validated'] });
+    expect(setFailed).not.toHaveBeenCalled();
+  });
+
+  it('labels a new feature issue and skips acknowledgement and validation', async () => {
+    const { calls, setFailed } = await runAction('validate-issue', {
+      eventName: 'issues',
+      eventAction: 'opened',
+      issue: { ...issue, body: 'Feature request: please add this' }
+    });
+    expect(calls.map(({ method, path }) => [method, path])).toEqual([
+      ['GET', commentsPath],
+      ['POST', labelsPath]
+    ]);
+    expect(calls[1]?.body).toEqual({ labels: ['type:enhancements'] });
+    expect(setFailed).not.toHaveBeenCalled();
+  });
+
+  it('posts a feature acknowledgement when a feature label is added', async () => {
+    const { calls, setFailed } = await runAction('validate-issue', {
+      eventName: 'issues',
+      eventAction: 'labeled',
+      eventLabel: 'feature',
+      issue: { ...issue, labels: [{ name: 'feature' }] }
+    });
+    expect(calls.map(({ method, path }) => [method, path])).toEqual([
+      ['GET', commentsPath],
+      ['POST', commentsPath]
+    ]);
+    expect(calls[1]?.body).toMatchObject({ body: expect.stringContaining('next grooming session') });
+    expect(setFailed).not.toHaveBeenCalled();
+  });
+
+  it('posts a support referral when an issue is assigned to another team', async () => {
+    const { calls, setFailed } = await runAction('validate-issue', {
+      eventName: 'issues',
+      eventAction: 'labeled',
+      eventLabel: 'status:owned by another team',
+      issue: { ...issue, labels: [{ name: 'status:owned by another team' }] }
+    });
+    expect(calls.map(({ method, path }) => [method, path])).toEqual([
+      ['GET', commentsPath],
+      ['POST', commentsPath]
+    ]);
+    expect(calls[1]?.body).toMatchObject({ body: expect.stringContaining('official support channels') });
+    expect(setFailed).not.toHaveBeenCalled();
+  });
+
+  it('posts the combined feature and other-team message before validation', async () => {
+    const { calls, setFailed } = await runAction('validate-issue', {
+      eventName: 'issues',
+      eventAction: 'labeled',
+      eventLabel: 'status:owned by another team',
+      issue: { ...issue, labels: [{ name: 'type:enhancements' }, { name: 'status:owned by another team' }] }
+    });
+    expect(calls.map(({ method, path }) => [method, path])).toEqual([
+      ['GET', commentsPath],
+      ['POST', commentsPath]
+    ]);
+    expect(calls[1]?.body).toMatchObject({ body: expect.stringContaining('IdeaExchange') });
+    expect(setFailed).not.toHaveBeenCalled();
+  });
+
+  it('new-issue skips when issue processing is disabled', async () => {
+    const { calls, setFailed } = await runAction('new-issue', { shouldProcessIssue: false });
+    expect(calls).toEqual([]);
+    expect(setFailed).not.toHaveBeenCalled();
+  });
+
+  it('validate-issue skips an update that does not need validation', async () => {
+    const { calls, setFailed } = await runAction('validate-issue', {
+      eventName: 'issues',
+      eventAction: 'edited',
+      issue: { ...issue, labels: [{ name: 'validated' }] }
+    });
     expect(calls).toEqual([]);
     expect(setFailed).not.toHaveBeenCalled();
   });

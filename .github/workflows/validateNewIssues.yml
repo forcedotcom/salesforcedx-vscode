@@ -23,20 +23,7 @@ jobs:
         uses: salesforcecli/github-workflows/.github/actions/pnpmInstallWithRetries@main
       - name: Compile effect-octokit
         run: pnpm --filter @salesforce/effect-octokit compile
-      - name: Check whether to process the issue
-        id: check_feature_request
-        uses: ./.github/actions/check-feature-request
-        with:
-          repo-token: ${{ secrets.IDEE_GH_TOKEN }}
-      - name: Post issue acknowledgement
-        id: issue_comment
-        uses: ./.github/actions/new-issue
-        with:
-          repo-token: ${{ secrets.IDEE_GH_TOKEN }}
-          should-process-issue: ${{ steps.check_feature_request.outputs.should_process_issue }}
-      - name: Validate issue
-        id: validate-issue
+      - name: Route and handle issue
         uses: ./.github/actions/validate-issue
         with:
           repo-token: ${{ secrets.IDEE_GH_TOKEN }}
-          should-process-issue: ${{ steps.check_feature_request.outputs.should_process_issue }}
