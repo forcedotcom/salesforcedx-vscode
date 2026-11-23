@@ -1159,8 +1159,8 @@ importers:
   packages/salesforcedx-vscode-apex-replay-debugger:
     dependencies:
       '@salesforce/apex-language-server-extension-api':
-        specifier: ^0.11.83-nightly.20261120
-        version: 0.11.83-nightly.20261120(effect@3.22.4)
+        specifier: ^0.11.86-nightly.20261123
+        version: 0.11.86-nightly.20261123(effect@3.22.4)
       '@salesforce/apex-node':
         specifier: workspace:*
         version: link:../salesforcedx-apex
@@ -1208,8 +1208,8 @@ importers:
   packages/salesforcedx-vscode-apex-testing:
     dependencies:
       '@salesforce/apex-language-server-extension-api':
-        specifier: ^0.11.83-nightly.20261120
-        version: 0.11.83-nightly.20261120(effect@3.22.5)
+        specifier: ^0.11.86-nightly.20261123
+        version: 0.11.86-nightly.20261123(effect@3.22.5)
       '@salesforce/apex-node':
         specifier: workspace:*
         version: link:../salesforcedx-apex
@@ -4605,8 +4605,8 @@ packages:
   '@rviscomi/capo.js@2.3.0':
     resolution: {integrity: sha512-qY3QRtKdq//Z8jDENSUCAaSE76sUwHgN6pzoRXj6e5cSwQqxFLjm8B+GDkbtUr/WGWJRzoAMtz0I60TM1KrOBg==}
 
-  '@salesforce/apex-language-server-extension-api@0.11.83-nightly.20261120':
-    resolution: {integrity: sha512-T2bptsKrX0NQWCqezq/g15hhC4RcRcIi9/P/ls1/k0QDDjD5kKifuo/89PvzC6aqyak14q7Wp08ZHnw6fcLrHQ==}
+  '@salesforce/apex-language-server-extension-api@0.11.86-nightly.20261123':
+    resolution: {integrity: sha512-13brZZFi9ZuCJXLvkAkGIpjkrFJ49zzJIVb3KDXSWZgdEffonXbvyUsKC7PUpDU3ZiOehebOIRUBL/rZGS+tfw==}
     peerDependencies:
       effect: ^3.22.4
     peerDependenciesMeta:
@@ -14871,7 +14871,7 @@ snapshots:
 
   '@rviscomi/capo.js@2.3.0': {}
 
-  '@salesforce/apex-language-server-extension-api@0.11.83-nightly.20261120(effect@3.22.5)':
+  '@salesforce/apex-language-server-extension-api@0.11.86-nightly.20261123(effect@3.22.5)':
     dependencies:
       vscode-languageserver-protocol: 3.17.5
     optionalDependencies:
