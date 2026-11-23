@@ -45,12 +45,10 @@ const json = (body: unknown, status = 200) =>
   Promise.resolve(new Response(JSON.stringify(body), { status, headers: { 'content-type': 'application/json' } }));
 
 const runAction = async (
-  action: 'new-issue' | 'check-feature-request' | 'validate-issue',
+  action: 'validate-issue',
   options: {
     readonly issue?: typeof issue | null;
     readonly comments?: readonly unknown[];
-    readonly message?: string;
-    readonly shouldProcessIssue?: boolean;
     readonly eventName?: 'issues' | 'issue_comment';
     readonly eventAction?: string;
     readonly eventLabel?: string;
@@ -67,11 +65,11 @@ const runAction = async (
   const log = vi.fn();
   const actionDir = resolve('.github/actions', action);
   const execSync = vi.fn(() => Buffer.from(JSON.stringify({ versions: [{ version: '68.8.0' }] })));
-  const eventName = options.eventName ?? (action === 'validate-issue' ? 'issue_comment' : 'issues');
-  const eventAction = options.eventAction ?? (action === 'validate-issue' ? 'created' : 'opened');
+  const eventName = options.eventName ?? 'issue_comment';
+  const eventAction = options.eventAction ?? 'created';
   const issueFromOptions = options.issue === null ? undefined : (options.issue ?? issue);
   const actionIssue =
-    action === 'validate-issue' && !(eventName === 'issues' && eventAction === 'opened') && issueFromOptions
+    !(eventName === 'issues' && eventAction === 'opened') && issueFromOptions
       ? {
           ...issueFromOptions,
           labels:
@@ -81,8 +79,6 @@ const runAction = async (
   vi.stubEnv('IDEE_GH_TOKEN', 'wrong-idee-token');
   vi.stubEnv('GITHUB_TOKEN', 'wrong-github-token');
   vi.stubEnv('INPUT_REPO-TOKEN', options.token ?? 'action-token');
-  vi.stubEnv('INPUT_MESSAGE', options.message ?? '');
-  vi.stubEnv('INPUT_SHOULD-PROCESS-ISSUE', options.shouldProcessIssue === false ? 'false' : 'true');
   vi.stubGlobal('fetch', (input: string | URL | Request, init?: RequestInit) => {
     const path = new URL(String(input)).pathname;
     const method = init?.method ?? 'GET';
@@ -148,31 +144,6 @@ afterEach(() => {
 });
 
 describe('issue actions', () => {
-  it('posts the configured message and returns the comment URL', async () => {
-    const { calls, setOutput, setFailed } = await runAction('new-issue', { message: 'Exact message\nwith a link' });
-    expect(calls.map(({ method, path, body }) => ({ method, path, body }))).toEqual([
-      { method: 'GET', path: commentsPath, body: undefined },
-      { method: 'POST', path: commentsPath, body: { body: 'Exact message\nwith a link' } }
-    ]);
-    expect(setOutput).toHaveBeenCalledWith('comment-url', commentUrl);
-    expect(setFailed).not.toHaveBeenCalled();
-  });
-
-  it('does not repost an existing identical message', async () => {
-    const { calls, setOutput } = await runAction('new-issue', {
-      message: 'Thank you',
-      comments: [{ body: 'Thank you' }]
-    });
-    expect(calls).toHaveLength(1);
-    expect(setOutput).not.toHaveBeenCalled();
-  });
-
-  it('posts the default acknowledgement when no message is supplied', async () => {
-    const { calls, setOutput } = await runAction('new-issue');
-    expect(calls[1]?.body).toEqual({ body: defaultNewIssueMessage });
-    expect(setOutput).toHaveBeenCalledWith('comment-url', commentUrl);
-  });
-
   it('routes a new non-feature issue through acknowledgement and validation', async () => {
     const { calls, setFailed } = await runAction('validate-issue', {
       eventName: 'issues',
@@ -250,12 +221,6 @@ describe('issue actions', () => {
     expect(setFailed).not.toHaveBeenCalled();
   });
 
-  it('new-issue skips when issue processing is disabled', async () => {
-    const { calls, setFailed } = await runAction('new-issue', { shouldProcessIssue: false });
-    expect(calls).toEqual([]);
-    expect(setFailed).not.toHaveBeenCalled();
-  });
-
   it('validate-issue skips an update that does not need validation', async () => {
     const { calls, setFailed } = await runAction('validate-issue', {
       eventName: 'issues',
@@ -266,54 +231,22 @@ describe('issue actions', () => {
     expect(setFailed).not.toHaveBeenCalled();
   });
 
-  it.each(['new-issue', 'check-feature-request', 'validate-issue'] as const)(
-    '%s fails without an issue payload',
-    async action => {
-      const { calls, setFailed } = await runAction(action, { issue: null });
-      expect(calls).toEqual([]);
-      expect(setFailed).toHaveBeenCalledWith('github.context.payload.issue does not exist');
-    }
-  );
+  it('fails without an issue payload', async () => {
+    const { calls, setFailed } = await runAction('validate-issue', { issue: null });
+    expect(calls).toEqual([]);
+    expect(setFailed).toHaveBeenCalledWith('github.context.payload.issue does not exist');
+  });
 
-  it.each(['check-feature-request', 'validate-issue'] as const)('%s processes older issues', async action => {
-    const { calls, setFailed } = await runAction(action, { issue: { ...issue, created_at: '2023-01-01' } });
+  it('processes older issues', async () => {
+    const { calls, setFailed } = await runAction('validate-issue', { issue: { ...issue, created_at: '2023-01-01' } });
     expect(calls[0]).toMatchObject({ method: 'GET', path: commentsPath });
     expect(setFailed).not.toHaveBeenCalled();
   });
 
-  it.each(['new-issue', 'check-feature-request', 'validate-issue'] as const)(
-    '%s rejects an empty token instead of using runner credentials or anonymous requests',
-    async action => {
-      const { calls, setFailed } = await runAction(action, { token: '' });
-      expect(calls).toEqual([]);
-      expect(setFailed).toHaveBeenCalledWith('Input required and not supplied: repo-token');
-    }
-  );
-
-  it('recognizes feature requests in author comments and labels before setting output', async () => {
-    const { calls, setOutput } = await runAction('check-feature-request', {
-      comments: [{ body: 'Feature request: please add this', user: { login: 'author' } }]
-    });
-    expect(calls[1]).toMatchObject({ method: 'POST', path: labelsPath, body: { labels: ['type:enhancements'] } });
-    expect(setOutput).toHaveBeenCalledWith('is_feature_request', 'true');
-    expect(setOutput).toHaveBeenCalledWith('should_process_issue', 'false');
-  });
-
-  it('does not process issues with an excluded label', async () => {
-    const { calls, setOutput } = await runAction('check-feature-request', {
-      issue: { ...issue, labels: [{ name: 'announcement' }] }
-    });
+  it('rejects an empty token instead of using runner credentials or anonymous requests', async () => {
+    const { calls, setFailed } = await runAction('validate-issue', { token: '' });
     expect(calls).toEqual([]);
-    expect(setOutput).toHaveBeenCalledWith('should_process_issue', 'false');
-  });
-
-  it('ignores feature requests from other commenters', async () => {
-    const { calls, setOutput } = await runAction('check-feature-request', {
-      comments: [{ body: 'Feature request', user: { login: 'other' } }]
-    });
-    expect(calls).toHaveLength(1);
-    expect(setOutput).toHaveBeenCalledWith('is_feature_request', 'false');
-    expect(setOutput).toHaveBeenCalledWith('should_process_issue', 'true');
+    expect(setFailed).toHaveBeenCalledWith('Input required and not supplied: repo-token');
   });
 
   it('validates author-provided versions, reads the latest release, and ignores missing labels', async () => {
@@ -412,13 +345,13 @@ describe('issue actions', () => {
     expect(setFailed).toHaveBeenCalledWith(expect.stringContaining('Not Found'));
   });
 
-  it.each(['new-issue', 'check-feature-request', 'validate-issue'] as const)(
-    '%s reports write permission failures',
-    async action => {
-      const { setFailed } = await runAction(action, { issue: { ...issue, body: 'Feature request' }, writeStatus: 403 });
-      expect(setFailed).toHaveBeenCalled();
-    }
-  );
+  it('reports write permission failures', async () => {
+    const { setFailed } = await runAction('validate-issue', {
+      issue: { ...issue, body: 'A bug report' },
+      writeStatus: 403
+    });
+    expect(setFailed).toHaveBeenCalled();
+  });
 
   it.each(['validateNewIssues', 'validateUpdatedIssues'])(
     '%s compiles the workspace service before every issue action',

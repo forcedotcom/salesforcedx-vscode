@@ -258,7 +258,7 @@
       "output": []
     },
     "lint:scripts": {
-      "command": "eslint --color \"scripts/*.mts\" --ignore-pattern scripts/categoryApprove.mts \"packages/{salesforcedx-lightning-lsp-common,salesforcedx-aura-language-server,salesforcedx-lwc-language-server}/scripts/*.mts\"",
+      "command": "eslint --color \"scripts/*.mts\" --ignore-pattern scripts/categoryApprove.mts \".github/actions/validate-issue/src/*.ts\" \"packages/{salesforcedx-lightning-lsp-common,salesforcedx-aura-language-server,salesforcedx-lwc-language-server}/scripts/*.mts\"",
       "dependencies": [
         "./packages/eslint-local-rules:compile"
       ],
@@ -267,6 +267,8 @@
         "scripts/shared/**/*.mts",
         "scripts/tsconfig.json",
         "scripts/tsconfig.native.json",
+        ".github/actions/validate-issue/src/**/*.ts",
+        ".github/actions/validate-issue/tsconfig.json",
         "tsconfig.json",
         "tsconfig.common.json",
         "packages/{salesforcedx-lightning-lsp-common,salesforcedx-aura-language-server,salesforcedx-lwc-language-server}/scripts/**/*.{mts,ts,json}",
@@ -526,7 +528,7 @@
       "files": []
     },
     "compile:github-actions": {
-      "command": "tsc -p .github/actions/new-issue/tsconfig.json && tsc -p .github/actions/validate-issue/tsconfig.json && tsc -p .github/actions/check-feature-request/tsconfig.json",
+      "command": "tsc -p .github/actions/validate-issue/tsconfig.json",
       "dependencies": [
         "./packages/effect-octokit:compile"
       ],
@@ -625,6 +627,7 @@
     "check:effect-diagnostics": {
       "dependencies": [
         "check:effect-diagnostics:scripts",
+        "check:effect-diagnostics:github-actions",
         "./packages/eslint-local-rules:test",
         "./packages/soql-builder-ui:check:effect-diagnostics",
         "./packages/salesforcedx-apex:check:effect-diagnostics",
@@ -667,6 +670,19 @@
         "scripts/tsconfig.native.json",
         "scripts/manualTestPlan/tsconfig.json",
         "scripts/manualTestPlan/**/*.mts"
+      ],
+      "output": []
+    },
+    "check:effect-diagnostics:github-actions": {
+      "command": "node scripts/effect-diagnostics.mjs .github/actions/validate-issue",
+      "dependencies": [
+        "compile:github-actions"
+      ],
+      "files": [
+        "config/effect-diagnostics.json",
+        "scripts/effect-diagnostics.mjs",
+        ".github/actions/validate-issue/tsconfig.json",
+        ".github/actions/validate-issue/src/**/*.ts"
       ],
       "output": []
     },
