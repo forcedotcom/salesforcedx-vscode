@@ -21,8 +21,8 @@ jobs:
         with:
           node-version: ${{ vars.NODE_VERSION || 'lts/*' }}
           install: 'false'
-      - uses: google/wireit@setup-github-actions-caching/v2
-      - uses: salesforcecli/github-workflows/.github/actions/pnpmInstallWithRetries@main
+      - uses: google/wireit@9d7c2e5346f8ef1b1ab6014c4e96c74e234f7ed5 # setup-github-actions-caching/v2
+      - uses: salesforcecli/github-workflows/.github/actions/pnpmInstallWithRetries@b974ac8caddfccebd27cb28c0f88c1991dcca4c1 # main
       - run: pnpm compile
       - run: pnpm test
         env:

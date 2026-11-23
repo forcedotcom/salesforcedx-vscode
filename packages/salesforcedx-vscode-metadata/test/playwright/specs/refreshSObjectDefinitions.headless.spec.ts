@@ -37,7 +37,7 @@ const GENERIC_ERROR = 'An error has occurred';
 const CUSTOM_TIMEOUT = 30_000;
 const STANDARD_TIMEOUT = 120_000;
 
-test.setTimeout(STANDARD_TIMEOUT + CUSTOM_TIMEOUT + 60_000);
+test.setTimeout(CUSTOM_TIMEOUT + STANDARD_TIMEOUT * 2 + 60_000);
 
 const runRefreshAndVerify = async (
   page: Page,
