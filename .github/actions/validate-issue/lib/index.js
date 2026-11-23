@@ -13,6 +13,7 @@ const FetchHttpClient = require("@effect/platform/FetchHttpClient");
 const effect_octokit_1 = require("@salesforce/effect-octokit");
 const Cause = require("effect/Cause");
 const Effect = require("effect/Effect");
+const Match = require("effect/Match");
 const Predicate_1 = require("effect/Predicate");
 const Schema = require("effect/Schema");
 const node_child_process_1 = require("node:child_process");
@@ -20,7 +21,11 @@ const node_fs_1 = require("node:fs");
 const path = require("node:path");
 const semver = require("semver");
 const nodeVersions_1 = require("./nodeVersions");
-exports.IssueRouteSchema = Schema.Union(Schema.TaggedStruct('Skip', {}), Schema.TaggedStruct('NewIssue', {}), Schema.TaggedStruct('Validate', {}), Schema.TaggedStruct('Notify', { message: Schema.String }));
+const SkipIssueRoute = Schema.TaggedStruct('Skip', {});
+const NewIssueRoute = Schema.TaggedStruct('NewIssue', {});
+const ValidateIssueRoute = Schema.TaggedStruct('Validate', {});
+const NotifyIssueRoute = Schema.TaggedStruct('Notify', { message: Schema.String });
+exports.IssueRouteSchema = Schema.Union(SkipIssueRoute, NewIssueRoute, ValidateIssueRoute, NotifyIssueRoute);
 const newIssueSkipLabels = [
     'announcement',
     'missing required information',
@@ -64,10 +69,10 @@ const getLatestExtensionsVersion = () => Schema.decodeUnknownSync(ExtensionMarke
 const getFile = (filename, replacements) => Object.entries(replacements ?? {}).reduce((contents, [key, value]) => contents.replaceAll(key, value), (0, node_fs_1.readFileSync)(path.join(__dirname, filename), 'utf8'));
 const routeIssue = (eventName, action, eventLabel, issueState, issueLabels) => {
     if (issueState === 'closed')
-        return { _tag: 'Skip' };
+        return SkipIssueRoute.make({});
     const labels = new Set(issueLabels?.map(label => label.name));
     if (eventName === 'issues' && action === 'opened') {
-        return newIssueSkipLabels.some(label => labels.has(label)) ? { _tag: 'Skip' } : { _tag: 'NewIssue' };
+        return newIssueSkipLabels.some(label => labels.has(label)) ? SkipIssueRoute.make({}) : NewIssueRoute.make({});
     }
     if (eventName === 'issues' && action === 'labeled' && eventLabel !== undefined) {
         const isFeature = featureLabels.some(label => labels.has(label));
@@ -75,13 +80,13 @@ const routeIssue = (eventName, action, eventLabel, issueState, issueLabels) => {
         if (isFeature &&
             isOwnedByOtherTeam &&
             [...featureLabels, ownedByOtherTeamLabel].includes(eventLabel)) {
-            return { _tag: 'Notify', message: featureOnOtherTeamMessage };
+            return NotifyIssueRoute.make({ message: featureOnOtherTeamMessage });
         }
         if (featureLabels.includes(eventLabel) && !isOwnedByOtherTeam) {
-            return { _tag: 'Notify', message: featureRequestMessage };
+            return NotifyIssueRoute.make({ message: featureRequestMessage });
         }
         if (eventLabel === ownedByOtherTeamLabel && !isFeature) {
-            return { _tag: 'Notify', message: ownedByOtherTeamMessage };
+            return NotifyIssueRoute.make({ message: ownedByOtherTeamMessage });
         }
     }
     const validationEvent = (eventName === 'issues' && (action === 'edited' || action === 'labeled')) ||
@@ -89,8 +94,8 @@ const routeIssue = (eventName, action, eventLabel, issueState, issueLabels) => {
     return validationEvent &&
         labels.has('missing required information') &&
         !validationSkipLabels.some(label => labels.has(label))
-        ? { _tag: 'Validate' }
-        : { _tag: 'Skip' };
+        ? ValidateIssueRoute.make({})
+        : SkipIssueRoute.make({});
 };
 const run = () => Effect.gen(function* () {
     const issue = github_1.context.payload.issue;
@@ -101,8 +106,9 @@ const run = () => Effect.gen(function* () {
     const eventAction = (0, Predicate_1.isString)(github_1.context.payload.action) ? github_1.context.payload.action : undefined;
     const eventLabel = (0, Predicate_1.isString)(github_1.context.payload.label?.name) ? github_1.context.payload.label.name : undefined;
     const route = routeIssue(github_1.context.eventName, eventAction, eventLabel, issue.state, issue.labels);
-    if (route._tag === 'Skip')
+    if (Match.value(route).pipe(Match.tag('Skip', () => true), Match.orElse(() => false))) {
         return;
+    }
     // Use only the action input, never a token inherited from the runner environment.
     const token = (0, core_1.getInput)('repo-token', { required: true });
     const github = yield* (0, effect_octokit_1.githubFromToken)(token);
@@ -149,18 +155,19 @@ const run = () => Effect.gen(function* () {
         const minMinor = Math.max(0, minor - 2);
         return `${major}.${minMinor}.0`;
     })));
-    if (route._tag === 'Notify') {
-        yield* postComment(route.message);
+    const shouldValidate = yield* Match.value(route).pipe(Match.tags({
+        Skip: () => Effect.succeed(false),
+        NewIssue: () => {
+            const isFeatureRequest = !(0, Predicate_1.isNull)(bodies[0]) && bodies.filter(Predicate_1.isNotNullable).some(commentBody => /feature\s*request/i.test(commentBody));
+            return isFeatureRequest
+                ? addLabel('type:enhancements').pipe(Effect.as(false))
+                : postComment(defaultNewIssueMessage).pipe(Effect.as(true));
+        },
+        Validate: () => Effect.succeed(true),
+        Notify: ({ message }) => postComment(message).pipe(Effect.as(false))
+    }), Match.exhaustive);
+    if (!shouldValidate)
         return;
-    }
-    if (route._tag === 'NewIssue') {
-        const isFeatureRequest = !(0, Predicate_1.isNull)(bodies[0]) && bodies.filter(Predicate_1.isNotNullable).some(commentBody => /feature\s*request/i.test(commentBody));
-        if (isFeatureRequest) {
-            yield* addLabel('type:enhancements');
-            return;
-        }
-        yield* postComment(defaultNewIssueMessage);
-    }
     if ((0, Predicate_1.isNull)(bodies[0])) {
         yield* Effect.log('No content provided in issue body');
         const message = getFile('../messages/provide-version.md', {

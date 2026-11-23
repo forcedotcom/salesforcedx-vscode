@@ -12,6 +12,7 @@ import type { Label } from '@octokit/webhooks-types';
 import { githubFromToken } from '@salesforce/effect-octokit';
 import * as Cause from 'effect/Cause';
 import * as Effect from 'effect/Effect';
+import * as Match from 'effect/Match';
 import { isNotNullable, isNotUndefined, isNull, isString } from 'effect/Predicate';
 import * as Schema from 'effect/Schema';
 import { execSync } from 'node:child_process';
@@ -20,11 +21,15 @@ import * as path from 'node:path';
 import * as semver from 'semver';
 import { isAnyVersionValid } from './nodeVersions';
 
+const SkipIssueRoute = Schema.TaggedStruct('Skip', {});
+const NewIssueRoute = Schema.TaggedStruct('NewIssue', {});
+const ValidateIssueRoute = Schema.TaggedStruct('Validate', {});
+const NotifyIssueRoute = Schema.TaggedStruct('Notify', { message: Schema.String });
 export const IssueRouteSchema = Schema.Union(
-  Schema.TaggedStruct('Skip', {}),
-  Schema.TaggedStruct('NewIssue', {}),
-  Schema.TaggedStruct('Validate', {}),
-  Schema.TaggedStruct('Notify', { message: Schema.String })
+  SkipIssueRoute,
+  NewIssueRoute,
+  ValidateIssueRoute,
+  NotifyIssueRoute
 );
 type IssueRoute = typeof IssueRouteSchema.Type;
 
@@ -88,11 +93,11 @@ const routeIssue = (
   issueState: string | undefined,
   issueLabels: readonly Label[] | undefined
 ): IssueRoute => {
-  if (issueState === 'closed') return { _tag: 'Skip' };
+  if (issueState === 'closed') return SkipIssueRoute.make({});
 
   const labels = new Set(issueLabels?.map(label => label.name));
   if (eventName === 'issues' && action === 'opened') {
-    return newIssueSkipLabels.some(label => labels.has(label)) ? { _tag: 'Skip' } : { _tag: 'NewIssue' };
+    return newIssueSkipLabels.some(label => labels.has(label)) ? SkipIssueRoute.make({}) : NewIssueRoute.make({});
   }
 
   if (eventName === 'issues' && action === 'labeled' && eventLabel !== undefined) {
@@ -103,13 +108,13 @@ const routeIssue = (
       isOwnedByOtherTeam &&
       [...featureLabels, ownedByOtherTeamLabel].includes(eventLabel)
     ) {
-      return { _tag: 'Notify', message: featureOnOtherTeamMessage };
+      return NotifyIssueRoute.make({ message: featureOnOtherTeamMessage });
     }
     if (featureLabels.includes(eventLabel) && !isOwnedByOtherTeam) {
-      return { _tag: 'Notify', message: featureRequestMessage };
+      return NotifyIssueRoute.make({ message: featureRequestMessage });
     }
     if (eventLabel === ownedByOtherTeamLabel && !isFeature) {
-      return { _tag: 'Notify', message: ownedByOtherTeamMessage };
+      return NotifyIssueRoute.make({ message: ownedByOtherTeamMessage });
     }
   }
 
@@ -119,8 +124,8 @@ const routeIssue = (
   return validationEvent &&
     labels.has('missing required information') &&
     !validationSkipLabels.some(label => labels.has(label))
-    ? { _tag: 'Validate' }
-    : { _tag: 'Skip' };
+    ? ValidateIssueRoute.make({})
+    : SkipIssueRoute.make({});
 };
 
 const run = () =>
@@ -134,7 +139,14 @@ const run = () =>
     const eventAction = isString(context.payload.action) ? context.payload.action : undefined;
     const eventLabel = isString(context.payload.label?.name) ? context.payload.label.name : undefined;
     const route = routeIssue(context.eventName, eventAction, eventLabel, issue.state, issue.labels);
-    if (route._tag === 'Skip') return;
+    if (
+      Match.value(route).pipe(
+        Match.tag('Skip', () => true),
+        Match.orElse(() => false)
+      )
+    ) {
+      return;
+    }
 
     // Use only the action input, never a token inherited from the runner environment.
     const token = getInput('repo-token', { required: true });
@@ -216,20 +228,22 @@ const run = () =>
         )
     );
 
-    if (route._tag === 'Notify') {
-      yield* postComment(route.message);
-      return;
-    }
-
-    if (route._tag === 'NewIssue') {
-      const isFeatureRequest =
-        !isNull(bodies[0]) && bodies.filter(isNotNullable).some(commentBody => /feature\s*request/i.test(commentBody));
-      if (isFeatureRequest) {
-        yield* addLabel('type:enhancements');
-        return;
-      }
-      yield* postComment(defaultNewIssueMessage);
-    }
+    const shouldValidate = yield* Match.value(route).pipe(
+      Match.tags({
+        Skip: () => Effect.succeed(false),
+        NewIssue: () => {
+          const isFeatureRequest =
+            !isNull(bodies[0]) && bodies.filter(isNotNullable).some(commentBody => /feature\s*request/i.test(commentBody));
+          return isFeatureRequest
+            ? addLabel('type:enhancements').pipe(Effect.as(false))
+            : postComment(defaultNewIssueMessage).pipe(Effect.as(true));
+        },
+        Validate: () => Effect.succeed(true),
+        Notify: ({ message }) => postComment(message).pipe(Effect.as(false))
+      }),
+      Match.exhaustive
+    );
+    if (!shouldValidate) return;
 
     if (isNull(bodies[0])) {
       yield* Effect.log('No content provided in issue body');
