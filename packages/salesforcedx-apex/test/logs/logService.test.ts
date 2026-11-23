@@ -8,20 +8,11 @@
 import type { SinonStub } from 'sinon';
 import { AuthInfo, Connection } from '@salesforce/core';
 import { MockTestOrgData, TestContext } from '@salesforce/core/testSetup';
-import * as fs from 'node:fs';
+import { mkdtemp, readdir, readFile, rm } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
 import { LogService } from '../../src/logs/logService';
 import * as path from 'node:path';
-import * as stream from 'node:stream';
 import { type LogRecord, type LogResult } from '../../src/logs/types';
-
-vi.mock(import('node:fs'), async importOriginal => ({
-  ...(await importOriginal()),
-  closeSync: vi.fn(),
-  createWriteStream: vi.fn(),
-  existsSync: vi.fn(),
-  mkdirSync: vi.fn(),
-  openSync: vi.fn()
-}));
 
 type LogQueryResult = {
   records: LogRecord[];
@@ -33,7 +24,6 @@ type LogServiceInternals = {
 };
 
 const logServicePrototype = LogService.prototype as unknown as LogServiceInternals;
-const createWriteStreamMock = vi.mocked(fs.createWriteStream);
 
 const logRecords: LogRecord[] = [
   {
@@ -109,13 +99,10 @@ describe('Apex Log Service Tests', () => {
   const testData = new MockTestOrgData();
   let mockConnection: Connection;
   let toolingRequestStub: SinonStub;
+  let directory: string;
 
   beforeEach(async () => {
-    createWriteStreamMock.mockReset();
-    vi.mocked(fs.closeSync).mockReset();
-    vi.mocked(fs.existsSync).mockReset();
-    vi.mocked(fs.mkdirSync).mockReset();
-    vi.mocked(fs.openSync).mockReset();
+    directory = await mkdtemp(path.join(tmpdir(), 'apex-log-output-'));
     await $$.stubAuths(testData);
 
     // Stub retrieveMaxApiVersion to get over "Domain Not Found: The org cannot be found" error
@@ -126,6 +113,10 @@ describe('Apex Log Service Tests', () => {
       })
     });
     toolingRequestStub = $$.SANDBOX.stub(logServicePrototype, 'toolingRequest');
+  });
+
+  afterEach(async () => {
+    await rm(directory, { recursive: true, force: true });
   });
 
   it('should return correct number of logs', async () => {
@@ -212,12 +203,8 @@ describe('Apex Log Service Tests', () => {
 
   it('should store logs in the directory', async () => {
     const apexLogGet = new LogService(mockConnection);
-    const filePath = path.join('testTmp', 'file', 'path', 'logs');
+    const filePath = path.join(directory, 'logs');
     $$.SANDBOX.stub(LogService.prototype, 'getLogRecords').resolves(logRecords);
-
-    createWriteStreamMock
-      .mockReturnValueOnce(new stream.PassThrough() as any)
-      .mockReturnValueOnce(new stream.PassThrough() as any);
 
     const logs = ['48jnskd', '57fskjf'];
     toolingRequestStub.onFirstCall().resolves(logs[0]);
@@ -234,26 +221,25 @@ describe('Apex Log Service Tests', () => {
     });
 
     expect(response).toEqual(logResult);
-    expect(createWriteStreamMock).toHaveBeenCalledTimes(2);
+    await expect(readdir(filePath)).resolves.toEqual(logRecords.map(record => `${record.Id}.log`));
+    await expect(
+      Promise.all(logRecords.map(record => readFile(path.join(filePath, `${record.Id}.log`), 'utf8')))
+    ).resolves.toEqual(logs);
   });
 
   it('should successfully create a .log file', async () => {
     const apexLogGet = new LogService(mockConnection);
-    const filePath = path.join('path', 'to', 'logs');
+    const filePath = path.join(directory, 'logs');
     const logIds = ['07WgsWfad'];
     const logs = ['log content'];
     const logsPath = path.join(filePath, `${logIds[0]}.log`);
-    vi.mocked(fs.existsSync).mockReturnValue(true);
-    createWriteStreamMock
-      .mockReturnValueOnce(new stream.PassThrough() as any)
-      .mockReturnValueOnce(new stream.PassThrough() as any);
     toolingRequestStub.onFirstCall().resolves(logs[0]);
     toolingRequestStub.onSecondCall().resolves(logs[1]);
     await apexLogGet.getLogs({
       logId: '07WgsWfad',
       outputDir: filePath
     });
-    expect(createWriteStreamMock).toHaveBeenCalledWith(logsPath);
+    await expect(readFile(logsPath, 'utf8')).resolves.toBe(logs[0]);
   });
 
   it('should throw an error if numberOfLogs or logId are not given to getLogs', async () => {

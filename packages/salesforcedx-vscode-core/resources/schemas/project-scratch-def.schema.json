@@ -60,298 +60,299 @@
           {
             "anyOf": [
               {
-                "title": "AddCustomApps:<value>",
                 "type": "string",
-                "pattern": "^AddCustomApps:[0-9]+$"
+                "pattern": "^AddCustomApps:[0-9]+$",
+                "title": "AddCustomApps:<value>"
               },
               {
-                "title": "AddCustomObjects:<value>",
                 "type": "string",
-                "pattern": "^AddCustomObjects:[0-9]+$"
+                "pattern": "^AddCustomObjects:[0-9]+$",
+                "title": "AddCustomObjects:<value>"
               },
               {
-                "title": "AddCustomRelationships:<value>",
                 "type": "string",
-                "pattern": "^AddCustomRelationships:[0-9]+$"
+                "pattern": "^AddCustomRelationships:[0-9]+$",
+                "title": "AddCustomRelationships:<value>"
               },
               {
-                "title": "AddCustomTabs:<value>",
                 "type": "string",
-                "pattern": "^AddCustomTabs:[0-9]+$"
+                "pattern": "^AddCustomTabs:[0-9]+$",
+                "title": "AddCustomTabs:<value>"
               },
               {
-                "title": "AddDataComCRMRecordCredit:<value>",
                 "type": "string",
-                "pattern": "^AddDataComCRMRecordCredit:[0-9]+$"
+                "pattern": "^AddDataComCRMRecordCredit:[0-9]+$",
+                "title": "AddDataComCRMRecordCredit:<value>"
               },
               {
-                "title": "AddInsightsQueryLimit:<value>",
                 "type": "string",
-                "pattern": "^AddInsightsQueryLimit:[0-9]+$"
+                "pattern": "^AddInsightsQueryLimit:[0-9]+$",
+                "title": "AddInsightsQueryLimit:<value>"
               },
               {
-                "title": "AdditionalFieldHistory:<value>",
                 "type": "string",
-                "pattern": "^AdditionalFieldHistory:[0-9]+$"
+                "pattern": "^AdditionalFieldHistory:[0-9]+$",
+                "title": "AdditionalFieldHistory:<value>"
               },
               {
-                "title": "AssetScheduling:<value>",
                 "type": "string",
-                "pattern": "^AssetScheduling:[0-9]+$"
+                "pattern": "^AssetScheduling:[0-9]+$",
+                "title": "AssetScheduling:<value>"
               },
               {
-                "title": "CalloutSizeMB:<value>",
                 "type": "string",
-                "pattern": "^CalloutSizeMB:[0-9]+$"
+                "pattern": "^CalloutSizeMB:[0-9]+$",
+                "title": "CalloutSizeMB:<value>"
               },
               {
-                "title": "ConcStreamingClients:<value>",
                 "type": "string",
-                "pattern": "^ConcStreamingClients:[0-9]+$"
+                "pattern": "^ConcStreamingClients:[0-9]+$",
+                "title": "ConcStreamingClients:<value>"
               },
               {
-                "title": "ConsolePersistenceInterval:<value>",
                 "type": "string",
-                "pattern": "^ConsolePersistenceInterval:[0-9]+$"
+                "pattern": "^ConsolePersistenceInterval:[0-9]+$",
+                "title": "ConsolePersistenceInterval:<value>"
               },
               {
-                "title": "EducationCloud:<value>",
                 "type": "string",
-                "pattern": "^EducationCloud:[0-9]+$"
+                "pattern": "^EducationCloud:[0-9]+$",
+                "title": "EducationCloud:<value>"
               },
               {
-                "title": "EmpPublishRateLimit:<value>",
                 "type": "string",
-                "pattern": "^EmpPublishRateLimit:[0-9]+$"
+                "pattern": "^EmpPublishRateLimit:[0-9]+$",
+                "title": "EmpPublishRateLimit:<value>"
               },
               {
-                "title": "EncryptionStatisticsInterval:<value>",
                 "type": "string",
-                "pattern": "^EncryptionStatisticsInterval:[0-9]+$"
+                "pattern": "^EncryptionStatisticsInterval:[0-9]+$",
+                "title": "EncryptionStatisticsInterval:<value>"
               },
               {
-                "title": "EncryptionSyncInterval:<value>",
                 "type": "string",
-                "pattern": "^EncryptionSyncInterval:[0-9]+$"
+                "pattern": "^EncryptionSyncInterval:[0-9]+$",
+                "title": "EncryptionSyncInterval:<value>"
               },
               {
-                "title": "FieldService:<value>",
                 "type": "string",
-                "pattern": "^FieldService:[0-9]+$"
+                "pattern": "^FieldService:[0-9]+$",
+                "title": "FieldService:<value>"
               },
               {
-                "title": "FieldServiceAppointmentAssistantUser:<value>",
                 "type": "string",
-                "pattern": "^FieldServiceAppointmentAssistantUser:[0-9]+$"
+                "pattern": "^FieldServiceAppointmentAssistantUser:[0-9]+$",
+                "title": "FieldServiceAppointmentAssistantUser:<value>"
               },
               {
-                "title": "FieldServiceDispatcherUser:<value>",
                 "type": "string",
-                "pattern": "^FieldServiceDispatcherUser:[0-9]+$"
+                "pattern": "^FieldServiceDispatcherUser:[0-9]+$",
+                "title": "FieldServiceDispatcherUser:<value>"
               },
               {
-                "title": "FieldServiceLastMileUser:<value>",
                 "type": "string",
-                "pattern": "^FieldServiceLastMileUser:[0-9]+$"
+                "pattern": "^FieldServiceLastMileUser:[0-9]+$",
+                "title": "FieldServiceLastMileUser:<value>"
               },
               {
-                "title": "FieldServiceMobileUser:<value>",
                 "type": "string",
-                "pattern": "^FieldServiceMobileUser:[0-9]+$"
+                "pattern": "^FieldServiceMobileUser:[0-9]+$",
+                "title": "FieldServiceMobileUser:<value>"
               },
               {
-                "title": "FieldServiceSchedulingUser:<value>",
                 "type": "string",
-                "pattern": "^FieldServiceSchedulingUser:[0-9]+$"
+                "pattern": "^FieldServiceSchedulingUser:[0-9]+$",
+                "title": "FieldServiceSchedulingUser:<value>"
               },
               {
-                "title": "FinancialServicesCommunityUser:<value>",
                 "type": "string",
-                "pattern": "^FinancialServicesCommunityUser:[0-9]+$"
+                "pattern": "^FinancialServicesCommunityUser:[0-9]+$",
+                "title": "FinancialServicesCommunityUser:<value>"
               },
               {
-                "title": "FinancialServicesUser:<value>",
                 "type": "string",
-                "pattern": "^FinancialServicesUser:[0-9]+$"
+                "pattern": "^FinancialServicesUser:[0-9]+$",
+                "title": "FinancialServicesUser:<value>"
               },
               {
-                "title": "GenStreamingEventsPerDay:<value>",
                 "type": "string",
-                "pattern": "^GenStreamingEventsPerDay:[0-9]+$"
+                "pattern": "^GenStreamingEventsPerDay:[0-9]+$",
+                "title": "GenStreamingEventsPerDay:<value>"
               },
               {
-                "title": "HoursBetweenCoverageJob:<value>",
                 "type": "string",
-                "pattern": "^HoursBetweenCoverageJob:[0-9]+$"
+                "pattern": "^HoursBetweenCoverageJob:[0-9]+$",
+                "title": "HoursBetweenCoverageJob:<value>"
               },
               {
-                "title": "LoyaltyMaxOrderLinePerHour:<value>",
                 "type": "string",
-                "pattern": "^LoyaltyMaxOrderLinePerHour:[0-9]+$"
+                "pattern": "^LoyaltyMaxOrderLinePerHour:[0-9]+$",
+                "title": "LoyaltyMaxOrderLinePerHour:<value>"
               },
               {
-                "title": "LoyaltyMaxProcExecPerHour:<value>",
                 "type": "string",
-                "pattern": "^LoyaltyMaxProcExecPerHour:[0-9]+$"
+                "pattern": "^LoyaltyMaxProcExecPerHour:[0-9]+$",
+                "title": "LoyaltyMaxProcExecPerHour:<value>"
               },
               {
-                "title": "LoyaltyMaxTransactions:<value>",
                 "type": "string",
-                "pattern": "^LoyaltyMaxTransactions:[0-9]+$"
+                "pattern": "^LoyaltyMaxTransactions:[0-9]+$",
+                "title": "LoyaltyMaxTransactions:<value>"
               },
               {
-                "title": "LoyaltyMaxTrxnJournals:<value>",
                 "type": "string",
-                "pattern": "^LoyaltyMaxTrxnJournals:[0-9]+$"
+                "pattern": "^LoyaltyMaxTrxnJournals:[0-9]+$",
+                "title": "LoyaltyMaxTrxnJournals:<value>"
               },
               {
-                "title": "LoyaltyMaximumPartners:<value>",
                 "type": "string",
-                "pattern": "^LoyaltyMaximumPartners:[0-9]+$"
+                "pattern": "^LoyaltyMaximumPartners:[0-9]+$",
+                "title": "LoyaltyMaximumPartners:<value>"
               },
               {
-                "title": "LoyaltyMaximumPrograms:<value>",
                 "type": "string",
-                "pattern": "^LoyaltyMaximumPrograms:[0-9]+$"
+                "pattern": "^LoyaltyMaximumPrograms:[0-9]+$",
+                "title": "LoyaltyMaximumPrograms:<value>"
               },
               {
-                "title": "MaxActiveDPEDefs:<value>",
                 "type": "string",
-                "pattern": "^MaxActiveDPEDefs:[0-9]+$"
+                "pattern": "^MaxActiveDPEDefs:[0-9]+$",
+                "title": "MaxActiveDPEDefs:<value>"
               },
               {
-                "title": "MaxApexCodeSize:<value>",
                 "type": "string",
-                "pattern": "^MaxApexCodeSize:[0-9]+$"
+                "pattern": "^MaxApexCodeSize:[0-9]+$",
+                "title": "MaxApexCodeSize:<value>"
               },
               {
-                "title": "MaxCustomLabels:<value>",
                 "type": "string",
-                "pattern": "^MaxCustomLabels:[0-9]+$"
+                "pattern": "^MaxCustomLabels:[0-9]+$",
+                "title": "MaxCustomLabels:<value>"
               },
               {
-                "title": "MaxDataSourcesPerDPE:<value>",
                 "type": "string",
-                "pattern": "^MaxDataSourcesPerDPE:[0-9]+$"
+                "pattern": "^MaxDataSourcesPerDPE:[0-9]+$",
+                "title": "MaxDataSourcesPerDPE:<value>"
               },
               {
-                "title": "MaxDatasetLinksPerDT:<value>",
                 "type": "string",
-                "pattern": "^MaxDatasetLinksPerDT:[0-9]+$"
+                "pattern": "^MaxDatasetLinksPerDT:[0-9]+$",
+                "title": "MaxDatasetLinksPerDT:<value>"
               },
               {
-                "title": "MaxDecisionTableAllowed:<value>",
                 "type": "string",
-                "pattern": "^MaxDecisionTableAllowed:[0-9]+$"
+                "pattern": "^MaxDecisionTableAllowed:[0-9]+$",
+                "title": "MaxDecisionTableAllowed:<value>"
               },
               {
-                "title": "MaxFavoritesAllowed:<value>",
                 "type": "string",
-                "pattern": "^MaxFavoritesAllowed:[0-9]+$"
+                "pattern": "^MaxFavoritesAllowed:[0-9]+$",
+                "title": "MaxFavoritesAllowed:<value>"
               },
               {
-                "title": "MaxFieldsPerNode:<value>",
                 "type": "string",
-                "pattern": "^MaxFieldsPerNode:[0-9]+$"
+                "pattern": "^MaxFieldsPerNode:[0-9]+$",
+                "title": "MaxFieldsPerNode:<value>"
               },
               {
-                "title": "MaxInputColumnsPerDT:<value>",
                 "type": "string",
-                "pattern": "^MaxInputColumnsPerDT:[0-9]+$"
+                "pattern": "^MaxInputColumnsPerDT:[0-9]+$",
+                "title": "MaxInputColumnsPerDT:<value>"
               },
               {
-                "title": "MaxLoyaltyProcessRules:<value>",
                 "type": "string",
-                "pattern": "^MaxLoyaltyProcessRules:[0-9]+$"
+                "pattern": "^MaxLoyaltyProcessRules:[0-9]+$",
+                "title": "MaxLoyaltyProcessRules:<value>"
               },
               {
-                "title": "MaxNoOfLexThemesAllowed:<value>",
                 "type": "string",
-                "pattern": "^MaxNoOfLexThemesAllowed:[0-9]+$"
+                "pattern": "^MaxNoOfLexThemesAllowed:[0-9]+$",
+                "title": "MaxNoOfLexThemesAllowed:<value>"
               },
               {
-                "title": "MaxNodesPerDPE:<value>",
                 "type": "string",
-                "pattern": "^MaxNodesPerDPE:[0-9]+$"
+                "pattern": "^MaxNodesPerDPE:[0-9]+$",
+                "title": "MaxNodesPerDPE:<value>"
               },
               {
-                "title": "MaxOutputColumnsPerDT:<value>",
                 "type": "string",
-                "pattern": "^MaxOutputColumnsPerDT:[0-9]+$"
+                "pattern": "^MaxOutputColumnsPerDT:[0-9]+$",
+                "title": "MaxOutputColumnsPerDT:<value>"
               },
               {
-                "title": "MaxSourceObjectPerDSL:<value>",
                 "type": "string",
-                "pattern": "^MaxSourceObjectPerDSL:[0-9]+$"
+                "pattern": "^MaxSourceObjectPerDSL:[0-9]+$",
+                "title": "MaxSourceObjectPerDSL:<value>"
               },
               {
-                "title": "MaxStreamingTopics:<value>",
                 "type": "string",
-                "pattern": "^MaxStreamingTopics:[0-9]+$"
+                "pattern": "^MaxStreamingTopics:[0-9]+$",
+                "title": "MaxStreamingTopics:<value>"
               },
               {
-                "title": "MaxUserNavItemsAllowed:<value>",
                 "type": "string",
-                "pattern": "^MaxUserNavItemsAllowed:[0-9]+$"
+                "pattern": "^MaxUserNavItemsAllowed:[0-9]+$",
+                "title": "MaxUserNavItemsAllowed:<value>"
               },
               {
-                "title": "MaxUserStreamingChannels:<value>",
                 "type": "string",
-                "pattern": "^MaxUserStreamingChannels:[0-9]+$"
+                "pattern": "^MaxUserStreamingChannels:[0-9]+$",
+                "title": "MaxUserStreamingChannels:<value>"
               },
               {
-                "title": "MaxWritebacksPerDPE:<value>",
                 "type": "string",
-                "pattern": "^MaxWritebacksPerDPE:[0-9]+$"
+                "pattern": "^MaxWritebacksPerDPE:[0-9]+$",
+                "title": "MaxWritebacksPerDPE:<value>"
               },
               {
-                "title": "MedVisDescriptorLimit:<value>",
                 "type": "string",
-                "pattern": "^MedVisDescriptorLimit:[0-9]+$"
+                "pattern": "^MedVisDescriptorLimit:[0-9]+$",
+                "title": "MedVisDescriptorLimit:<value>"
               },
               {
-                "title": "MobileExtMaxFileSizeMB:<value>",
                 "type": "string",
-                "pattern": "^MobileExtMaxFileSizeMB:[0-9]+$"
+                "pattern": "^MobileExtMaxFileSizeMB:[0-9]+$",
+                "title": "MobileExtMaxFileSizeMB:<value>"
               },
               {
-                "title": "NumPlatformEvents:<value>",
                 "type": "string",
-                "pattern": "^NumPlatformEvents:[0-9]+$"
+                "pattern": "^NumPlatformEvents:[0-9]+$",
+                "title": "NumPlatformEvents:<value>"
               },
               {
-                "title": "PlatformConnect:<value>",
                 "type": "string",
-                "pattern": "^PlatformConnect:[0-9]+$"
+                "pattern": "^PlatformConnect:[0-9]+$",
+                "title": "PlatformConnect:<value>"
               },
               {
-                "title": "PlatformEventsPerDay:<value>",
                 "type": "string",
-                "pattern": "^PlatformEventsPerDay:[0-9]+$"
+                "pattern": "^PlatformEventsPerDay:[0-9]+$",
+                "title": "PlatformEventsPerDay:<value>"
               },
               {
-                "title": "ServiceCloudVoicePartnerTelephony:<value>",
                 "type": "string",
-                "pattern": "^ServiceCloudVoicePartnerTelephony:[0-9]+$"
+                "pattern": "^ServiceCloudVoicePartnerTelephony:[0-9]+$",
+                "title": "ServiceCloudVoicePartnerTelephony:<value>"
               },
               {
-                "title": "StreamingEventsPerDay:<value>",
                 "type": "string",
-                "pattern": "^StreamingEventsPerDay:[0-9]+$"
+                "pattern": "^StreamingEventsPerDay:[0-9]+$",
+                "title": "StreamingEventsPerDay:<value>"
               },
               {
-                "title": "SubPerStreamingChannel:<value>",
                 "type": "string",
-                "pattern": "^SubPerStreamingChannel:[0-9]+$"
+                "pattern": "^SubPerStreamingChannel:[0-9]+$",
+                "title": "SubPerStreamingChannel:<value>"
               },
               {
-                "title": "SubPerStreamingTopic:<value>",
                 "type": "string",
-                "pattern": "^SubPerStreamingTopic:[0-9]+$"
+                "pattern": "^SubPerStreamingTopic:[0-9]+$",
+                "title": "SubPerStreamingTopic:<value>"
               }
             ]
           },
           {
+            "type": "string",
             "enum": [
               "AIAttribution",
               "API",
@@ -631,8 +632,7 @@
               "Workflow",
               "WorkflowFlowActionFeature",
               "WorkplaceCommandCenterUser"
-            ],
-            "type": "string"
+            ]
           }
         ]
       }
@@ -1376,6 +1376,14 @@
         },
         "mfgServiceConsoleSettings": {
           "description": "For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/mfg_mfgserviceconsolesettings_metadata_api.htm",
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {}
+        },
+        "mktPlanningOpsSettings": {
+          "description": "For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_mktplanningopssettings.htm",
           "type": "object",
           "propertyNames": {
             "type": "string"

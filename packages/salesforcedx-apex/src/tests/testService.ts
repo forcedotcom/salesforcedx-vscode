@@ -15,7 +15,7 @@ import * as Logger from 'effect/Logger';
 import * as Option from 'effect/Option';
 import * as Schema from 'effect/Schema';
 import { FileOutput } from '../effect/fileOutput';
-import { NodeFileOutput } from '../effect/nodeFileOutput';
+import { NodeFileOutput } from '../effect/nodeFileOutputLayer';
 import { ApexOperationError, ApexResponseDecodeError } from '../effect/schema/errors';
 import { buildAsyncPayload, buildSyncPayload } from '../effect/testPayloads';
 import { buildSuite, getTestsInSuite, retrieveAllSuites, retrieveSuiteId } from '../effect/testSuites';
