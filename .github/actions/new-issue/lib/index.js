@@ -10,7 +10,6 @@ const core_1 = require("@actions/core");
 const github_1 = require("@actions/github");
 const effect_octokit_1 = require("@salesforce/effect-octokit");
 const Effect = require("effect/Effect");
-const Schema = require("effect/Schema");
 async function run() {
     try {
         // The issue request exists on payload when an issue is created
@@ -46,15 +45,7 @@ async function run() {
                 return;
             }
         }
-        const response = await github
-            .request('POST /repos/{owner}/{repo}/issues/{issue_number}/comments', {
-            owner,
-            repo,
-            // eslint-disable-next-line @typescript-eslint/camelcase
-            issue_number: issue.number,
-            body: message
-        })
-            .pipe(Effect.flatMap(Schema.decodeUnknown(Schema.Struct({ html_url: Schema.String }))), Effect.runPromise);
+        const response = await github.createIssueComment(owner, repo, issue.number, message).pipe(Effect.runPromise);
         console.log('created comment URL: ' + response.html_url);
         (0, core_1.setOutput)('comment-url', response.html_url);
     }

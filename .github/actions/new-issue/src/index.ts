@@ -10,7 +10,6 @@ import { context } from '@actions/github';
 import { Label } from '@octokit/webhooks-types';
 import { githubFromToken } from '@salesforce/effect-octokit';
 import * as Effect from 'effect/Effect';
-import * as Schema from 'effect/Schema';
 
 async function run() {
   try {
@@ -55,15 +54,7 @@ async function run() {
       }
     }
 
-    const response = await github
-      .request('POST /repos/{owner}/{repo}/issues/{issue_number}/comments', {
-        owner,
-        repo,
-        // eslint-disable-next-line @typescript-eslint/camelcase
-        issue_number: issue.number,
-        body: message
-      })
-      .pipe(Effect.flatMap(Schema.decodeUnknown(Schema.Struct({ html_url: Schema.String }))), Effect.runPromise);
+    const response = await github.createIssueComment(owner, repo, issue.number, message).pipe(Effect.runPromise);
     console.log('created comment URL: ' + response.html_url);
 
     setOutput('comment-url', response.html_url);

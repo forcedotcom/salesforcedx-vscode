@@ -79,14 +79,7 @@ async function run() {
     // ---------
 
     async function addLabel(label: string) {
-      await github
-        .request("POST /repos/{owner}/{repo}/issues/{issue_number}/labels", {
-          owner,
-          repo,
-          issue_number,
-          labels: [label]
-        })
-        .pipe(Effect.runPromise);
+      await github.addIssueLabels(owner, repo, issue_number, [label]).pipe(Effect.runPromise);
     }
   } catch (err) {
     const error = err as Error;

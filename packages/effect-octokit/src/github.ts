@@ -305,6 +305,60 @@ export class GitHub extends Effect.Service<GitHub>()('GitHub', {
       );
     });
 
+    const createIssueComment = Effect.fn('GitHub.createIssueComment')(function* (
+      owner: string,
+      repo: string,
+      issueNumber: number,
+      body: string
+    ) {
+      return yield* run('POST', `/repos/${owner}/${repo}/issues/${issueNumber}/comments`, () =>
+        octokit
+          .request('POST /repos/{owner}/{repo}/issues/{issue_number}/comments', {
+            owner,
+            repo,
+            issue_number: issueNumber,
+            body
+          })
+          .then(response => response.data)
+      );
+    });
+
+    const addIssueLabels = Effect.fn('GitHub.addIssueLabels')(function* (
+      owner: string,
+      repo: string,
+      issueNumber: number,
+      labels: readonly string[]
+    ) {
+      yield* run('POST', `/repos/${owner}/${repo}/issues/${issueNumber}/labels`, () =>
+        octokit
+          .request('POST /repos/{owner}/{repo}/issues/{issue_number}/labels', {
+            owner,
+            repo,
+            issue_number: issueNumber,
+            labels: [...labels]
+          })
+          .then(() => undefined)
+      );
+    });
+
+    const removeIssueLabel = Effect.fn('GitHub.removeIssueLabel')(function* (
+      owner: string,
+      repo: string,
+      issueNumber: number,
+      label: string
+    ) {
+      yield* run('DELETE', `/repos/${owner}/${repo}/issues/${issueNumber}/labels/${label}`, () =>
+        octokit
+          .request('DELETE /repos/{owner}/{repo}/issues/{issue_number}/labels/{name}', {
+            owner,
+            repo,
+            issue_number: issueNumber,
+            name: label
+          })
+          .then(() => undefined)
+      );
+    });
+
     const pullReviews = Effect.fn('GitHub.pullReviews')(function* (owner: string, repo: string, pullNumber: number) {
       return yield* run('GET', `/repos/${owner}/${repo}/pulls/${pullNumber}/reviews`, () =>
         octokit.paginate('GET /repos/{owner}/{repo}/pulls/{pull_number}/reviews', {
@@ -520,6 +574,9 @@ export class GitHub extends Effect.Service<GitHub>()('GitHub', {
       teamMembership,
       pullFiles,
       issueComments,
+      createIssueComment,
+      addIssueLabels,
+      removeIssueLabel,
       pullReviews,
       checkRuns,
       workflowRunJobs,

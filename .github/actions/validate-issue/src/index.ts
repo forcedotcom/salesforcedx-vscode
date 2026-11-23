@@ -319,35 +319,16 @@ async function run() {
         }
       }
 
-      return await github
-        .request('POST /repos/{owner}/{repo}/issues/{issue_number}/comments', {
-          owner,
-          repo,
-          issue_number,
-          body
-        })
-        .pipe(Effect.runPromise);
+      return await github.createIssueComment(owner, repo, issue_number, body).pipe(Effect.runPromise);
     }
 
     async function addLabel(label: string) {
-      await github
-        .request('POST /repos/{owner}/{repo}/issues/{issue_number}/labels', {
-          owner,
-          repo,
-          issue_number,
-          labels: [label]
-        })
-        .pipe(Effect.runPromise);
+      await github.addIssueLabels(owner, repo, issue_number, [label]).pipe(Effect.runPromise);
     }
 
     async function removeLabel(label: string) {
       await github
-        .request('DELETE /repos/{owner}/{repo}/issues/{issue_number}/labels/{name}', {
-          owner,
-          repo,
-          issue_number,
-          name: label
-        })
+        .removeIssueLabel(owner, repo, issue_number, label)
         .pipe(
           Effect.catchTag('GitHubRequestError', error =>
             error.status === 404
