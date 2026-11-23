@@ -19,6 +19,7 @@ import { ApexLogQueryError } from '../../src/effect/schema/errors';
 import { apexLogId } from '../schemaHelpers';
 import { UserId } from '../../src/schemas/salesforceId';
 import { getLogBody, getLogRecords, getLogs, listLogs, streamLogs } from '../../src/effect/logs';
+import type { EffectApexLogGetOptions } from '../../src/effect/schema/logs';
 
 const firstUserId = Schema.decodeUnknownSync(UserId)('0053t000007OxppAAC');
 const secondUserId = Schema.decodeUnknownSync(UserId)('0053t000007OxppAAD');
@@ -228,7 +229,7 @@ describe('Effect Apex logs', () => {
 
   it('requires either a log ID or a record count', async () => {
     const { connection, query } = makeConnection();
-    expect(await Effect.runPromise(Effect.flip(getLogs(connection, {})))).toMatchObject({
+    expect(await Effect.runPromise(Effect.flip(getLogs(connection, {} as EffectApexLogGetOptions)))).toMatchObject({
       _tag: 'ApexOperationError',
       message: 'To retrieve logs, specify the log ID or the number of logs.'
     });

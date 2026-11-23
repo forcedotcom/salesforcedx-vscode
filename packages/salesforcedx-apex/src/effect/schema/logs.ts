@@ -36,10 +36,10 @@ export const ListLogsOptionsSchema = Schema.mutable(
 export type ListLogsOptions = Schema.Schema.Encoded<typeof ListLogsOptionsSchema>;
 export type DecodedListLogsOptions = Schema.Schema.Type<typeof ListLogsOptionsSchema>;
 
-export const EffectApexLogGetOptionsSchema = Schema.Struct({
-  logId: Schema.optional(ApexLogId),
-  numberOfLogs: Schema.optional(Schema.Number)
-}).annotations({ identifier: 'EffectApexLogGetOptions' });
+export const EffectApexLogGetOptionsSchema = Schema.Union(
+  Schema.Struct({ logId: ApexLogId, numberOfLogs: Schema.optional(Schema.Number) }),
+  Schema.Struct({ logId: Schema.optional(ApexLogId), numberOfLogs: Schema.Number })
+).annotations({ identifier: 'EffectApexLogGetOptions' });
 export type EffectApexLogGetOptions = Schema.Schema.Encoded<typeof EffectApexLogGetOptionsSchema>;
 
 export const ApexLogResultSchema = Schema.Struct({

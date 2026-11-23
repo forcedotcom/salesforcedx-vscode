@@ -332,19 +332,38 @@
       "additionalProperties": false
     },
     "EffectApexLogGetOptions": {
-      "type": "object",
-      "required": [],
-      "properties": {
-        "logId": {
-          "type": "string",
-          "description": "a string starting with \"07L\"",
-          "pattern": "^07L",
-          "title": "startsWith(\"07L\")",
-          "allOf": [{ "pattern": "^(?:[A-Za-z0-9]{15}|[A-Za-z0-9]{18})$" }]
+      "anyOf": [
+        {
+          "type": "object",
+          "required": ["logId"],
+          "properties": {
+            "logId": {
+              "type": "string",
+              "description": "a string starting with \"07L\"",
+              "pattern": "^07L",
+              "title": "startsWith(\"07L\")",
+              "allOf": [{ "pattern": "^(?:[A-Za-z0-9]{15}|[A-Za-z0-9]{18})$" }]
+            },
+            "numberOfLogs": { "type": "number" }
+          },
+          "additionalProperties": false
         },
-        "numberOfLogs": { "type": "number" }
-      },
-      "additionalProperties": false
+        {
+          "type": "object",
+          "required": ["numberOfLogs"],
+          "properties": {
+            "logId": {
+              "type": "string",
+              "description": "a string starting with \"07L\"",
+              "pattern": "^07L",
+              "title": "startsWith(\"07L\")",
+              "allOf": [{ "pattern": "^(?:[A-Za-z0-9]{15}|[A-Za-z0-9]{18})$" }]
+            },
+            "numberOfLogs": { "type": "number" }
+          },
+          "additionalProperties": false
+        }
+      ]
     },
     "ListLogsOptions": {
       "type": "object",

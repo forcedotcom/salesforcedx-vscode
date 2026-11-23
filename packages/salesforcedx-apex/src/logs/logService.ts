@@ -4,6 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import type { EffectApexLogGetOptions } from '../effect/schema/logs';
 import type { ApexLogRecord } from '../effect/schema/wire/logs';
 import type { JsonObject } from '../json';
 import { type Connection, Logger, type Org, type StatusResult, StreamingClient } from '@salesforce/core';
@@ -63,15 +64,26 @@ export class LogService {
 
   @elapsedTime()
   public async getLogs(options: ApexLogGetOptions): Promise<LogResult[]> {
+    const effectOptions: EffectApexLogGetOptions | undefined = isUndefined(options.logId)
+      ? isUndefined(options.numberOfLogs)
+        ? undefined
+        : { numberOfLogs: options.numberOfLogs }
+      : isUndefined(options.numberOfLogs)
+        ? { logId: options.logId }
+        : { logId: options.logId, numberOfLogs: options.numberOfLogs };
+    if (isUndefined(effectOptions)) throw new Error(nls.localize('missingInfoLogError'));
+
     const outputDir = options.outputDir;
     if (outputDir) {
       const writeLog = (fileName: string, body: string) =>
         createFile(path.join(outputDir, fileName), body).pipe(Effect.provideService(FileOutput, this.fileOutput));
-      return runLogOperation(getEffectLogs(this.connection, options, writeLog)).then(logs =>
+      return runLogOperation(getEffectLogs(this.connection, effectOptions, writeLog)).then(logs =>
         logs.map(({ log, logPath }) => (isUndefined(logPath) ? { log } : { log, logPath }))
       );
     }
-    return runLogOperation(getEffectLogs(this.connection, options)).then(logs => logs.map(({ log }) => ({ log })));
+    return runLogOperation(getEffectLogs(this.connection, effectOptions)).then(logs =>
+      logs.map(({ log }) => ({ log }))
+    );
   }
 
   @elapsedTime()

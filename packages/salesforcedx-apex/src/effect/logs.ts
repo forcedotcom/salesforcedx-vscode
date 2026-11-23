@@ -132,11 +132,12 @@ export const getLogs = Effect.fn('Apex.getLogs')(function* <E = never, R = never
   writeLog?: ApexLogWriter<E, R>
 ) {
   const decoded = yield* Schema.decodeUnknown(EffectApexLogGetOptionsSchema)(options).pipe(
-    Effect.mapError(cause => operationError('getLogs', cause))
+    Effect.mapError(cause =>
+      isUndefined(options.logId) && isUndefined(options.numberOfLogs)
+        ? operationError('getLogs', options, nls.localize('missingInfoLogError'))
+        : operationError('getLogs', cause)
+    )
   );
-  if (!(isString(decoded.logId) || typeof decoded.numberOfLogs === 'number')) {
-    return yield* operationError('getLogs', options, nls.localize('missingInfoLogError'));
-  }
   const logIds =
     typeof decoded.numberOfLogs === 'number'
       ? (yield* getLogRecords(connection, decoded.numberOfLogs)).map(record => record.Id)
