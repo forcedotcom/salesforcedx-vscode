@@ -11,7 +11,7 @@ import { existsSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { randomUUID } from 'node:crypto';
 import * as Effect from 'effect/Effect';
-import { NodeFileOutputLayer } from '../../src/effect/nodeFileOutput';
+import { NodeFileOutputLayer } from '../../src/effect/nodeFileOutputLayer';
 import { writeResultFiles as writeResultFilesEffect } from '../../src/effect/writeResultFiles';
 import {
   type ResultFormat,

@@ -219,7 +219,9 @@ Use `.mts` for TypeScript executed directly with `node`; use `.cts` only for int
 
 Node's [type stripping](https://nodejs.org/docs/v24.12.0/api/typescript.html) is stable starting in 24.12.0. Node ignores tsconfig and does not type-check. Native scripts must use erasable syntax: no enums, parameter properties, or namespaces containing runtime code. Do not rely on tsconfig path aliases or module transformations.
 
-`pnpm check:scripts` uses `scripts/tsconfig.native.json` to check `.mts`/`.cts` files under `scripts/`, `test/`, and the included package script directories with `NodeNext`, `erasableSyntaxOnly`, and `verbatimModuleSyntax`. Add converted automation to `scripts/automation.test.mts` and `lint:scripts`; keep imported local helpers inside the config's include patterns. Package script directories use a local `tsconfig.json` extending the native config so ESLint checks the same types. Legacy `ts-node` scripts continue to use `scripts/tsconfig.json`; repository tooling runs TypeScript directly with Node, and `scripts/tsconfig.json` also checks test helpers used by Vitest.
+`pnpm check:scripts` uses `scripts/tsconfig.native.json` to check `.mts`/`.cts` files under `scripts/`, `test/`, and the included package script directories with `NodeNext`, `erasableSyntaxOnly`, and `verbatimModuleSyntax`. Add converted automation to `scripts/automation.test.mts` and `lint:scripts`; keep imported local helpers inside the config's include patterns. Package script directories use a local `tsconfig.json` extending the native config so ESLint checks the same types. Repository tooling runs TypeScript directly with Node; `scripts/tsconfig.json` checks test helpers used by Vitest.
+
+`typescript` remains for type-checking and `ts-jest` for Jest transforms.
 
 ### pnpm workspace
 

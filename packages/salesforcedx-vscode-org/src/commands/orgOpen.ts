@@ -79,12 +79,13 @@ export const orgOpenCommand = Effect.fn('orgOpenCommand')(function* () {
 
   const terminalService = yield* api.services.TerminalService;
   // simpleExec injects SF_JSON_TO_STDOUT + FORCE_COLOR=0 for sf commands, keeping the JSON we decode clean.
-  const stdout = yield* terminalService.simpleExec({
-    executable: 'sf',
-    args: ['org', 'open', '--url-only', '--json', ...targetOrgArgs],
-    parse: identity
-  });
-  const response = yield* decodeOrgOpenResponse(stdout);
+  const response = yield* terminalService
+    .simpleExec({
+      executable: 'sf',
+      args: ['org', 'open', '--url-only', '--json', ...targetOrgArgs],
+      parse: identity
+    })
+    .pipe(Effect.flatMap(decodeOrgOpenResponse));
 
   const channel = yield* api.services.ChannelService;
 

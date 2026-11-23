@@ -6,6 +6,7 @@
  */
 
 import * as Arr from 'effect/Array';
+import * as DateTime from 'effect/DateTime';
 import * as Effect from 'effect/Effect';
 import * as Option from 'effect/Option';
 import * as Schema from 'effect/Schema';
@@ -252,6 +253,7 @@ export class OrgMetadataCatalog extends Effect.Service<OrgMetadataCatalog>()('Or
         query.evidence,
         reference =>
           Effect.gen(function* () {
+            const observedAt = DateTime.formatIso(yield* DateTime.now);
             if (reference.type === 'ApexClass' && query.resultKinds.includes('component')) {
               const [workspaceResolution] = yield* workspace.findWorkspaceComponents([
                 toInternalComponentReference(reference)
@@ -273,7 +275,7 @@ export class OrgMetadataCatalog extends Effect.Service<OrgMetadataCatalog>()('Or
                     kind: 'component',
                     reference,
                     orgId,
-                    observedAt: new Date().toISOString(),
+                    observedAt,
                     provenance:
                       inOrg && workspaceResolution?.workspaceUri
                         ? 'metadata-api+workspace'
@@ -301,7 +303,7 @@ export class OrgMetadataCatalog extends Effect.Service<OrgMetadataCatalog>()('Or
                             kind: 'component',
                             reference,
                             orgId,
-                            observedAt: new Date().toISOString(),
+                            observedAt,
                             provenance: 'workspace',
                             name: reference.fullName,
                             documentUri: workspaceResolution.workspaceUri,
@@ -351,7 +353,7 @@ export class OrgMetadataCatalog extends Effect.Service<OrgMetadataCatalog>()('Or
             const sobjectDescription = {
               ...transformed,
               orgId,
-              observedAt: new Date().toISOString(),
+              observedAt,
               provenance: 'rest-api' as const
             };
             const description = yield* state

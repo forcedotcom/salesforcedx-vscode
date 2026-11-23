@@ -16,10 +16,10 @@ import {
   isDesktop,
   QUICK_INPUT_WIDGET,
   saveFile,
-  saveScreenshot,
   setupConsoleMonitoring,
   setupMinimalOrgAndAuth,
   setupNetworkMonitoring,
+  startVideoRecording,
   validateNoCriticalErrors,
   waitForExtensionsActivated,
   waitForNotification,
@@ -83,7 +83,7 @@ const openSavedFile = async (page: Parameters<typeof waitForNotification>[0], fi
   });
 };
 
-test('SOQL Builder: save query results to CSV and JSON', async ({ page }) => {
+test('SOQL Builder: save query results to CSV and JSON', async ({ page }, testInfo) => {
   test.setTimeout(180_000);
   const consoleErrors = setupConsoleMonitoring(page);
   const networkErrors = setupNetworkMonitoring(page);
@@ -98,95 +98,97 @@ test('SOQL Builder: save query results to CSV and JSON', async ({ page }) => {
     await setupMinimalOrgAndAuth(page);
     await waitForExtensionsActivated(page);
     await ensureSecondarySideBarHidden(page);
-    await saveScreenshot(page, 'save.setup.complete.png');
   });
 
-  await test.step('open SOQL Builder and build query', async () => {
-    await executeCommandWithCommandPalette(page, packageNls.soql_open_new_builder);
+  const videoName = [testInfo.project.name, ...testInfo.titlePath, 'save-results', `retry-${testInfo.retry}`]
+    .join('-')
+    .replaceAll(/[^a-zA-Z0-9._-]+/g, '-')
+    .replaceAll(/^-+|-+$/g, '');
+  const stopRecording = await startVideoRecording(page, testInfo, videoName);
+  try {
+    await test.step('open SOQL Builder and build query', async () => {
+      await executeCommandWithCommandPalette(page, packageNls.soql_open_new_builder);
 
-    const quickInput = page.locator(QUICK_INPUT_WIDGET);
-    await quickInput.waitFor({ state: 'visible', timeout: 30_000 });
-    await page.keyboard.type(SOQL_FILE);
-    await page.keyboard.press('Enter');
+      const quickInput = page.locator(QUICK_INPUT_WIDGET);
+      await quickInput.waitFor({ state: 'visible', timeout: 30_000 });
+      await page.keyboard.type(SOQL_FILE);
+      await page.keyboard.press('Enter');
 
-    await waitForQuickInputFirstOption(page, { quickInputVisibleTimeout: 10_000, optionVisibleTimeout: 10_000 });
-    await page.keyboard.press('Enter');
+      await waitForQuickInputFirstOption(page, { quickInputVisibleTimeout: 10_000, optionVisibleTimeout: 10_000 });
+      await page.keyboard.press('Enter');
 
-    const soqlTab = page.locator('[role="tab"]').filter({ hasText: `${SOQL_FILE}.soql` });
-    await expect(soqlTab, `${SOQL_FILE}.soql tab should be visible`).toBeVisible({ timeout: 20_000 });
+      const soqlTab = page.locator('[role="tab"]').filter({ hasText: `${SOQL_FILE}.soql` });
+      await expect(soqlTab, `${SOQL_FILE}.soql tab should be visible`).toBeVisible({ timeout: 20_000 });
 
-    soqlFrame = await webviewActiveFrame(page, hasContent('#main'));
+      soqlFrame = await webviewActiveFrame(page, hasContent('#main'));
 
-    await soqlFrame.getByPlaceholder('Search object...').click();
-    await soqlFrame.getByPlaceholder('Search object...').fill('Account');
-    await soqlFrame.locator('p.option[data-option-value="Account"]').click();
+      await soqlFrame.getByPlaceholder('Search object...').click();
+      await soqlFrame.getByPlaceholder('Search object...').fill('Account');
+      await soqlFrame.locator('p.option[data-option-value="Account"]').click();
 
-    await soqlFrame.getByPlaceholder('Search fields...').first().click();
-    await soqlFrame.locator('querybuilder-fields p.option[data-option-value="Id"]').click();
-    await soqlFrame.getByPlaceholder('Search fields...').first().click();
-    await soqlFrame.locator('querybuilder-fields p.option[data-option-value="Name"]').click();
+      await soqlFrame.getByPlaceholder('Search fields...').first().click();
+      await soqlFrame.locator('querybuilder-fields p.option[data-option-value="Id"]').click();
+      await soqlFrame.getByPlaceholder('Search fields...').first().click();
+      await soqlFrame.locator('querybuilder-fields p.option[data-option-value="Name"]').click();
 
-    await soqlFrame.getByPlaceholder('Limit...').fill('5');
-    await soqlFrame.getByPlaceholder('Limit...').press('Tab');
+      await soqlFrame.getByPlaceholder('Limit...').fill('5');
+      await soqlFrame.getByPlaceholder('Limit...').press('Tab');
 
-    await expect(
-      soqlFrame.locator('.query-preview-container pre'),
-      'query preview should show the built SOQL statement'
-    ).toContainText(SOQL_QUERY);
-    await saveScreenshot(page, 'save.query-built.png');
+      await expect(
+        soqlFrame.locator('.query-preview-container pre'),
+        'query preview should show the built SOQL statement'
+      ).toContainText(SOQL_QUERY);
 
-    await saveFile(page);
-  });
+      await saveFile(page);
+    });
 
-  await test.step('run query from SOQL Builder', async () => {
-    await soqlFrame.getByRole('button', { name: 'Run Query' }).click();
+    await test.step('run query from SOQL Builder', async () => {
+      await soqlFrame.getByRole('button', { name: 'Run Query' }).click();
 
-    const resultsTab = page.locator('[role="tab"]').filter({ hasText: messages.soql_query_results });
-    await expect(resultsTab, 'SOQL Query Results tab should appear').toBeVisible({ timeout: 30_000 });
-    await saveScreenshot(page, 'save.results-tab-visible.png');
+      const resultsTab = page.locator('[role="tab"]').filter({ hasText: messages.soql_query_results });
+      await expect(resultsTab, 'SOQL Query Results tab should appear').toBeVisible({ timeout: 30_000 });
 
-    resultsFrame = await webviewActiveFrame(page, hasTitle(messages.soql_query_results));
-  });
+      resultsFrame = await webviewActiveFrame(page, hasTitle(messages.soql_query_results));
+    });
 
-  await test.step('save results as CSV', async () => {
-    const saveCsvButton = resultsFrame.getByRole('button', { name: 'Save as CSV' });
-    await expect(saveCsvButton, 'Save as CSV button should be visible').toBeVisible({ timeout: 30_000 });
-    await saveCsvButton.click();
+    await test.step('save results as CSV', async () => {
+      const saveCsvButton = resultsFrame.getByRole('button', { name: 'Save as CSV' });
+      await expect(saveCsvButton, 'Save as CSV button should be visible').toBeVisible({ timeout: 30_000 });
+      await saveCsvButton.click();
 
-    await acceptSaveTarget(page, 'csv');
-    await waitForNotification(page, /We saved the results as:.*\.csv/, { timeout: 30_000 });
-    await saveScreenshot(page, 'save.csv-notification.png');
-    await clearAllNotifications(page);
-  });
+      await acceptSaveTarget(page, 'csv');
+      await waitForNotification(page, /We saved the results as:.*\.csv/, { timeout: 30_000 });
+      await clearAllNotifications(page);
+    });
 
-  await test.step('verify CSV file contents', async () => {
-    await openSavedFile(page, `${SOQL_FILE}.csv`);
-    const editorText = page.locator(`${EDITOR}[data-uri$="${SOQL_FILE}.csv"] .view-lines`);
-    await expect(editorText, 'CSV header should include the queried columns').toContainText('Id');
-    await expect(editorText).toContainText('Name');
-    await saveScreenshot(page, 'save.csv-verified.png');
-  });
+    await test.step('verify CSV file contents', async () => {
+      await openSavedFile(page, `${SOQL_FILE}.csv`);
+      const editorText = page.locator(`${EDITOR}[data-uri$="${SOQL_FILE}.csv"] .view-lines`);
+      await expect(editorText, 'CSV header should include the queried columns').toContainText('Id');
+      await expect(editorText).toContainText('Name');
+    });
 
-  await test.step('save results as JSON', async () => {
-    const resultsTab = page.locator('[role="tab"]').filter({ hasText: messages.soql_query_results });
-    await resultsTab.click();
+    await test.step('save results as JSON', async () => {
+      const resultsTab = page.locator('[role="tab"]').filter({ hasText: messages.soql_query_results });
+      await resultsTab.click();
 
-    const saveJsonButton = resultsFrame.getByRole('button', { name: 'Save as JSON' });
-    await expect(saveJsonButton, 'Save as JSON button should be visible').toBeVisible({ timeout: 15_000 });
-    await saveJsonButton.click();
+      const saveJsonButton = resultsFrame.getByRole('button', { name: 'Save as JSON' });
+      await expect(saveJsonButton, 'Save as JSON button should be visible').toBeVisible({ timeout: 15_000 });
+      await saveJsonButton.click();
 
-    await acceptSaveTarget(page, 'json');
-    await waitForNotification(page, /We saved the results as:.*\.json/, { timeout: 30_000 });
-    await saveScreenshot(page, 'save.json-notification.png');
-    await clearAllNotifications(page);
-  });
+      await acceptSaveTarget(page, 'json');
+      await waitForNotification(page, /We saved the results as:.*\.json/, { timeout: 30_000 });
+      await clearAllNotifications(page);
+    });
 
-  await test.step('verify JSON file contents', async () => {
-    await openSavedFile(page, `${SOQL_FILE}.json`);
-    const editorText = page.locator(`${EDITOR}[data-uri$="${SOQL_FILE}.json"] .view-lines`);
-    await expect(editorText, 'JSON export should contain the queried fields').toContainText('Name');
-    await saveScreenshot(page, 'save.json-verified.png');
-  });
+    await test.step('verify JSON file contents', async () => {
+      await openSavedFile(page, `${SOQL_FILE}.json`);
+      const editorText = page.locator(`${EDITOR}[data-uri$="${SOQL_FILE}.json"] .view-lines`);
+      await expect(editorText, 'JSON export should contain the queried fields').toContainText('Name');
+    });
 
-  await validateNoCriticalErrors(test, consoleErrors, networkErrors);
+    await validateNoCriticalErrors(test, consoleErrors, networkErrors);
+  } finally {
+    await stopRecording();
+  }
 });

@@ -45,10 +45,7 @@ export type RemoteTrackingObservation = {
   readonly signature: string;
 };
 
-export type RemoteTrackingObservations = {
-  readonly byIdentity: HashMap.HashMap<string, RemoteTrackingObservation>;
-  readonly identityOrder: readonly string[];
-};
+export type RemoteTrackingObservations = HashMap.HashMap<string, RemoteTrackingObservation>;
 
 export type MetadataTypeObservation = {
   readonly xmlName: string;

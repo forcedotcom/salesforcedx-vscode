@@ -98,7 +98,9 @@ export const registerWorkspaceReadFileHandler = (
   const getFs = Effect.succeed(services.fsService);
   const run = services.runPromise;
 
-  const handleReadFile = Effect.fn('WorkspaceHandler.readFile')(function* (params: WorkspaceReadFileParams) {
+  const handleReadFile = Effect.fn('WorkspaceHandler.readFile', {
+    attributes: { telemetryIgnore: true }
+  })(function* (params: WorkspaceReadFileParams) {
     const uri = URI.revive(params.uri);
     yield* logTo(log, `[readFile] request uri=${uri.toString()}`);
     const fs = yield* getFs;
@@ -107,7 +109,9 @@ export const registerWorkspaceReadFileHandler = (
     return { content };
   });
 
-  const handleStat = Effect.fn('WorkspaceHandler.stat')(function* (params: WorkspaceStatParams) {
+  const handleStat = Effect.fn('WorkspaceHandler.stat', {
+    attributes: { telemetryIgnore: true }
+  })(function* (params: WorkspaceStatParams) {
     const uri = URI.revive(params.uri);
     yield* logTo(log, `[stat] request uri=${uri.toString()}`);
     const fs = yield* getFs;
@@ -118,9 +122,9 @@ export const registerWorkspaceReadFileHandler = (
     return { stat };
   });
 
-  const handleReadDirectory = Effect.fn('WorkspaceHandler.readDirectory')(function* (
-    params: WorkspaceReadDirectoryParams
-  ) {
+  const handleReadDirectory = Effect.fn('WorkspaceHandler.readDirectory', {
+    attributes: { telemetryIgnore: true }
+  })(function* (params: WorkspaceReadDirectoryParams) {
     const uri = URI.revive(params.uri);
     yield* logTo(log, `[readDirectory] request uri=${uri.toString()}`);
     const entries = yield* Effect.tryPromise(() => vscode.workspace.fs.readDirectory(uri));
@@ -133,7 +137,9 @@ export const registerWorkspaceReadFileHandler = (
     return { entries: result };
   });
 
-  const handleFindFiles = Effect.fn('WorkspaceHandler.findFiles')(function* (params: WorkspaceFindFilesParams) {
+  const handleFindFiles = Effect.fn('WorkspaceHandler.findFiles', {
+    attributes: { telemetryIgnore: true }
+  })(function* (params: WorkspaceFindFilesParams) {
     const { baseFolderUri, pattern } = params;
     const baseUri = URI.parse(baseFolderUri);
     yield* logTo(log, `[findFiles] request baseFolderUri=${baseFolderUri} pattern=${pattern} scheme=${baseUri.scheme}`);
@@ -144,7 +150,9 @@ export const registerWorkspaceReadFileHandler = (
     return { uris: urisStr };
   });
 
-  const handleDeleteFile = Effect.fn('WorkspaceHandler.deleteFile')(function* (params: WorkspaceDeleteFileParams) {
+  const handleDeleteFile = Effect.fn('WorkspaceHandler.deleteFile', {
+    attributes: { telemetryIgnore: true }
+  })(function* (params: WorkspaceDeleteFileParams) {
     const { uri } = params;
     yield* logTo(log, `[deleteFile] request uri=${uri}`);
     const fs = yield* getFs;

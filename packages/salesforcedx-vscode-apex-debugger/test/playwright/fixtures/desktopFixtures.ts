@@ -15,6 +15,7 @@ const additionalExtensionDirs = ['salesforcedx-vscode-services'];
 export const debuggerDesktopTest = createDesktopTest({
   fixturesDir: __dirname,
   additionalExtensionDirs,
+  recordVideo: false,
   orgAlias: MINIMAL_ORG_ALIAS
 });
 
@@ -23,6 +24,7 @@ export const debuggerDesktopTest = createDesktopTest({
 export const debuggerEmptyWorkspaceDesktopTest = createDesktopTest({
   fixturesDir: __dirname,
   additionalExtensionDirs,
+  recordVideo: false,
   emptyWorkspace: true,
   userSettings: {
     'files.simpleDialog.enable': true

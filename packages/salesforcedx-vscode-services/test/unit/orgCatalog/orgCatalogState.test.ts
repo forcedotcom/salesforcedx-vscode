@@ -165,7 +165,7 @@ describe('OrgCatalogState', () => {
     expect(result.inventory?.components).toEqual([expect.objectContaining({ fullName: 'RemoteTest' })]);
     expect(
       Option.getOrUndefined(
-        HashMap.get(result.tracking.byIdentity, componentIdentity({ xmlName: 'ApexClass', fullName: 'RemoteTest' }))
+        HashMap.get(result.tracking, componentIdentity({ xmlName: 'ApexClass', fullName: 'RemoteTest' }))
       )?.signature
     ).toBe('Changed|7');
     expect(saved[0]?.generation).toBe(8);
@@ -215,6 +215,44 @@ describe('OrgCatalogState', () => {
         components: [expect.objectContaining({ fullName: 'RemoteTest', provenance: 'data-api' })]
       })
     ]);
+  });
+
+  it('persists tracking in metadata identity order and hydrates the same observations', async () => {
+    const { saved, stateLayer } = makeStore();
+    const tracking = HashMap.fromIterable([
+      [
+        componentIdentity({ xmlName: 'CustomObject', fullName: 'Zulu__c' }),
+        { reference: { xmlName: 'CustomObject', fullName: 'Zulu__c' }, signature: '2' }
+      ],
+      [
+        componentIdentity({ xmlName: 'ApexClass', fullName: 'Alpha' }),
+        { reference: { xmlName: 'ApexClass', fullName: 'Alpha' }, signature: '1' }
+      ]
+    ]);
+
+    await Effect.runPromise(
+      Effect.gen(function* () {
+        const state = yield* OrgCatalogState;
+        yield* state.setTracking('org-one', tracking);
+        yield* state.persistOrg('org-one');
+      }).pipe(Effect.provide(stateLayer))
+    );
+
+    expect(saved[0]?.tracking).toEqual([
+      { xmlName: 'ApexClass', fullName: 'Alpha', signature: '1' },
+      { xmlName: 'CustomObject', fullName: 'Zulu__c', signature: '2' }
+    ]);
+    const restored = makeStore(saved[0]);
+    const hydrated = await Effect.runPromise(
+      Effect.gen(function* () {
+        const state = yield* OrgCatalogState;
+        yield* state.ensureHydrated('org-one');
+        return yield* state.getTracking('org-one');
+      }).pipe(Effect.provide(restored.stateLayer))
+    );
+
+    expect(HashMap.toEntries(hydrated)).toEqual(expect.arrayContaining(HashMap.toEntries(tracking)));
+    expect(HashMap.size(hydrated)).toBe(HashMap.size(tracking));
   });
 
   it('flushes dirty state when its scope closes before the debounce elapses', async () => {
