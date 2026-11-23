@@ -28,7 +28,7 @@ import {
   type ListLogsOptions,
   type LogStreamEvent as LogStreamEventShape
 } from './schema/logs';
-import { ApexLogListItem, ApexLogRecordSchema } from './schema/wire/logs';
+import { ApexLogRecordSchema, type ApexLogRecord } from './schema/wire/logs';
 
 const operationError = (operation: string, cause: unknown, message = getErrorMessage(cause)) =>
   new ApexOperationError({ operation, message, cause: getErrorMessage(cause) });
@@ -61,12 +61,12 @@ const buildListLogsQuery = (options?: DecodedListLogsOptions): string => {
   return `SELECT Id, Application, DurationMilliseconds, Location, LogLength, LogUserId, LogUser.Name, Operation, Request, StartTime, Status FROM ApexLog${where} ORDER BY StartTime ${orderBy}, Id ${orderBy}${limit}`;
 };
 
-const streamLogPagesForSoql = <A, I>(connection: Connection, soql: string, recordSchema: Schema.Schema<A, I>) =>
+const streamLogPagesForSoql = (connection: Connection, soql: string) =>
   queryRecordPages({
     connection,
     operation: 'listLogs',
     soql,
-    recordSchema,
+    recordSchema: ApexLogRecordSchema,
     tooling: true
   }).pipe(
     Stream.catchTag('ApexQueryRequestError', requestError =>
@@ -74,28 +74,20 @@ const streamLogPagesForSoql = <A, I>(connection: Connection, soql: string, recor
     )
   );
 
-const streamLogPages = <A, I>(
-  connection: Connection,
-  options: ListLogsOptions | undefined,
-  recordSchema: Schema.Schema<A, I>
-) =>
+const streamLogPages = (connection: Connection, options: ListLogsOptions | undefined) =>
   Schema.decodeUnknown(ListLogsOptionsSchema)(options ?? {}).pipe(
-    Effect.map(decodedOptions => streamLogPagesForSoql(connection, buildListLogsQuery(decodedOptions), recordSchema))
+    Effect.map(decodedOptions => streamLogPagesForSoql(connection, buildListLogsQuery(decodedOptions)))
   );
 
-const collectLogs = <A, I>(
-  connection: Connection,
-  options: ListLogsOptions | undefined,
-  recordSchema: Schema.Schema<A, I>
-) =>
-  streamLogPages(connection, options, recordSchema).pipe(
+const collectLogs = (connection: Connection, options: ListLogsOptions | undefined) =>
+  streamLogPages(connection, options).pipe(
     Effect.flatMap(pages => pages.pipe(Stream.flatMap(Stream.fromIterable), Stream.runCollect)),
     Effect.map(Chunk.toReadonlyArray)
   );
 
 /** Lists logs using the caller's connection, following Tooling API query pages. */
 export const listLogs = Effect.fn('Apex.listLogs')(function* (connection: Connection, options?: ListLogsOptions) {
-  return yield* collectLogs(connection, options, ApexLogListItem);
+  return yield* collectLogs(connection, options);
 });
 
 /** Lists CLI log records, applying the CLI's positive-count validation and 25-record cap. */
@@ -104,13 +96,10 @@ export const getLogRecords = Effect.fn('Apex.getLogRecords')(function* (connecti
     return yield* operationError('listLogs', numberOfLogs, nls.localize('numLogsError'));
   }
   const options = isUndefined(numberOfLogs) ? {} : { limit: Math.min(numberOfLogs, MAX_NUM_LOGS) };
-  return yield* collectLogs(connection, options, ApexLogRecordSchema);
+  return yield* collectLogs(connection, options);
 });
 
-export const getLogBody = Effect.fn('Apex.getLogBody')(function* (
-  connection: Connection,
-  logId: ApexLogListItem['Id']
-) {
+export const getLogBody = Effect.fn('Apex.getLogBody')(function* (connection: Connection, logId: ApexLogRecord['Id']) {
   return yield* Effect.tryPromise({
     try: () =>
       connection.request({
@@ -164,7 +153,7 @@ export type StreamLogsOptions<R = never, ScheduleOutput = unknown> = {
   /** None skips this poll. The initial poll is index 0; later polls follow the schedule. */
   readonly pollOptions?: (pollIndex: number) => Effect.Effect<Option.Option<ListLogsOptions>, never, R>;
   /** Host-owned filtering/deduplication happens before requesting a body. */
-  readonly filterLogs?: (logs: readonly ApexLogListItem[]) => Effect.Effect<readonly ApexLogListItem[], never, R>;
+  readonly filterLogs?: (logs: readonly ApexLogRecord[]) => Effect.Effect<readonly ApexLogRecord[], never, R>;
 };
 
 const queryErrorEvent = (error: Extract<LogStreamEvent, { readonly _tag: 'QueryError' }>['error']): LogStreamEvent => ({
@@ -178,7 +167,7 @@ const pollLogs = <R, ScheduleOutput>(
   filters: ListLogsOptions
 ): Stream.Stream<LogStreamEvent, never, R> => {
   const orderedFilters = { ...filters, orderBy: filters.orderBy ?? 'ASC' };
-  return Stream.unwrap(streamLogPages(connection, orderedFilters, ApexLogListItem)).pipe(
+  return Stream.unwrap(streamLogPages(connection, orderedFilters)).pipe(
     Stream.mapEffect(logs => (isUndefined(options.filterLogs) ? Effect.succeed(logs) : options.filterLogs(logs))),
     Stream.flatMap(Stream.fromIterable),
     Stream.mapEffect(log =>

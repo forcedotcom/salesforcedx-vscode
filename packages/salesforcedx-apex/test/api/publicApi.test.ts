@@ -62,7 +62,6 @@ describe('@salesforce/apex-node public API', () => {
       'ApexCompileError',
       'ApexDiagnosticSchema',
       'ApexLogBodyFetchError',
-      'ApexLogListItem',
       'ApexLogQueryError',
       'ApexLogRecordSchema',
       'ApexLogResultSchema',

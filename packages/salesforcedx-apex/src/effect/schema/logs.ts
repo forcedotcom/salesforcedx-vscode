@@ -9,7 +9,7 @@ import { ParseError } from 'effect/ParseResult';
 import * as Schema from 'effect/Schema';
 import { ApexLogId, UserId } from '../../schemas/salesforceId';
 import { ApexLogBodyFetchError, ApexLogQueryError } from './errors';
-import { ApexLogListItem, ApexLogRecordSchema } from './wire/logs';
+import { ApexLogRecordSchema } from './wire/logs';
 
 const Timestamp = Schema.String.pipe(
   Schema.filter(value => Number.isFinite(Date.parse(value)), { jsonSchema: { format: 'date-time' } })
@@ -56,8 +56,8 @@ export const ApexLogWithBodySchema = Schema.Struct({
 export type ApexLogWithBody = typeof ApexLogWithBodySchema.Type;
 
 export const LogStreamEventSchema = Schema.Union(
-  Schema.TaggedStruct('Log', { log: ApexLogListItem, body: Schema.String }),
+  Schema.TaggedStruct('Log', { log: ApexLogRecordSchema, body: Schema.String }),
   Schema.TaggedStruct('QueryError', { error: Schema.Union(ApexLogQueryError, Schema.instanceOf(ParseError)) }),
-  Schema.TaggedStruct('BodyError', { log: ApexLogListItem, error: ApexLogBodyFetchError })
+  Schema.TaggedStruct('BodyError', { log: ApexLogRecordSchema, error: ApexLogBodyFetchError })
 );
 export type LogStreamEvent = typeof LogStreamEventSchema.Type;

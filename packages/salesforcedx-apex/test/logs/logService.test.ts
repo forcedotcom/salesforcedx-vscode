@@ -9,18 +9,20 @@ import type { SinonStub } from 'sinon';
 import { AuthInfo, Connection } from '@salesforce/core';
 import { MockTestOrgData, TestContext } from '@salesforce/core/testSetup';
 import * as Effect from 'effect/Effect';
+import type * as Schema from 'effect/Schema';
 import type { FileOutput } from '../../src/effect/fileOutput';
+import type { ApexLogRecordSchema } from '../../src/effect/schema/wire/logs';
 import { LogService } from '../../src/logs/logService';
 import * as path from 'node:path';
-import { type LogRecord, type LogResult } from '../../src/logs/types';
+import { type LogResult } from '../../src/logs/types';
 
 type LogQueryResult = {
-  records: LogRecord[];
+  records: Schema.Schema.Encoded<typeof ApexLogRecordSchema>[];
   done: true;
   totalSize: number;
 };
 
-const logRecords: LogRecord[] = [
+const logRecords: Schema.Schema.Encoded<typeof ApexLogRecordSchema>[] = [
   {
     Id: '07L000000000001AAA',
     Application: 'Unknown',

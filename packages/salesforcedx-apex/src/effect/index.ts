@@ -53,7 +53,6 @@ export { FileOutput, FileOutputError } from './fileOutput';
 export { writeResultFiles } from './writeResultFiles';
 export type { WriteResultFilesOptions } from './writeResultFiles';
 export { listLogs, getLogRecords, getLogs, getLogBody, streamLogs } from './logs';
-export { ApexLogListItem } from './schema/wire/logs';
 export { ApexLogRecordSchema } from './schema/wire/logs';
 export {
   ApexLogResultSchema,
@@ -70,7 +69,7 @@ export type {
   ListLogsOptions,
   LogStreamEvent
 } from './schema/logs';
-export type { ApexLogRecord } from './schema/wire/logs';
+export type { ApexLogRecord, ApexLogRecord as ApexLogListItem } from './schema/wire/logs';
 export type { StreamLogsOptions } from './logs';
 export type { ApexLogWriter } from './logs';
 export { BuildSyncPayloadOptionsSchema, BuildAsyncPayloadOptionsSchema } from './schema/testPayloads';
