@@ -299,7 +299,7 @@
               "title": "startsWith(\"07L\")",
               "allOf": [{ "pattern": "^(?:[A-Za-z0-9]{15}|[A-Za-z0-9]{18})$" }]
             },
-            "numberOfLogs": { "type": "number" }
+            "numberOfLogs": { "$ref": "#/$defs/ApexLogCount" }
           },
           "additionalProperties": false
         },
@@ -314,11 +314,17 @@
               "title": "startsWith(\"07L\")",
               "allOf": [{ "pattern": "^(?:[A-Za-z0-9]{15}|[A-Za-z0-9]{18})$" }]
             },
-            "numberOfLogs": { "type": "number" }
+            "numberOfLogs": { "$ref": "#/$defs/ApexLogCount" }
           },
           "additionalProperties": false
         }
       ]
+    },
+    "ApexLogCount": {
+      "type": "integer",
+      "description": "a positive number",
+      "title": "positive",
+      "exclusiveMinimum": 0
     },
     "ListLogsOptions": {
       "type": "object",

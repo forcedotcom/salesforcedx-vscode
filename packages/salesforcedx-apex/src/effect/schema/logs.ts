@@ -36,9 +36,14 @@ export const ListLogsOptionsSchema = Schema.mutable(
 export type ListLogsOptions = Schema.Schema.Encoded<typeof ListLogsOptionsSchema>;
 export type DecodedListLogsOptions = Schema.Schema.Type<typeof ListLogsOptionsSchema>;
 
+const ApexLogCountSchema = Schema.Number.pipe(Schema.int(), Schema.positive()).annotations({
+  identifier: 'ApexLogCount'
+});
+export const OptionalApexLogCountSchema = Schema.Union(ApexLogCountSchema, Schema.Undefined);
+
 export const EffectApexLogGetOptionsSchema = Schema.Union(
-  Schema.Struct({ logId: ApexLogId, numberOfLogs: Schema.optional(Schema.Number) }),
-  Schema.Struct({ logId: Schema.optional(ApexLogId), numberOfLogs: Schema.Number })
+  Schema.Struct({ logId: ApexLogId, numberOfLogs: Schema.optional(ApexLogCountSchema) }),
+  Schema.Struct({ logId: Schema.optional(ApexLogId), numberOfLogs: ApexLogCountSchema })
 ).annotations({ identifier: 'EffectApexLogGetOptions' });
 export type EffectApexLogGetOptions = Schema.Schema.Encoded<typeof EffectApexLogGetOptionsSchema>;
 

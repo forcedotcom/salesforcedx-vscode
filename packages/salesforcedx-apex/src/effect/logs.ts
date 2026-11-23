@@ -22,6 +22,7 @@ import { ApexLogBodyFetchError, ApexLogQueryError, ApexOperationError } from './
 import {
   EffectApexLogGetOptionsSchema,
   ListLogsOptionsSchema,
+  OptionalApexLogCountSchema,
   type ApexLogResult,
   type DecodedListLogsOptions,
   type EffectApexLogGetOptions,
@@ -92,10 +93,10 @@ export const listLogs = Effect.fn('Apex.listLogs')(function* (connection: Connec
 
 /** Lists CLI log records, applying the CLI's positive-count validation and 25-record cap. */
 export const getLogRecords = Effect.fn('Apex.getLogRecords')(function* (connection: Connection, numberOfLogs?: number) {
-  if (!isUndefined(numberOfLogs) && numberOfLogs <= 0) {
-    return yield* operationError('listLogs', numberOfLogs, nls.localize('numLogsError'));
-  }
-  const options = isUndefined(numberOfLogs) ? {} : { limit: Math.min(numberOfLogs, MAX_NUM_LOGS) };
+  const count = yield* Schema.decodeUnknown(OptionalApexLogCountSchema)(numberOfLogs).pipe(
+    Effect.mapError(cause => operationError('listLogs', cause, nls.localize('numLogsError')))
+  );
+  const options = isUndefined(count) ? {} : { limit: Math.min(count, MAX_NUM_LOGS) };
   return yield* collectLogs(connection, options);
 });
 
@@ -121,11 +122,14 @@ export const getLogs = Effect.fn('Apex.getLogs')(function* <E = never, R = never
   writeLog?: ApexLogWriter<E, R>
 ) {
   const decoded = yield* Schema.decodeUnknown(EffectApexLogGetOptionsSchema)(options).pipe(
-    Effect.mapError(cause =>
-      isUndefined(options.logId) && isUndefined(options.numberOfLogs)
-        ? operationError('getLogs', options, nls.localize('missingInfoLogError'))
-        : operationError('getLogs', cause)
-    )
+    Effect.mapError(cause => {
+      if (isUndefined(options.logId) && isUndefined(options.numberOfLogs)) {
+        return operationError('getLogs', options, nls.localize('missingInfoLogError'));
+      }
+      return typeof options.numberOfLogs === 'number'
+        ? operationError('getLogs', cause, nls.localize('numLogsError'))
+        : operationError('getLogs', cause);
+    })
   );
   const logIds =
     typeof decoded.numberOfLogs === 'number'
