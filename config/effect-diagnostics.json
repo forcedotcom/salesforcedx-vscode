@@ -30,6 +30,7 @@
     "nestedEffectGenYield",
     "strictEffectProvide",
     "newPromise",
-    "globalTimers"
+    "globalTimers",
+    "globalDateInEffect"
   ]
 }

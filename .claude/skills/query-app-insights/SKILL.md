@@ -26,12 +26,13 @@ Query Azure Application Insights telemetry to answer questions about command usa
 
 ## Key Points
 
-- Telemetry uses **executor names**, not command IDs
-- Event pattern: ends with `/commandExecution` (Legacy/v2) or stored in `dependencies` table (OTEL/v3)
-- Tables: `customEvents` (Legacy), `dependencies` (OTEL Spans), `requests` (Root Spans)
-- OTEL Properties: `name` (Span name), `cloud_RoleName` (Extension name), `operation_Id` (Trace ID), `operation_ParentId` (Parent Span ID)
-- OTEL Root Filter: `where operation_ParentId == operation_Id` (Finds top-level spans in v3)
+- Legacy `/commandExecution` telemetry uses executor names (`commandName`), not command IDs. OTEL command spans expose `command`.
+- Event pattern: Legacy names end with `/commandExecution`; OTEL spans use `dependencies` by default on Node and `customEvents` on Web
+- Tables: `customEvents` (Legacy events, Web OTEL spans, and configured Node OTEL spans), `dependencies` (default Node OTEL spans), `requests` (Root Spans)
+- OTEL fields: `name`, `operation_Id`, `operation_ParentId`; extension name is `cloud_RoleName` in `dependencies`, `customDimensions.common.extname` in Web `customEvents`
+- Dependencies root filter: `where operation_ParentId == operation_Id`
 - Measurements: `customMeasurements.executionTime` (ms for Legacy) or `duration` (ms for OTEL)
+- For Web Console's production store, platform filter, and user-count field, follow [Web Console query patterns](references/query-patterns.md#web-console).
 
 ## References
 

@@ -8,6 +8,7 @@
 import type { TypeInventory } from './orgCatalogInternalTypes';
 import type { OrgMetadataCatalogInternalEntry as OrgMetadataCatalogEntry } from './orgMetadataCatalogTypes';
 import * as Arr from 'effect/Array';
+import * as DateTime from 'effect/DateTime';
 import * as Effect from 'effect/Effect';
 import { pipe } from 'effect/Function';
 import * as HashMap from 'effect/HashMap';
@@ -170,7 +171,7 @@ export const makeOrgCatalogTreeProjection = Effect.gen(function* () {
             {
               ...(existing ?? {
                 orgId,
-                observedAt: new Date().toISOString(),
+                observedAt: DateTime.formatIso(yield* DateTime.now),
                 provenance: 'rest-api' as const,
                 reference: { xmlName: 'CustomField', fullName },
                 documentUri: yield* documentUri({

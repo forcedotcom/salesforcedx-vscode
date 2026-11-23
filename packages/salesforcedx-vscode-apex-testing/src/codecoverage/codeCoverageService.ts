@@ -7,6 +7,7 @@
 
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Arr from 'effect/Array';
+import * as Clock from 'effect/Clock';
 import * as Effect from 'effect/Effect';
 import * as HashMap from 'effect/HashMap';
 import * as Option from 'effect/Option';
@@ -170,7 +171,7 @@ export class CodeCoverageService extends Effect.Service<CodeCoverageService>()('
         return yield* noCoverage();
       }
 
-      const now = Date.now();
+      const now = yield* Clock.currentTimeMillis;
       const recentEntries = (yield* Effect.forEach(
         resultNames,
         // skip files we can't stat (stat order does not matter; sort happens after)

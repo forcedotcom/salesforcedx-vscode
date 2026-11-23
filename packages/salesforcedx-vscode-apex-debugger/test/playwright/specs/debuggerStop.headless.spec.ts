@@ -24,9 +24,9 @@ import {
   closeWelcomeTabs,
   ensureSecondarySideBarHidden,
   executeCommandWithCommandPalette,
-  saveScreenshot,
   setupConsoleMonitoring,
   setupNetworkMonitoring,
+  startVideoRecording,
   validateNoCriticalErrors,
   verifyCommandExists,
   waitForNotification,
@@ -37,7 +37,7 @@ import { debuggerTest as test } from '../fixtures';
 import packageNls from '../../../package.nls.json';
 import { messages } from '../../../src/messages/i18n';
 
-test('Stop Apex Debugger Session: reports none found when no active session exists', async ({ page }) => {
+test('Stop Apex Debugger Session: reports none found when no active session exists', async ({ page }, testInfo) => {
   test.setTimeout(60_000);
 
   const consoleErrors = setupConsoleMonitoring(page);
@@ -52,18 +52,25 @@ test('Stop Apex Debugger Session: reports none found when no active session exis
     // from a prior spec.
     await clearAllNotifications(page);
     await waitForWorkspaceReady(page);
-    await saveScreenshot(page, 'debuggerStop.01-ready.png');
   });
 
-  await test.step('verify command exists and run it', async () => {
-    await verifyCommandExists(page, packageNls.debugger_stop_text, 30_000);
-    await executeCommandWithCommandPalette(page, packageNls.debugger_stop_text);
-  });
+  const videoName = [testInfo.project.name, ...testInfo.titlePath, 'stop-session', `retry-${testInfo.retry}`]
+    .join('-')
+    .replaceAll(/[^a-zA-Z0-9._-]+/g, '-')
+    .replaceAll(/^-+|-+$/g, '');
+  const stopRecording = await startVideoRecording(page, testInfo, videoName);
+  try {
+    await test.step('verify command exists and run it', async () => {
+      await verifyCommandExists(page, packageNls.debugger_stop_text, 30_000);
+      await executeCommandWithCommandPalette(page, packageNls.debugger_stop_text);
+    });
 
-  await test.step('verify the no-session-found notification appears', async () => {
-    await waitForNotification(page, new RegExp(messages.debugger_stop_none_found_text), { timeout: 15_000 });
-    await saveScreenshot(page, 'debuggerStop.02-none-found-verified.png');
-  });
+    await test.step('verify the no-session-found notification appears', async () => {
+      await waitForNotification(page, new RegExp(messages.debugger_stop_none_found_text), { timeout: 15_000 });
+    });
 
-  await validateNoCriticalErrors(test, consoleErrors, networkErrors);
+    await validateNoCriticalErrors(test, consoleErrors, networkErrors);
+  } finally {
+    await stopRecording();
+  }
 });

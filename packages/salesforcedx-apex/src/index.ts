@@ -18,6 +18,7 @@ export {
   ApexTestSuiteId,
   ApexTriggerId,
   SalesforceId,
+  TraceFlagEntityId,
   TestRunId,
   UserId
 } from './schemas/salesforceId';
@@ -31,6 +32,7 @@ export type { CoverageReporterOptions, CoverageReportFormats } from './reporters
 export type { MarkdownTextFormatTransformerOptions } from './reporters/markdownTextFormatTransformer';
 export type { MarkdownTextReporterOptions, OutputFormat, TestSortOrder } from './reporters/markdownTextReporter';
 export { TestService } from './tests/testService';
+export { NodeFileOutputLayer } from './effect/nodeFileOutputLayer';
 export { ResultFormat, ResultFormatSchema, TestLevel, TestLevelSchema } from './tests/types';
 export type {
   ApexCodeCoverage,

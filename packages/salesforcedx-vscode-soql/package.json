@@ -10,7 +10,7 @@
   "repository": {
     "url": "https://github.com/forcedotcom/salesforcedx-vscode"
   },
-  "version": "68.11.6",
+  "version": "68.15.5",
   "publisher": "salesforce",
   "o11yUploadEndpoint": "https://794testsite.my.site.com/byolwr/webruntime/log/metrics",
   "enableO11y": "true",
@@ -35,7 +35,7 @@
     "soql builder"
   ],
   "dependencies": {
-    "@jsforce/jsforce-node": "^3.10.24",
+    "@jsforce/jsforce-node": "^3.13.1",
     "@salesforce/effect-ext-utils": "workspace:*",
     "@salesforce/soql-builder-ui": "workspace:*",
     "@salesforce/soql-common": "workspace:*",
@@ -44,7 +44,7 @@
     "@salesforce/vscode-i18n": "workspace:*",
     "antlr4ts": "^0.5.0-alpha.3",
     "debounce": "^2.2.0",
-    "effect": "^3.21.2",
+    "effect": "^3.22.4",
     "papaparse": "^5.3.0",
     "vscode-languageclient": "^9.0.1",
     "vscode-uri": "^3.1.0"
@@ -63,7 +63,7 @@
     "@rollup/plugin-inject": "^5.0.0",
     "@rollup/plugin-node-resolve": "^16.0.0",
     "@rollup/plugin-terser": "^1.0.0",
-    "@salesforce/core": "^9.3.0",
+    "@salesforce/core": "^9.4.1",
     "@salesforce/eslint-config-lwc": "^4.1.2",
     "@salesforce/eslint-plugin-lightning": "^2.0.0",
     "@salesforce/playwright-vscode-ext": "workspace:*",
@@ -101,8 +101,8 @@
     "vscode:package": "wireit",
     "vscode:bundle:migration": "wireit",
     "vscode:package:migration": "wireit",
-    "vscode:sha256": "node ../../scripts/generate-sha256.js >> ../../SHA256",
-    "vscode:publish": "node ../../scripts/publish-vsix.js",
+    "vscode:sha256": "node ../../scripts/generateSha256.mts >> ../../SHA256",
+    "vscode:publish": "node ../../scripts/publishVsix.mts",
     "test:compile": "wireit",
     "vscode:package:prerelease": "wireit",
     "check:effect-diagnostics": "wireit"

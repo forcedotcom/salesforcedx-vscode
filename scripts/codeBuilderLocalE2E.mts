@@ -164,6 +164,16 @@ type Options = {
 /** A package's container suite that failed, and the workspace-shape phase it failed in. */
 type FailedSuite = { pkg: string; phase: string };
 
+// Reject a missing value or one starting with `--` (a swallowed flag). A single leading `-` stays legal
+// (e.g. `--grep '-@slow'`).
+const need = (flag: string, value: string | undefined): string => {
+  if (value === undefined || value.startsWith('--')) {
+    console.error(`Option ${flag} requires a value.`);
+    process.exit(2);
+  }
+  return value;
+};
+
 const parseArgs = (argv: string[]): Options => {
   const parsed: Options = { teardown: true, imageTag: 'latest', debug: false };
   // A value-consuming flag given without its value (e.g. trailing `--run-id`) would otherwise read
@@ -173,13 +183,6 @@ const parseArgs = (argv: string[]): Options => {
   // value that begins with `--`, since every flag here is `--xxx`. We deliberately do NOT reject a
   // single leading `-`: that is a legitimate value (e.g. `--grep '-@slow'`, a regex starting with a
   // hyphen), which the stricter `startsWith('-')` check wrongly refused.
-  const need = (flag: string, value: string | undefined): string => {
-    if (value === undefined || value.startsWith('--')) {
-      console.error(`Option ${flag} requires a value.`);
-      process.exit(2);
-    }
-    return value;
-  };
   for (let i = 0; i < argv.length; i++) {
     const arg = argv[i];
     switch (arg) {
@@ -412,7 +415,7 @@ const problems: string[] = [];
 
 if (!has('docker')) {
   problems.push(
-    `docker — not installed. Needed to run the Code Builder image.\n` +
+    'docker — not installed. Needed to run the Code Builder image.\n' +
       `      Install Docker Desktop: ${brewOr('--cask docker', 'https://docs.docker.com/engine/install/')}`
   );
 } else if (spawnSync('docker', ['info'], { stdio: 'ignore' }).status !== 0) {
@@ -431,9 +434,9 @@ if (!has('docker')) {
 if (!skipGhcrLogin && !process.env.CR_PAT) {
   if (!has('gh')) {
     problems.push(
-      `gh (GitHub CLI) — not installed. Used to authenticate the image pull as your GitHub user.\n` +
+      'gh (GitHub CLI) — not installed. Used to authenticate the image pull as your GitHub user.\n' +
         `      Install: ${brewOr('gh', 'https://github.com/cli/cli#installation')}, then: gh auth login\n` +
-        `      (Or set CR_PAT to a classic PAT with read:packages, SSO-authorized for forcedotcom.)`
+        '      (Or set CR_PAT to a classic PAT with read:packages, SSO-authorized for forcedotcom.)'
     );
   } else if (spawnSync('gh', ['auth', 'status', '-h', 'github.com'], { stdio: 'ignore' }).status !== 0) {
     problems.push('gh (GitHub CLI) — not logged in to github.com. Run: gh auth login');

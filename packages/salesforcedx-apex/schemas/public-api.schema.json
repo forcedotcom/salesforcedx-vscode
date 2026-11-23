@@ -1113,6 +1113,31 @@
       },
       "additionalProperties": false
     },
+    "TraceFlagEntityId": {
+      "anyOf": [
+        {
+          "type": "string",
+          "description": "a string starting with \"005\"",
+          "pattern": "^005",
+          "title": "startsWith(\"005\")",
+          "allOf": [{ "pattern": "^(?:[A-Za-z0-9]{15}|[A-Za-z0-9]{18})$" }]
+        },
+        {
+          "type": "string",
+          "description": "a string starting with \"01p\"",
+          "pattern": "^01p",
+          "title": "startsWith(\"01p\")",
+          "allOf": [{ "pattern": "^(?:[A-Za-z0-9]{15}|[A-Za-z0-9]{18})$" }]
+        },
+        {
+          "type": "string",
+          "description": "a string starting with \"01q\"",
+          "pattern": "^01q",
+          "title": "startsWith(\"01q\")",
+          "allOf": [{ "pattern": "^(?:[A-Za-z0-9]{15}|[A-Za-z0-9]{18})$" }]
+        }
+      ]
+    },
     "TraceFlagRecord": {
       "type": "object",
       "required": ["Id", "LogType"],
@@ -1166,7 +1191,7 @@
       },
       "additionalProperties": false
     },
-    "TraceFlagForUser": {
+    "TraceFlagForEntity": {
       "type": "object",
       "required": ["Id"],
       "properties": {
@@ -1427,8 +1452,9 @@
     },
     { "$ref": "#/$defs/TestSuite" },
     { "$ref": "#/$defs/TestSuiteMembership" },
+    { "$ref": "#/$defs/TraceFlagEntityId" },
     { "$ref": "#/$defs/TraceFlagRecord" },
-    { "$ref": "#/$defs/TraceFlagForUser" },
+    { "$ref": "#/$defs/TraceFlagForEntity" },
     { "$ref": "#/$defs/DebugLevelRecord" },
     { "$ref": "#/$defs/CreateDebugLevel" },
     { "$ref": "#/$defs/UpdateDebugLevel" },

@@ -150,6 +150,8 @@ type WorkspaceComponent = {
 
 type HarnessOptions = {
   readonly metadataByType?: Readonly<Record<string, readonly ListedComponent[]>>;
+  readonly metadataByFolder?: Readonly<Record<string, readonly ListedComponent[]>>;
+  readonly metadataFoldersByType?: Readonly<Record<string, readonly ListedComponent[]>>;
   readonly workspaceComponents?: readonly WorkspaceComponent[];
   readonly sobjects?: readonly { readonly name: string; readonly custom: boolean; readonly queryable: boolean }[];
   readonly descriptions?: Readonly<Record<string, SObject>>;
@@ -197,7 +199,7 @@ const makeHarness = (options: HarnessOptions = {}) => {
   const descriptions = options.descriptions ?? {};
 
   const describe = vi.fn(() => Effect.succeed([]));
-  const listMetadata = vi.fn((xmlName: string, _folder?: string, _expectedOrgId?: string) =>
+  const listMetadata = vi.fn((xmlName: string, folder?: string, _expectedOrgId?: string) =>
     Match.value({
       error: options.listMetadataError,
       failType: options.failListMetadataTypes?.includes(xmlName) === true
@@ -214,10 +216,21 @@ const makeHarness = (options: HarnessOptions = {}) => {
           })
         )
       ),
-      Match.orElse(() => Effect.sleep('5 millis').pipe(Effect.as([...(metadataByType[xmlName] ?? [])])))
+      Match.orElse(() =>
+        Effect.sleep('5 millis').pipe(
+          Effect.as([
+            ...(folder
+              ? (options.metadataByFolder?.[`${xmlName}:${folder}`] ?? metadataByType[xmlName] ?? [])
+              : (metadataByType[xmlName] ?? []))
+          ])
+        )
+      )
     )
   );
   const listSObjects = vi.fn(() => Effect.succeed([...(options.sobjects ?? [])]));
+  const listMetadataFolders = vi.fn((xmlName: string, _expectedOrgId?: string) =>
+    Effect.succeed([...(options.metadataFoldersByType?.[xmlName] ?? metadataByType[`${xmlName}Folder`] ?? [])])
+  );
   const describeCustomObject = vi.fn((apiName: string) =>
     Effect.succeed(descriptions[apiName] ?? emptySObject(apiName))
   );
@@ -263,6 +276,7 @@ const makeHarness = (options: HarnessOptions = {}) => {
     Layer.succeed(MetadataDescribeService, {
       describe,
       listMetadata,
+      listMetadataFolders,
       listSObjects,
       describeCustomObject,
       describeCustomObjects,
@@ -328,6 +342,7 @@ const makeHarness = (options: HarnessOptions = {}) => {
       getConnectionForOrg,
       getRegistryAccess,
       listMetadata,
+      listMetadataFolders,
       listSObjects,
       storeLoad,
       storeSave
@@ -916,6 +931,44 @@ describe('OrgMetadataCatalog contract', () => {
       })
     ]);
     expect(children).toEqual([]);
+  });
+
+  it('discovers Classic and Lightning email folders without workspace files and lists public templates once', async () => {
+    const { layer, mocks } = makeHarness({
+      metadataFoldersByType: {
+        EmailTemplate: [
+          { fullName: 'Classic' },
+          { fullName: 'Lightning' },
+          { fullName: 'EmptyLightning' },
+          { fullName: 'unfiled$public' }
+        ]
+      },
+      metadataByFolder: {
+        'EmailTemplate:Classic': [{ fullName: 'Classic/Text' }, { fullName: 'Classic/Visualforce' }],
+        'EmailTemplate:Lightning': [{ fullName: 'Lightning/Template' }],
+        'EmailTemplate:unfiled$public': [{ fullName: 'unfiled$public/Public' }]
+      }
+    });
+
+    const folders = await runWithCatalog(layer, catalog => catalog.getChildren({ type: 'EmailTemplate' }));
+    const classic = await runWithCatalog(layer, catalog =>
+      catalog.getChildren({ type: 'EmailTemplate', fullName: 'Classic' })
+    );
+    const lightning = await runWithCatalog(layer, catalog =>
+      catalog.getChildren({ type: 'EmailTemplate', fullName: 'Lightning' })
+    );
+    const empty = await runWithCatalog(layer, catalog =>
+      catalog.getChildren({ type: 'EmailTemplate', fullName: 'EmptyLightning' })
+    );
+
+    expect(folders.map(folder => folder.name)).toEqual(['Classic', 'EmptyLightning', 'Lightning', 'unfiled$public']);
+    expect(classic.map(template => template.name)).toEqual(['Text', 'Visualforce']);
+    expect(lightning).toEqual([expect.objectContaining({ name: 'Template', inOrg: true, inWorkspace: false })]);
+    expect(empty).toEqual([]);
+    expect(mocks.listMetadataFolders).toHaveBeenCalledWith('EmailTemplate', '00D000000000001');
+    expect(
+      mocks.listMetadata.mock.calls.filter(([type, folder]) => type === 'EmailTemplate' && folder === 'unfiled$public')
+    ).toHaveLength(1);
   });
 
   it('reacquires a persisted SObject description older than Custom Field inventory', async () => {

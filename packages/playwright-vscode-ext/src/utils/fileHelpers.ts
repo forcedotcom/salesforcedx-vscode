@@ -142,9 +142,7 @@ export const createApexClass = async (page: Page, className: string, content?: s
     await page.keyboard.press('Delete');
     // insertText, not type: per-key typing drops characters on Windows and deploys invalid Apex.
     await page.keyboard.insertText(content);
-    // insertText leaves the cursor (and Monaco's scroll position) at the end of the pasted content,
-    // so the virtualized `.view-lines` no longer renders line 1 — scroll back to the top before
-    // checking for a marker that lives there.
+    // Monaco renders only visible lines; reveal the first-line marker after inserting a long class.
     await page.keyboard.press('Control+Home');
     const marker =
       content

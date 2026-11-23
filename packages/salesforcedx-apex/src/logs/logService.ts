@@ -10,7 +10,7 @@ import { Duration } from '@salesforce/kit';
 import * as Effect from 'effect/Effect';
 import * as path from 'node:path';
 import { FileOutput } from '../effect/fileOutput';
-import { NodeFileOutput } from '../effect/nodeFileOutput';
+import { NodeFileOutput } from '../effect/nodeFileOutputLayer';
 import { nls } from '../i18n';
 import { elapsedTime } from '../utils/elapsedTime';
 import { createFile } from '../utils/fileSystemHandler';

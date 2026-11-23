@@ -4,6 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import * as Arr from 'effect/Array';
 import * as path from 'node:path';
 import * as xml2js from 'xml2js';
 
@@ -101,7 +102,7 @@ export const declarationsFromCustomLabels = async (xmlDocument: string | Buffer)
     return '';
   }
   const labelsNode = parsed.CustomLabels.labels;
-  return (Array.isArray(labelsNode) ? labelsNode : [labelsNode])
+  return Arr.ensure(labelsNode)
     .map(label => declaration('customLabel', label.fullName))
     .join('\n');
 };

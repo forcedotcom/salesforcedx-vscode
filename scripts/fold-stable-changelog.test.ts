@@ -12,7 +12,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 
-const script = path.resolve(__dirname, 'fold-stable-changelog.js');
+const script = path.resolve(__dirname, 'foldStableChangelog.mts');
 const pr = (n: number) => `[PR #${n}](https://example.com/pull/${n})`;
 const localGitEnv = new Set(
   execFileSync('git', ['rev-parse', '--local-env-vars'], { encoding: 'utf8' }).trim().split('\n')

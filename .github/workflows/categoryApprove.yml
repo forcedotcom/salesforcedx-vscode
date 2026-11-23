@@ -49,8 +49,6 @@ jobs:
             const fs = require('node:fs');
             fs.writeFileSync(`${process.env.RUNNER_TEMP}/category-approve-event.json`, JSON.stringify(context.payload));
             const preflightPath = `${process.env.RUNNER_TEMP}/trusted-approver/scripts/category-approve-preflight.cjs`;
-            // Until develop contains the helper, run the existing trusted approver without preflight skips.
-            if (!fs.existsSync(preflightPath)) return true;
             return await require(preflightPath)({ github, context });
       - uses: ./.github/actions/setup-pnpm
         if: steps.preflight.outputs.result == 'true'
@@ -66,21 +64,17 @@ jobs:
         if: steps.preflight.outputs.result == 'true'
         working-directory: ${{ runner.temp }}/trusted-approver
         run: pnpm --filter @salesforce/effect-octokit compile
-      - name: Install Cursor CLI
+      - name: Install OpenCode CLI
         if: steps.preflight.outputs.result == 'true'
-        run: curl https://cursor.com/install -fsS | bash
+        run: npm install --global --allow-scripts=@opencode/cli @opencode/cli@2.2.5
       - name: Decide and approve
         if: steps.preflight.outputs.result == 'true'
         env:
           IDEE_GH_TOKEN: ${{ secrets.IDEE_GH_TOKEN }}
-          CURSOR_API_KEY: ${{ secrets.IDEE_CURSOR_API_KEY }}
+          OPENCODE_API_KEY: ${{ secrets.OPENCODE_API_KEY }}
+          OPENCODE_MODELS: ${{ vars.OPENCODE_MODELS }}
           GITHUB_REPOSITORY: ${{ github.repository }}
           GITHUB_RUN_ID: ${{ github.run_id }}
         run: |
           export GITHUB_EVENT_PATH="$RUNNER_TEMP/category-approve-event.json"
-          if [ -f "$RUNNER_TEMP/trusted-approver/scripts/category-approve.mts" ]; then
-            node "$RUNNER_TEMP/trusted-approver/scripts/category-approve.mts"
-          else
-            # Until develop contains the native ESM entry point, run its trusted .ts script.
-            node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON "$RUNNER_TEMP/trusted-approver/scripts/category-approve.ts"
-          fi
+          node "$RUNNER_TEMP/trusted-approver/scripts/categoryApprove.mts"

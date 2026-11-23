@@ -15,7 +15,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "68.11.6",
+  "version": "68.15.5",
   "publisher": "salesforce",
   "o11yUploadEndpoint": "https://794testsite.my.site.com/byolwr/webruntime/log/metrics",
   "enableO11y": "true",
@@ -32,13 +32,13 @@
     "@salesforce/effect-ext-utils": "workspace:*",
     "@salesforce/types": "^1.8.0",
     "@salesforce/vscode-i18n": "workspace:*",
-    "effect": "^3.21.2",
+    "effect": "^3.22.4",
     "vscode-uri": "^3.1.0"
   },
   "devDependencies": {
-    "@salesforce/core": "^9.3.0",
+    "@salesforce/core": "^9.4.1",
     "@salesforce/playwright-vscode-ext": "workspace:*",
-    "@salesforce/source-deploy-retrieve": "^13.5.0",
+    "@salesforce/source-deploy-retrieve": "^13.13.0",
     "salesforcedx-vscode-services": "workspace:*"
   },
   "extensionDependencies": [
@@ -64,8 +64,8 @@
     "test:desktop:debug": "pnpm --dir ../.. --filter ./packages/salesforcedx-vscode-apex-testing test:desktop --debug",
     "test:e2e": "wireit",
     "vscode:package": "wireit",
-    "vscode:sha256": "node ../../scripts/generate-sha256.js >> ../../SHA256",
-    "vscode:publish": "node ../../scripts/publish-vsix.js",
+    "vscode:sha256": "node ../../scripts/generateSha256.mts >> ../../SHA256",
+    "vscode:publish": "node ../../scripts/publishVsix.mts",
     "compile": "wireit",
     "lint": "wireit",
     "check:circular-deps": "wireit",

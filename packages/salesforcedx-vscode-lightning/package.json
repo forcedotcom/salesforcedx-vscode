@@ -15,7 +15,7 @@
   "repository": {
     "url": "https://github.com/forcedotcom/salesforcedx-vscode"
   },
-  "version": "68.11.6",
+  "version": "68.15.5",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -38,7 +38,7 @@
     "acorn-loose": "^6.0.0",
     "acorn-walk": "^6.0.0",
     "applicationinsights": "1.8.10",
-    "effect": "^3.21.2",
+    "effect": "^3.22.4",
     "vscode-html-languageservice": "^5.5.1",
     "vscode-languageclient": "^9.0.1",
     "vscode-uri": "^3.1.0"
@@ -62,8 +62,8 @@
     "vscode:bundle": "wireit",
     "vscode:package:legacy": "wireit",
     "vscode:prepublish": "npm prune --production",
-    "vscode:publish": "node ../../scripts/publish-vsix.js",
-    "vscode:sha256": "node ../../scripts/generate-sha256.js >> ../../SHA256",
+    "vscode:publish": "node ../../scripts/publishVsix.mts",
+    "vscode:sha256": "node ../../scripts/generateSha256.mts >> ../../SHA256",
     "vscode:package:legacy:prerelease": "wireit",
     "check:effect-diagnostics": "wireit"
   },
@@ -255,12 +255,34 @@
       "command": "node ../../scripts/vsceBundledExtension.mts",
       "dependencies": [
         "vscode:bundle"
+      ],
+      "files": [
+        "../../scripts/vsceBundledExtension.mts",
+        "package.json",
+        "package.nls*.json",
+        "LICENSE.txt",
+        "README.md",
+        ".vscodeignore",
+        "OSSREADME.json",
+        "images/**",
+        "syntaxes/**"
       ]
     },
     "vscode:package:legacy:prerelease": {
       "command": "node ../../scripts/vsceBundledExtension.mts",
       "dependencies": [
         "vscode:bundle"
+      ],
+      "files": [
+        "../../scripts/vsceBundledExtension.mts",
+        "package.json",
+        "package.nls*.json",
+        "LICENSE.txt",
+        "README.md",
+        ".vscodeignore",
+        "OSSREADME.json",
+        "images/**",
+        "syntaxes/**"
       ],
       "env": {
         "VSCE_PRE_RELEASE": "true"

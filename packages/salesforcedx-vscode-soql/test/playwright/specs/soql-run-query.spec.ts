@@ -15,12 +15,12 @@ import {
   QUICK_INPUT_WIDGET,
   resetContainerWorkbench,
   saveFile,
-  saveScreenshot,
   selectOutputChannel,
   selectQuickInputOption,
   setupConsoleMonitoring,
   setupMinimalOrgAndAuth,
   setupNetworkMonitoring,
+  startVideoRecording,
   validateNoCriticalErrors,
   verifyCommandExists,
   waitForExtensionsActivated,
@@ -57,9 +57,8 @@ test.beforeEach(async ({ page }) => {
   }
 });
 
-test('SOQL Run Query: code lens, current file, selected text via command palette', async ({ page }) => {
-  // Shared across desktop/web/container (isContainer branch below); container's browser round-trip
-  // needs more budget than desktop alone, matching the sibling soql-query-plan.spec.ts timeout.
+test('SOQL Run Query: code lens, current file, selected text via command palette', async ({ page }, testInfo) => {
+  // Desktop default is 60s on macOS (120s on win32). This spec runs six query paths; sibling SOQL specs use 180s.
   test.setTimeout(5 * 60 * 1000);
   const consoleErrors = setupConsoleMonitoring(page);
   const networkErrors = setupNetworkMonitoring(page);
@@ -74,194 +73,183 @@ test('SOQL Run Query: code lens, current file, selected text via command palette
       await waitForExtensionsActivated(page);
       await ensureSecondarySideBarHidden(page);
     }
-    await saveScreenshot(page, 'setup.complete.png');
     await verifyCommandExists(page, packageNls.soql_open_new_text_editor, 120_000);
   });
 
-  await test.step('create SOQL file via text editor command', async () => {
-    await executeCommandWithCommandPalette(page, packageNls.soql_open_new_text_editor);
-    await saveScreenshot(page, 'step1.after-command.png');
+  const videoName = [testInfo.project.name, ...testInfo.titlePath, 'run-query', `retry-${testInfo.retry}`]
+    .join('-')
+    .replaceAll(/[^a-zA-Z0-9._-]+/g, '-')
+    .replaceAll(/^-+|-+$/g, '');
+  const stopRecording = await startVideoRecording(page, testInfo, videoName);
+  try {
+    await test.step('create SOQL file via text editor command', async () => {
+      await executeCommandWithCommandPalette(page, packageNls.soql_open_new_text_editor);
 
-    const quickInput = page.locator(QUICK_INPUT_WIDGET);
-    await quickInput.waitFor({ state: 'visible', timeout: 30_000 });
-    await page.keyboard.type(SOQL_FILE);
-    await page.keyboard.press('Enter');
-    await saveScreenshot(page, 'step1.file-name-entered.png');
+      const quickInput = page.locator(QUICK_INPUT_WIDGET);
+      await quickInput.waitFor({ state: 'visible', timeout: 30_000 });
+      await page.keyboard.type(SOQL_FILE);
+      await page.keyboard.press('Enter');
 
-    await waitForQuickInputFirstOption(page, { quickInputVisibleTimeout: 10_000, optionVisibleTimeout: 10_000 });
-    await page.keyboard.press('Enter');
-    await saveScreenshot(page, 'step1.dir-selected.png');
+      await waitForQuickInputFirstOption(page, { quickInputVisibleTimeout: 10_000, optionVisibleTimeout: 10_000 });
+      await page.keyboard.press('Enter');
 
-    const soqlTab = page.locator('[role="tab"]').filter({ hasText: `${SOQL_FILE}.soql` });
-    await expect(soqlTab, `${SOQL_FILE}.soql tab should be visible`).toBeVisible({ timeout: 20_000 });
-    await saveScreenshot(page, 'step1.soql-tab-visible.png');
+      const soqlTab = page.locator('[role="tab"]').filter({ hasText: `${SOQL_FILE}.soql` });
+      await expect(soqlTab, `${SOQL_FILE}.soql tab should be visible`).toBeVisible({ timeout: 20_000 });
 
-    // Type the query into the empty editor (file opens focused and ready for input)
-    await page.locator(EDITOR).first().click();
-    await page.keyboard.type(SOQL_QUERY);
-    await saveFile(page);
-    await saveScreenshot(page, 'step1.query-saved.png');
-  });
-
-  await test.step('run query via "Run Query" code lens', async () => {
-    const runQueryLens = page.getByRole('button', { name: 'Run Query' });
-    await expect(runQueryLens, '"Run Query" code lens should be visible').toBeVisible({ timeout: 15_000 });
-    await saveScreenshot(page, 'step2.code-lens-visible.png');
-
-    await runQueryLens.click();
-
-    // Code lens path always shows an API-type quick pick (REST API vs Tooling API).
-    // Clicking the option (rather than pressing Enter) is more reliable on desktop-electron
-    // where Enter sometimes doesn't register on the active quick pick.
-    await selectQuickInputOption(page, /^REST API/, {
-      quickInputVisibleTimeout: 10_000,
-      optionVisibleTimeout: 10_000
-    });
-    await saveScreenshot(page, 'step2.api-selected.png');
-
-    // dataQuery calls vscChannel.show() when done — wait for the panel to open naturally
-    await page.locator(OUTPUT_PANEL).waitFor({ state: 'visible', timeout: 30_000 });
-    await selectOutputChannel(page, SOQL_CHANNEL);
-    await waitForOutputChannelText(page, { expectedText: QUERY_COMPLETE_TEXT, timeout: 30_000 });
-    await saveScreenshot(page, 'step2.run-query-output-verified.png');
-  });
-
-  await test.step('execute SOQL query with current file via command palette', async () => {
-    const soqlTab = page.locator('[role="tab"]').filter({ hasText: `${SOQL_FILE}.soql` });
-    await soqlTab.click();
-
-    await selectOutputChannel(page, SOQL_CHANNEL);
-    await clearOutputChannel(page);
-
-    await executeCommandWithCommandPalette(page, packageNls.data_query_document_text);
-    await saveScreenshot(page, 'step3.command-executed.png');
-
-    await selectQuickInputOption(page, /^REST API/, {
-      quickInputVisibleTimeout: 10_000,
-      optionVisibleTimeout: 10_000
+      // Type the query into the empty editor (file opens focused and ready for input)
+      await page.locator(EDITOR).first().click();
+      await page.keyboard.type(SOQL_QUERY);
+      await saveFile(page);
     });
 
-    await waitForOutputChannelText(page, { expectedText: QUERY_COMPLETE_TEXT, timeout: 30_000 });
-    await saveScreenshot(page, 'step3.current-file-query-output-verified.png');
-  });
+    await test.step('run query via "Run Query" code lens', async () => {
+      const runQueryLens = page.getByRole('button', { name: 'Run Query' });
+      await expect(runQueryLens, '"Run Query" code lens should be visible').toBeVisible({ timeout: 15_000 });
 
-  await test.step('execute SOQL query with currently selected text via command palette', async () => {
-    // The selection command is only offered in Apex files (.cls/.trigger/.apex), where inline SOQL lives
-    await createApexClass(page, APEX_CLASS, APEX_CLASS_CONTENT);
-    await saveScreenshot(page, 'step4.apex-class-created.png');
+      await runQueryLens.click();
 
-    await selectOutputChannel(page, SOQL_CHANNEL);
-    await clearOutputChannel(page);
+      // Code lens path always shows an API-type quick pick (REST API vs Tooling API).
+      // Clicking the option (rather than pressing Enter) is more reliable on desktop-electron
+      // where Enter sometimes doesn't register on the active quick pick.
+      await selectQuickInputOption(page, /^REST API/, {
+        quickInputVisibleTimeout: 10_000,
+        optionVisibleTimeout: 10_000
+      });
 
-    // Select the query line in the editor via triple-click. This single gesture both focuses
-    // Monaco and creates a real editor selection (setting `editorHasSelection` true). On web,
-    // `click + Ctrl/Cmd+A` is unreliable because the synthetic click on `.view-line` doesn't
-    // always forward focus to Monaco's hidden input textarea, so the shortcut lands on the
-    // browser (DOM-level selection) instead.
-    const apexEditor = page.locator(`${EDITOR}[data-uri$="${APEX_CLASS}.cls"]`);
-    await apexEditor.locator('.view-line').filter({ hasText: SOQL_QUERY }).click({ clickCount: 3 });
-    // Sanity check: VS Code's status bar shows "(N selected)" only when the active editor has a
-    // real, non-empty selection. If this never appears, the triple-click didn't reach Monaco and
-    // the palette command would be hidden by `editorHasSelection`.
-    await expect(
-      page
-        .locator('.statusbar-item')
-        .filter({ hasText: /\(\d+ selected\)/ })
-        .first()
-    ).toBeVisible({
-      timeout: 5000
-    });
-    await saveScreenshot(page, 'step4.text-selected.png');
-
-    // Pass preserveSelection so the shared helper skips the `.monaco-workbench` click before F1;
-    // that click lands in the editor and clears the selection, which would make
-    // `editorHasSelection` false and hide this command from the palette.
-    await executeCommandWithCommandPalette(page, packageNls.data_query_selection_text, undefined, {
-      preserveSelection: true
-    });
-    await saveScreenshot(page, 'step4.command-executed.png');
-
-    await selectQuickInputOption(page, /^REST API/, {
-      quickInputVisibleTimeout: 10_000,
-      optionVisibleTimeout: 10_000
+      // dataQuery calls vscChannel.show() when done — wait for the panel to open naturally
+      await page.locator(OUTPUT_PANEL).waitFor({ state: 'visible', timeout: 30_000 });
+      await selectOutputChannel(page, SOQL_CHANNEL);
+      await waitForOutputChannelText(page, { expectedText: QUERY_COMPLETE_TEXT, timeout: 30_000 });
     });
 
-    await waitForOutputChannelText(page, { expectedText: QUERY_COMPLETE_TEXT, timeout: 30_000 });
-    await saveScreenshot(page, 'step4.selected-text-query-output-verified.png');
-  });
+    await test.step('execute SOQL query with current file via command palette', async () => {
+      const soqlTab = page.locator('[role="tab"]').filter({ hasText: `${SOQL_FILE}.soql` });
+      await soqlTab.click();
 
-  await test.step('run query via Tooling API', async () => {
-    const soqlTab = page.locator('[role="tab"]').filter({ hasText: `${SOQL_FILE}.soql` });
-    await soqlTab.click();
+      await selectOutputChannel(page, SOQL_CHANNEL);
+      await clearOutputChannel(page);
 
-    await selectOutputChannel(page, SOQL_CHANNEL);
-    await clearOutputChannel(page);
+      await executeCommandWithCommandPalette(page, packageNls.data_query_document_text);
 
-    // Select all text and overwrite with a query to verify Tooling API execution
-    const soqlEditor = page.locator(`${EDITOR}[data-uri$="${SOQL_FILE}.soql"]`);
-    await soqlEditor.locator('.view-line').first().click({ clickCount: 3 });
-    await expect(
-      page
-        .locator('.statusbar-item')
-        .filter({ hasText: /\(\d+ selected\)/ })
-        .first()
-    ).toBeVisible({
-      timeout: 5000
-    });
-    await page.keyboard.type('SELECT Id, Name FROM ApexClass LIMIT 5');
-    await saveFile(page);
-    await saveScreenshot(page, 'step5.tooling-query-saved.png');
+      await selectQuickInputOption(page, /^REST API/, {
+        quickInputVisibleTimeout: 10_000,
+        optionVisibleTimeout: 10_000
+      });
 
-    const runQueryLens = page.getByRole('button', { name: 'Run Query' });
-    await expect(runQueryLens, '"Run Query" code lens should be visible').toBeVisible({ timeout: 15_000 });
-    await runQueryLens.click();
-
-    await selectQuickInputOption(page, /^Tooling API/, {
-      quickInputVisibleTimeout: 10_000,
-      optionVisibleTimeout: 10_000
-    });
-    await saveScreenshot(page, 'step5.tooling-api-selected.png');
-
-    await waitForOutputChannelText(page, { expectedText: QUERY_COMPLETE_TEXT, timeout: 30_000 });
-    await saveScreenshot(page, 'step5.tooling-query-output-verified.png');
-  });
-
-  await test.step('run query ending in ALL ROWS routes to /queryAll', async () => {
-    const soqlTab = page.locator('[role="tab"]').filter({ hasText: `${SOQL_FILE}.soql` });
-    await soqlTab.click();
-
-    await selectOutputChannel(page, SOQL_CHANNEL);
-    await clearOutputChannel(page);
-
-    // Overwrite with a query whose trailing ALL ROWS must be stripped before send and routed to /queryAll
-    const soqlEditor = page.locator(`${EDITOR}[data-uri$="${SOQL_FILE}.soql"]`);
-    await soqlEditor.locator('.view-line').first().click({ clickCount: 3 });
-    await expect(
-      page
-        .locator('.statusbar-item')
-        .filter({ hasText: /\(\d+ selected\)/ })
-        .first()
-    ).toBeVisible({ timeout: 5000 });
-    await page.keyboard.type('SELECT Id, Name FROM Account LIMIT 10 ALL ROWS');
-    await saveFile(page);
-    await saveScreenshot(page, 'step6.all-rows-query-saved.png');
-
-    const runQueryLens = page.getByRole('button', { name: 'Run Query' });
-    await expect(runQueryLens, '"Run Query" code lens should be visible').toBeVisible({ timeout: 15_000 });
-
-    await runQueryLens.click();
-    await selectQuickInputOption(page, /^REST API/, {
-      quickInputVisibleTimeout: 10_000,
-      optionVisibleTimeout: 10_000
+      await waitForOutputChannelText(page, { expectedText: QUERY_COMPLETE_TEXT, timeout: 30_000 });
     });
 
-    // Query completing is the durable cross-mode signal that the strip-and-route worked: the org rejects
-    // literal ALL ROWS on /queryAll, so a successful "records returned" proves the clause was stripped and
-    // routed via scanAll. (Network interception via waitForRequest only works in web/renderer, not the
-    // desktop/Electron extension host where the Node HTTP call is invisible to Playwright — so it is not used.)
-    await waitForOutputChannelText(page, { expectedText: QUERY_COMPLETE_TEXT, timeout: 30_000 });
-    await saveScreenshot(page, 'step6.all-rows-query-output-verified.png');
-  });
+    await test.step('execute SOQL query with currently selected text via command palette', async () => {
+      // The selection command is only offered in Apex files (.cls/.trigger/.apex), where inline SOQL lives
+      await createApexClass(page, APEX_CLASS, APEX_CLASS_CONTENT);
 
-  await validateNoCriticalErrors(test, consoleErrors, networkErrors);
+      await selectOutputChannel(page, SOQL_CHANNEL);
+      await clearOutputChannel(page);
+
+      // Select the query line in the editor via triple-click. This single gesture both focuses
+      // Monaco and creates a real editor selection (setting `editorHasSelection` true). On web,
+      // `click + Ctrl/Cmd+A` is unreliable because the synthetic click on `.view-line` doesn't
+      // always forward focus to Monaco's hidden input textarea, so the shortcut lands on the
+      // browser (DOM-level selection) instead.
+      const apexEditor = page.locator(`${EDITOR}[data-uri$="${APEX_CLASS}.cls"]`);
+      await apexEditor.locator('.view-line').filter({ hasText: SOQL_QUERY }).click({ clickCount: 3 });
+      // Sanity check: VS Code's status bar shows "(N selected)" only when the active editor has a
+      // real, non-empty selection. If this never appears, the triple-click didn't reach Monaco and
+      // the palette command would be hidden by `editorHasSelection`.
+      await expect(
+        page
+          .locator('.statusbar-item')
+          .filter({ hasText: /\(\d+ selected\)/ })
+          .first()
+      ).toBeVisible({
+        timeout: 5000
+      });
+
+      // Pass preserveSelection so the shared helper skips the `.monaco-workbench` click before F1;
+      // that click lands in the editor and clears the selection, which would make
+      // `editorHasSelection` false and hide this command from the palette.
+      await executeCommandWithCommandPalette(page, packageNls.data_query_selection_text, undefined, {
+        preserveSelection: true
+      });
+
+      await selectQuickInputOption(page, /^REST API/, {
+        quickInputVisibleTimeout: 10_000,
+        optionVisibleTimeout: 10_000
+      });
+
+      await waitForOutputChannelText(page, { expectedText: QUERY_COMPLETE_TEXT, timeout: 30_000 });
+    });
+
+    await test.step('run query via Tooling API', async () => {
+      const soqlTab = page.locator('[role="tab"]').filter({ hasText: `${SOQL_FILE}.soql` });
+      await soqlTab.click();
+
+      await selectOutputChannel(page, SOQL_CHANNEL);
+      await clearOutputChannel(page);
+
+      // Select all text and overwrite with a query to verify Tooling API execution
+      const soqlEditor = page.locator(`${EDITOR}[data-uri$="${SOQL_FILE}.soql"]`);
+      await soqlEditor.locator('.view-line').first().click({ clickCount: 3 });
+      await expect(
+        page
+          .locator('.statusbar-item')
+          .filter({ hasText: /\(\d+ selected\)/ })
+          .first()
+      ).toBeVisible({
+        timeout: 5000
+      });
+      await page.keyboard.type('SELECT Id, Name FROM ApexClass LIMIT 5');
+      await saveFile(page);
+
+      const runQueryLens = page.getByRole('button', { name: 'Run Query' });
+      await expect(runQueryLens, '"Run Query" code lens should be visible').toBeVisible({ timeout: 15_000 });
+      await runQueryLens.click();
+
+      await selectQuickInputOption(page, /^Tooling API/, {
+        quickInputVisibleTimeout: 10_000,
+        optionVisibleTimeout: 10_000
+      });
+
+      await waitForOutputChannelText(page, { expectedText: QUERY_COMPLETE_TEXT, timeout: 30_000 });
+    });
+
+    await test.step('run query ending in ALL ROWS routes to /queryAll', async () => {
+      const soqlTab = page.locator('[role="tab"]').filter({ hasText: `${SOQL_FILE}.soql` });
+      await soqlTab.click();
+
+      await selectOutputChannel(page, SOQL_CHANNEL);
+      await clearOutputChannel(page);
+
+      // Overwrite with a query whose trailing ALL ROWS must be stripped before send and routed to /queryAll
+      const soqlEditor = page.locator(`${EDITOR}[data-uri$="${SOQL_FILE}.soql"]`);
+      await soqlEditor.locator('.view-line').first().click({ clickCount: 3 });
+      await expect(
+        page
+          .locator('.statusbar-item')
+          .filter({ hasText: /\(\d+ selected\)/ })
+          .first()
+      ).toBeVisible({ timeout: 5000 });
+      await page.keyboard.type('SELECT Id, Name FROM Account LIMIT 10 ALL ROWS');
+      await saveFile(page);
+
+      const runQueryLens = page.getByRole('button', { name: 'Run Query' });
+      await expect(runQueryLens, '"Run Query" code lens should be visible').toBeVisible({ timeout: 15_000 });
+
+      await runQueryLens.click();
+      await selectQuickInputOption(page, /^REST API/, {
+        quickInputVisibleTimeout: 10_000,
+        optionVisibleTimeout: 10_000
+      });
+
+      // Query completing is the durable cross-mode signal that the strip-and-route worked: the org rejects
+      // literal ALL ROWS on /queryAll, so a successful "records returned" proves the clause was stripped and
+      // routed via scanAll. (Network interception via waitForRequest only works in web/renderer, not the
+      // desktop/Electron extension host where the Node HTTP call is invisible to Playwright — so it is not used.)
+      await waitForOutputChannelText(page, { expectedText: QUERY_COMPLETE_TEXT, timeout: 30_000 });
+    });
+
+    await validateNoCriticalErrors(test, consoleErrors, networkErrors);
+  } finally {
+    await stopRecording();
+  }
 });

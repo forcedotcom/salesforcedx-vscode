@@ -29,14 +29,14 @@ export const TraceFlagRecordSchema = Schema.Struct({
 export type TraceFlagRecord = typeof TraceFlagRecordSchema.Type;
 
 /** Fields needed to renew a flag; CLI accepts absent expiration dates. */
-export const TraceFlagForUserSchema = TraceFlagRecordSchema.pick(
+export const TraceFlagForEntitySchema = TraceFlagRecordSchema.pick(
   'Id',
   'StartDate',
   'ExpirationDate',
   'DebugLevelId',
   'DebugLevel'
-).annotations({ identifier: 'TraceFlagForUser' });
-export type TraceFlagForUser = typeof TraceFlagForUserSchema.Type;
+).annotations({ identifier: 'TraceFlagForEntity' });
+export type TraceFlagForEntity = typeof TraceFlagForEntitySchema.Type;
 
 /** Cumulative verbosity shared by all DebugLevel categories: FINE includes DEBUG, INFO, WARN, and ERROR. https://developer.salesforce.com/docs/atlas.en-us.apexcode.meta/apexcode/code_setting_debug_log_levels.htm */
 export const LogCategoryLevel = Schema.Literal('NONE', 'ERROR', 'WARN', 'INFO', 'DEBUG', 'FINE', 'FINER', 'FINEST');

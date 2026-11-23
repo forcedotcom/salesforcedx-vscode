@@ -1,11 +1,17 @@
-# 68.9.6 - November 11, 2026
+# 68.13.7 - November 25, 2026
 
 ## Fixed
 
-#### salesforcedx-vscode-soql
+#### salesforcedx-vscode-services
 
-- We fixed a bug where **SOQL Builder** showed duplicate or secondary parser recovery errors for incomplete queries. ([PR #8400](https://github.com/forcedotcom/salesforcedx-vscode/pull/8400))
+- We fixed a bug where **Org Browser** skipped Classic email folders when discovering email templates. ([PR #8623](https://github.com/forcedotcom/salesforcedx-vscode/pull/8623))
+
+## Changed
+
+#### salesforcedx-vscode-services
+
+- We improved **Org Browser** remote tracking so large orgs compare and refresh much faster. ([PR #8628](https://github.com/forcedotcom/salesforcedx-vscode/pull/8628))
 
 ## Under the Hood
 
-- We made some under the hood changes. ([PR #8535](https://github.com/forcedotcom/salesforcedx-vscode/pull/8535), [PR #8496](https://github.com/forcedotcom/salesforcedx-vscode/pull/8496), [PR #8555](https://github.com/forcedotcom/salesforcedx-vscode/pull/8555), [PR #8565](https://github.com/forcedotcom/salesforcedx-vscode/pull/8565))
+- We made some under the hood changes. ([PR #8541](https://github.com/forcedotcom/salesforcedx-vscode/pull/8541), [PR #8624](https://github.com/forcedotcom/salesforcedx-vscode/pull/8624))

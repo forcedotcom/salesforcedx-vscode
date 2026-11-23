@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import * as DateTime from 'effect/DateTime';
 import * as Effect from 'effect/Effect';
 import * as Option from 'effect/Option';
 import * as Schema from 'effect/Schema';
@@ -181,7 +182,7 @@ export class OrgSemanticArtifactStore extends Effect.Service<OrgSemanticArtifact
           const manifest: SemanticArtifactManifest = {
             version: SEMANTIC_ARTIFACT_MANIFEST_VERSION,
             key: decodedKey,
-            writtenAt: new Date().toISOString(),
+            writtenAt: DateTime.formatIso(yield* DateTime.now),
             value
           };
           const content = yield* serializeManifest(manifest);

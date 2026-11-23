@@ -5,21 +5,32 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { Agent, type ToolName } from '@cursor/sdk';
 import * as Command from '@effect/platform/Command';
 import * as FileSystem from '@effect/platform/FileSystem';
 import * as Path from '@effect/platform/Path';
 import * as NodeContext from '@effect/platform-node/NodeContext';
-import { actionsEnvironment, GitHub, readPullRequestEvent } from '@salesforce/effect-octokit';
-import { Config, Effect, Either, Exit, Layer, Logger, Option, pipe, Redacted, Schema, Stream } from 'effect';
+import { actionsEnvironment, GitHub, readPullRequestEvent, type PullRequestState } from '@salesforce/effect-octokit';
+import { Effect, Either, Exit, Layer, Logger, Match, Option, pipe, Schema, Stream } from 'effect';
+import * as Str from 'effect/String';
 import { pathToFileURL } from 'node:url';
-import { CommandFailed, CursorRunFailed, InvalidBaseRef, Judgment, type Item } from './schema.mts';
+import { openCodePrompt } from '../shared/openCode.mts';
+import { CommandFailed, InvalidBaseRef, Judgment, type Item } from './schema.mts';
+import { removeVideoSection, renderVideoManifest } from './videoManifest.mts';
 
-const skillPath = '.cursor/skills/manual-test-plan-judgment/SKILL.md';
+const skillPath = '.opencode/skills/manual-test-plan-judgment/SKILL.md';
 const startMarker = '<!-- manual-test-plan -->';
 const endMarker = '<!-- /manual-test-plan -->';
 const excludedWorkflows = new Set(['e2e.yml', 'playwrightE2EFullSuite.yml', 'rerunPushE2E.yml']);
-const tools: ToolName[] = ['read', 'grep', 'glob', 'ls'];
+const ciPackages = new Set(['drivable-vscode', 'effect-octokit', 'eslint-local-rules', 'playwright-vscode-ext']);
+
+export const isRelevantDiffPath = (file: string) => {
+  const parts = file.split('/');
+  return (
+    !parts.includes('test') &&
+    !file.startsWith('.github/') &&
+    !(parts[0] === 'packages' && ciPackages.has(parts[1] ?? ''))
+  );
+};
 // Git hooks export these for their own worktree. This script's git calls use
 // an explicit cwd and must not inherit another worktree's repository or index.
 const gitLocalEnv = {
@@ -43,11 +54,9 @@ const gitLocalEnv = {
 type Outcome = { readonly edited: boolean };
 export type PromptInput = { readonly skill: string; readonly diff: string; readonly correction?: string };
 type Attempt =
-  | { readonly _tag: 'cursor'; readonly message: string }
+  | { readonly _tag: 'opencode'; readonly message: string }
   | { readonly _tag: 'retry'; readonly text: string; readonly error: string }
   | { readonly _tag: 'ok'; readonly judgment: typeof Judgment.Type };
-
-const messageOf = (error: unknown, fallback: string) => (error instanceof Error ? error.message : fallback);
 
 const baseRefOk = (ref: string) => /^[A-Za-z0-9._/-]+$/.test(ref) && !ref.split('/').includes('..');
 
@@ -84,14 +93,35 @@ const playwrightSpec = (spec: string) => {
 };
 
 const itemLine = (item: Item) =>
-  item.kind === 'watch-video'
-    ? `- [ ] Watch video: \`${item.spec}\` in \`${item.workflow}\` (\`${item.job}\`)`
-    : `- [ ] ${item.step}`;
+  Match.value(item).pipe(
+    Match.tag(
+      'WatchVideo',
+      video => `- [ ] Watch video: \`${video.spec}\` in \`${video.workflow}\` (\`${video.job}\`)`
+    ),
+    Match.tag('ManualItem', manual => `- [ ] ${manual.step}`),
+    Match.exhaustive
+  );
 
-export const renderManualTestPlan = (judgment: typeof Judgment.Type) => {
-  const body =
-    judgment.kind === 'nothing' ? 'Nothing worth manually testing.' : judgment.items.map(itemLine).join('\n');
-  return `${startMarker}\n## Manual test plan\n\n${body}\n${endMarker}`;
+export const renderManualTestPlan = (judgment: typeof Judgment.Type, sha: string) => {
+  const [body, targets] = Match.value(judgment).pipe(
+    Match.tag('Nothing', () => ['Nothing worth manually testing.', []] as const),
+    Match.tag(
+      'Checklist',
+      ({ items }) =>
+        [
+          items.map(itemLine).join('\n'),
+          items.flatMap(item =>
+            Match.value(item).pipe(
+              Match.tag('WatchVideo', ({ spec, workflow, job }) => [{ spec, workflow, job }]),
+              Match.tag('ManualItem', () => []),
+              Match.exhaustive
+            )
+          )
+        ] as const
+    ),
+    Match.exhaustive
+  );
+  return `${startMarker}\n## Manual test plan\n\n${body}\n${renderVideoManifest({ sha, targets })}\n${endMarker}`;
 };
 
 export const spliceManualTestPlan = (body: string, block: string) => {
@@ -108,7 +138,7 @@ const git = Effect.fn('manualTestPlan.git')(function* (cwd: string, args: readon
   const [text, code] = yield* pipe(
     Command.make('git', ...args),
     Command.workingDirectory(cwd),
-    Command.env(gitLocalEnv),
+    Command.env({ ...process.env, ...gitLocalEnv }, { extendEnv: false }),
     Command.start,
     Effect.flatMap(proc =>
       Effect.all(
@@ -151,7 +181,7 @@ const workflowCatalog = Effect.fn('manualTestPlan.workflowCatalog')(function* (c
 const watchVideoProblem = (
   exists: boolean,
   workflows: readonly WorkflowName[],
-  item: Item & { readonly kind: 'watch-video' }
+  item: Item & { readonly _tag: 'WatchVideo' }
 ) => {
   const named = workflows.filter(workflow => workflow.name === item.workflow);
   const problems = [
@@ -169,51 +199,42 @@ export const judgmentError = Effect.fn('manualTestPlan.judgmentError')(function*
   cwd: string,
   judgment: typeof Judgment.Type
 ) {
-  if (judgment.kind === 'nothing') return undefined;
+  return yield* Match.value(judgment).pipe(
+    Match.tag('Nothing', () => Effect.void),
+    Match.tag('Checklist', ({ items }) => checklistError(cwd, items)),
+    Match.exhaustive
+  );
+});
+
+const checklistError = Effect.fn('manualTestPlan.checklistError')(function* (
+  cwd: string,
+  items: Extract<typeof Judgment.Type, { readonly _tag: 'Checklist' }>['items']
+) {
   const fs = yield* FileSystem.FileSystem;
   const path = yield* Path.Path;
   const workflows = yield* workflowCatalog(cwd);
-  const problems = yield* Effect.forEach(judgment.items, item =>
-    item.kind === 'manual'
-      ? Effect.succeed(Option.none<string>())
-      : fs
-          .exists(path.join(cwd, item.spec))
-          .pipe(Effect.map(exists => Option.fromNullable(watchVideoProblem(exists, workflows, item))))
+  const problems = yield* Effect.forEach(items, item =>
+    Match.value(item).pipe(
+      Match.tag('ManualItem', () => Effect.succeed(Option.none<string>())),
+      Match.tag('WatchVideo', video =>
+        fs
+          .exists(path.join(cwd, video.spec))
+          .pipe(Effect.map(exists => Option.fromNullable(watchVideoProblem(exists, workflows, video))))
+      ),
+      Match.exhaustive
+    )
   );
   const messages = problems.flatMap(problem => (Option.isNone(problem) ? [] : [problem.value]));
   return messages.length === 0 ? undefined : messages.join('\n');
 });
 
-const finishedText = (run: {
-  readonly status: string;
-  readonly result?: string;
-  readonly error?: { readonly message: string };
-}) =>
-  run.status === 'finished'
-    ? Option.match(Option.fromNullable(run.result), {
-        onNone: () =>
-          Effect.fail(new CursorRunFailed({ status: run.status, message: 'Cursor run finished without text' })),
-        onSome: Effect.succeed
-      })
-    : Effect.fail(
-        new CursorRunFailed({ status: run.status, message: run.error?.message ?? `Cursor run ${run.status}` })
-      );
-
-const cursorPrompt = Effect.fn('manualTestPlan.cursorPrompt')(function* (cwd: string, input: PromptInput) {
-  const apiKey = yield* Config.redacted('CURSOR_API_KEY').pipe(
-    Effect.mapError(error => new CursorRunFailed({ status: 'config', message: error.message }))
-  );
+export const manualTestPlanPrompt = Effect.fn('manualTestPlan.prompt')(function* (cwd: string, input: PromptInput) {
+  const readDirectory = yield* FileSystem.FileSystem.pipe(Effect.flatMap(fs => fs.realPath(cwd)));
   const correction = input.correction === undefined ? '' : `\n\nPrevious reply failed validation:\n${input.correction}`;
-  return yield* Effect.tryPromise({
-    try: () =>
-      Agent.prompt(`${input.skill}\n\nDiff:\n${input.diff}${correction}`, {
-        apiKey: Redacted.value(apiKey),
-        model: { id: 'auto' },
-        tools,
-        local: { cwd }
-      }),
-    catch: error => new CursorRunFailed({ status: 'startup', message: messageOf(error, 'Cursor SDK failed to start') })
-  }).pipe(Effect.flatMap(finishedText));
+  return yield* openCodePrompt({
+    prompt: `${input.skill}\n\nRepository (read-only): ${readDirectory}\n\nDiff:\n${input.diff}${correction}`,
+    readDirectory
+  });
 });
 
 const readPrBody = Effect.fn('manualTestPlan.readPrBody')(function* (owner: string, repo: string, pr: number) {
@@ -235,14 +256,14 @@ const skip = (reason: string, message: string) =>
   );
 
 const attempt = Effect.fn('manualTestPlan.attempt')(function* (
-  prompt: (input: PromptInput) => Effect.Effect<string, CursorRunFailed>,
+  prompt: (input: PromptInput) => ReturnType<typeof manualTestPlanPrompt>,
   skill: string,
   diff: string,
   cwd: string,
   correction: string | undefined
 ) {
   const text = yield* prompt({ skill, diff, ...(correction === undefined ? {} : { correction }) }).pipe(Effect.either);
-  if (Either.isLeft(text)) return { _tag: 'cursor', message: text.left.message } satisfies Attempt;
+  if (Either.isLeft(text)) return { _tag: 'opencode', message: text.left.message } satisfies Attempt;
   const decoded = yield* Schema.decodeUnknown(Schema.parseJson(Judgment))(text.right).pipe(Effect.either);
   if (Either.isLeft(decoded))
     return {
@@ -258,9 +279,12 @@ const attempt = Effect.fn('manualTestPlan.attempt')(function* (
 
 export type ManualTestPlanDeps = {
   readonly cwd?: string;
-  readonly prompt?: (input: PromptInput) => Effect.Effect<string, CursorRunFailed>;
+  readonly prompt?: (input: PromptInput) => ReturnType<typeof manualTestPlanPrompt>;
   readonly readBody?: (pr: number) => Effect.Effect<string>;
   readonly writeBody?: (pr: number, body: string) => Effect.Effect<void>;
+  readonly readHead?: (
+    pr: number
+  ) => Effect.Effect<{ readonly state: PullRequestState; readonly headRefOid: string } | undefined>;
 };
 
 export const manualTestPlanProgram = Effect.fn('manualTestPlan.program')(function* (deps?: ManualTestPlanDeps) {
@@ -273,29 +297,74 @@ export const manualTestPlanProgram = Effect.fn('manualTestPlan.program')(functio
         : Effect.fail(new InvalidBaseRef({ ref, message: `refused base ref ${ref}` }))
   });
   const pr = yield* readPullRequestEvent(env.eventPath).pipe(Effect.map(event => event.pull_request.number));
-  const cwd =
-    deps?.cwd ?? (yield* git(process.cwd(), ['rev-parse', '--show-toplevel']).pipe(Effect.map(root => root.trim())));
+  const cwd = deps?.cwd ?? (yield* git(process.cwd(), ['rev-parse', '--show-toplevel']).pipe(Effect.map(Str.trim)));
+  const sha = yield* git(cwd, ['rev-parse', 'HEAD']).pipe(Effect.map(Str.trim));
   yield* Effect.annotateCurrentSpan('pr', String(pr));
   yield* git(cwd, ['fetch', 'origin', base]);
   const skill = yield* git(cwd, ['show', `origin/${base}:${skillPath}`]).pipe(Effect.option);
   if (Option.isNone(skill)) return yield* skip('missing-skill', `origin/${base}:${skillPath} is missing`);
-  const diff = yield* git(cwd, ['diff', `origin/${base}...HEAD`]);
-  const prompt = deps?.prompt ?? ((input: PromptInput) => cursorPrompt(cwd, input));
+  const changedPaths = yield* git(cwd, ['diff', '--name-only', '-z', `origin/${base}...HEAD`]);
+  const relevantPaths = changedPaths.split('\0').filter(path => path.length > 0 && isRelevantDiffPath(path));
+  if (relevantPaths.length === 0)
+    return yield* skip('no-user-facing-changes', 'PR diff only changes tests or CI tooling');
+  const diff = yield* git(cwd, ['diff', `origin/${base}...HEAD`, '--', ...relevantPaths]);
+  const prompt = deps?.prompt ?? ((input: PromptInput) => manualTestPlanPrompt(cwd, input));
   const judged = yield* attempt(prompt, skill.value, diff, cwd, undefined).pipe(
     Effect.flatMap(first =>
-      first._tag === 'retry'
-        ? attempt(prompt, skill.value, diff, cwd, `${first.error}\n\nPrevious reply:\n${first.text}`)
-        : Effect.succeed(first)
+      Match.value(first).pipe(
+        Match.tag('opencode', () => Effect.succeed(first)),
+        Match.tag('retry', retry =>
+          attempt(prompt, skill.value, diff, cwd, `${retry.error}\n\nPrevious reply:\n${retry.text}`)
+        ),
+        Match.tag('ok', () => Effect.succeed(first)),
+        Match.exhaustive
+      )
     )
   );
-  if (judged._tag === 'cursor') return yield* skip('cursor', judged.message);
-  if (judged._tag === 'retry') return yield* skip('schema', judged.error);
-  const block = renderManualTestPlan(judged.judgment);
-  const current = yield* deps?.readBody === undefined ? readPrBody(env.owner, env.repo, pr) : deps.readBody(pr);
+  return yield* Match.value(judged).pipe(
+    Match.tag('opencode', ({ message }) => skip('opencode', message)),
+    Match.tag('retry', ({ error }) => skip('schema', error)),
+    Match.tag('ok', ({ judgment }) =>
+      writeManualTestPlan({
+        cwd,
+        owner: env.owner,
+        repo: env.repo,
+        pr,
+        sha,
+        judgment,
+        deps
+      })
+    ),
+    Match.exhaustive
+  );
+});
+
+const writeManualTestPlan = Effect.fn('manualTestPlan.writeManualTestPlan')(function* (input: {
+  readonly cwd: string;
+  readonly owner: string;
+  readonly repo: string;
+  readonly pr: number;
+  readonly sha: string;
+  readonly judgment: typeof Judgment.Type;
+  readonly deps: ManualTestPlanDeps | undefined;
+}) {
+  const block = renderManualTestPlan(input.judgment, input.sha);
+  const current =
+    input.deps?.readBody === undefined
+      ? yield* readPrBody(input.owner, input.repo, input.pr)
+      : yield* input.deps.readBody(input.pr);
+  const latest =
+    input.deps?.readHead === undefined
+      ? yield* GitHub.pullRequest(input.owner, input.repo, input.pr)
+      : yield* input.deps.readHead(input.pr);
+  if (latest?.state !== 'OPEN' || latest.headRefOid !== input.sha)
+    return yield* skip('stale-head', 'PR closed or head moved during manual plan generation');
   const next = spliceManualTestPlan(current, block);
   if (next === current) return { edited: false } satisfies Outcome;
-  yield* deps?.writeBody === undefined ? writePrBody(env.owner, env.repo, pr, next) : deps.writeBody(pr, next);
-  yield* Effect.logInfo('manual test plan updated', { pr });
+  yield* input.deps?.writeBody === undefined
+    ? writePrBody(input.owner, input.repo, input.pr, removeVideoSection(next))
+    : input.deps.writeBody(input.pr, removeVideoSection(next));
+  yield* Effect.logInfo('manual test plan updated', { pr: input.pr });
   return { edited: true } satisfies Outcome;
 });
 

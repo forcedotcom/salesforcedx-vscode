@@ -12,9 +12,11 @@
 
 import { fs } from '@salesforce/core/fs';
 import type { MetadataType } from '@salesforce/source-deploy-retrieve';
+import * as Chunk from 'effect/Chunk';
 import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
-import { isError, isNullable, isString } from 'effect/Predicate';
+import { isError, isNullable, isString, isUndefined } from 'effect/Predicate';
+import * as Stream from 'effect/Stream';
 import { Buffer } from 'node:buffer';
 // eslint-disable-next-line no-restricted-imports
 import type { Dirent } from 'node:fs';
@@ -192,19 +194,21 @@ export class FsProvider implements vscode.FileSystemProvider {
       vscode.workspace.workspaceFolders?.[0]?.uri;
     if (!baseUri) return [];
     const excludeArr = isNullable(exclude) ? undefined : isString(exclude) ? [exclude] : [exclude.pattern];
-    // Only runs on web (memfs); node:fs.glob returns AsyncIterator but we never hit that path
-    // this is fixed in higher memfs versions, but there's other conflicts there (would break sfdx-core support for node 20)
-    // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- web-only, memfs returns Promise<string[]>
-    const matches = await (fs.promises.glob(pattern, {
-      cwd: baseUri.path,
-      exclude: excludeArr
-    }) as unknown as Promise<string[]>);
-    return (
-      matches
-        .map(p => joinPathWithBase(baseUri, p))
-        // current memfs doesn't have the Dirents option so we need to filter out directories
-        .filter(uri => !fs.statSync(uri.path).isDirectory())
-        .slice(0, maxResults ?? Infinity)
+    return await Stream.fromAsyncIterable(
+      fs.promises.glob(pattern, { cwd: baseUri.path, exclude: excludeArr }),
+      error => new VirtualFsProviderError({ ...unknownToErrorCause(error), path: baseUri.path })
+    ).pipe(
+      Stream.map(p => joinPathWithBase(baseUri, p)),
+      // Exclude confirmed directories; keep matches whose stat cannot be read.
+      Stream.filterEffect(uri =>
+        Effect.try(() => !fs.statSync(uri.path).isDirectory()).pipe(
+          Effect.catchTag('UnknownException', () => Effect.succeed(true))
+        )
+      ),
+      stream => (isUndefined(maxResults) ? stream : stream.pipe(Stream.take(maxResults))),
+      Stream.runCollect,
+      Effect.map(Chunk.toArray),
+      Effect.runPromise
     );
   }
 }

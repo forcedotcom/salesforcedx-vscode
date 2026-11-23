@@ -10,12 +10,14 @@ import type {
   MetadataListingObservation,
   MetadataTypeObservation,
   PersistedInventoryCache,
+  RemoteTrackingObservation,
   RemoteTrackingObservations,
   TypeInventory,
   WorkspaceTypeInventory
 } from './orgCatalogInternalTypes';
 import type { OrgSObjectDescription, OrgSObjectSummary } from './orgMetadataCatalogTypes';
 import * as Arr from 'effect/Array';
+import * as DateTime from 'effect/DateTime';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
 import { pipe } from 'effect/Function';
@@ -142,7 +144,7 @@ export class OrgCatalogState extends Effect.Service<OrgCatalogState>()('OrgCatal
       const snapshot: OrgMetadataCatalogSnapshot = {
         version: 2,
         orgId,
-        writtenAt: new Date().toISOString(),
+        writtenAt: DateTime.formatIso(yield* DateTime.now),
         generation,
         inventory: pipe(inventory, HashMap.toValues, Arr.sort(byXmlName)),
         sobjects: {
@@ -156,10 +158,7 @@ export class OrgCatalogState extends Effect.Service<OrgCatalogState>()('OrgCatal
           )
         },
         tracking: pipe(
-          Option.getOrElse(HashMap.get(trackingByOrg, orgId), () => ({
-            byIdentity: HashMap.empty(),
-            identityOrder: []
-          })).byIdentity,
+          Option.getOrElse(HashMap.get(trackingByOrg, orgId), () => HashMap.empty()),
           HashMap.toValues,
           Arr.map(observation => ({
             xmlName: observation.reference.xmlName,
@@ -249,8 +248,10 @@ export class OrgCatalogState extends Effect.Service<OrgCatalogState>()('OrgCatal
             )
           );
           yield* Ref.update(remoteTrackingCache, current =>
-            HashMap.set(current, orgId, {
-              byIdentity: HashMap.fromIterable(
+            HashMap.set(
+              current,
+              orgId,
+              HashMap.fromIterable(
                 snapshot.tracking.map(observation => [
                   componentIdentity({ xmlName: observation.xmlName, fullName: observation.fullName }),
                   {
@@ -258,11 +259,8 @@ export class OrgCatalogState extends Effect.Service<OrgCatalogState>()('OrgCatal
                     signature: observation.signature
                   }
                 ])
-              ),
-              identityOrder: snapshot.tracking.map(observation =>
-                componentIdentity({ xmlName: observation.xmlName, fullName: observation.fullName })
               )
-            })
+            )
           );
           yield* Ref.update(metadataTypeCache, current => HashMap.set(current, orgId, snapshot.metadataTypes));
           yield* Ref.update(metadataListingCache, current =>
@@ -483,12 +481,7 @@ export class OrgCatalogState extends Effect.Service<OrgCatalogState>()('OrgCatal
     const getTracking = Effect.fn('OrgCatalogState.getTracking')((orgId: string) =>
       Ref.get(remoteTrackingCache).pipe(
         Effect.map(HashMap.get(orgId)),
-        Effect.map(
-          Option.getOrElse(() => ({
-            byIdentity: HashMap.empty(),
-            identityOrder: []
-          }))
-        )
+        Effect.map(Option.getOrElse(() => HashMap.empty<string, RemoteTrackingObservation>()))
       )
     );
     const setTracking = Effect.fn('OrgCatalogState.setTracking')(
@@ -533,13 +526,7 @@ export class OrgCatalogState extends Effect.Service<OrgCatalogState>()('OrgCatal
       yield* Ref.update(remoteTrackingCache, cache => {
         const observations = HashMap.get(cache, orgId);
         return Option.isSome(observations)
-          ? HashMap.set(cache, orgId, {
-              byIdentity: HashMap.filter(
-                observations.value.byIdentity,
-                (_value, identity) => !identities.has(identity)
-              ),
-              identityOrder: observations.value.identityOrder.filter(identity => !identities.has(identity))
-            })
+          ? HashMap.set(cache, orgId, HashMap.removeMany(observations.value, identities))
           : cache;
       });
     });

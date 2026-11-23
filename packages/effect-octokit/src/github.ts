@@ -27,7 +27,8 @@ export {
   readCompletedChecksEvent,
   readIssueCommentEvent,
   readPullRequestEvent,
-  readSynchronizeEvent
+  readSynchronizeEvent,
+  readWorkflowDispatchEvent
 } from './actionsEvent.js';
 
 export type PullReview = Endpoints['GET /repos/{owner}/{repo}/pulls/{pull_number}/reviews']['response']['data'][number];
@@ -45,6 +46,26 @@ export const WorkflowRunJob = Schema.Struct({
   completed_at: Schema.NullishOr(Schema.String)
 });
 export type WorkflowRunJob = typeof WorkflowRunJob.Type;
+
+export const WorkflowRun = Schema.Struct({
+  id: Schema.Number,
+  name: Schema.NullOr(Schema.String),
+  path: Schema.String,
+  head_sha: Schema.String,
+  status: Schema.NullOr(Schema.String),
+  conclusion: Schema.NullOr(Schema.String),
+  run_attempt: Schema.Number
+});
+export type WorkflowRun = typeof WorkflowRun.Type;
+
+export const WorkflowArtifact = Schema.Struct({
+  id: Schema.Number,
+  name: Schema.String,
+  expired: Schema.Boolean,
+  created_at: Schema.String,
+  workflow_run: Schema.optional(Schema.Struct({ head_sha: Schema.String }))
+});
+export type WorkflowArtifact = typeof WorkflowArtifact.Type;
 
 type Check = {
   readonly state?: string;
@@ -120,10 +141,14 @@ const decodeResponse = <A, I, R>(schema: Schema.Schema<A, I, R>, input: unknown,
     )
   );
 
+export const PullRequestState = Schema.Literal('OPEN', 'CLOSED', 'MERGED');
+export type PullRequestState = typeof PullRequestState.Type;
+
 export const PullRequest = Schema.Struct({
   reviewDecision: Schema.NullOr(Schema.String),
   isDraft: Schema.Boolean,
-  state: Schema.String,
+  state: PullRequestState,
+  body: Schema.NullOr(Schema.String).pipe(Schema.optional),
   baseRefName: Schema.String,
   headRefOid: Schema.String,
   author: Schema.NullOr(Schema.Struct({ login: Schema.String })),
@@ -138,7 +163,7 @@ const PullRequestQuery = Schema.Struct({
 const pullQuery = `query($owner:String!,$name:String!,$number:Int!){
   repository(owner:$owner,name:$name){
     pullRequest(number:$number){
-      reviewDecision isDraft state baseRefName headRefOid
+      reviewDecision isDraft state body baseRefName headRefOid
       author { login }
       headRepository { nameWithOwner }
       baseRepository { nameWithOwner }
@@ -284,13 +309,50 @@ export class GitHub extends Effect.Service<GitHub>()('GitHub', {
       );
     });
 
-    const workflowRunJobs = Effect.fn('GitHub.workflowRunJobs')(function* (repository: string, runId: string) {
+    const workflowRunJobs = Effect.fn('GitHub.workflowRunJobs')(function* (
+      repository: string,
+      runId: string,
+      filter: 'latest' | 'all' = 'latest'
+    ) {
       const path = `/repos/${repository}/actions/runs/${runId}/jobs`;
       return yield* run('GET', path, () =>
         octokit.paginate<unknown>(`GET ${path}`, {
+          filter,
           per_page: 100
         })
       ).pipe(Effect.flatMap(jobs => decodeResponse(Schema.Array(WorkflowRunJob), jobs, 'GET', path)));
+    });
+
+    const workflowRuns = Effect.fn('GitHub.workflowRuns')(function* (
+      parameters: Endpoints['GET /repos/{owner}/{repo}/actions/runs']['parameters']
+    ) {
+      return yield* run('GET', `/repos/${parameters.owner}/${parameters.repo}/actions/runs`, () =>
+        octokit
+          .request('GET /repos/{owner}/{repo}/actions/runs', parameters)
+          .then(response => response.data.workflow_runs)
+      );
+    });
+
+    const workflowRun = Effect.fn('GitHub.workflowRun')(function* (
+      parameters: Endpoints['GET /repos/{owner}/{repo}/actions/runs/{run_id}']['parameters']
+    ) {
+      return yield* run('GET', `/repos/${parameters.owner}/${parameters.repo}/actions/runs/${parameters.run_id}`, () =>
+        octokit.request('GET /repos/{owner}/{repo}/actions/runs/{run_id}', parameters).then(response => response.data)
+      );
+    });
+
+    const workflowRunArtifacts = Effect.fn('GitHub.workflowRunArtifacts')(function* (
+      parameters: Endpoints['GET /repos/{owner}/{repo}/actions/runs/{run_id}/artifacts']['parameters']
+    ) {
+      return yield* run(
+        'GET',
+        `/repos/${parameters.owner}/${parameters.repo}/actions/runs/${parameters.run_id}/artifacts`,
+        () =>
+          octokit.paginate('GET /repos/{owner}/{repo}/actions/runs/{run_id}/artifacts', {
+            per_page: 100,
+            ...parameters
+          })
+      );
     });
 
     const combinedStatus = Effect.fn('GitHub.combinedStatus')(function* (owner: string, repo: string, sha: string) {
@@ -442,6 +504,9 @@ export class GitHub extends Effect.Service<GitHub>()('GitHub', {
       pullReviews,
       checkRuns,
       workflowRunJobs,
+      workflowRuns,
+      workflowRun,
+      workflowRunArtifacts,
       combinedStatus,
       headChecks,
       createReview,

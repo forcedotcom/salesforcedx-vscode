@@ -146,6 +146,7 @@ export {
   selectOutputChannel,
   clearOutputChannel,
   waitForOutputChannelText,
+  waitForOutputChannelPredicate,
   outputChannelContains,
   countOutputChannelOptions,
   captureOutputChannelDetails
