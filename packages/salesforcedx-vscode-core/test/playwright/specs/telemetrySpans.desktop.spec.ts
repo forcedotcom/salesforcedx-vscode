@@ -13,10 +13,9 @@ import {
   waitForVSCodeWorkbench,
   type SpanRow
 } from '@salesforce/playwright-vscode-ext';
-import { telemetryDesktopTest as test } from '../fixtures/desktopFixtures';
+import { TELEMETRY_TAG, telemetryDesktopTest as test } from '../fixtures/desktopFixtures';
 
 type CoreSpanRow = SpanRow & { status?: { code?: number; message?: string } };
-const TELEMETRY_TAG = 'core-telemetry-e2e-test';
 const readCoreSpans = async (): Promise<CoreSpanRow[]> =>
   (await readAllSpanRows()).filter(row => row.kind === 'span' && row.attributes?.telemetryTag === TELEMETRY_TAG);
 const findSpan = (rows: CoreSpanRow[], name: string): CoreSpanRow | undefined => rows.find(row => row.name === name);
@@ -34,7 +33,7 @@ test('startup refresh and deactivation emit exported telemetry spans', async ({ 
     expect(findSpan(rows, 'sObjectRefreshNotification')).toEqual(
       expect.objectContaining({
         parentSpanId: '',
-        status: { code: 1, message: '' },
+        status: { code: 0, message: '' },
         attributes: expect.objectContaining({ type: 'startupmin', telemetryTag: TELEMETRY_TAG })
       })
     );
@@ -50,7 +49,7 @@ test('startup refresh and deactivation emit exported telemetry spans', async ({ 
     expect(findSpan(rows, 'deactivationEvent')).toEqual(
       expect.objectContaining({
         parentSpanId: '',
-        status: { code: 1, message: '' },
+        status: { code: 0, message: '' },
         attributes: expect.objectContaining({
           extensionName: 'salesforcedx-vscode-core',
           telemetryTag: TELEMETRY_TAG
