@@ -1,3 +1,5 @@
+import * as FetchHttpClient from '@effect/platform/FetchHttpClient';
+import * as HttpClient from '@effect/platform/HttpClient';
 import * as Effect from 'effect/Effect';
 import { isNotUndefined } from 'effect/Predicate';
 import * as Schema from 'effect/Schema';
@@ -9,8 +11,9 @@ export const isAnyVersionValid = Effect.fn('nodeVersions.isAnyVersionValid')(fun
   currentDate: Date,
   versions: string[]
 ) {
-  const json = yield* Effect.tryPromise(() =>
-    fetch('https://raw.githubusercontent.com/nodejs/Release/main/schedule.json').then(response => response.json())
+  const json = yield* HttpClient.get('https://raw.githubusercontent.com/nodejs/Release/main/schedule.json').pipe(
+    Effect.flatMap(response => response.json),
+    Effect.provide(FetchHttpClient.layer)
   );
   const schedule = yield* Schema.decodeUnknown(VersionSchedule)(json);
 
