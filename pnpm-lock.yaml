@@ -1100,8 +1100,8 @@ importers:
   packages/salesforcedx-vscode-apex-oas:
     dependencies:
       '@salesforce/apex-language-server-extension-api':
-        specifier: ^0.11.83-nightly.20261120
-        version: 0.11.83-nightly.20261120(effect@3.22.4)
+        specifier: ^0.11.86-nightly.20261123
+        version: 0.11.86-nightly.20261123(effect@3.22.4)
       '@salesforce/effect-ext-utils':
         specifier: workspace:*
         version: link:../effect-ext-utils
@@ -4600,6 +4600,14 @@ packages:
 
   '@rviscomi/capo.js@2.3.0':
     resolution: {integrity: sha512-qY3QRtKdq//Z8jDENSUCAaSE76sUwHgN6pzoRXj6e5cSwQqxFLjm8B+GDkbtUr/WGWJRzoAMtz0I60TM1KrOBg==}
+
+  '@salesforce/apex-language-server-extension-api@0.11.86-nightly.20261123':
+    resolution: {integrity: sha512-13brZZFi9ZuCJXLvkAkGIpjkrFJ49zzJIVb3KDXSWZgdEffonXbvyUsKC7PUpDU3ZiOehebOIRUBL/rZGS+tfw==}
+    peerDependencies:
+      effect: ^3.22.4
+    peerDependenciesMeta:
+      effect:
+        optional: true
 
   '@salesforce/apex-language-server-extension-api@0.11.86-nightly.20261123':
     resolution: {integrity: sha512-13brZZFi9ZuCJXLvkAkGIpjkrFJ49zzJIVb3KDXSWZgdEffonXbvyUsKC7PUpDU3ZiOehebOIRUBL/rZGS+tfw==}
@@ -14872,6 +14880,12 @@ snapshots:
       vscode-languageserver-protocol: 3.17.5
     optionalDependencies:
       effect: 3.22.5
+
+  '@salesforce/apex-language-server-extension-api@0.11.86-nightly.20261123(effect@3.22.4)':
+    dependencies:
+      vscode-languageserver-protocol: 3.17.5
+    optionalDependencies:
+      effect: 3.22.4
 
   '@salesforce/apex-tmlanguage@2.0.3': {}
 
