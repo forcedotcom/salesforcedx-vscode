@@ -177,7 +177,8 @@ test('Apex Tests via Test Explorer: run all, verify discovery', async ({ page })
     await waitForRunApexTestsProgressNotificationGone(page, { timeout: TEST_RUN_TIMEOUT });
     await ensureOutputPanelOpen(page);
     await selectOutputChannel(page, 'Apex Testing');
-    await waitForApexRunOutputLine(page, '=== Test Summary');
+    // Re-Run Last Method emits the one-test summary without the section-heading line.
+    await waitForApexRunOutputLine(page, 'Tests Ran            1');
     await waitForApexRunOutputLine(page, `${testClassName}.shouldDiscoverThisTest`);
     await waitForApexRunOutputLine(page, 'Ended SFDX: Run Apex Tests');
     await verifyNoTestRunInProgress(page);
