@@ -12,6 +12,11 @@ inputs:
   repo-token:
     required: true
     description: 'Token taken from secrets env var'
+outputs:
+  is_feature_request:
+    description: 'Whether the issue is a feature request'
+  should_process_issue:
+    description: 'Whether the new-issue actions should process this issue'
 runs:
   using: 'node24'
   main: 'lib/index.js'

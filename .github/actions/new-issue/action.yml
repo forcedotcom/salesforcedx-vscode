@@ -13,11 +13,12 @@ inputs:
     required: true
     description: 'Token taken from secrets env var'
   message:
-    required: true
-    description: 'Message to post in issue comment'
-  label:
     required: false
-    description: 'A label the issue must contain to post the message'
+    description: 'Message to post in issue comment'
+  should-process-issue:
+    required: false
+    default: 'true'
+    description: 'Whether to post the issue acknowledgement'
 runs:
   using: 'node24'
   main: 'lib/index.js'

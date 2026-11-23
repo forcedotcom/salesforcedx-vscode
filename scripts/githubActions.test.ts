@@ -24,7 +24,7 @@ const issue = {
   created_at: '2026-11-10T14:59:11Z',
   html_url: 'https://github.com/forcedotcom/salesforcedx-vscode/issues/8610',
   user: { login: 'author' },
-  labels: [],
+  labels: [] as Array<{ readonly name: string }>,
   body: 'A bug report'
 };
 const validBody = [
@@ -44,6 +44,7 @@ const runAction = async (
     readonly issue?: typeof issue | null;
     readonly comments?: readonly unknown[];
     readonly message?: string;
+    readonly shouldProcessIssue?: boolean;
     readonly token?: string;
     readonly release?: unknown;
     readonly releaseStatus?: number;
@@ -60,8 +61,8 @@ const runAction = async (
   vi.stubEnv('IDEE_GH_TOKEN', 'wrong-idee-token');
   vi.stubEnv('GITHUB_TOKEN', 'wrong-github-token');
   vi.stubEnv('INPUT_REPO-TOKEN', options.token ?? 'action-token');
-  vi.stubEnv('INPUT_MESSAGE', options.message ?? 'Thank you');
-  vi.stubEnv('INPUT_LABEL', '');
+  vi.stubEnv('INPUT_MESSAGE', options.message ?? '');
+  vi.stubEnv('INPUT_SHOULD-PROCESS-ISSUE', options.shouldProcessIssue === false ? 'false' : 'true');
   vi.stubGlobal('fetch', (input: string | URL | Request, init?: RequestInit) => {
     const path = new URL(String(input)).pathname;
     const method = init?.method ?? 'GET';
@@ -133,9 +134,31 @@ describe('issue actions', () => {
   });
 
   it('does not repost an existing identical message', async () => {
-    const { calls, setOutput } = await runAction('new-issue', { comments: [{ body: 'Thank you' }] });
+    const { calls, setOutput } = await runAction('new-issue', {
+      message: 'Thank you',
+      comments: [{ body: 'Thank you' }]
+    });
     expect(calls).toHaveLength(1);
     expect(setOutput).not.toHaveBeenCalled();
+  });
+
+  it('posts the default acknowledgement when no message is supplied', async () => {
+    const { calls, setOutput } = await runAction('new-issue');
+    expect(calls[1]?.body).toEqual({
+      body:
+        [
+          'Thank you for filing this issue.  We appreciate your feedback and will review the issue as soon as possible.',
+          "Remember, however, that GitHub isn't a mechanism for receiving support under any agreement or SLA.",
+          'If you require immediate assistance, contact Salesforce Customer Support.'
+        ].join(' ') + '\n'
+    });
+    expect(setOutput).toHaveBeenCalledWith('comment-url', commentUrl);
+  });
+
+  it.each(['new-issue', 'validate-issue'] as const)('%s skips when issue processing is disabled', async action => {
+    const { calls, setFailed } = await runAction(action, { shouldProcessIssue: false });
+    expect(calls).toEqual([]);
+    expect(setFailed).not.toHaveBeenCalled();
   });
 
   it.each(['new-issue', 'check-feature-request', 'validate-issue'] as const)(
@@ -168,6 +191,15 @@ describe('issue actions', () => {
     });
     expect(calls[1]).toMatchObject({ method: 'POST', path: labelsPath, body: { labels: ['type:enhancements'] } });
     expect(setOutput).toHaveBeenCalledWith('is_feature_request', 'true');
+    expect(setOutput).toHaveBeenCalledWith('should_process_issue', 'false');
+  });
+
+  it('does not process issues with an excluded label', async () => {
+    const { calls, setOutput } = await runAction('check-feature-request', {
+      issue: { ...issue, labels: [{ name: 'announcement' }] }
+    });
+    expect(calls).toEqual([]);
+    expect(setOutput).toHaveBeenCalledWith('should_process_issue', 'false');
   });
 
   it('ignores feature requests from other commenters', async () => {
@@ -176,6 +208,7 @@ describe('issue actions', () => {
     });
     expect(calls).toHaveLength(1);
     expect(setOutput).toHaveBeenCalledWith('is_feature_request', 'false');
+    expect(setOutput).toHaveBeenCalledWith('should_process_issue', 'true');
   });
 
   it('validates author-provided versions, reads the latest release, and ignores missing labels', async () => {

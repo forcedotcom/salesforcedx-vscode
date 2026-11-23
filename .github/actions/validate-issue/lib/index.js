@@ -25,6 +25,8 @@ function run() {
             (0, core_1.setFailed)('github.context.payload.issue does not exist');
             return;
         }
+        if ((0, core_1.getInput)('should-process-issue') === 'false')
+            return;
         // Use only the action input, never a token inherited from the runner environment.
         const token = (0, core_1.getInput)('repo-token', { required: true });
         const github = yield* (0, effect_octokit_1.githubFromToken)(token);

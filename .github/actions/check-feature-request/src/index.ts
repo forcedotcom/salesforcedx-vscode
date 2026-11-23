@@ -7,10 +7,21 @@
 
 import { getInput, setFailed, setOutput } from "@actions/core";
 import { context } from "@actions/github";
+import type { Label } from "@octokit/webhooks-types";
 import { githubFromToken } from "@salesforce/effect-octokit";
 import * as Cause from "effect/Cause";
 import * as Effect from "effect/Effect";
 import { isNotNullable, isNotUndefined, isNull } from "effect/Predicate";
+
+const skippedIssueLabels = new Set([
+  'announcement',
+  'missing required information',
+  'validated',
+  'type:enhancements',
+  'feature',
+  'type:bug',
+  'pending release'
+]);
 
 const run = () =>
   Effect.gen(function* () {
@@ -18,6 +29,12 @@ const run = () =>
 
   if (!issue) {
     setFailed("github.context.payload.issue does not exist");
+    return;
+  }
+
+  if (issue.state === 'closed' || issue.labels?.some((label: Label) => skippedIssueLabels.has(label.name))) {
+    setOutput('is_feature_request', 'false');
+    setOutput('should_process_issue', 'false');
     return;
   }
 
@@ -41,6 +58,7 @@ const run = () =>
 
   if (isNull(bodies[0])) {
     setOutput("is_feature_request", "false");
+    setOutput('should_process_issue', 'true');
   } else {
     const bodyTexts = bodies.filter(isNotNullable);
     const featureRequestRegex = /(feature\s*request)/ig;
@@ -52,8 +70,10 @@ const run = () =>
       console.log('This issue is a feature request!');
       yield* github.addIssueLabels(owner, repo, issue_number, ['type:enhancements']);
       setOutput("is_feature_request", "true");
+      setOutput('should_process_issue', 'false');
     } else {
       setOutput("is_feature_request", "false");
+      setOutput('should_process_issue', 'true');
     }
   }
   }).pipe(

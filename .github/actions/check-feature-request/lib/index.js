@@ -12,10 +12,24 @@ const effect_octokit_1 = require("@salesforce/effect-octokit");
 const Cause = require("effect/Cause");
 const Effect = require("effect/Effect");
 const Predicate_1 = require("effect/Predicate");
+const skippedIssueLabels = new Set([
+    'announcement',
+    'missing required information',
+    'validated',
+    'type:enhancements',
+    'feature',
+    'type:bug',
+    'pending release'
+]);
 const run = () => Effect.gen(function* () {
     const issue = github_1.context.payload.issue;
     if (!issue) {
         (0, core_1.setFailed)("github.context.payload.issue does not exist");
+        return;
+    }
+    if (issue.state === 'closed' || issue.labels?.some((label) => skippedIssueLabels.has(label.name))) {
+        (0, core_1.setOutput)('is_feature_request', 'false');
+        (0, core_1.setOutput)('should_process_issue', 'false');
         return;
     }
     // Use only the action input, never a token inherited from the runner environment.
@@ -33,6 +47,7 @@ const run = () => Effect.gen(function* () {
     console.log('bodies.length = ' + bodies.length);
     if ((0, Predicate_1.isNull)(bodies[0])) {
         (0, core_1.setOutput)("is_feature_request", "false");
+        (0, core_1.setOutput)('should_process_issue', 'true');
     }
     else {
         const bodyTexts = bodies.filter(Predicate_1.isNotNullable);
@@ -43,9 +58,11 @@ const run = () => Effect.gen(function* () {
             console.log('This issue is a feature request!');
             yield* github.addIssueLabels(owner, repo, issue_number, ['type:enhancements']);
             (0, core_1.setOutput)("is_feature_request", "true");
+            (0, core_1.setOutput)('should_process_issue', 'false');
         }
         else {
             (0, core_1.setOutput)("is_feature_request", "false");
+            (0, core_1.setOutput)('should_process_issue', 'true');
         }
     }
 }).pipe(Effect.withSpan('checkFeatureRequest.run'), Effect.catchAllCause(cause => Effect.sync(() => {

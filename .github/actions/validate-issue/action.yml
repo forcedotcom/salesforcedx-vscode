@@ -12,6 +12,10 @@ inputs:
   repo-token:
     required: true
     description: 'Token taken from secrets env var'
+  should-process-issue:
+    required: false
+    default: 'true'
+    description: 'Whether to validate this new issue'
 runs:
   using: 'node24'
   main: 'lib/index.js'

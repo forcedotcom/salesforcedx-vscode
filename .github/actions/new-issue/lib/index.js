@@ -11,6 +11,11 @@ const github_1 = require("@actions/github");
 const effect_octokit_1 = require("@salesforce/effect-octokit");
 const Cause = require("effect/Cause");
 const Effect = require("effect/Effect");
+const defaultNewIssueMessage = [
+    'Thank you for filing this issue.  We appreciate your feedback and will review the issue as soon as possible.',
+    "Remember, however, that GitHub isn't a mechanism for receiving support under any agreement or SLA.",
+    'If you require immediate assistance, contact Salesforce Customer Support.'
+].join(' ') + '\n';
 const run = () => Effect.gen(function* () {
     // The issue request exists on payload when an issue is created
     // Sets action status to failed when issue does not exist on payload.
@@ -19,12 +24,12 @@ const run = () => Effect.gen(function* () {
         (0, core_1.setFailed)('github.context.payload.issue does not exist');
         return;
     }
+    if ((0, core_1.getInput)('should-process-issue') === 'false')
+        return;
     // Get input parameters.
     const token = (0, core_1.getInput)('repo-token', { required: true });
-    const message = (0, core_1.getInput)('message');
-    const label = (0, core_1.getInput)('label');
+    const message = (0, core_1.getInput)('message') || defaultNewIssueMessage;
     console.log('message: ', message);
-    console.log('label: ', label);
     // Use only the action input, never a token inherited from the runner environment.
     const github = yield* (0, effect_octokit_1.githubFromToken)(token);
     // Get owner and repo from context
@@ -35,8 +40,6 @@ const run = () => Effect.gen(function* () {
     console.log('owner: ' + owner);
     console.log('repo: ' + repo);
     console.log('issue number: ' + issue.number);
-    const issueLabels = issue.labels;
-    console.log('issue labels: ', issueLabels);
     const comments = yield* github.issueComments(owner, repo, issue.number);
     // If we have comments check out that this comment has not been previously commented
     if (comments.some(comment => comment.body === message)) {

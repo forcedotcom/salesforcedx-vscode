@@ -7,10 +7,15 @@
 
 import { getInput, setOutput, setFailed } from '@actions/core';
 import { context } from '@actions/github';
-import type { Label } from '@octokit/webhooks-types';
 import { githubFromToken } from '@salesforce/effect-octokit';
 import * as Cause from 'effect/Cause';
 import * as Effect from 'effect/Effect';
+
+const defaultNewIssueMessage = [
+  'Thank you for filing this issue.  We appreciate your feedback and will review the issue as soon as possible.',
+  "Remember, however, that GitHub isn't a mechanism for receiving support under any agreement or SLA.",
+  'If you require immediate assistance, contact Salesforce Customer Support.'
+].join(' ') + '\n';
 
 const run = () =>
   Effect.gen(function* () {
@@ -21,13 +26,12 @@ const run = () =>
     setFailed('github.context.payload.issue does not exist');
     return;
   }
+  if (getInput('should-process-issue') === 'false') return;
 
   // Get input parameters.
   const token = getInput('repo-token', { required: true });
-  const message = getInput('message');
-  const label = getInput('label');
+  const message = getInput('message') || defaultNewIssueMessage;
   console.log('message: ', message);
-  console.log('label: ', label);
 
   // Use only the action input, never a token inherited from the runner environment.
   const github = yield* githubFromToken(token);
@@ -41,9 +45,6 @@ const run = () =>
   console.log('owner: ' + owner);
   console.log('repo: ' + repo);
   console.log('issue number: ' + issue.number);
-
-  const issueLabels = issue.labels as Label[];
-  console.log('issue labels: ', issueLabels);
 
   const comments = yield* github.issueComments(owner, repo, issue.number);
 
