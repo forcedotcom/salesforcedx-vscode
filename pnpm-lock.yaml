@@ -1238,14 +1238,14 @@ importers:
         version: 3.2.0
     devDependencies:
       '@salesforce/core':
-        specifier: ^9.4.1
+        specifier: ^9.6.0
         version: 9.6.0
       '@salesforce/playwright-vscode-ext':
         specifier: workspace:*
         version: link:../playwright-vscode-ext
       '@salesforce/source-deploy-retrieve':
-        specifier: ^13.13.0
-        version: 13.13.0(supports-color@8.1.1)
+        specifier: ^13.14.1
+        version: 13.14.1(bare-buffer@3.7.3)(supports-color@8.1.1)
       salesforcedx-vscode-services:
         specifier: workspace:*
         version: link:../salesforcedx-vscode-services
@@ -1418,11 +1418,11 @@ importers:
         specifier: workspace:*
         version: link:../playwright-vscode-ext
       '@salesforce/source-deploy-retrieve':
-        specifier: ^13.13.0
-        version: 13.13.0(supports-color@8.1.1)
+        specifier: ^13.14.1
+        version: 13.14.1(bare-buffer@3.7.3)(supports-color@8.1.1)
       '@salesforce/source-tracking':
         specifier: ^8.1.16
-        version: 8.1.16(supports-color@8.1.1)
+        version: 8.1.16(bare-buffer@3.7.3)(supports-color@8.1.1)
       '@salesforce/types':
         specifier: ^1.8.0
         version: 1.9.0
@@ -1477,14 +1477,14 @@ importers:
         version: 3.2.0
     devDependencies:
       '@salesforce/core':
-        specifier: ^9.4.1
+        specifier: ^9.6.0
         version: 9.6.0
       '@salesforce/playwright-vscode-ext':
         specifier: workspace:*
         version: link:../playwright-vscode-ext
       '@salesforce/source-deploy-retrieve':
-        specifier: ^13.13.0
-        version: 13.13.0(supports-color@8.1.1)
+        specifier: ^13.14.1
+        version: 13.14.1(bare-buffer@3.7.3)(supports-color@8.1.1)
       salesforcedx-vscode-services:
         specifier: workspace:*
         version: link:../salesforcedx-vscode-services
@@ -1531,7 +1531,7 @@ importers:
         specifier: '*'
         version: link:../salesforcedx-apex
       '@salesforce/core':
-        specifier: ^9.4.1
+        specifier: ^9.6.0
         version: 9.6.0
       '@salesforce/o11y-reporter':
         specifier: ^1.8.5
@@ -1540,11 +1540,11 @@ importers:
         specifier: '*'
         version: link:../salesforcedx-utils
       '@salesforce/source-deploy-retrieve':
-        specifier: ^13.13.0
-        version: 13.13.0(supports-color@8.1.1)
+        specifier: ^13.14.1
+        version: 13.14.1(bare-buffer@3.7.3)(supports-color@8.1.1)
       '@salesforce/source-tracking':
         specifier: ^8.1.16
-        version: 8.1.16(supports-color@8.1.1)
+        version: 8.1.16(bare-buffer@3.7.3)(supports-color@8.1.1)
       '@salesforce/templates':
         specifier: ^66.19.0
         version: 66.20.4
@@ -1628,14 +1628,14 @@ importers:
         specifier: 2.8.0
         version: 2.8.0(@opentelemetry/api@1.9.1)
       '@salesforce/core':
-        specifier: ^9.4.1
+        specifier: ^9.6.0
         version: 9.6.0
       '@salesforce/source-deploy-retrieve':
-        specifier: ^13.13.0
-        version: 13.13.0(supports-color@8.1.1)
+        specifier: ^13.14.1
+        version: 13.14.1(bare-buffer@3.7.3)(supports-color@8.1.1)
       '@salesforce/source-tracking':
         specifier: ^8.1.16
-        version: 8.1.16(supports-color@8.1.1)
+        version: 8.1.16(bare-buffer@3.7.3)(supports-color@8.1.1)
       '@salesforce/templates':
         specifier: ^66.19.0
         version: 66.20.4
@@ -1678,10 +1678,10 @@ importers:
         version: 9.6.0
       '@salesforce/source-deploy-retrieve':
         specifier: ^13.11.1
-        version: 13.13.0(supports-color@8.1.1)
+        version: 13.14.1(bare-buffer@3.7.3)(supports-color@8.1.1)
       '@salesforce/source-tracking':
         specifier: ^8.1.7
-        version: 8.1.16(supports-color@8.1.1)
+        version: 8.1.16(bare-buffer@3.7.3)(supports-color@8.1.1)
       '@salesforce/templates':
         specifier: ^66.19.0
         version: 66.20.4
@@ -4696,8 +4696,8 @@ packages:
   '@salesforce/soql-language-server@1.1.0':
     resolution: {integrity: sha512-zlUe2knV7Hd7VoJGfB78PU7JtybOLiJFU7YR6vY0PrTc3vCUzfl+eQBO+fvZH8UI18qfNMEY0+tzysY+ifejcQ==}
 
-  '@salesforce/source-deploy-retrieve@13.13.0':
-    resolution: {integrity: sha512-RnvYfjYtlfMF3kA5//he468upzVuaEF+M0dYa3WzKyaqbzeUZQ+5wBCY5Q5X3W7Rk0pcew5vrgPIgnUVzZCDqg==}
+  '@salesforce/source-deploy-retrieve@13.14.1':
+    resolution: {integrity: sha512-eSeN2QaPUy9Ph0xOmVA24jus0cbospOhzeWM6ud+SKY45E4MeGW8E0pYl8AQJH9ufnKyuLZO4NfiE+dIY8gNuQ==}
     engines: {node: '>=22.0.0'}
 
   '@salesforce/source-tracking@8.1.16':
@@ -5003,9 +5003,6 @@ packages:
     resolution: {integrity: sha512-O3PDvjikVWECu078bLdRb2HwjVgR+wa7D0GX8gN1A8axlgEc7tordHOoEYcKRVxGcAw7bxXjwiKGXaY17qXD+Q==}
     peerDependencies:
       eslint: '>=7.7.0'
-
-  '@tootallnate/quickjs-emscripten@0.23.0':
-    resolution: {integrity: sha512-C5Mc6rdnsaJDjO3UpGW/CQTHtCKaYlScZTly4JIu97Jxo/odCiH0ITnDXSJPTOrEKk/ycSZ0AOgTmkDtkOsvIA==}
 
   '@tybys/wasm-util@0.10.5':
     resolution: {integrity: sha512-dOGOPxlaNV+G046mZzN+9C0dAcQZeSKcXiVaM0TYy/LM4ttTmgSBDxYfovcYI8Em3+eAbiAYpvWLOv8+ZVRJKA==}
@@ -5905,10 +5902,6 @@ packages:
     resolution: {integrity: sha512-NF+epuEdnUYVlGuhaxbbq+dvJttwLnGY+YixlXlME5KpQ5W3CnXA5cVTneY3SPbPDRkcjMbifrwmFYcClgOZeg==}
     engines: {node: '>= 0.8'}
 
-  basic-ftp@5.3.1:
-    resolution: {integrity: sha512-bopVNp6ugyA150DDuZfPFdt1KZ5a94ZDiwX4hMgZDzF+GttD80lEy8kj98kbyhLXnPvhtIo93mdnLIjpCAeeOw==}
-    engines: {node: '>=10.0.0'}
-
   basic-ftp@6.2.6:
     resolution: {integrity: sha512-0EjZCaodOz6yiokv2JA1VyKGNdGxULZ+GGlPgG9tm4d+T/bHtX1hUch8CumDneBfpIbiSdn7TaCGwpM+gwsOlw==}
     engines: {node: '>=10.0.0'}
@@ -6547,10 +6540,6 @@ packages:
     resolution: {integrity: sha512-0R9ikRb668HB7QDxT1vkpuUBtqc53YyAwMwGeUFKRojY/NWKvdZ+9UYtRfGmhqNbRkTSVpMbmyhXipFFv2cb/A==}
     engines: {node: '>= 12'}
 
-  data-uri-to-buffer@6.0.2:
-    resolution: {integrity: sha512-7hvf7/GW8e86rW0ptuwS3OcBGDjIi6SZva7hCyWC0yYry2cOPmLIjXAUHI6DK2HsnwJd9ifmt57i8eV2n4YNpw==}
-    engines: {node: '>= 14'}
-
   data-uri-to-buffer@8.0.0:
     resolution: {integrity: sha512-6UHfyCux51b8PTGDgveqtz1tvphBku5DrMKKJbFAZAJOI2zsjDpDoYE1+QGj7FOMS4BdTFNJsJiR3zEB0xH0yQ==}
     engines: {node: '>= 20'}
@@ -6676,10 +6665,6 @@ packages:
   define-properties@1.2.1:
     resolution: {integrity: sha512-8QmQKqEASLd5nx0U1B1okLElbUuuttJ/AnYmRXbbbGDWh6uS208EjD4Xqq/I9wK7u0v6O08XhTWnt5XtEbR6Dg==}
     engines: {node: '>= 0.4'}
-
-  degenerator@5.0.1:
-    resolution: {integrity: sha512-TllpMR/t0M5sqCXfj85i4XaAzxmS5tVA16dqvdkMwGmzI+dXLXnw3J+3Vdv7VKw+ThlTMboK6i9rnZ6Nntj5CQ==}
-    engines: {node: '>= 14'}
 
   degenerator@7.0.2:
     resolution: {integrity: sha512-j47S7YEAqh4U3UR355ts14Ipq0Zgn+AaMRdJuoyF7Ry2eSazevFvaviLMp0iOXAq7/FiBs3/33UIkE7rWRoLWQ==}
@@ -7687,10 +7672,6 @@ packages:
 
   get-tsconfig@4.14.3:
     resolution: {integrity: sha512-++QEw4DIY7WGoukz+/+A/8dGYPT9l9yIadnmSgZ8Rjr3YVSVDipQSO9CdnJo9ePqFqUUqh+wk9uIaoiAwsiPkA==}
-
-  get-uri@6.0.5:
-    resolution: {integrity: sha512-b1O07XYq8eRuVzBNgJLstU6FYc1tS6wnMtF1I1D9lE8LxZSOGZ7LhxN54yPP6mGw5f2CkXY2BQUL9Fx41qvcIg==}
-    engines: {node: '>= 14'}
 
   get-uri@8.0.2:
     resolution: {integrity: sha512-H1sU7ppM+Hdb+FJgOTaQ7SHiV7ogUgnb+VgZ55Dz3YzLqZ4bMAClcdveHYt56npM9M7eclEg1j92ZnmSOP9uhA==}
@@ -9687,17 +9668,9 @@ packages:
     resolution: {integrity: sha512-R4nPAVTAU0B9D35/Gk3uJf/7XYbQcyohSKdvAxIRSNghFl4e71hVoGnBNQz9cWaXxO2I10KTC+3jMdvvoKw6dQ==}
     engines: {node: '>=6'}
 
-  pac-proxy-agent@7.2.0:
-    resolution: {integrity: sha512-TEB8ESquiLMc0lV8vcd5Ql/JAKAoyzHFXaStwjkzpOpC5Yv+pIzLfHvjTSdf3vpa2bMiUQrg9i6276yn8666aA==}
-    engines: {node: '>= 14'}
-
   pac-proxy-agent@9.1.1:
     resolution: {integrity: sha512-P30j9cFU4vcu9TKjSVAwdzb+tY8ktfAwsVvxFSXmsoe09I4yZV52JAO8Z/Fptpi9VWxFTluDgqzGfgvYJlTzjg==}
     engines: {node: '>= 20'}
-
-  pac-resolver@7.0.1:
-    resolution: {integrity: sha512-5NPgf87AT2STgwa2ntRMr45jTKrYBGkVU36yT0ig/n/GMAa3oPqhZfIQ2kMEimReg0+t9kZViDVZ83qfVUlckg==}
-    engines: {node: '>= 14'}
 
   pac-resolver@9.0.2:
     resolution: {integrity: sha512-FyLebKd2X1SzQAc6P+AAgWRGnAgEAYEwn1oJucBIdQivJ50dV3Lndjqso4mebnHiLaYeHtVaDfSL33BJYLi7QA==}
@@ -10057,10 +10030,6 @@ packages:
     peerDependenciesMeta:
       kerberos:
         optional: true
-
-  proxy-agent@6.5.0:
-    resolution: {integrity: sha512-TmatMXdr2KlRiA2CyDu8GqR8EjahTG3aY3nXjdzFyoZbmB8hrBsTyMezhULIXKnC0jpfjlmiZ3+EaCzoInSu/A==}
-    engines: {node: '>= 14'}
 
   proxy-agent@8.0.3:
     resolution: {integrity: sha512-SYjxPOWaz3CrRZxqgj3A/261L3ZSCcWzM0dFsxNP27m43/KiHWtUmtHZFsHvh7fn11E/SmBfcNsWcWqMhZ6fAw==}
@@ -14870,7 +14839,7 @@ snapshots:
       vscode-languageserver-protocol: 3.17.5
       vscode-languageserver-textdocument: 1.0.12
 
-  '@salesforce/source-deploy-retrieve@13.13.0(supports-color@8.1.1)':
+  '@salesforce/source-deploy-retrieve@13.14.1(bare-buffer@3.7.3)(supports-color@8.1.1)':
     dependencies:
       '@salesforce/core': 9.6.0
       '@salesforce/kit': 4.0.10
@@ -14878,28 +14847,38 @@ snapshots:
       '@salesforce/types': 1.9.0
       fast-levenshtein: 3.0.0
       fast-xml-parser: 5.12.1
+      form-data: 4.0.6
       got: 11.8.6
       graceful-fs: 4.2.12
       ignore: 5.3.2
       jszip: 3.10.2
       mime: 2.6.0
       minimatch: 11.0.9
-      proxy-agent: 6.5.0(supports-color@8.1.1)
+      proxy-agent: 8.0.3(supports-color@8.1.1)
+      tar-stream: 3.2.2(bare-buffer@3.7.3)
       yaml: 2.9.1
     transitivePeerDependencies:
+      - bare-abort-controller
+      - bare-buffer
+      - kerberos
+      - react-native-b4a
       - supports-color
 
-  '@salesforce/source-tracking@8.1.16(supports-color@8.1.1)':
+  '@salesforce/source-tracking@8.1.16(bare-buffer@3.7.3)(supports-color@8.1.1)':
     dependencies:
       '@salesforce/core': 9.6.0
       '@salesforce/kit': 4.0.10
-      '@salesforce/source-deploy-retrieve': 13.13.0(supports-color@8.1.1)
+      '@salesforce/source-deploy-retrieve': 13.14.1(bare-buffer@3.7.3)(supports-color@8.1.1)
       '@salesforce/ts-types': 3.2.4
       fast-xml-parser: 5.12.1
       graceful-fs: 4.2.12
       isomorphic-git: 1.44.17
       ts-retry-promise: 0.8.1
     transitivePeerDependencies:
+      - bare-abort-controller
+      - bare-buffer
+      - kerberos
+      - react-native-b4a
       - supports-color
 
   '@salesforce/templates@66.20.4':
@@ -15402,8 +15381,6 @@ snapshots:
   '@tony.ganchev/eslint-plugin-header@3.4.4(eslint@10.15.0(jiti@2.7.0)(supports-color@8.1.1))':
     dependencies:
       eslint: 10.15.0(jiti@2.7.0)(supports-color@8.1.1)
-
-  '@tootallnate/quickjs-emscripten@0.23.0': {}
 
   '@tybys/wasm-util@0.10.5':
     dependencies:
@@ -16397,8 +16374,6 @@ snapshots:
     dependencies:
       safe-buffer: 5.1.2
 
-  basic-ftp@5.3.1: {}
-
   basic-ftp@6.2.6: {}
 
   before-after-hook@4.0.0: {}
@@ -17141,8 +17116,6 @@ snapshots:
 
   data-uri-to-buffer@4.0.1: {}
 
-  data-uri-to-buffer@6.0.2: {}
-
   data-uri-to-buffer@8.0.0: {}
 
   data-urls@6.0.1:
@@ -17245,12 +17218,6 @@ snapshots:
       define-data-property: 1.1.4
       has-property-descriptors: 1.0.2
       object-keys: 1.1.1
-
-  degenerator@5.0.1:
-    dependencies:
-      ast-types: 0.13.4
-      escodegen: 2.1.0
-      esprima: 4.0.1
 
   degenerator@7.0.2(quickjs-wasi@3.7.0):
     dependencies:
@@ -18452,14 +18419,6 @@ snapshots:
   get-tsconfig@4.14.3:
     dependencies:
       resolve-pkg-maps: 1.0.0
-
-  get-uri@6.0.5(supports-color@8.1.1):
-    dependencies:
-      basic-ftp: 5.3.1
-      data-uri-to-buffer: 6.0.2
-      debug: 4.4.3(supports-color@8.1.1)
-    transitivePeerDependencies:
-      - supports-color
 
   get-uri@8.0.2(supports-color@8.1.1):
     dependencies:
@@ -21012,19 +20971,6 @@ snapshots:
 
   p-try@2.2.0: {}
 
-  pac-proxy-agent@7.2.0(supports-color@8.1.1):
-    dependencies:
-      '@tootallnate/quickjs-emscripten': 0.23.0
-      agent-base: 7.1.4
-      debug: 4.4.3(supports-color@8.1.1)
-      get-uri: 6.0.5(supports-color@8.1.1)
-      http-proxy-agent: 7.0.2(supports-color@8.1.1)
-      https-proxy-agent: 7.0.6(supports-color@8.1.1)
-      pac-resolver: 7.0.1
-      socks-proxy-agent: 8.0.5(supports-color@8.1.1)
-    transitivePeerDependencies:
-      - supports-color
-
   pac-proxy-agent@9.1.1(supports-color@8.1.1):
     dependencies:
       agent-base: 9.0.0
@@ -21038,11 +20984,6 @@ snapshots:
     transitivePeerDependencies:
       - kerberos
       - supports-color
-
-  pac-resolver@7.0.1:
-    dependencies:
-      degenerator: 5.0.1
-      netmask: 2.1.1
 
   pac-resolver@9.0.2(quickjs-wasi@3.7.0):
     dependencies:
@@ -21436,19 +21377,6 @@ snapshots:
       ipaddr.js: 1.9.1
 
   proxy-agent-negotiate@1.1.0: {}
-
-  proxy-agent@6.5.0(supports-color@8.1.1):
-    dependencies:
-      agent-base: 7.1.4
-      debug: 4.4.3(supports-color@8.1.1)
-      http-proxy-agent: 7.0.2(supports-color@8.1.1)
-      https-proxy-agent: 7.0.6(supports-color@8.1.1)
-      lru-cache: 7.18.3
-      pac-proxy-agent: 7.2.0(supports-color@8.1.1)
-      proxy-from-env: 1.1.0
-      socks-proxy-agent: 8.0.5(supports-color@8.1.1)
-    transitivePeerDependencies:
-      - supports-color
 
   proxy-agent@8.0.3(supports-color@8.1.1):
     dependencies:
