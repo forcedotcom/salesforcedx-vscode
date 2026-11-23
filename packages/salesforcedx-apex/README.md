@@ -92,7 +92,7 @@ The Effect API returns a success-only outcome. Compilation and runtime failures 
 
 ### Logs
 
-`listLogs(connection, options?)` retrieves every matching Tooling API log page in descending start-time order. Options filter by `userId` or `userIds`, operation substring, inclusive start time, and cursor. It returns the services projection; `getLogRecords(connection, numberOfLogs?)` returns the combined CLI/services record model and preserves the CLI's positive-count validation and 25-record cap. `getLogBody(connection, logId)` retrieves a body using a validated `ApexLogId`.
+`listLogs(connection, options?)` retrieves every matching Tooling API log page in descending start-time order. Options filter by `userId` or `userIds`, operation substring, inclusive start time, and cursor. Both it and `getLogRecords(connection, numberOfLogs?)` return `ApexLogRecord`; `getLogRecords` preserves the CLI's positive-count validation and 25-record cap. `LogService.getLogRecords` returns the same records (`LogRecord` aliases `ApexLogRecord`), without filling missing fields with defaults. Optional nullable Tooling API fields decode to optional fields; callers must handle absent values. `getLogBody(connection, logId)` retrieves a body using a validated `ApexLogId`.
 
 `getLogs(connection, options, writeLog?)` retrieves bodies selected by `options.logId` or `options.numberOfLogs`. When supplied, `writeLog(fileName, body)` is the host-provided Effect operation used to write each body; no filesystem implementation is built into the Effect API.
 

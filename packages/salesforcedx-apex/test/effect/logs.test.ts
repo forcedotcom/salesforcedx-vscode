@@ -103,10 +103,10 @@ describe('Effect Apex logs', () => {
     });
     queryMore.mockResolvedValue({ totalSize: 2, done: true, records: [{ ...log('2'), LogUser: null }] });
     const records = await Effect.runPromise(listLogs(connection));
-    expect(records).toEqual([{ ...log('1'), LogUser: { Name: 'User' } }, log('2')]);
-    expect(records[0].LogUser).toEqual({ Name: 'User' });
-    expect(records[0]).not.toHaveProperty('Location');
-    expect(records[0]).not.toHaveProperty('Request');
+    expect(records).toEqual([
+      { ...log('1'), Location: 'SystemLog', Request: 'API', LogUser: { Name: 'User', attributes: { type: 'User' } } },
+      log('2')
+    ]);
     expect(queryMore).toHaveBeenCalledWith('/next');
   });
 

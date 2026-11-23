@@ -5,7 +5,6 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import type { EffectApexLogGetOptions } from '../effect/schema/logs';
-import type { ApexLogRecord } from '../effect/schema/wire/logs';
 import type { JsonObject } from '../json';
 import { type Connection, Logger, type Org, type StatusResult, StreamingClient } from '@salesforce/core';
 import { Duration } from '@salesforce/kit';
@@ -32,19 +31,6 @@ const runLogOperation = async <A, E extends { message: string }>(operation: Effe
     },
     onRight: result => result
   });
-
-const toCliLogRecord = (record: ApexLogRecord): LogRecord => ({
-  Id: record.Id,
-  Application: record.Application ?? 'Unknown',
-  DurationMilliseconds: record.DurationMilliseconds ?? 0,
-  Location: record.Location ?? '',
-  LogLength: record.LogLength,
-  LogUser: { attributes: record.LogUser?.attributes ?? {}, Name: record.LogUser?.Name ?? '' },
-  Operation: record.Operation ?? '',
-  Request: record.Request ?? '',
-  StartTime: record.StartTime,
-  Status: record.Status
-});
 
 type StreamingLogMessage = {
   errorName?: string;
@@ -98,10 +84,8 @@ export class LogService {
   }
 
   @elapsedTime()
-  public async getLogRecords(numberOfLogs?: number): Promise<LogRecord[]> {
-    return runLogOperation(getEffectLogRecords(this.connection, numberOfLogs)).then(records =>
-      records.map(toCliLogRecord)
-    );
+  public async getLogRecords(numberOfLogs?: number): Promise<readonly LogRecord[]> {
+    return runLogOperation(getEffectLogRecords(this.connection, numberOfLogs));
   }
 
   @elapsedTime()

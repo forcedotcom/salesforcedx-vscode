@@ -188,51 +188,6 @@
       "additionalProperties": false
     },
     "LogLevel": { "type": "string", "enum": ["trace", "debug", "info", "warn", "error", "fatal"] },
-    "ApexLogListItem": {
-      "type": "object",
-      "required": ["Id", "LogLength", "StartTime", "Status"],
-      "properties": {
-        "Id": {
-          "type": "string",
-          "description": "a string starting with \"07L\"",
-          "pattern": "^07L",
-          "title": "startsWith(\"07L\")",
-          "allOf": [{ "pattern": "^(?:[A-Za-z0-9]{15}|[A-Za-z0-9]{18})$" }]
-        },
-        "Application": { "anyOf": [{ "type": "string" }, { "type": "null" }] },
-        "DurationMilliseconds": { "anyOf": [{ "type": "number" }, { "type": "null" }] },
-        "LogLength": { "type": "number" },
-        "LogUserId": {
-          "anyOf": [
-            {
-              "type": "string",
-              "description": "a string starting with \"005\"",
-              "pattern": "^005",
-              "title": "startsWith(\"005\")",
-              "allOf": [{ "pattern": "^(?:[A-Za-z0-9]{15}|[A-Za-z0-9]{18})$" }]
-            },
-            { "type": "null" }
-          ],
-          "title": "startsWith(\"005\")",
-          "description": "a string starting with \"005\""
-        },
-        "LogUser": {
-          "anyOf": [
-            {
-              "type": "object",
-              "required": [],
-              "properties": { "Name": { "anyOf": [{ "type": "string" }, { "type": "null" }] } },
-              "additionalProperties": false
-            },
-            { "type": "null" }
-          ]
-        },
-        "Operation": { "anyOf": [{ "type": "string" }, { "type": "null" }] },
-        "StartTime": { "type": "string" },
-        "Status": { "type": "string" }
-      },
-      "additionalProperties": false
-    },
     "ApexLogRecord": {
       "type": "object",
       "required": ["Id", "LogLength", "StartTime", "Status"],
@@ -916,47 +871,6 @@
       },
       "additionalProperties": false
     },
-    "LogRecord": {
-      "type": "object",
-      "required": [
-        "Id",
-        "Application",
-        "DurationMilliseconds",
-        "Location",
-        "LogLength",
-        "LogUser",
-        "Operation",
-        "Request",
-        "StartTime",
-        "Status"
-      ],
-      "properties": {
-        "Id": { "type": "string" },
-        "Application": { "type": "string" },
-        "DurationMilliseconds": { "type": "number" },
-        "Location": { "type": "string" },
-        "LogLength": { "type": "number" },
-        "LogUser": {
-          "type": "object",
-          "required": ["attributes", "Name"],
-          "properties": {
-            "attributes": {
-              "type": "object",
-              "required": [],
-              "properties": {},
-              "additionalProperties": { "$id": "/schemas/unknown", "title": "unknown" }
-            },
-            "Name": { "type": "string" }
-          },
-          "additionalProperties": false
-        },
-        "Operation": { "type": "string" },
-        "Request": { "type": "string" },
-        "StartTime": { "type": "string" },
-        "Status": { "type": "string" }
-      },
-      "additionalProperties": false
-    },
     "LogResult": {
       "type": "object",
       "required": ["log"],
@@ -1518,7 +1432,6 @@
     { "$ref": "#/$defs/ApexDiagnostic" },
     { "$ref": "#/$defs/ApexExecuteOptions" },
     { "$ref": "#/$defs/ApexLogGetOptions" },
-    { "$ref": "#/$defs/ApexLogListItem" },
     { "$ref": "#/$defs/ApexLogRecord" },
     { "$ref": "#/$defs/ApexLogQueryError" },
     { "$ref": "#/$defs/ApexLogBodyFetchError" },
@@ -1554,7 +1467,6 @@
     { "$ref": "#/$defs/ExecuteAnonymousOutcome" },
     { "$ref": "#/$defs/ExecuteAnonymousResponse" },
     { "$ref": "#/$defs/LogLevel" },
-    { "$ref": "#/$defs/LogRecord" },
     { "$ref": "#/$defs/LogResult" },
     { "$ref": "#/$defs/OutputDirConfig" },
     { "$ref": "#/$defs/PerClassCoverage" },
