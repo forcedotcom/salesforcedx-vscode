@@ -2,7 +2,7 @@
 
 Run `pnpm test:effect-v4-compat` from repository root. Also runs in root `test` / pre-push / CI.
 
-- Provider and consumer each install their own locked **3.21.2** (`npm ci`), matching inspected Einstein `main` `eb3355df087303eeebca510e91d480ae884b6d57`. No shared/symlinked node_modules; checks physical resolution.
+- Provider and consumer each install their own locked **3.22.4** (`npm ci`), the patched V3 version used by the bridge. No shared/symlinked node_modules; checks physical resolution.
 - V4 host independently installs `effect`, `@effect/platform-node`, `@effect/opentelemetry` **4.1.4**; verifies each resolves the same major/version. First-party production packages use the same reviewed V4 version.
 - Frozen V3 accessor/Context/Layer/ref/alias/config protocol plus Debug Log Analyzer's `ApexLogService` and `FsService.safeWriteFile` calls compile and run across installations. These contract fixtures do not claim real Salesforce auth; production adapters use the existing V4 service graph.
 - V4 positive `Context.Service`/Layer program typechecks and bundles for Node and browser. V3 bundles retain both independent installations and exclude V4. Bundles execute under Node; real browser/desktop E2E runs in GitHub CI.
@@ -16,7 +16,7 @@ IAC/core compile fixture exercises the actual core exports' Channel/Workspace/Co
 
 ## Actual packed legacy declarations
 
-`pnpm test:packed-services` builds and packs the real `@salesforce/vscode-services` package into independent V3-root, V4-`/v2`, and mixed consumers outside the checkout. Each owns a normal locked install. The package installs ordinary V4 and aliased V3; root imports must not load V4. V3 **3.21.2** consumers typecheck actual accessor/Context/ref calls with `strict:true`, `skipLibCheck:false`. No node_modules directory is reused.
+`pnpm test:packed-services` builds and packs the real `@salesforce/vscode-services` package into independent V3-root, V4-`/v2`, and mixed consumers outside the checkout. Each owns a normal locked install. The package installs ordinary V4 and aliased V3; root imports must not load V4. V3 **3.22.4** consumers typecheck actual accessor/Context/ref calls with `strict:true`, `skipLibCheck:false`. No node_modules directory is reused.
 
 The unversioned declaration exposes the audited Connection/Alias/Config operations, target-org ref, prebuilt Context/Layer, Apex-log read methods and `FsService.safeWriteFile`. Controls reject internal schema/error exports, unused service members and runtime use of the API type. The runtime root exports only `ICONS`.
 

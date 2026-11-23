@@ -32,8 +32,8 @@ const require = createRequire(import.meta.url);
 const requireHost = createRequire(new URL('../bridgeHost/package.json', import.meta.url));
 const requireCompat = createRequire(requireHost.resolve('@salesforce/vscode-services-v3-compat'));
 assert.notEqual(require.resolve('effect/Effect'), requireCompat.resolve('effect/Effect'));
-assert.equal(require('effect/package.json').version, '3.21.2');
-assert.equal(requireCompat('effect/package.json').version, '3.21.2');
+assert.equal(require('effect/package.json').version, '3.22.4');
+assert.equal(requireCompat('effect/package.json').version, '3.22.4');
 
 // Controlled bodies prove actual emitted constructors/layers, not SDK ownership or provider activation.
 const { connection: nativeConnection, config: nativeConfig } = await createAbiSdkValues();

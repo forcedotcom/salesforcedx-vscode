@@ -18,8 +18,8 @@ import providerVersion from '../provider/node_modules/effect/package.json' with 
 const require = createRequire(import.meta.url);
 const providerRequire = createRequire(new URL('../provider/index.js', import.meta.url));
 assert.notEqual(require.resolve('effect/Effect'), providerRequire.resolve('effect/Effect'));
-assert.equal(consumerVersion.version, '3.21.2');
-assert.equal(providerVersion.version, '3.21.2');
+assert.equal(consumerVersion.version, '3.22.4');
+assert.equal(providerVersion.version, '3.22.4');
 
 const connection = { marker: 'same-connection' };
 const api = makeFixtureApi(connection);

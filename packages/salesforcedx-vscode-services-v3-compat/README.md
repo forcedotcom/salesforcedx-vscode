@@ -1,6 +1,6 @@
 # V3 compatibility implementation
 
-Private, pinned Effect 3.21.2 adapter for W-24615046. Production activation binds
+Private, pinned Effect 3.22.4 adapter for W-24615046. Production activation binds
 it to the existing V4 owner; it does not build a second services graph. See the
 [bridge contract](../../docs/architecture/effect-v3-compatibility-bridge.md).
 

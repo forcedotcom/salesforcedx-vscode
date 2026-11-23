@@ -21,7 +21,7 @@ const protocols = [
     directory: 'salesforcedx-vscode-services-types',
     name: '@salesforce/vscode-services',
     endpoint: '@salesforce/vscode-services',
-    version: '3.21.2'
+    version: '3.22.4'
   },
   {
     fixture: 'packedV2',
@@ -58,7 +58,7 @@ try {
     assert.equal(requireConsumer('effect/package.json').version, artifact.version);
     const requireServices = createRequire(requireConsumer.resolve(artifact.name));
     assert.equal(requireServices('effect/package.json').version, '4.1.4');
-    assert.equal(requireServices('effect-v3/package.json').version, '3.21.2');
+    assert.equal(requireServices('effect-v3/package.json').version, '3.22.4');
     assert.ok(!Object.keys(artifact.publishedPackage.dependencies).includes('@salesforce/vscode-services-v3-compat'));
     const declarations = fs.readFileSync(
       path.join(artifact.directory, 'node_modules/@salesforce/vscode-services/out/services.d.ts'),

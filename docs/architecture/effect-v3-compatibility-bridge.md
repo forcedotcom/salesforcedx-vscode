@@ -5,7 +5,9 @@ Production connection/org binding remains W-24615059; no second service graph.
 
 ## Runtime boundary
 
-`@salesforce/vscode-services-v3-compat` is private and owns Effect **3.21.2**.
+`@salesforce/vscode-services-v3-compat` is private and owns patched Effect **3.22.4**.
+The audited Einstein lock still resolves 3.21.2; refresh that V3 consumer lock to
+3.22.4 before shipping this bridge so both sides use the same Effect runtime.
 `createLegacyServices(host, signal?)` returns genuine V3 service keys/accessors,
 Context, prebuilt Layer and a stable V3 SubscriptionRef. Its imperative `dispose`
 is the cross-major ownership boundary, not an exported extension command.

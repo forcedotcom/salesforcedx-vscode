@@ -20,9 +20,9 @@
   "packages/salesforcedx-vscode-org/package.json": { "effect": "4.1.4" },
   "packages/salesforcedx-vscode-org-browser/package.json": { "effect": "4.1.4" },
   "packages/playwright-vscode-ext/package.json": { "effect": "4.1.4" },
-  "packages/salesforcedx-vscode-services-types/package.json": { "effect": "4.1.4", "effect-v3": "3.21.2" },
+  "packages/salesforcedx-vscode-services-types/package.json": { "effect": "4.1.4", "effect-v3": "3.22.4" },
   "packages/salesforcedx-vscode-services/package.json": { "effect": "4.1.4" },
-  "packages/salesforcedx-vscode-services-v3-compat/package.json": { "effect": "3.21.2" },
+  "packages/salesforcedx-vscode-services-v3-compat/package.json": { "effect": "3.22.4" },
   "packages/salesforcedx-vscode-soql/package.json": { "effect": "4.1.4" },
   "packages/salesforcedx-vscode-visualforce/package.json": { "effect": "4.1.4" },
   "packages/soql-builder-ui/package.json": { "effect": "4.1.4" }
