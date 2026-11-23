@@ -23,8 +23,8 @@ import * as Logger from 'effect/Logger';
 import * as Option from 'effect/Option';
 import * as Result from 'effect/Result';
 import * as Schema from 'effect/Schema';
+import { CoreFileOutput } from '../effect/coreFileOutput';
 import { FileOutput } from '../effect/fileOutput';
-import { NodeFileOutput } from '../effect/nodeFileOutput';
 import { ApexOperationError, ApexResponseDecodeError } from '../effect/schema/errors';
 import { ApexTestSuiteId } from '../effect/schema/salesforceId';
 import { buildAsyncPayload, buildSyncPayload } from '../effect/testPayloads';
@@ -59,11 +59,14 @@ export class TestService {
   private readonly connection: Connection;
   private readonly asyncService: AsyncTests;
   private readonly syncService: SyncTests;
+  private readonly fileOutput: typeof FileOutput.Service;
 
-  constructor(connection: Connection) {
+  constructor(connection: Connection);
+  constructor(connection: Connection, fileOutput: typeof FileOutput.Service = CoreFileOutput) {
     this.connection = connection;
+    this.fileOutput = fileOutput;
     this.syncService = new SyncTests(connection);
-    this.asyncService = new AsyncTests(connection, NodeFileOutput);
+    this.asyncService = new AsyncTests(connection, fileOutput);
   }
 
   /**
@@ -232,7 +235,7 @@ export class TestService {
     try {
       return await runTestServiceOperation(
         writeResultFilesEffect(result, outputDirConfig, { ...reportOptions, codeCoverage }).pipe(
-          Effect.provideService(FileOutput, NodeFileOutput)
+          Effect.provideService(FileOutput, this.fileOutput)
         )
       );
     } finally {

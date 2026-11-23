@@ -13,7 +13,7 @@
     "@salesforce/effect-ext-utils": "workspace:*",
     "@salesforce/o11y-reporter": "^1.8.5",
     "@salesforce/salesforcedx-utils": "workspace:*",
-    "jsforce": "^3.10.26",
+    "jsforce": "^3.13.1",
     "memfs": "^4.32.0",
     "semver": "^7.5.4",
     "url": "0.11.4"
@@ -51,6 +51,7 @@
     "@types/semver": "7.5.8",
     "@types/vscode": "1.90.0",
     "@types/xml2js": "0.4.14",
+    "@types/yauzl": "3.4.0",
     "@typescript-eslint/eslint-plugin": "^8.72.0",
     "@typescript-eslint/parser": "^8.72.0",
     "@vitest/coverage-v8": "5.0.1",
@@ -94,7 +95,7 @@
     "inquirer": "14.2.3",
     "jest": "^30.4.1",
     "jscpd": "^4.0.5",
-    "jsdom": "27.0.0",
+    "jsdom": "27.0.1",
     "jsonwebtoken-esm": "^2.0.1",
     "knip": "6.35.1",
     "markdown-link-check": "^3.14.2",
@@ -120,7 +121,8 @@
     "vitest": "5.0.1",
     "wireit": "0.15.0",
     "xml2js": "0.6.2",
-    "yaml": "^2.9.0"
+    "yaml": "^2.9.0",
+    "yauzl": "3.4.0"
   },
   "scripts": {
     "build": "pnpm compile",
@@ -358,16 +360,20 @@
       "output": []
     },
     "test:manual-test-plan": {
-      "command": "node --test scripts/manualTestPlan/test/unit/manualTestPlan.test.mts",
+      "command": "node --test scripts/manualTestPlan/test/unit/*.test.mts",
       "dependencies": [
-        "./packages/effect-octokit:compile"
+        "./packages/effect-octokit:compile",
+        "./packages/salesforcedx-utils:compile"
       ],
       "files": [
         "scripts/manualTestPlan/**/*.mts",
         "scripts/shared/openCode.mts",
         ".opencode/skills/manual-test-plan-judgment/SKILL.md",
         "scripts/manualTestPlan/tsconfig.json",
-        ".github/workflows/manual-test-plan.yml"
+        "scripts/shared/validateWorkflow.mts",
+        ".github/workflows/manual-test-plan*.yml",
+        ".github/workflows/*E2E.yml",
+        ".github/workflows/aiAutoApprove.yml"
       ],
       "output": []
     },
@@ -652,6 +658,7 @@
       "files": [
         "scripts/validateActions.mts",
         "scripts/shared/validateAction.mts",
+        "scripts/shared/validateWorkflow.mts",
         ".github/workflows/*.{yml,yaml}",
         ".github/actions/*/action.{yml,yaml}"
       ],
@@ -663,6 +670,7 @@
         "./packages/salesforcedx-apex:compile",
         "./packages/salesforcedx-vscode-apex-log:compile",
         "./packages/effect-octokit:compile",
+        "./packages/salesforcedx-utils:compile",
         "./packages/playwright-vscode-ext:compile"
       ],
       "files": [
@@ -709,6 +717,8 @@
     },
     "check:effect-diagnostics": {
       "dependencies": [
+        "check:effect-diagnostics:scripts",
+        "./packages/eslint-local-rules:test",
         "./packages/soql-builder-ui:check:effect-diagnostics",
         "./packages/salesforcedx-apex:check:effect-diagnostics",
         "./packages/salesforcedx-apex-debugger:check:effect-diagnostics",
@@ -738,6 +748,21 @@
         "./packages/salesforcedx-aura-language-server:check:effect-diagnostics",
         "./packages/salesforcedx-lwc-language-server:check:effect-diagnostics"
       ]
+    },
+    "check:effect-diagnostics:scripts": {
+      "command": "node scripts/effect-diagnostics.mjs scripts/manualTestPlan",
+      "dependencies": [
+        "./packages/effect-octokit:compile",
+        "./packages/salesforcedx-utils:compile"
+      ],
+      "files": [
+        "config/effect-diagnostics.json",
+        "scripts/effect-diagnostics.mjs",
+        "scripts/tsconfig.native.json",
+        "scripts/manualTestPlan/tsconfig.json",
+        "scripts/manualTestPlan/**/*.mts"
+      ],
+      "output": []
     },
     "check:format:staged": {
       "command": "pretty-quick --staged"

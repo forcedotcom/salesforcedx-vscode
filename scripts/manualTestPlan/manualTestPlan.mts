@@ -6,8 +6,15 @@
  */
 
 import * as NodeServices from '@effect/platform-node/NodeServices';
-import { actionsEnvironment, GitHub, GitHubLayer, readPullRequestEvent } from '@salesforce/effect-octokit';
-import { Effect, Exit, Layer, Logger, Option, Result, Schema } from 'effect';
+import {
+  actionsEnvironment,
+  GitHub,
+  GitHubLayer,
+  readPullRequestEvent,
+  type PullRequestState
+} from '@salesforce/effect-octokit';
+import { Effect, Exit, Layer, Logger, Match, Option, Result, Schema } from 'effect';
+import * as ConfigProvider from 'effect/ConfigProvider';
 import * as FileSystem from 'effect/FileSystem';
 import * as Path from 'effect/Path';
 import { pathToFileURL } from 'node:url';
@@ -15,6 +22,7 @@ import { commandOutput } from '../commandOutput.mts';
 import { gitLocalEnv } from '../shared/gitLocalEnv.mts';
 import { openCodePrompt } from '../shared/openCode.mts';
 import { CommandFailed, InvalidBaseRef, Judgment, type Item } from './schema.mts';
+import { removeVideoSection, renderVideoManifest } from './videoManifest.mts';
 
 const skillPath = '.opencode/skills/manual-test-plan-judgment/SKILL.md';
 const startMarker = '<!-- manual-test-plan -->';
@@ -72,14 +80,35 @@ const playwrightSpec = (spec: string) => {
 };
 
 const itemLine = (item: Item) =>
-  item.kind === 'watch-video'
-    ? `- [ ] Watch video: \`${item.spec}\` in \`${item.workflow}\` (\`${item.job}\`)`
-    : `- [ ] ${item.step}`;
+  Match.value(item).pipe(
+    Match.tag(
+      'WatchVideo',
+      video => `- [ ] Watch video: \`${video.spec}\` in \`${video.workflow}\` (\`${video.job}\`)`
+    ),
+    Match.tag('ManualItem', manual => `- [ ] ${manual.step}`),
+    Match.exhaustive
+  );
 
-export const renderManualTestPlan = (judgment: typeof Judgment.Type) => {
-  const body =
-    judgment.kind === 'nothing' ? 'Nothing worth manually testing.' : judgment.items.map(itemLine).join('\n');
-  return `${startMarker}\n## Manual test plan\n\n${body}\n${endMarker}`;
+export const renderManualTestPlan = (judgment: typeof Judgment.Type, sha: string) => {
+  const [body, targets] = Match.value(judgment).pipe(
+    Match.tag('Nothing', () => ['Nothing worth manually testing.', []] as const),
+    Match.tag(
+      'Checklist',
+      ({ items }) =>
+        [
+          items.map(itemLine).join('\n'),
+          items.flatMap(item =>
+            Match.value(item).pipe(
+              Match.tag('WatchVideo', ({ spec, workflow, job }) => [{ spec, workflow, job }]),
+              Match.tag('ManualItem', () => []),
+              Match.exhaustive
+            )
+          )
+        ] as const
+    ),
+    Match.exhaustive
+  );
+  return `${startMarker}\n## Manual test plan\n\n${body}\n${renderVideoManifest({ sha, targets })}\n${endMarker}`;
 };
 
 export const spliceManualTestPlan = (body: string, block: string) => {
@@ -124,7 +153,7 @@ const workflowCatalog = Effect.fn('manualTestPlan.workflowCatalog')(function* (c
 const watchVideoProblem = (
   exists: boolean,
   workflows: readonly WorkflowName[],
-  item: Item & { readonly kind: 'watch-video' }
+  item: Item & { readonly _tag: 'WatchVideo' }
 ) => {
   const named = workflows.filter(workflow => workflow.name === item.workflow);
   const problems = [
@@ -142,16 +171,30 @@ export const judgmentError = Effect.fn('manualTestPlan.judgmentError')(function*
   cwd: string,
   judgment: typeof Judgment.Type
 ) {
-  if (judgment.kind === 'nothing') return undefined;
+  return yield* Match.value(judgment).pipe(
+    Match.tag('Nothing', () => Effect.void),
+    Match.tag('Checklist', ({ items }) => checklistError(cwd, items)),
+    Match.exhaustive
+  );
+});
+
+const checklistError = Effect.fn('manualTestPlan.checklistError')(function* (
+  cwd: string,
+  items: Extract<typeof Judgment.Type, { readonly _tag: 'Checklist' }>['items']
+) {
   const fs = yield* FileSystem.FileSystem;
   const path = yield* Path.Path;
   const workflows = yield* workflowCatalog(cwd);
-  const problems = yield* Effect.forEach(judgment.items, item =>
-    item.kind === 'manual'
-      ? Effect.succeed(Option.none<string>())
-      : fs
-          .exists(path.join(cwd, item.spec))
-          .pipe(Effect.map(exists => Option.fromUndefinedOr(watchVideoProblem(exists, workflows, item))))
+  const problems = yield* Effect.forEach(items, item =>
+    Match.value(item).pipe(
+      Match.tag('ManualItem', () => Effect.succeed(Option.none<string>())),
+      Match.tag('WatchVideo', video =>
+        fs
+          .exists(path.join(cwd, video.spec))
+          .pipe(Effect.map(exists => Option.fromUndefinedOr(watchVideoProblem(exists, workflows, video))))
+      ),
+      Match.exhaustive
+    )
   );
   const messages = problems.flatMap(problem => (Option.isNone(problem) ? [] : [problem.value]));
   return messages.length === 0 ? undefined : messages.join('\n');
@@ -211,6 +254,9 @@ export type ManualTestPlanDeps = {
   readonly prompt?: (input: PromptInput) => ReturnType<typeof manualTestPlanPrompt>;
   readonly readBody?: (pr: number) => Effect.Effect<string>;
   readonly writeBody?: (pr: number, body: string) => Effect.Effect<void>;
+  readonly readHead?: (
+    pr: number
+  ) => Effect.Effect<{ readonly state: PullRequestState; readonly headRefOid: string } | undefined>;
 };
 
 export const manualTestPlanProgram = Effect.fn('manualTestPlan.program')(function* (deps?: ManualTestPlanDeps) {
@@ -225,6 +271,7 @@ export const manualTestPlanProgram = Effect.fn('manualTestPlan.program')(functio
   const pr = yield* readPullRequestEvent(env.eventPath).pipe(Effect.map(event => event.pull_request.number));
   const cwd =
     deps?.cwd ?? (yield* git(process.cwd(), ['rev-parse', '--show-toplevel']).pipe(Effect.map(root => root.trim())));
+  const sha = yield* git(cwd, ['rev-parse', 'HEAD']).pipe(Effect.map(root => root.trim()));
   yield* Effect.annotateCurrentSpan('pr', String(pr));
   yield* git(cwd, ['fetch', 'origin', base]);
   const skill = yield* git(cwd, ['show', `origin/${base}:${skillPath}`]).pipe(Effect.option);
@@ -242,14 +289,42 @@ export const manualTestPlanProgram = Effect.fn('manualTestPlan.program')(functio
         : Effect.succeed(first)
     )
   );
-  if (judged._tag === 'opencode') return yield* skip('opencode', judged.message);
-  if (judged._tag === 'retry') return yield* skip('schema', judged.error);
-  const block = renderManualTestPlan(judged.judgment);
-  const current = yield* deps?.readBody === undefined ? readPrBody(env.owner, env.repo, pr) : deps.readBody(pr);
+  return yield* Match.value(judged).pipe(
+    Match.tag('opencode', ({ message }) => skip('opencode', message)),
+    Match.tag('retry', ({ error }) => skip('schema', error)),
+    Match.tag('ok', ({ judgment }) =>
+      writeManualTestPlan({ owner: env.owner, repo: env.repo, pr, sha, judgment, deps })
+    ),
+    Match.exhaustive
+  );
+});
+
+const writeManualTestPlan = Effect.fn('manualTestPlan.writeManualTestPlan')(function* (input: {
+  readonly owner: string;
+  readonly repo: string;
+  readonly pr: number;
+  readonly sha: string;
+  readonly judgment: typeof Judgment.Type;
+  readonly deps: ManualTestPlanDeps | undefined;
+}) {
+  const block = renderManualTestPlan(input.judgment, input.sha);
+  const current =
+    input.deps?.readBody === undefined
+      ? yield* readPrBody(input.owner, input.repo, input.pr)
+      : yield* input.deps.readBody(input.pr);
+  const latest =
+    input.deps?.readHead === undefined
+      ? yield* GitHub.use(github => github.pullRequest(input.owner, input.repo, input.pr))
+      : yield* input.deps.readHead(input.pr);
+  if (latest?.state !== 'OPEN' || latest.headRefOid !== input.sha) {
+    return yield* skip('stale-head', 'PR closed or head moved during manual plan generation');
+  }
   const next = spliceManualTestPlan(current, block);
   if (next === current) return { edited: false } satisfies Outcome;
-  yield* deps?.writeBody === undefined ? writePrBody(env.owner, env.repo, pr, next) : deps.writeBody(pr, next);
-  yield* Effect.logInfo('manual test plan updated', { pr });
+  yield* input.deps?.writeBody === undefined
+    ? writePrBody(input.owner, input.repo, input.pr, removeVideoSection(next))
+    : input.deps.writeBody(input.pr, removeVideoSection(next));
+  yield* Effect.logInfo('manual test plan updated', { pr: input.pr });
   return { edited: true } satisfies Outcome;
 });
 
@@ -260,6 +335,7 @@ const stderrLogger = Logger.make(({ message }) => {
 const isDirectRun = process.argv[1] !== undefined && import.meta.url === pathToFileURL(process.argv[1]).href;
 
 if (isDirectRun) {
+  const configLayer = ConfigProvider.layer(ConfigProvider.fromEnvRecord(process.env));
   await manualTestPlanProgram().pipe(
     Effect.tapError(error => Effect.logError('manual test plan failed', { error })),
     Effect.exit,
@@ -268,7 +344,10 @@ if (isDirectRun) {
         if (Exit.isFailure(exit)) process.exitCode = 1;
       })
     ),
-    Effect.provide(Layer.mergeAll(GitHubLayer, NodeServices.layer, Logger.layer([stderrLogger]))),
+    Effect.provide(configLayer),
+    Effect.provide(
+      Layer.mergeAll(GitHubLayer.pipe(Layer.provide(configLayer)), NodeServices.layer, Logger.layer([stderrLogger]))
+    ),
     Effect.runPromise
   );
 }

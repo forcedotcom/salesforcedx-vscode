@@ -17,10 +17,10 @@ import * as Stream from 'effect/Stream';
 import * as os from 'node:os';
 import * as path from 'node:path';
 import * as util from 'node:util';
+import { CoreFileOutput } from '../effect/coreFileOutput';
 import { getDiagnostic } from '../effect/diagnostics';
 import { causeMessage } from '../effect/errors';
 import { FileOutput } from '../effect/fileOutput';
-import { NodeFileOutput } from '../effect/nodeFileOutput';
 import { queryRecords } from '../effect/records';
 import { ApexOperationError } from '../effect/schema/errors';
 import { ApexClassIdsSchema, ApexTestSuiteIdsSchema, TestRunId } from '../effect/schema/salesforceId';
@@ -69,7 +69,7 @@ const writeAsyncResultsToFileEffect = Effect.fn('AsyncTests.writeAsyncResultsToF
 export const writeAsyncResultsToFile = (
   formattedResults: TestResult,
   runId: string,
-  fileOutput: typeof FileOutput.Service = NodeFileOutput
+  fileOutput: typeof FileOutput.Service = CoreFileOutput
 ): Promise<void> =>
   Effect.runPromise(
     writeAsyncResultsToFileEffect(formattedResults, runId).pipe(Effect.provideService(FileOutput, fileOutput))
@@ -125,7 +125,7 @@ export class AsyncTests {
   private readonly logger: Logger;
   private readonly fileOutput: typeof FileOutput.Service;
 
-  constructor(connection: Connection, fileOutput: typeof FileOutput.Service = NodeFileOutput) {
+  constructor(connection: Connection, fileOutput: typeof FileOutput.Service = CoreFileOutput) {
     this.connection = connection;
     this.fileOutput = fileOutput;
     this.codecoverage = new CodeCoverage(this.connection);

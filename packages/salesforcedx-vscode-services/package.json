@@ -15,7 +15,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "68.15.3",
+  "version": "68.15.5",
   "publisher": "salesforce",
   "o11yUploadEndpoint": "https://794testsite.my.site.com/byolwr/webruntime/log/metrics",
   "enableO11y": "true",
@@ -30,7 +30,7 @@
   "dependencies": {
     "@azure/monitor-opentelemetry-exporter": "^1.0.0-beta.43",
     "@effect/opentelemetry": "^4.1.4",
-    "@jsforce/jsforce-node": "^3.10.24",
+    "@jsforce/jsforce-node": "^3.13.1",
     "@opentelemetry/api": "1.9.1",
     "@opentelemetry/core": "2.8.0",
     "@opentelemetry/exporter-trace-otlp-http": "0.219.0",
@@ -53,7 +53,7 @@
     "@vscode/extension-telemetry": "^1.0.0",
     "cross-spawn": "7.0.6",
     "effect": "^4.1.4",
-    "jsforce": "^3.10.26",
+    "jsforce": "^3.13.1",
     "o11y_schema": "^264.89.0",
     "vscode-uri": "^3.1.0"
   },

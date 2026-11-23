@@ -15,6 +15,14 @@
     "./effect": {
       "types": "./out/src/effect/index.d.ts",
       "default": "./out/src/effect/index.js"
+    },
+    "./effect/node": {
+      "types": "./out/src/effect/nodeFileOutputLayer.d.ts",
+      "default": "./out/src/effect/nodeFileOutputLayer.js"
+    },
+    "./effect/testServiceWithFileOutput": {
+      "types": "./out/src/effect/testServiceWithFileOutput.d.ts",
+      "default": "./out/src/effect/testServiceWithFileOutput.js"
     }
   },
   "dependencies": {
@@ -23,6 +31,7 @@
     "@types/istanbul-lib-report": "^3.0.3",
     "@types/istanbul-reports": "^3.0.4",
     "effect": "^4.1.4",
+    "@effect/platform-node": "4.1.4",
     "fast-glob": "^3.3.2",
     "@salesforce/salesforcedx-utils": "*",
     "faye": "1.4.1",
@@ -32,7 +41,7 @@
     "tinyglobby": "^0.2.17"
   },
   "devDependencies": {
-    "@jsforce/jsforce-node": "^3.10.18",
+    "@jsforce/jsforce-node": "^3.13.1",
     "@types/node": "^22.15.1",
     "@types/istanbul-lib-coverage": "^2.0.6",
     "@types/sinon": "^17.0.3",

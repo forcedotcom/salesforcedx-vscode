@@ -99,10 +99,12 @@ describe('@salesforce/apex-node public API', () => {
       'ExecuteAnonymousOutcomeSchema',
       'FileOutput',
       'FileOutputError',
+      'FileOutputLayer',
       'InvalidSessionError',
       'IstanbulReports',
       'ListLogsOptionsSchema',
       'LogStreamEventSchema',
+      'PartialResultFilesError',
       'PerClassCoverageSchema',
       'QueryPageSchema',
       'SalesforceId',
@@ -153,6 +155,14 @@ describe('@salesforce/apex-node public API', () => {
       './effect': {
         types: './out/src/effect/index.d.ts',
         default: './out/src/effect/index.js'
+      },
+      './effect/node': {
+        types: './out/src/effect/nodeFileOutputLayer.d.ts',
+        default: './out/src/effect/nodeFileOutputLayer.js'
+      },
+      './effect/testServiceWithFileOutput': {
+        types: './out/src/effect/testServiceWithFileOutput.d.ts',
+        default: './out/src/effect/testServiceWithFileOutput.js'
       }
     });
   });

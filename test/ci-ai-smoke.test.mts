@@ -81,7 +81,7 @@ test(
                   content: title
                     ? 'CI smoke'
                     : manual
-                      ? '{"kind":"nothing"}'
+                      ? '{"_tag":"Nothing"}'
                       : changelog
                         ? JSON.stringify(sections)
                         : '{"categories":["prose"]}'
@@ -148,7 +148,7 @@ test(
         skill: readFileSync(new URL('../.opencode/skills/manual-test-plan-judgment/SKILL.md', import.meta.url), 'utf8'),
         diff: '+export const feature = true;'
       }).pipe(Effect.flatMap(Schema.decodeUnknownEffect(Schema.fromJsonString(Judgment))));
-      assert.deepEqual(manual, { kind: 'nothing' });
+      assert.deepEqual(manual, { _tag: 'Nothing' });
     });
     await program
       .pipe(

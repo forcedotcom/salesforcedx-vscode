@@ -52,7 +52,8 @@ export {
   InvalidSessionError
 } from './schema/errors.js';
 export { ApexCompileError, ApexRuntimeError, ApexReportError, causeMessage } from './errors.js';
-export { FileOutput, FileOutputError } from './fileOutput.js';
+export { FileOutput, FileOutputError, PartialResultFilesError } from './fileOutput.js';
+export { FileOutputLayer } from './nodeFileOutput.js';
 export { writeResultFiles } from './writeResultFiles.js';
 export type { WriteResultFilesOptions } from './writeResultFiles.js';
 export { listLogs, getLogBody, streamLogs } from './logs.js';

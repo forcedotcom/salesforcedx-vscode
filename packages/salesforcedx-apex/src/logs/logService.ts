@@ -9,8 +9,8 @@ import { type Connection, Logger, type Org, type StatusResult, StreamingClient }
 import { Duration } from '@salesforce/kit';
 import * as Effect from 'effect/Effect';
 import * as path from 'node:path';
+import { CoreFileOutput } from '../effect/coreFileOutput';
 import { FileOutput } from '../effect/fileOutput';
-import { NodeFileOutput } from '../effect/nodeFileOutput';
 import { nls } from '../i18n';
 import { elapsedTime } from '../utils/elapsedTime';
 import { createFile } from '../utils/fileSystemHandler';
@@ -59,7 +59,7 @@ export class LogService {
       ).map(async ({ log, logId }) => {
         if (options.outputDir) {
           const logPath = path.join(options.outputDir, `${logId}.log`);
-          await Effect.runPromise(createFile(logPath, log).pipe(Effect.provideService(FileOutput, NodeFileOutput)));
+          await Effect.runPromise(createFile(logPath, log).pipe(Effect.provideService(FileOutput, CoreFileOutput)));
           return { log, logPath };
         }
         return { log };

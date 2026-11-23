@@ -11,8 +11,11 @@
     "@salesforce/vscode-i18n": "file:./i18n.tgz",
     "salesforcedx-vscode-services": "file:./services.tgz",
     "@types/node": "24.19.2",
-    "effect": "^4.1.4",
-    "jsdom": "27.0.0",
+    "effect": "4.1.4",
+    "jsdom": "27.0.1",
     "typescript": "6.0.3"
+  },
+  "overrides": {
+    "protobufjs": "7.6.5"
   }
 }

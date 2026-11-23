@@ -40,6 +40,7 @@ export const ResultFormatsSchema = ResultFormatSchema.pipe(
 const ResultFileFormatSchema = Schema.Literals(['junit', 'tap', 'json', 'markdown', 'text']).pipe(
   Schema.annotate({ identifier: 'ResultFileFormat' })
 );
+export type ResultFileFormat = Schema.Schema.Type<typeof ResultFileFormatSchema>;
 export const ResultFileFormatsSchema = Schema.Array(ResultFileFormatSchema).pipe(
   Schema.annotate({ identifier: 'ResultFileFormats' })
 );

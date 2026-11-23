@@ -182,6 +182,14 @@ await Effect.runPromise(
 
 The Effect entry point has no Node file/stream dependencies. Existing class and Node stream reporters remain available.
 
+### Result-file output
+
+`writeResultFiles(result, outputDirConfig, options?)` uses the caller's `FileOutput`. The existing `TestService.writeResultFiles` Promise adapter defaults to the Node implementation. As specified by [ADR 0003](docs/adr/0003-node-filesystem-with-web-polyfill.md), that implementation uses Node filesystem APIs; consuming web bundles substitute the `@salesforce/core/fs` memfs facade, not a second writer implementation.
+
+Each result file streams through Effect Platform `FileSystem.sink` into a scoped temporary file on the destination's filesystem. Only a completed stream is renamed into place; a started rename finishes before interruption is reported. Failures or interruption before commit preserve the previous destination and clean up staged output. Cleanup failures remain in the error's cause text or interruption cause. The platform scopes the temporary file and file handle. `FileOutputLayer` requires caller-provided `FileSystem` and `Path` services; `NodeFileOutputLayer` supplies the Node defaults and can be replaced with platform layers by Effect consumers. The existing Promise/class API continues to default to Node filesystem behavior. Filenames, contents, and output order are unchanged.
+
+Filesystem and serialization failures use `FileOutputError` with operation, destination path, message, and optional cause text. Failures after earlier files succeeded use `PartialResultFilesError`, carrying the nonempty `writtenFiles` list and the typed `FileOutputError` or `ApexReportError` cause. Earlier files remain committed; no later files start. Run-ID sidecar failures are no longer logged and ignored. Custom `FileOutput` implementations own their filesystem's commit and cleanup behavior. Node Effect consumers can import `NodeFileOutputLayer` from `@salesforce/apex-node/effect/node`; `@salesforce/apex-node/effect` remains host-neutral.
+
 ## Getting Started
 
 If you're interested in contributing, take a look at the [CONTRIBUTING](./CONTRIBUTING.md) guide.

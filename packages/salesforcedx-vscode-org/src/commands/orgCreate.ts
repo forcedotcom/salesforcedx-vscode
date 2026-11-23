@@ -191,7 +191,7 @@ export const orgCreateCommand = Effect.fn('orgCreateCommand')(function* () {
   const notificationMode = yield* api.v2.services.NotificationModeService;
   const progressLocation = yield* notificationMode.getProgressLocation(COMMAND);
   // wrap in a cancellable progress: clicking Cancel interrupts this fiber, killing the sf child.
-  const stdout = yield* terminalService
+  const response = yield* terminalService
     .simpleExec({
       executable: 'sf',
       args: [
@@ -210,9 +210,10 @@ export const orgCreateCommand = Effect.fn('orgCreateCommand')(function* () {
       parse: identity,
       timeout: CREATE_TIMEOUT
     })
-    .pipe(promptService.withCancellableProgress(nls.localize('org_create_progress'), progressLocation));
-
-  const response = yield* decodeOrgCreateResponse(stdout);
+    .pipe(
+      promptService.withCancellableProgress(nls.localize('org_create_progress'), progressLocation),
+      Effect.flatMap(decodeOrgCreateResponse)
+    );
 
   // success: refresh the config/state aggregators (default org flipped by --set-default), report to
   // the channel, then show success notification based on the configured notification mode.

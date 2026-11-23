@@ -16,7 +16,7 @@ import * as Context from 'effect/Context';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
-import { isError, isNull, isUndefined } from 'effect/Predicate';
+import { isError, isNullish } from 'effect/Predicate';
 import * as Redacted from 'effect/Redacted';
 import * as Schema from 'effect/Schema';
 
@@ -29,7 +29,8 @@ export {
   readCompletedChecksEvent,
   readIssueCommentEvent,
   readPullRequestEvent,
-  readSynchronizeEvent
+  readSynchronizeEvent,
+  readWorkflowDispatchEvent
 } from './actionsEvent.js';
 
 export type PullReview = Endpoints['GET /repos/{owner}/{repo}/pulls/{pull_number}/reviews']['response']['data'][number];
@@ -46,6 +47,26 @@ export const WorkflowRunJob = Schema.Struct({
   completed_at: Schema.NullishOr(Schema.String)
 });
 export type WorkflowRunJob = typeof WorkflowRunJob.Type;
+
+export const WorkflowRun = Schema.Struct({
+  id: Schema.Number,
+  name: Schema.NullOr(Schema.String),
+  path: Schema.String,
+  head_sha: Schema.String,
+  status: Schema.NullOr(Schema.String),
+  conclusion: Schema.NullOr(Schema.String),
+  run_attempt: Schema.Number
+});
+export type WorkflowRun = typeof WorkflowRun.Type;
+
+export const WorkflowArtifact = Schema.Struct({
+  id: Schema.Number,
+  name: Schema.String,
+  expired: Schema.Boolean,
+  created_at: Schema.String,
+  workflow_run: Schema.optional(Schema.Struct({ head_sha: Schema.String }))
+});
+export type WorkflowArtifact = typeof WorkflowArtifact.Type;
 
 type Check = {
   readonly state?: string;
@@ -121,10 +142,14 @@ const decodeResponse = <S extends Schema.Constraint>(schema: S, input: unknown, 
     )
   );
 
+export const PullRequestState = Schema.Literals(['OPEN', 'CLOSED', 'MERGED']);
+export type PullRequestState = typeof PullRequestState.Type;
+
 export const PullRequest = Schema.Struct({
   reviewDecision: Schema.NullOr(Schema.String),
   isDraft: Schema.Boolean,
-  state: Schema.String,
+  state: PullRequestState,
+  body: Schema.NullOr(Schema.String).pipe(Schema.optional),
   baseRefName: Schema.String,
   headRefOid: Schema.String,
   author: Schema.NullOr(Schema.Struct({ login: Schema.String })),
@@ -139,7 +164,7 @@ const PullRequestQuery = Schema.Struct({
 const pullQuery = `query($owner:String!,$name:String!,$number:Int!){
   repository(owner:$owner,name:$name){
     pullRequest(number:$number){
-      reviewDecision isDraft state baseRefName headRefOid
+      reviewDecision isDraft state body baseRefName headRefOid
       author { login }
       headRepository { nameWithOwner }
       baseRepository { nameWithOwner }
@@ -283,10 +308,15 @@ const makeGitHub = Effect.gen(function* () {
     );
   });
 
-  const workflowRunJobs = Effect.fn('GitHub.workflowRunJobs')(function* (repository: string, runId: string) {
+  const workflowRunJobs = Effect.fn('GitHub.workflowRunJobs')(function* (
+    repository: string,
+    runId: string,
+    filter: 'latest' | 'all' = 'latest'
+  ) {
     const path = `/repos/${repository}/actions/runs/${runId}/jobs`;
     return yield* run('GET', path, () =>
       octokit.paginate<unknown>(`GET ${path}`, {
+        filter,
         per_page: 100
       })
     ).pipe(Effect.flatMap(jobs => decodeResponse(Schema.Array(WorkflowRunJob), jobs, 'GET', path)));
@@ -365,7 +395,7 @@ const makeGitHub = Effect.gen(function* () {
         .map(checkRun => ({
           key: `check:${checkRun.app?.id ?? `missing-app-${checkRun.id}`}:${checkRun.name}`,
           id: checkRun.id,
-          status: isNull(checkRun.app?.id) || isUndefined(checkRun.app?.id) ? 'pending' : checkRun.status,
+          status: isNullish(checkRun.app?.id) ? 'pending' : checkRun.status,
           conclusion: checkRun.conclusion
         }))
     ]);

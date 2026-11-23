@@ -6,7 +6,8 @@
  */
 import type { ProgressAndSuccessCommandKey } from '../utils/notificationMode';
 import { TestService } from '@salesforce/apex-node';
-import { type FileOutputError, TestResultSchema } from '@salesforce/apex-node/effect';
+import { TestResultSchema } from '@salesforce/apex-node/effect';
+import { createTestServiceWithFileOutput } from '@salesforce/apex-node/effect/testServiceWithFileOutput';
 import { ExtensionProviderService, getMessageFromError } from '@salesforce/effect-ext-utils';
 import * as Context from 'effect/Context';
 import * as Effect from 'effect/Effect';
@@ -20,6 +21,7 @@ import { type URI, Utils } from 'vscode-uri';
 import { APEX_TESTING_SECTION } from '../constants';
 import { nls } from '../messages';
 import { messages } from '../messages/i18n';
+import { fileOutputFromFsService } from '../services/fsServiceFileOutput';
 import { ApexTestRunCacheService } from '../testRunCache/apexTestRunCacheService';
 import { toUserFriendlyApexTestError } from '../utils/apexTestErrorMapper';
 import { DebugDispatchError, TestExecutionError, TestTempFolderError } from '../utils/apexTestExecutionErrors';
@@ -194,7 +196,11 @@ const makeApexTestExecutionService = Effect.gen(function* () {
     const connection = yield* api.v2.services.ConnectionService.use(service => service.getConnection()).pipe(
       Effect.mapError(e => new TestExecutionError({ message: toUserFriendlyApexTestError(e) }))
     );
-    const testService = new TestService(connection);
+    const fsService = process.env.ESBUILD_PLATFORM === 'web' ? yield* api.v2.services.FsService : undefined;
+    const testService =
+      fsService === undefined
+        ? new TestService(connection)
+        : createTestServiceWithFileOutput(connection, fileOutputFromFsService(fsService));
     const { payload, hasSuite, hasClass } = runAllTestsInOrg
       ? {
           payload: { testLevel: 'RunAllTestsInOrg' as const, skipCodeCoverage: !codeCoverage },
@@ -233,9 +239,10 @@ const makeApexTestExecutionService = Effect.gen(function* () {
     // Run-All group to "older results"; see W-… history in the shell). Non-fatal: a write failure logs
     // and the run continues (report + result push still happen), matching the legacy console.error path.
     yield* writeTestResultJsonFile(result, outputDir, codeCoverage).pipe(
-      Effect.catchTag('FileOutputError', (error: FileOutputError) =>
-        Effect.logError('Failed to write JSON test result file', { error })
-      )
+      Effect.catchTags({
+        FileOutputError: error => Effect.logError('Failed to write JSON test result file', { error }),
+        PartialResultFilesError: error => Effect.logError('Failed to write JSON test result file', { error })
+      })
     );
     const writtenResultFilename = result.summary?.testRunId
       ? `test-result-${result.summary.testRunId}.json`

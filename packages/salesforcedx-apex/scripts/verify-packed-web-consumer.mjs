@@ -9,6 +9,7 @@ import { execFileSync } from 'node:child_process';
 import { copyFileSync, rmSync, writeFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { runInNewContext } from 'node:vm';
 import { build } from 'esbuild';
 import { commonConfigBrowser } from '../../../scripts/bundling/web.mjs';
 import {
@@ -80,12 +81,64 @@ try {
   const fullEntry = join(v4, 'full-consumer.mjs');
   writeFileSync(
     fullEntry,
-    "import { TestService } from '@salesforce/apex-node';\n" +
-      "import { executeAnonymous } from '@salesforce/apex-node/effect';\n" +
-      'globalThis.apexNodeApi = { TestService, executeAnonymous };\n'
+    "import { FileOutput, FileOutputError, writeResultFiles } from '@salesforce/apex-node/effect';\n" +
+      "import * as Effect from 'effect/Effect';\n" +
+      "import * as Stream from 'effect/Stream';\n" +
+      'const files = new Map();\n' +
+      'const fileOutput = {\n' +
+      '  createDirectory: () => Effect.void,\n' +
+      '  writeFile: (directory, fileName, content) => content.pipe(\n' +
+      '    Stream.mkString,\n' +
+      '    Effect.flatMap(text => {\n' +
+      '      const path = `${directory}/${fileName}`;\n' +
+      "      if (fileName === 'missing/extra.txt') return Effect.fail(new FileOutputError({ operation: 'writeFile', path, message: 'missing parent directory' }));\n" +
+      '      files.set(path, text);\n' +
+      '      return Effect.succeed(path);\n' +
+      '    })\n' +
+      '  )\n' +
+      '};\n' +
+      'const write = (result, outputDirConfig) => writeResultFiles(result, outputDirConfig).pipe(\n' +
+      '  Effect.provideService(FileOutput, fileOutput), Effect.result, Effect.runPromise\n' +
+      ');\n' +
+      'globalThis.apexNodeApi = { files, write };\n'
   );
-  await build({ ...commonConfigBrowser, entryPoints: [fullEntry], sourcemap: false, write: false });
-  console.log('PASS isolated packed V4 declarations and browser bundle, including full Apex root');
+  const fullBundle = await build({
+    ...commonConfigBrowser,
+    entryPoints: [fullEntry],
+    format: 'iife',
+    sourcemap: false,
+    write: false
+  });
+  const browser = {
+    AbortController,
+    Error,
+    URL,
+    TextEncoder,
+    TextDecoder,
+    setTimeout,
+    clearTimeout
+  };
+  runInNewContext(fullBundle.outputFiles[0].text, browser);
+  const api = browser.apexNodeApi;
+  const successful = await api.write(
+    { testRunId: '707000000000001AAA' },
+    { dirPath: '/reports', fileInfos: [{ filename: 'extra.txt', content: 'résultats 🦊\r\n' }] }
+  );
+  assert.equal(successful._tag, 'Success');
+  assert.deepEqual(Array.from(successful.success), ['/reports/test-run-id.txt', '/reports/extra.txt']);
+  assert.equal(api.files.get('/reports/test-run-id.txt'), '707000000000001AAA');
+  assert.equal(api.files.get('/reports/extra.txt'), 'résultats 🦊\r\n');
+
+  const partial = await api.write(
+    { testRunId: '707000000000002AAA' },
+    { dirPath: '/partial', fileInfos: [{ filename: 'missing/extra.txt', content: 'missing parent directory' }] }
+  );
+  assert.equal(partial._tag, 'Failure');
+  assert.equal(partial.failure._tag, 'PartialResultFilesError');
+  assert.equal(partial.failure.cause._tag, 'FileOutputError');
+  assert.deepEqual(Array.from(partial.failure.writtenFiles), ['/partial/test-run-id.txt']);
+  assert.equal(api.files.get('/partial/test-run-id.txt'), '707000000000002AAA');
+  console.log('PASS isolated packed V4 declarations and browser FileOutput behavior');
 } finally {
   rmSync(temp, { recursive: true, force: true, maxRetries: 10, retryDelay: 200 });
 }

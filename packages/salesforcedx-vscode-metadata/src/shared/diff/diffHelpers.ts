@@ -81,15 +81,16 @@ export const materializeRemoteComponents = Effect.fn('materializeRemoteComponent
   });
 
   if (projectComponents.length === 0) return HashSet.empty<DiffFilePair>();
-  const remoteComponentSet = yield* api.v2.services.MetadataRetrieveService.use(service =>
+  const retrieved = yield* api.v2.services.MetadataRetrieveService.use(service =>
     service.buildComponentSet(
       projectComponents.map(component => ({ type: component.type.name, fullName: component.fullName }))
     )
+  ).pipe(
+    Effect.flatMap(componentSet =>
+      api.v2.services.ComponentSetService.use(service => service.ensureNonEmptyComponentSet(componentSet))
+    ),
+    Effect.flatMap(retrieveToCacheDirectory)
   );
-  const nonEmptyRemoteComponentSet = yield* api.v2.services.ComponentSetService.use(service =>
-    service.ensureNonEmptyComponentSet(remoteComponentSet)
-  );
-  const retrieved = yield* retrieveToCacheDirectory(nonEmptyRemoteComponentSet);
 
   return yield* matchUrisToComponents(projectComponentSet, retrieved.components, localUriFilter, componentFilter);
 });
