@@ -147,9 +147,9 @@ describe('issue actions', () => {
     }
   );
 
-  it.each(['check-feature-request', 'validate-issue'] as const)('%s skips old issues', async action => {
+  it.each(['check-feature-request', 'validate-issue'] as const)('%s processes older issues', async action => {
     const { calls, setFailed } = await runAction(action, { issue: { ...issue, created_at: '2023-01-01' } });
-    expect(calls).toEqual([]);
+    expect(calls[0]).toMatchObject({ method: 'GET', path: commentsPath });
     expect(setFailed).not.toHaveBeenCalled();
   });
 

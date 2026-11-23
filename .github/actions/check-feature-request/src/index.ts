@@ -21,16 +21,6 @@ const run = () =>
     return;
   }
 
-  // Temporary check to prevent this action from running on old issues
-  // This will prevent noise on tickets already being investigated
-  // This can be removed once the action has been running for a while
-  const creationDate = new Date(issue.created_at);
-  const cutoffDate = new Date("2023-06-14T00:00:00Z");
-  if (creationDate < cutoffDate) {
-    console.log("Issue was created before 6/14/2023, skipping");
-    return;
-  }
-
   // Use only the action input, never a token inherited from the runner environment.
   const github = yield* githubFromToken(getInput("repo-token", { required: true }));
 
