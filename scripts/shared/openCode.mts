@@ -14,7 +14,17 @@ export class OpenCodeRunFailed extends Schema.TaggedError<OpenCodeRunFailed>()('
   message: Schema.String
 }) {}
 
+class OpenCodeModelRetryableError extends Schema.TaggedError<OpenCodeModelRetryableError>()(
+  'OpenCodeModelRetryableError',
+  {
+    model: Schema.String,
+    message: Schema.String
+  }
+) {}
+
 const Models = Schema.NonEmptyArray(Schema.String.pipe(Schema.pattern(/^[^\s/]+\/[^\s]+$/)));
+const RetryableModelFailure =
+  /(?:model[\s\S]{0,120}(?:unavailable|not[\s_.:-]*available|not[\s_.:-]*found|does[\s_.:-]*not[\s_.:-]*exist)|(?:unavailable|not[\s_.:-]*available|not[\s_.:-]*found)[\s\S]{0,120}model|(?:unsupported|unknown)[\s_.:-]*model|no[\s_.:-]+(?:free[\s_.:-]+)?models?[\s_.:-]+available|\b(?:410|429)\b|RateLimit\.FreeUsageLimitError|Free usage limit reached)/i;
 const Event = Schema.Struct({
   type: Schema.String,
   part: Schema.optional(Schema.Struct({ text: Schema.optional(Schema.String), reason: Schema.optional(Schema.String) }))
@@ -34,7 +44,7 @@ const replyText = Effect.fn('openCode.replyText')(function* (stdout: string) {
     : text;
 });
 
-/** One invocation of the first configured model; no provider or model fallback. */
+/** Tries configured models in order when OpenCode reports a model or free-usage limit error. */
 export const openCodePrompt = Effect.fn('openCode.prompt')(
   function* (input: { readonly prompt: string; readonly readDirectory?: string }) {
     const fs = yield* FileSystem.FileSystem;
@@ -50,7 +60,7 @@ export const openCodePrompt = Effect.fn('openCode.prompt')(
       Config.string('PATH'),
       Config.option(Config.string('NODE_EXTRA_CA_CERTS'))
     ]);
-    const [model] = yield* Schema.decodeUnknown(Schema.parseJson(Models))(models);
+    const configuredModels = yield* Schema.decodeUnknown(Schema.parseJson(Models))(models);
     const directory = yield* fs.makeTempDirectoryScoped({ prefix: 'ci-opencode-' });
     const readDirectory = input.readDirectory === undefined ? undefined : yield* fs.realPath(input.readDirectory);
     yield* fs.writeFileString(
@@ -92,23 +102,53 @@ export const openCodePrompt = Effect.fn('openCode.prompt')(
       OPENCODE_API_KEY: Redacted.value(apiKey),
       ...Option.match(certificates, { onNone: () => ({}), onSome: value => ({ NODE_EXTRA_CA_CERTS: value }) })
     };
-    const handle = yield* Command.make(
-      'opencode',
-      '--standalone',
-      'run',
-      '--agent',
-      'judgment',
-      '--format',
-      'json',
-      '--model',
-      model
-    ).pipe(Command.workingDirectory(directory), Command.env(environment), Command.feed(input.prompt), Command.start);
-    const [stdout, , code] = yield* Effect.all(
-      [Stream.mkString(Stream.decodeText(handle.stdout)), Stream.runDrain(handle.stderr), handle.exitCode],
-      { concurrency: 'unbounded' }
-    );
-    if (code !== 0) return yield* new OpenCodeRunFailed({ message: `OpenCode exited ${code}` });
-    return yield* replyText(stdout);
+    const runModel = Effect.fn('openCode.runModel')(function* (model: string) {
+      const handle = yield* Command.make(
+        'opencode',
+        '--standalone',
+        'run',
+        '--agent',
+        'judgment',
+        '--format',
+        'json',
+        '--model',
+        model
+      ).pipe(Command.workingDirectory(directory), Command.env(environment), Command.feed(input.prompt), Command.start);
+      const [stdout, stderr, code] = yield* Effect.all(
+        [
+          Stream.mkString(Stream.decodeText(handle.stdout)),
+          Stream.mkString(Stream.decodeText(handle.stderr)),
+          handle.exitCode
+        ],
+        { concurrency: 'unbounded' }
+      );
+      const errorEvents = code === 0 ? stdout.split('\n').filter(line => /"type"\s*:\s*"error"/i.test(line)) : [];
+      const failureOutput =
+        code === 0 ? (errorEvents.length > 0 ? `${errorEvents.join('\n')}\n${stderr}` : '') : `${stdout}\n${stderr}`;
+      if (RetryableModelFailure.test(failureOutput)) {
+        return yield* new OpenCodeModelRetryableError({ model, message: 'Model unavailable or rate limited' });
+      }
+      if (code !== 0) return yield* new OpenCodeRunFailed({ message: `OpenCode exited ${code}` });
+      return yield* replyText(stdout);
+    });
+    const tryModel: (index: number) => ReturnType<typeof runModel> = Effect.fn('openCode.tryModel')(function* (
+      index: number
+    ) {
+      const model = configuredModels[index];
+      if (model === undefined) return yield* new OpenCodeRunFailed({ message: 'No configured OpenCode model remains' });
+      return yield* runModel(model).pipe(
+        Effect.catchTag('OpenCodeModelRetryableError', error =>
+          index + 1 < configuredModels.length
+            ? tryModel(index + 1)
+            : Effect.fail(
+                new OpenCodeRunFailed({
+                  message: `All configured OpenCode models were unavailable or rate limited (last: ${error.model})`
+                })
+              )
+        )
+      );
+    });
+    return yield* tryModel(0);
   },
   Effect.scoped,
   Effect.mapError(error => new OpenCodeRunFailed({ message: error.message }))

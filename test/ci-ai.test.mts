@@ -20,7 +20,7 @@ import {
   tempDirectory
 } from './ciAiFixtures.mts';
 
-test('category judgment uses one configured model, stdin, isolated configuration, and no inherited credentials', async t => {
+test('category judgment uses the first configured model with isolated stdin and credentials', async t => {
   const directory = tempDirectory(t);
   const capturePath = join(directory, 'capture.json');
   const policy = readFileSync(new URL('../APPROVAL_POLICY.md', import.meta.url), 'utf8');
@@ -104,7 +104,7 @@ for (const output of [
   });
 }
 
-test('uses only final-step text and never retries a failed process', async () => {
+test('uses only final-step text and does not retry non-retryable process failures', async () => {
   let calls = 0;
   const run = (output: string, code: number) =>
     openCodePrompt({ prompt: 'judge' }).pipe(
@@ -125,6 +125,105 @@ test('uses only final-step text and never retries a failed process', async () =>
   );
   assert.equal((await run(events('{"categories":["prose"]}'), 2))._tag, 'Left');
   assert.equal(calls, 2);
+});
+
+test('tries the next configured model after a free-usage rate limit', async () => {
+  const attemptedModels: string[] = [];
+  const result = await openCodePrompt({ prompt: 'judge' }).pipe(
+    Effect.provide(
+      commands(command => {
+        const model = command.args.at(-1);
+        assert.ok(model);
+        attemptedModels.push(model);
+        return nodeCommand(
+          command,
+          model === 'opencode/first'
+            ? `process.stderr.write('HTTP 429 RateLimit.FreeUsageLimitError: Free usage limit reached'); process.exitCode = 1;`
+            : `process.stdout.write(${JSON.stringify(events('{"categories":["prose"]}'))});`
+        );
+      })
+    ),
+    Effect.provide(NodeContext.layer),
+    Effect.withConfigProvider(config()),
+    Effect.either,
+    Effect.runPromise
+  );
+
+  assert.deepEqual(result, Either.right('{"categories":["prose"]}'));
+  assert.deepEqual(attemptedModels, ['opencode/first', 'opencode/second']);
+});
+
+test('tries the next configured model after a 410 free-usage limit', async () => {
+  const attemptedModels: string[] = [];
+  const result = await openCodePrompt({ prompt: 'judge' }).pipe(
+    Effect.provide(
+      commands(command => {
+        const model = command.args.at(-1);
+        assert.ok(model);
+        attemptedModels.push(model);
+        return nodeCommand(
+          command,
+          model === 'opencode/first'
+            ? `process.stderr.write('HTTP 410 RateLimit.FreeUsageLimitError: Free usage limit reached'); process.exitCode = 1;`
+            : `process.stdout.write(${JSON.stringify(events('{"categories":["prose"]}'))});`
+        );
+      })
+    ),
+    Effect.provide(NodeContext.layer),
+    Effect.withConfigProvider(config()),
+    Effect.either,
+    Effect.runPromise
+  );
+
+  assert.deepEqual(result, Either.right('{"categories":["prose"]}'));
+  assert.deepEqual(attemptedModels, ['opencode/first', 'opencode/second']);
+});
+
+test('tries the next configured model after a model-unavailable error event', async () => {
+  const attemptedModels: string[] = [];
+  const result = await openCodePrompt({ prompt: 'judge' }).pipe(
+    Effect.provide(
+      commands(command => {
+        const model = command.args.at(-1);
+        assert.ok(model);
+        attemptedModels.push(model);
+        return nodeCommand(
+          command,
+          model === 'opencode/first'
+            ? `process.stdout.write(${JSON.stringify('{"type":"error","error":{"name":"ModelUnavailableError","message":"Model is unavailable"}}\\n')});`
+            : `process.stdout.write(${JSON.stringify(events('{"categories":["prose"]}'))});`
+        );
+      })
+    ),
+    Effect.provide(NodeContext.layer),
+    Effect.withConfigProvider(config()),
+    Effect.either,
+    Effect.runPromise
+  );
+
+  assert.deepEqual(result, Either.right('{"categories":["prose"]}'));
+  assert.deepEqual(attemptedModels, ['opencode/first', 'opencode/second']);
+});
+
+test('tries every configured model before failing when all are unavailable', async () => {
+  const attemptedModels: string[] = [];
+  const result = await openCodePrompt({ prompt: 'judge' }).pipe(
+    Effect.provide(
+      commands(command => {
+        const model = command.args.at(-1);
+        assert.ok(model);
+        attemptedModels.push(model);
+        return nodeCommand(command, `process.stderr.write('Model unavailable'); process.exitCode = 1;`);
+      })
+    ),
+    Effect.provide(NodeContext.layer),
+    Effect.withConfigProvider(config('["opencode/first","opencode/second","opencode/third"]')),
+    Effect.either,
+    Effect.runPromise
+  );
+
+  assert.equal(result._tag, 'Left');
+  assert.deepEqual(attemptedModels, ['opencode/first', 'opencode/second', 'opencode/third']);
 });
 
 for (const models of ['', '[]', 'not json', '["auto"]', '["opencode/first", 3]']) {
