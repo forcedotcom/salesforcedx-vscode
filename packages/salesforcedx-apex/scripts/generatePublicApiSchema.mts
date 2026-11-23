@@ -54,9 +54,12 @@ import {
   ApexDiagnosticSchema,
   ApexTestSuiteId,
   ApexCompileError,
-  ApexLogListItem,
+  ApexLogRecordSchema,
   ApexLogQueryError,
   ApexLogBodyFetchError,
+  ApexLogResultSchema,
+  ApexLogWithBodySchema,
+  EffectApexLogGetOptionsSchema,
   ListLogsOptionsSchema,
   ApexOperationError,
   ApexOrgWideCoverageSchema,
@@ -120,22 +123,6 @@ const ApexLogGetOptionsSchema = Schema.Struct({
   logId: optional(Schema.String),
   outputDir: optional(Schema.String)
 }).annotations({ identifier: 'ApexLogGetOptions' });
-
-const LogRecordSchema = Schema.Struct({
-  Id: Schema.String,
-  Application: Schema.String,
-  DurationMilliseconds: Schema.Number,
-  Location: Schema.String,
-  LogLength: Schema.Number,
-  LogUser: Schema.Struct({
-    attributes: Schema.Record({ key: Schema.String, value: Schema.Unknown }),
-    Name: Schema.String
-  }),
-  Operation: Schema.String,
-  Request: Schema.String,
-  StartTime: Schema.String,
-  Status: Schema.String
-}).annotations({ identifier: 'LogRecord' });
 
 const LogResultSchema = Schema.Struct({
   logPath: optional(Schema.String),
@@ -243,9 +230,12 @@ const PublicApiSchema = Schema.Union(
   ApexDiagnosticSchema,
   ApexExecuteOptionsSchema,
   ApexLogGetOptionsSchema,
-  ApexLogListItem,
+  ApexLogRecordSchema,
   ApexLogQueryError,
   ApexLogBodyFetchError,
+  ApexLogResultSchema,
+  ApexLogWithBodySchema,
+  EffectApexLogGetOptionsSchema,
   ListLogsOptionsSchema,
   ApexTestProgressValueSchema,
   ApexTestQueueItemSchema,
@@ -275,7 +265,6 @@ const PublicApiSchema = Schema.Union(
   ExecuteAnonymousOutcomeSchema,
   ExecuteAnonymousResponseSchema,
   LogLevelSchema,
-  LogRecordSchema,
   LogResultSchema,
   OutputDirConfigSchema,
   PerClassCoverageSchema,
@@ -320,10 +309,6 @@ type Matches<Contract, Definition extends Schema.Schema.Any> = Equal<
   JsonContract<Contract>,
   JsonContract<Schema.Schema.Type<Definition>>
 >;
-type SerializableLogRecord = Omit<LogRecord, 'LogUser'> & {
-  LogUser: { attributes: Record<string, unknown>; Name: string };
-};
-
 type PublicContractChecks = {
   ApexCodeCoverage: Matches<ApexCodeCoverage, typeof ApexCodeCoverageSchema>;
   ApexCodeCoverageAggregate: Matches<ApexCodeCoverageAggregate, typeof ApexCodeCoverageAggregateSchema>;
@@ -350,7 +335,7 @@ type PublicContractChecks = {
   CommonOptions: Matches<CommonOptions, typeof CommonOptionsSchema>;
   ExecuteAnonymousResponse: Matches<ExecuteAnonymousResponse, typeof ExecuteAnonymousResponseSchema>;
   LogLevel: Matches<LogLevel, typeof LogLevelSchema>;
-  LogRecord: Matches<SerializableLogRecord, typeof LogRecordSchema>;
+  LogRecord: Matches<LogRecord, typeof ApexLogRecordSchema>;
   LogResult: Matches<LogResult, typeof LogResultSchema>;
   OutputDirConfig: Matches<OutputDirConfig, typeof OutputDirConfigSchema>;
   PerClassCoverage: Matches<PerClassCoverage, typeof PerClassCoverageSchema>;
