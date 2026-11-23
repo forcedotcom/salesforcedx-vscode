@@ -12,6 +12,7 @@ minimumReleaseAgeExclude:
 
 overrides:
   '@azure/monitor-opentelemetry-exporter': 1.0.0-beta.47
+  protobufjs: 7.6.5
   '@salesforce/vscode-services>effect-v3': 'npm:effect@3.22.4'
   'effect@^3.22.4': 3.22.4
   '@effect/platform-node@4.1.4>@effect/platform-node-shared': 4.1.4
