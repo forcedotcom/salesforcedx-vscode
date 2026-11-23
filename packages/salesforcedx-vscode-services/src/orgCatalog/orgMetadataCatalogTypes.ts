@@ -152,7 +152,11 @@ export type OrgMetadataCatalogEntry = typeof OrgMetadataCatalogEntrySchema.Type;
 export const OrgMetadataCatalogFindResultKindSchema = Schema.Literal('component', 'sobject');
 export type OrgMetadataCatalogFindResultKind = typeof OrgMetadataCatalogFindResultKindSchema.Type;
 
-/** Evidence-based query over the active org catalog. Each evidence item is an exact metadata identity. */
+/**
+ * Evidence-based query over the active org catalog. Evidence preserves caller casing and results preserve evidence order,
+ * including duplicates. Each evidence item emits component results before SObject results. Empty evidence or result
+ * kinds are valid no-op queries that return no results.
+ */
 export const OrgMetadataCatalogFindQuerySchema = Schema.Struct({
   evidence: Schema.Array(OrgMetadataCatalogComponentReferenceSchema),
   resultKinds: Schema.Array(OrgMetadataCatalogFindResultKindSchema)

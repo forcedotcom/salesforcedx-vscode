@@ -7,8 +7,12 @@
 
 import * as Arr from 'effect/Array';
 import * as DateTime from 'effect/DateTime';
+import * as Deferred from 'effect/Deferred';
 import * as Effect from 'effect/Effect';
+import * as Exit from 'effect/Exit';
+import * as HashMap from 'effect/HashMap';
 import * as Option from 'effect/Option';
+import * as Ref from 'effect/Ref';
 import * as Schema from 'effect/Schema';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
 import * as vscode from 'vscode';
@@ -22,6 +26,7 @@ import { QueryService } from '../core/queryService';
 import { orgIdFromConnection } from '../core/schemas/authFields';
 import { TransmogrifierService } from '../core/transmogrifierService';
 import { makeOrgCatalogInventory } from './orgCatalogInventory';
+import { findInventoryComponent } from './orgCatalogKeys';
 import { OrgCatalogState } from './orgCatalogState';
 import { makeOrgCatalogTreeProjection } from './orgCatalogTreeProjection';
 import { makeOrgCatalogWorkspace } from './orgCatalogWorkspace';
@@ -59,12 +64,16 @@ const toCatalogEntry = (entry: OrgMetadataCatalogInternalEntry): OrgMetadataCata
 
 const escapeSoql = (value: string): string => value.replaceAll('\\', '\\\\').replaceAll("'", "\\'");
 
-const apexClassQuery = (name: string, namespacePrefix: string | null): string =>
-  `SELECT Id FROM ApexClass WHERE Name = '${escapeSoql(name)}' AND NamespacePrefix = ${
+type ApexSourceType = 'ApexClass' | 'ApexTrigger';
+
+const isApexSourceType = (type: string): type is ApexSourceType => type === 'ApexClass' || type === 'ApexTrigger';
+
+const apexSourceQuery = (type: ApexSourceType, name: string, namespacePrefix: string | null): string =>
+  `SELECT Id FROM ${type} WHERE Name = '${escapeSoql(name)}' AND NamespacePrefix = ${
     namespacePrefix === null ? 'null' : `'${escapeSoql(namespacePrefix)}'`
   } LIMIT 1`;
 
-const apexClassToolingIdentity = (
+const apexSourceToolingIdentity = (
   fullName: string
 ): { readonly name: string; readonly namespacePrefix: string | null } => {
   const separatorIndex = fullName.indexOf('__');
@@ -131,16 +140,65 @@ export class OrgMetadataCatalog extends Effect.Service<OrgMetadataCatalog>()('Or
       );
     });
 
-    const findApexClass = Effect.fn('OrgMetadataCatalog.findApexClass')(function* (
+    const inFlightApexSourceLookups = yield* Ref.make<
+      HashMap.HashMap<string, Deferred.Deferred<Exit.Exit<boolean, unknown>, never>>
+    >(HashMap.empty());
+
+    const findApexSource = Effect.fn('OrgMetadataCatalog.findApexSource')(function* (
       orgId: string,
+      type: ApexSourceType,
       reference: OrgMetadataCatalogComponentReference
     ) {
-      const { name, namespacePrefix } = apexClassToolingIdentity(reference.fullName);
-      const { totalSize } = yield* queryService.query(
-        { soql: apexClassQuery(name, namespacePrefix), tooling: true, orgId },
-        Schema.Struct({ Id: Schema.String })
+      const { name, namespacePrefix } = apexSourceToolingIdentity(reference.fullName);
+      yield* state.ensureHydrated(orgId);
+      const [loaded, persisted] = yield* Effect.all([
+        state.getInventory(orgId, type),
+        state.getPersistedInventory(orgId, type)
+      ]);
+      const internalReference = toInternalComponentReference(reference);
+      const recorded =
+        findInventoryComponent(loaded?.components ?? HashMap.empty(), internalReference, namespacePrefix)?.inOrg ===
+          true ||
+        persisted?.components.some(
+          component =>
+            component.fullName === reference.fullName &&
+            ('namespacePrefix' in component ? (component.namespacePrefix ?? null) : null) === namespacePrefix
+        ) === true;
+      if (recorded) {
+        yield* connectionService.getConnectionForOrg(orgId);
+        return true;
+      }
+
+      const key = `${orgId}\0${type}\0${reference.fullName}`;
+      const fresh = yield* Deferred.make<Exit.Exit<boolean, unknown>>();
+      const winner = yield* Ref.modify(inFlightApexSourceLookups, current => {
+        const existing = HashMap.get(current, key);
+        return Option.isSome(existing) ? [existing.value, current] : [fresh, HashMap.set(current, key, fresh)];
+      });
+      if (winner !== fresh) {
+        const completedExit = yield* Deferred.await(winner);
+        return yield* Exit.match(completedExit, { onFailure: Effect.failCause, onSuccess: Effect.succeed });
+      }
+      const resultExit = yield* queryService
+        .query(
+          { soql: apexSourceQuery(type, name, namespacePrefix), tooling: true, orgId },
+          Schema.Struct({ Id: Schema.String })
+        )
+        .pipe(
+          Effect.map(result => result.totalSize > 0),
+          Effect.tap(isFound =>
+            isFound
+              ? recorder.recordRemoteComponents(orgId, 'tooling-api', [
+                  { type, fullName: reference.fullName, ...(namespacePrefix !== null ? { namespacePrefix } : {}) }
+                ])
+              : Effect.void
+          ),
+          Effect.exit
+        );
+      yield* Deferred.succeed(fresh, resultExit).pipe(
+        Effect.zipRight(Ref.update(inFlightApexSourceLookups, HashMap.remove(key)))
       );
-      const found = totalSize > 0;
+      const found = yield* Exit.match(resultExit, { onFailure: Effect.failCause, onSuccess: Effect.succeed });
       yield* Effect.annotateCurrentSpan({ found, namespaceQualified: namespacePrefix !== null });
       return found;
     });
@@ -254,11 +312,11 @@ export class OrgMetadataCatalog extends Effect.Service<OrgMetadataCatalog>()('Or
         reference =>
           Effect.gen(function* () {
             const observedAt = DateTime.formatIso(yield* DateTime.now);
-            if (reference.type === 'ApexClass' && query.resultKinds.includes('component')) {
+            if (isApexSourceType(reference.type) && query.resultKinds.includes('component')) {
               const [workspaceResolution] = yield* workspace.findWorkspaceComponents([
                 toInternalComponentReference(reference)
               ]);
-              const inOrg = yield* findApexClass(orgId, reference);
+              const inOrg = yield* findApexSource(orgId, reference.type, reference);
               if (!workspaceResolution?.workspaceUri && !inOrg) {
                 return [{ kind: 'not-found' as const, reference, resultKind: 'component' as const }];
               }
