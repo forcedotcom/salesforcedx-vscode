@@ -10,6 +10,7 @@ const core_1 = require("@actions/core");
 const github_1 = require("@actions/github");
 const effect_octokit_1 = require("@salesforce/effect-octokit");
 const Effect = require("effect/Effect");
+const Predicate_1 = require("effect/Predicate");
 async function run() {
     try {
         const issue = github_1.context.payload.issue;
@@ -39,7 +40,7 @@ async function run() {
         const bodies = [
             issue.body,
             ...authorComments.map((comment) => comment.body),
-        ].filter((body) => body !== undefined);
+        ].filter(Predicate_1.isNotUndefined);
         console.log('bodies = ' + JSON.stringify(bodies));
         console.log('bodies.length = ' + bodies.length);
         const core = require('@actions/core');
@@ -47,9 +48,10 @@ async function run() {
             core.setOutput("is_feature_request", "false");
         }
         else {
+            const bodyTexts = bodies.filter(Predicate_1.isNotNullable);
             const featureRequestRegex = /(feature\s*request)/ig;
             // Search all bodies and get an array of all versions found (first capture group)
-            const featureRequests = bodies
+            const featureRequests = bodyTexts
                 .map((body) => [...body.matchAll(featureRequestRegex)].map((match) => match[1]))
                 .flat();
             if (featureRequests.length > 0) {

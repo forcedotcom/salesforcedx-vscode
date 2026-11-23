@@ -9,6 +9,7 @@ import { getInput, setFailed } from "@actions/core";
 import { context } from "@actions/github";
 import { githubFromToken } from "@salesforce/effect-octokit";
 import * as Effect from "effect/Effect";
+import { isNotNullable, isNotUndefined } from "effect/Predicate";
 
 async function run() {
   try {
@@ -48,7 +49,7 @@ async function run() {
     const bodies = [
       issue.body,
       ...authorComments.map((comment) => comment.body),
-    ].filter((body): body is string => body !== undefined);
+    ].filter(isNotUndefined);
     console.log('bodies = ' + JSON.stringify(bodies));
     console.log('bodies.length = ' + bodies.length);
 
@@ -56,10 +57,11 @@ async function run() {
     if (bodies[0] === null) {
       core.setOutput("is_feature_request", "false");
     } else {
+      const bodyTexts = bodies.filter(isNotNullable);
       const featureRequestRegex = /(feature\s*request)/ig;
 
       // Search all bodies and get an array of all versions found (first capture group)
-      const featureRequests = bodies
+      const featureRequests = bodyTexts
         .map((body) =>
           [...body.matchAll(featureRequestRegex)].map((match) => match[1])
         )

@@ -9,6 +9,7 @@ import { getInput, setFailed } from '@actions/core';
 import { context } from '@actions/github';
 import { githubFromToken } from '@salesforce/effect-octokit';
 import * as Effect from 'effect/Effect';
+import { isNotNullable, isNotUndefined } from 'effect/Predicate';
 import * as Schema from 'effect/Schema';
 import { execSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
@@ -53,9 +54,7 @@ async function run() {
     // For version checks, we only care about comments from the author
     const authorComments = comments.filter(comment => comment?.user?.login === author);
     // Build an array of the issue body and all of the comment bodies
-    const bodies = [body, ...authorComments.map(comment => comment.body)].filter(
-      (body): body is string => body !== undefined
-    );
+    const bodies = [body, ...authorComments.map(comment => comment.body)].filter(isNotUndefined);
     console.log(`bodies = ${JSON.stringify(bodies)}`);
     console.log(`bodies.length = ${bodies.length}`);
 
@@ -67,6 +66,7 @@ async function run() {
       await postComment(message);
       await addLabel('missing required information');
     } else {
+      const bodyTexts = bodies.filter(isNotNullable);
       let extensionsValid = true;
       let vscodeValid = true;
       let osVersionValid = true;
@@ -80,7 +80,7 @@ async function run() {
         /(?:\*{2}Salesforce Extension Version in VS Code\*{2}:\s*v?(\d{2}\.\d{1,2}\.\d))|(?:Salesforce Extension Version in VS Code:\s*v?(\d{2}\.\d{1,2}\.\d))/g;
 
       // Search all bodies and get an array of all versions found (first or second capture group)
-      const extensionsVersions = bodies
+      const extensionsVersions = bodyTexts
         .map(body => [...body.matchAll(extensionsVersionRegex)].map(match => match[1] || match[2]))
         .flat();
 
@@ -125,7 +125,7 @@ async function run() {
         /(?:\*{2}VS Code version\*{2}:\s*(?:Version:\s*)?v?(1\.\d{2,3}\.\d))|(?:VS Code version:\s*(?:Version:\s*)?v?(1\.\d{2,3}\.\d))/g;
 
       // Search all bodies and get an array of all versions found (first or second capture group)
-      const vscodeVersions = bodies
+      const vscodeVersions = bodyTexts
         .map(body => [...body.matchAll(vscodeVersionRegex)].map(match => match[1] || match[2]))
         .flat();
 
@@ -172,7 +172,7 @@ async function run() {
         /(?:\*{2}OS and version\*{2}:\s*(?!\*\*VS|VS)\S.*?)(?=\r?\n|$)|(?:OS and version:\s*(?!\*\*VS|VS)\S.*?)(?=\r?\n|$)/g;
 
       // Search all bodies and get an array of all versions found (first or second capture group)
-      const osVersions = bodies
+      const osVersions = bodyTexts
         .map(body => [...body.matchAll(osVersionRegex)].map(match => match[1] || match[2]))
         .flat();
 
@@ -196,7 +196,7 @@ async function run() {
         /(\*{2}Most recent version of the extensions where this was working\*{2}:\s*\S.*[\r\n]+)|(Most recent version of the extensions where this was working:\s*\S.*[\r\n]+)|(\*{2}Most recent version of the extensions where this was working\*{2}:\s*\S.*$)|(Most recent version of the extensions where this was working:\s*\S.*$)/g;
 
       // Search all bodies and get an array of all versions found (first or second capture group)
-      const lastWorkingVersions = bodies
+      const lastWorkingVersions = bodyTexts
         .map(body =>
           [...body.matchAll(lastWorkingVersionRegex)].map(match => match[1] || match[2] || match[3] || match[4])
         )
@@ -226,9 +226,9 @@ async function run() {
       const nodeVersionRegex = /node-v(\d{2})\.\d+\.\d+/g;
 
       // Search all bodies and get an array of all versions found (first capture group)
-      const sfVersions = bodies.map(body => [...body.matchAll(sfVersionRegex)].map(match => match[1])).flat();
-      const sfdxVersions = bodies.map(body => [...body.matchAll(sfdxVersionRegex)].map(match => match[1])).flat();
-      const nodeVersions = bodies.map(body => [...body.matchAll(nodeVersionRegex)].map(match => match[1])).flat();
+      const sfVersions = bodyTexts.map(body => [...body.matchAll(sfVersionRegex)].map(match => match[1])).flat();
+      const sfdxVersions = bodyTexts.map(body => [...body.matchAll(sfdxVersionRegex)].map(match => match[1])).flat();
+      const nodeVersions = bodyTexts.map(body => [...body.matchAll(nodeVersionRegex)].map(match => match[1])).flat();
 
       console.log('sfVersions', sfVersions);
       console.log('sfdxVersions', sfdxVersions);
