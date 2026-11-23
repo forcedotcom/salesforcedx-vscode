@@ -11,7 +11,7 @@ import * as Chunk from 'effect/Chunk';
 import * as Effect from 'effect/Effect';
 import { pipe } from 'effect/Function';
 import * as Option from 'effect/Option';
-import { isNotUndefined, isString, isUndefined } from 'effect/Predicate';
+import { isNotUndefined, isNumber, isString, isUndefined } from 'effect/Predicate';
 import type * as Schedule from 'effect/Schedule';
 import * as Schema from 'effect/Schema';
 import * as Stream from 'effect/Stream';
@@ -126,21 +126,21 @@ export const getLogs = Effect.fn('Apex.getLogs')(function* <E = never, R = never
       if (isUndefined(options.logId) && isUndefined(options.numberOfLogs)) {
         return operationError('getLogs', options, nls.localize('missingInfoLogError'));
       }
-      return typeof options.numberOfLogs === 'number'
+      return isNumber(options.numberOfLogs)
         ? operationError('getLogs', cause, nls.localize('numLogsError'))
         : operationError('getLogs', cause);
     })
   );
-  const logIds =
-    typeof decoded.numberOfLogs === 'number'
-      ? (yield* getLogRecords(connection, decoded.numberOfLogs)).map(record => record.Id)
-      : decoded.logId
-        ? [decoded.logId]
-        : [];
-  const logs: ApexLogResult[] = yield* Effect.forEach(
-    logIds,
-    logId => getLogBody(connection, logId).pipe(Effect.map(log => ({ logId, log }))),
-    { concurrency: 'unbounded' }
+  const logs: ApexLogResult[] = yield* (
+    isNumber(decoded.numberOfLogs)
+      ? getLogRecords(connection, decoded.numberOfLogs).pipe(Effect.map(records => records.map(record => record.Id)))
+      : Effect.succeed(decoded.logId ? [decoded.logId] : [])
+  ).pipe(
+    Effect.flatMap(logIds =>
+      Effect.forEach(logIds, logId => getLogBody(connection, logId).pipe(Effect.map(log => ({ logId, log }))), {
+        concurrency: 'unbounded'
+      })
+    )
   );
   if (isUndefined(writeLog)) return logs;
   return yield* Effect.forEach(
