@@ -11,3 +11,15 @@ not_exploitable:
       third-party actions in this repo (e.g. TriPSs/conventional-changelog-action,
       ncipollo/release-action) are pinned to commit SHAs, showing pinning is already applied where
       the trust boundary is actually external.
+  - id: .github/workflows/validateNewIssues.yml:b8cecb2ba0ae1cd4ba572316b0af5ac33661cc4b18454b98e5ca3ecc49f6e454
+    justification: >
+      salesforcecli/github-workflows is an internally-owned Salesforce repo, not a third-party
+      dependency, so its @main reference does not cross a third-party supply-chain trust boundary.
+      This matches the established repo pattern and the existing not-exploitable triage for
+      publishVSCode.yml.
+  - id: .github/workflows/validateUpdatedIssues.yml:b8cecb2ba0ae1cd4ba572316b0af5ac33661cc4b18454b98e5ca3ecc49f6e454
+    justification: >
+      salesforcecli/github-workflows is an internally-owned Salesforce repo, not a third-party
+      dependency, so its @main reference does not cross a third-party supply-chain trust boundary.
+      This matches the established repo pattern and the existing not-exploitable triage for
+      publishVSCode.yml.
