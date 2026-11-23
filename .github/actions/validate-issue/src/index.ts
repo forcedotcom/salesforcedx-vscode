@@ -8,6 +8,7 @@
 import { getInput, setFailed } from '@actions/core';
 import { context } from '@actions/github';
 import { githubFromToken } from '@salesforce/effect-octokit';
+import * as Cause from 'effect/Cause';
 import * as Effect from 'effect/Effect';
 import { isNotNullable, isNotUndefined, isNull } from 'effect/Predicate';
 import * as Schema from 'effect/Schema';
@@ -17,8 +18,8 @@ import * as path from 'node:path';
 import * as semver from 'semver';
 import { isAnyVersionValid } from './nodeVersions';
 
-async function run() {
-  try {
+function run() {
+  return Effect.gen(function* () {
     const issue = context.payload.issue;
 
     if (!issue) {
@@ -38,7 +39,7 @@ async function run() {
 
     // Use only the action input, never a token inherited from the runner environment.
     const token = getInput('repo-token', { required: true });
-    const github = await githubFromToken(token).pipe(Effect.runPromise);
+    const github = yield* githubFromToken(token);
 
     // Get owner and repo from context
     const owner = context.repo.owner;
@@ -49,7 +50,7 @@ async function run() {
 
     const { body } = issue;
     const { login: author } = issue.user;
-    const comments = await github.issueComments(owner, repo, issue_number).pipe(Effect.runPromise);
+    const comments = yield* github.issueComments(owner, repo, issue_number);
 
     // For version checks, we only care about comments from the author
     const authorComments = comments.filter(comment => comment?.user?.login === author);
@@ -58,13 +59,75 @@ async function run() {
     console.log(`bodies = ${JSON.stringify(bodies)}`);
     console.log(`bodies.length = ${bodies.length}`);
 
+    const closeIssue = () =>
+      Effect.gen(function* () {
+        yield* github.request('PATCH /repos/{owner}/{repo}/issues/{issue_number}', {
+          owner,
+          repo,
+          issue_number,
+          state: 'closed'
+        });
+      }).pipe(Effect.withSpan('validateIssue.closeIssue'));
+
+    const postComment = (body: string) =>
+      Effect.gen(function* () {
+        if (comments.some(comment => comment.body === body)) {
+          console.log('Already commented');
+          return;
+        }
+
+        return yield* github.createIssueComment(owner, repo, issue_number, body);
+      }).pipe(Effect.withSpan('validateIssue.postComment'));
+
+    const addLabel = (label: string) =>
+      Effect.gen(function* () {
+        yield* github.addIssueLabels(owner, repo, issue_number, [label]);
+      }).pipe(Effect.withSpan('validateIssue.addLabel'));
+
+    const removeLabel = (label: string) =>
+      Effect.gen(function* () {
+        yield* github.removeIssueLabel(owner, repo, issue_number, label).pipe(
+          Effect.catchTag('GitHubRequestError', error =>
+            error.status === 404
+              ? Effect.sync(() => console.log(`Cannot remove label '${label}' since it was not applied`))
+              : Effect.fail(error)
+          )
+        );
+      }).pipe(Effect.withSpan('validateIssue.removeLabel'));
+
+    const getMinimumVSCodeVersion = () =>
+      Effect.gen(function* () {
+        const release = yield* github
+          .request('GET /repos/{owner}/{repo}/releases/latest', {
+            owner: 'microsoft',
+            repo: 'vscode'
+          })
+          .pipe(
+            Effect.flatMap(Schema.decodeUnknown(Schema.Struct({ tag_name: Schema.optional(Schema.String) }))),
+            Effect.catchAll(error => {
+              console.error('Failed to fetch latest VSCode version, falling back to default:', error);
+              return Effect.succeed(undefined);
+            })
+          );
+        const latestVersion = release?.tag_name ?? '1.103.0'; // e.g., "1.103.0"
+
+        // Parse version numbers
+        const versionParts: number[] = latestVersion.split('.').map(Number);
+        const major: number = versionParts[0] ?? 1;
+        const minor: number = versionParts[1] ?? 101;
+
+        // Calculate minimum version (latest - 2 minor versions)
+        const minMinor = Math.max(0, minor - 2);
+        return `${major}.${minMinor}.0`;
+      }).pipe(Effect.withSpan('validateIssue.getMinimumVSCodeVersion'));
+
     if (isNull(bodies[0])) {
       console.log('No content provided in issue body');
       const message = getFile('../messages/provide-version.md', {
         THE_AUTHOR: issue.user.login
       });
-      await postComment(message);
-      await addLabel('missing required information');
+      yield* postComment(message);
+      yield* addLabel('missing required information');
     } else {
       const bodyTexts = bodies.filter(isNotNullable);
       let extensionsValid = true;
@@ -98,14 +161,14 @@ async function run() {
             USER_VERSION: extensionsVersions.join('`, `'),
             LATEST_VERSION: extensionsLatest
           });
-          await postComment(oldExtensions);
+          yield* postComment(oldExtensions);
         }
 
         if (extensionsValid) {
           console.log('A valid extensions version is provided!');
         } else {
           console.log('The extensions version provided is NOT valid');
-          await addLabel('missing required information');
+          yield* addLabel('missing required information');
         }
       } else {
         console.log('Extensions version is NOT provided');
@@ -113,9 +176,9 @@ async function run() {
           const message = getFile('../messages/provide-version.md', {
             THE_AUTHOR: issue.user.login
           });
-          await postComment(message);
+          yield* postComment(message);
           provideVersionAlreadyRequested = true;
-          await addLabel('missing required information');
+          yield* addLabel('missing required information');
         }
         extensionsValid = false;
       }
@@ -132,7 +195,7 @@ async function run() {
       console.log('vscodeVersions', vscodeVersions);
 
       if (vscodeVersions.length > 0) {
-        const vscodeMinVersion = await getMinimumVSCodeVersion();
+        const vscodeMinVersion = yield* getMinimumVSCodeVersion();
         console.log('vscodeMinVersion', vscodeMinVersion);
 
         const oneSatisfies = vscodeVersions.some(version => semver.gte(version, vscodeMinVersion));
@@ -143,7 +206,7 @@ async function run() {
             USER_VERSION: vscodeVersions.join('`, `'),
             MIN_VERSION: vscodeMinVersion
           });
-          await postComment(oldVSCode);
+          yield* postComment(oldVSCode);
           vscodeValid = false;
         }
 
@@ -151,7 +214,7 @@ async function run() {
           console.log('A valid VSCode version is provided!');
         } else {
           console.log('The VSCode version provided is NOT valid');
-          await addLabel('missing required information');
+          yield* addLabel('missing required information');
         }
       } else {
         console.log('VSCode version is NOT provided');
@@ -159,9 +222,9 @@ async function run() {
           const message = getFile('../messages/provide-version.md', {
             THE_AUTHOR: issue.user.login
           });
-          await postComment(message);
+          yield* postComment(message);
           provideVersionAlreadyRequested = true;
-          await addLabel('missing required information');
+          yield* addLabel('missing required information');
         }
         vscodeValid = false;
       }
@@ -184,9 +247,9 @@ async function run() {
           const message = getFile('../messages/provide-version.md', {
             THE_AUTHOR: issue.user.login
           });
-          await postComment(message);
+          yield* postComment(message);
           provideVersionAlreadyRequested = true;
-          await addLabel('missing required information');
+          yield* addLabel('missing required information');
         }
         osVersionValid = false;
       }
@@ -210,9 +273,9 @@ async function run() {
           const message = getFile('../messages/provide-version.md', {
             THE_AUTHOR: issue.user.login
           });
-          await postComment(message);
+          yield* postComment(message);
           provideVersionAlreadyRequested = true;
-          await addLabel('missing required information');
+          yield* addLabel('missing required information');
         }
         lastWorkingVersionValid = false;
       }
@@ -244,7 +307,7 @@ async function run() {
               THE_AUTHOR: author,
               OLD_CLI: '`sf` (v1)'
             });
-            await postComment(sfV1);
+            yield* postComment(sfV1);
             cliValid = false;
           }
         }
@@ -253,17 +316,17 @@ async function run() {
             THE_AUTHOR: author,
             OLD_CLI: '`sfdx` (v7)'
           });
-          await postComment(noOldSfdx);
+          yield* postComment(noOldSfdx);
           cliValid = false;
         }
         if (nodeVersions.length > 0) {
-          if (!(await isAnyVersionValid(new Date())(nodeVersions))) {
+          if (!(yield* isAnyVersionValid(new Date(), nodeVersions))) {
             const nodeVersionMessage = getFile('../messages/unsupported-node.md', {
               THE_AUTHOR: author,
               NODE_VERSION: nodeVersions.join('`, `')
             });
-            await postComment(nodeVersionMessage);
-            await closeIssue();
+            yield* postComment(nodeVersionMessage);
+            yield* closeIssue();
             cliValid = false;
           }
         }
@@ -272,7 +335,7 @@ async function run() {
           console.log('A valid CLI version is provided!');
         } else {
           console.log('Information provided is NOT valid');
-          await addLabel('missing required information');
+          yield* addLabel('missing required information');
         }
       } else {
         console.log('Full version information was not provided');
@@ -280,19 +343,19 @@ async function run() {
           const message = getFile('../messages/provide-version.md', {
             THE_AUTHOR: issue.user.login
           });
-          await postComment(message);
+          yield* postComment(message);
           provideVersionAlreadyRequested = true;
-          await addLabel('missing required information');
+          yield* addLabel('missing required information');
         }
         cliValid = false;
       }
 
       if (extensionsValid && vscodeValid && osVersionValid && cliValid && lastWorkingVersionValid) {
-        await addLabel('validated');
-        await removeLabel('missing required information');
+        yield* addLabel('validated');
+        yield* removeLabel('missing required information');
       } else {
         console.log('You have one or more missing/invalid versions.');
-        await addLabel('missing required information');
+        yield* addLabel('missing required information');
       }
     }
 
@@ -300,77 +363,9 @@ async function run() {
     // FUNCTIONS
     // ---------
 
-    async function closeIssue() {
-      return await github
-        .request('PATCH /repos/{owner}/{repo}/issues/{issue_number}', {
-          owner,
-          repo,
-          issue_number,
-          state: 'closed'
-        })
-        .pipe(Effect.runPromise);
-    }
-    async function postComment(body: string) {
-      // Check that this comment has not been previously commented
-      if (comments.some(comment => comment.body === body)) {
-        console.log('Already commented');
-        return;
-      }
-
-      return await github.createIssueComment(owner, repo, issue_number, body).pipe(Effect.runPromise);
-    }
-
-    async function addLabel(label: string) {
-      await github.addIssueLabels(owner, repo, issue_number, [label]).pipe(Effect.runPromise);
-    }
-
-    async function removeLabel(label: string) {
-      await github
-        .removeIssueLabel(owner, repo, issue_number, label)
-        .pipe(
-          Effect.catchTag('GitHubRequestError', error =>
-            error.status === 404
-              ? Effect.sync(() => console.log(`Cannot remove label '${label}' since it was not applied`))
-              : Effect.fail(error)
-          ),
-          Effect.runPromise
-        );
-    }
-
     function getLatestExtensionsVersion() {
       const result = execSync('pnpm exec vsce show salesforce.salesforcedx-vscode --json').toString();
       return JSON.parse(result).versions[0].version;
-    }
-
-    async function getMinimumVSCodeVersion(): Promise<string> {
-      try {
-        // Use the same explicit action token for the public VS Code release lookup.
-        const release = await github
-          .request('GET /repos/{owner}/{repo}/releases/latest', {
-            owner: 'microsoft',
-            repo: 'vscode'
-          })
-          .pipe(
-            Effect.flatMap(Schema.decodeUnknown(Schema.Struct({ tag_name: Schema.optional(Schema.String) }))),
-            Effect.runPromise
-          );
-        const latestVersion: string = release.tag_name ?? '1.103.0'; // e.g., "1.103.0"
-
-        // Parse version numbers
-        const versionParts: number[] = latestVersion.split('.').map(Number);
-        const major: number = versionParts[0] ?? 1;
-        const minor: number = versionParts[1] ?? 101;
-
-        // Calculate minimum version (latest - 2 minor versions)
-        const minMinor = Math.max(0, minor - 2);
-        const minimumVersion = `${major}.${minMinor}.0`;
-
-        return minimumVersion;
-      } catch (error) {
-        console.error('Failed to fetch latest VSCode version, falling back to default:', error);
-        // Fallback to a reasonable default if API call fails
-        return '1.101.0';
-      }
     }
 
     function getFile(filename: string, replacements: { [key: string]: string } | undefined) {
@@ -382,10 +377,20 @@ async function run() {
 
       return contents;
     }
-  } catch (err) {
-    const error = err as Error;
-    setFailed(error.message);
-  }
+  }).pipe(
+    Effect.withSpan('validateIssue.run'),
+    Effect.catchAllCause(cause =>
+      Effect.sync(() => {
+        const error = Cause.squash(cause);
+        setFailed(
+          typeof error === 'object' && error !== null && 'message' in error && typeof error.message === 'string'
+            ? error.message
+            : String(error)
+        );
+      })
+    ),
+    Effect.runPromise
+  );
 }
 
 run();

@@ -9,6 +9,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const core_1 = require("@actions/core");
 const github_1 = require("@actions/github");
 const effect_octokit_1 = require("@salesforce/effect-octokit");
+const Cause = require("effect/Cause");
 const Effect = require("effect/Effect");
 const Predicate_1 = require("effect/Predicate");
 const Schema = require("effect/Schema");
@@ -17,8 +18,8 @@ const node_fs_1 = require("node:fs");
 const path = require("node:path");
 const semver = require("semver");
 const nodeVersions_1 = require("./nodeVersions");
-async function run() {
-    try {
+function run() {
+    return Effect.gen(function* () {
         const issue = github_1.context.payload.issue;
         if (!issue) {
             (0, core_1.setFailed)('github.context.payload.issue does not exist');
@@ -35,7 +36,7 @@ async function run() {
         }
         // Use only the action input, never a token inherited from the runner environment.
         const token = (0, core_1.getInput)('repo-token', { required: true });
-        const github = await (0, effect_octokit_1.githubFromToken)(token).pipe(Effect.runPromise);
+        const github = yield* (0, effect_octokit_1.githubFromToken)(token);
         // Get owner and repo from context
         const owner = github_1.context.repo.owner;
         const repo = github_1.context.repo.repo;
@@ -43,20 +44,62 @@ async function run() {
         console.log('Issue URL:', issue.html_url);
         const { body } = issue;
         const { login: author } = issue.user;
-        const comments = await github.issueComments(owner, repo, issue_number).pipe(Effect.runPromise);
+        const comments = yield* github.issueComments(owner, repo, issue_number);
         // For version checks, we only care about comments from the author
         const authorComments = comments.filter(comment => comment?.user?.login === author);
         // Build an array of the issue body and all of the comment bodies
         const bodies = [body, ...authorComments.map(comment => comment.body)].filter(Predicate_1.isNotUndefined);
         console.log(`bodies = ${JSON.stringify(bodies)}`);
         console.log(`bodies.length = ${bodies.length}`);
+        const closeIssue = () => Effect.gen(function* () {
+            yield* github.request('PATCH /repos/{owner}/{repo}/issues/{issue_number}', {
+                owner,
+                repo,
+                issue_number,
+                state: 'closed'
+            });
+        }).pipe(Effect.withSpan('validateIssue.closeIssue'));
+        const postComment = (body) => Effect.gen(function* () {
+            if (comments.some(comment => comment.body === body)) {
+                console.log('Already commented');
+                return;
+            }
+            return yield* github.createIssueComment(owner, repo, issue_number, body);
+        }).pipe(Effect.withSpan('validateIssue.postComment'));
+        const addLabel = (label) => Effect.gen(function* () {
+            yield* github.addIssueLabels(owner, repo, issue_number, [label]);
+        }).pipe(Effect.withSpan('validateIssue.addLabel'));
+        const removeLabel = (label) => Effect.gen(function* () {
+            yield* github.removeIssueLabel(owner, repo, issue_number, label).pipe(Effect.catchTag('GitHubRequestError', error => error.status === 404
+                ? Effect.sync(() => console.log(`Cannot remove label '${label}' since it was not applied`))
+                : Effect.fail(error)));
+        }).pipe(Effect.withSpan('validateIssue.removeLabel'));
+        const getMinimumVSCodeVersion = () => Effect.gen(function* () {
+            const release = yield* github
+                .request('GET /repos/{owner}/{repo}/releases/latest', {
+                owner: 'microsoft',
+                repo: 'vscode'
+            })
+                .pipe(Effect.flatMap(Schema.decodeUnknown(Schema.Struct({ tag_name: Schema.optional(Schema.String) }))), Effect.catchAll(error => {
+                console.error('Failed to fetch latest VSCode version, falling back to default:', error);
+                return Effect.succeed(undefined);
+            }));
+            const latestVersion = release?.tag_name ?? '1.103.0'; // e.g., "1.103.0"
+            // Parse version numbers
+            const versionParts = latestVersion.split('.').map(Number);
+            const major = versionParts[0] ?? 1;
+            const minor = versionParts[1] ?? 101;
+            // Calculate minimum version (latest - 2 minor versions)
+            const minMinor = Math.max(0, minor - 2);
+            return `${major}.${minMinor}.0`;
+        }).pipe(Effect.withSpan('validateIssue.getMinimumVSCodeVersion'));
         if ((0, Predicate_1.isNull)(bodies[0])) {
             console.log('No content provided in issue body');
             const message = getFile('../messages/provide-version.md', {
                 THE_AUTHOR: issue.user.login
             });
-            await postComment(message);
-            await addLabel('missing required information');
+            yield* postComment(message);
+            yield* addLabel('missing required information');
         }
         else {
             const bodyTexts = bodies.filter(Predicate_1.isNotNullable);
@@ -84,14 +127,14 @@ async function run() {
                         USER_VERSION: extensionsVersions.join('`, `'),
                         LATEST_VERSION: extensionsLatest
                     });
-                    await postComment(oldExtensions);
+                    yield* postComment(oldExtensions);
                 }
                 if (extensionsValid) {
                     console.log('A valid extensions version is provided!');
                 }
                 else {
                     console.log('The extensions version provided is NOT valid');
-                    await addLabel('missing required information');
+                    yield* addLabel('missing required information');
                 }
             }
             else {
@@ -100,9 +143,9 @@ async function run() {
                     const message = getFile('../messages/provide-version.md', {
                         THE_AUTHOR: issue.user.login
                     });
-                    await postComment(message);
+                    yield* postComment(message);
                     provideVersionAlreadyRequested = true;
-                    await addLabel('missing required information');
+                    yield* addLabel('missing required information');
                 }
                 extensionsValid = false;
             }
@@ -114,7 +157,7 @@ async function run() {
                 .flat();
             console.log('vscodeVersions', vscodeVersions);
             if (vscodeVersions.length > 0) {
-                const vscodeMinVersion = await getMinimumVSCodeVersion();
+                const vscodeMinVersion = yield* getMinimumVSCodeVersion();
                 console.log('vscodeMinVersion', vscodeMinVersion);
                 const oneSatisfies = vscodeVersions.some(version => semver.gte(version, vscodeMinVersion));
                 if (!oneSatisfies) {
@@ -123,7 +166,7 @@ async function run() {
                         USER_VERSION: vscodeVersions.join('`, `'),
                         MIN_VERSION: vscodeMinVersion
                     });
-                    await postComment(oldVSCode);
+                    yield* postComment(oldVSCode);
                     vscodeValid = false;
                 }
                 if (vscodeValid) {
@@ -131,7 +174,7 @@ async function run() {
                 }
                 else {
                     console.log('The VSCode version provided is NOT valid');
-                    await addLabel('missing required information');
+                    yield* addLabel('missing required information');
                 }
             }
             else {
@@ -140,9 +183,9 @@ async function run() {
                     const message = getFile('../messages/provide-version.md', {
                         THE_AUTHOR: issue.user.login
                     });
-                    await postComment(message);
+                    yield* postComment(message);
                     provideVersionAlreadyRequested = true;
-                    await addLabel('missing required information');
+                    yield* addLabel('missing required information');
                 }
                 vscodeValid = false;
             }
@@ -162,9 +205,9 @@ async function run() {
                     const message = getFile('../messages/provide-version.md', {
                         THE_AUTHOR: issue.user.login
                     });
-                    await postComment(message);
+                    yield* postComment(message);
                     provideVersionAlreadyRequested = true;
-                    await addLabel('missing required information');
+                    yield* addLabel('missing required information');
                 }
                 osVersionValid = false;
             }
@@ -183,9 +226,9 @@ async function run() {
                     const message = getFile('../messages/provide-version.md', {
                         THE_AUTHOR: issue.user.login
                     });
-                    await postComment(message);
+                    yield* postComment(message);
                     provideVersionAlreadyRequested = true;
-                    await addLabel('missing required information');
+                    yield* addLabel('missing required information');
                 }
                 lastWorkingVersionValid = false;
             }
@@ -209,7 +252,7 @@ async function run() {
                             THE_AUTHOR: author,
                             OLD_CLI: '`sf` (v1)'
                         });
-                        await postComment(sfV1);
+                        yield* postComment(sfV1);
                         cliValid = false;
                     }
                 }
@@ -218,17 +261,17 @@ async function run() {
                         THE_AUTHOR: author,
                         OLD_CLI: '`sfdx` (v7)'
                     });
-                    await postComment(noOldSfdx);
+                    yield* postComment(noOldSfdx);
                     cliValid = false;
                 }
                 if (nodeVersions.length > 0) {
-                    if (!(await (0, nodeVersions_1.isAnyVersionValid)(new Date())(nodeVersions))) {
+                    if (!(yield* (0, nodeVersions_1.isAnyVersionValid)(new Date(), nodeVersions))) {
                         const nodeVersionMessage = getFile('../messages/unsupported-node.md', {
                             THE_AUTHOR: author,
                             NODE_VERSION: nodeVersions.join('`, `')
                         });
-                        await postComment(nodeVersionMessage);
-                        await closeIssue();
+                        yield* postComment(nodeVersionMessage);
+                        yield* closeIssue();
                         cliValid = false;
                     }
                 }
@@ -237,7 +280,7 @@ async function run() {
                 }
                 else {
                     console.log('Information provided is NOT valid');
-                    await addLabel('missing required information');
+                    yield* addLabel('missing required information');
                 }
             }
             else {
@@ -246,80 +289,27 @@ async function run() {
                     const message = getFile('../messages/provide-version.md', {
                         THE_AUTHOR: issue.user.login
                     });
-                    await postComment(message);
+                    yield* postComment(message);
                     provideVersionAlreadyRequested = true;
-                    await addLabel('missing required information');
+                    yield* addLabel('missing required information');
                 }
                 cliValid = false;
             }
             if (extensionsValid && vscodeValid && osVersionValid && cliValid && lastWorkingVersionValid) {
-                await addLabel('validated');
-                await removeLabel('missing required information');
+                yield* addLabel('validated');
+                yield* removeLabel('missing required information');
             }
             else {
                 console.log('You have one or more missing/invalid versions.');
-                await addLabel('missing required information');
+                yield* addLabel('missing required information');
             }
         }
         // ---------
         // FUNCTIONS
         // ---------
-        async function closeIssue() {
-            return await github
-                .request('PATCH /repos/{owner}/{repo}/issues/{issue_number}', {
-                owner,
-                repo,
-                issue_number,
-                state: 'closed'
-            })
-                .pipe(Effect.runPromise);
-        }
-        async function postComment(body) {
-            // Check that this comment has not been previously commented
-            if (comments.some(comment => comment.body === body)) {
-                console.log('Already commented');
-                return;
-            }
-            return await github.createIssueComment(owner, repo, issue_number, body).pipe(Effect.runPromise);
-        }
-        async function addLabel(label) {
-            await github.addIssueLabels(owner, repo, issue_number, [label]).pipe(Effect.runPromise);
-        }
-        async function removeLabel(label) {
-            await github
-                .removeIssueLabel(owner, repo, issue_number, label)
-                .pipe(Effect.catchTag('GitHubRequestError', error => error.status === 404
-                ? Effect.sync(() => console.log(`Cannot remove label '${label}' since it was not applied`))
-                : Effect.fail(error)), Effect.runPromise);
-        }
         function getLatestExtensionsVersion() {
             const result = (0, node_child_process_1.execSync)('pnpm exec vsce show salesforce.salesforcedx-vscode --json').toString();
             return JSON.parse(result).versions[0].version;
-        }
-        async function getMinimumVSCodeVersion() {
-            try {
-                // Use the same explicit action token for the public VS Code release lookup.
-                const release = await github
-                    .request('GET /repos/{owner}/{repo}/releases/latest', {
-                    owner: 'microsoft',
-                    repo: 'vscode'
-                })
-                    .pipe(Effect.flatMap(Schema.decodeUnknown(Schema.Struct({ tag_name: Schema.optional(Schema.String) }))), Effect.runPromise);
-                const latestVersion = release.tag_name ?? '1.103.0'; // e.g., "1.103.0"
-                // Parse version numbers
-                const versionParts = latestVersion.split('.').map(Number);
-                const major = versionParts[0] ?? 1;
-                const minor = versionParts[1] ?? 101;
-                // Calculate minimum version (latest - 2 minor versions)
-                const minMinor = Math.max(0, minor - 2);
-                const minimumVersion = `${major}.${minMinor}.0`;
-                return minimumVersion;
-            }
-            catch (error) {
-                console.error('Failed to fetch latest VSCode version, falling back to default:', error);
-                // Fallback to a reasonable default if API call fails
-                return '1.101.0';
-            }
         }
         function getFile(filename, replacements) {
             let contents = (0, node_fs_1.readFileSync)(path.join(__dirname, filename), 'utf8');
@@ -328,11 +318,12 @@ async function run() {
             });
             return contents;
         }
-    }
-    catch (err) {
-        const error = err;
-        (0, core_1.setFailed)(error.message);
-    }
+    }).pipe(Effect.withSpan('validateIssue.run'), Effect.catchAllCause(cause => Effect.sync(() => {
+        const error = Cause.squash(cause);
+        (0, core_1.setFailed)(typeof error === 'object' && error !== null && 'message' in error && typeof error.message === 'string'
+            ? error.message
+            : String(error));
+    })), Effect.runPromise);
 }
 run();
 //# sourceMappingURL=index.js.map
