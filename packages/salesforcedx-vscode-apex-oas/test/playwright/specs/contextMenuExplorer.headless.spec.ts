@@ -11,7 +11,6 @@ import {
   executeCommandWithCommandPalette,
   executeExplorerContextMenuCommand,
   isMacDesktop,
-  openFileByName,
   setupConsoleMonitoring,
   setupNetworkMonitoring,
   validateNoCriticalErrors
@@ -20,6 +19,7 @@ import { caseManagerClassText } from '../testData/sampleClassData';
 import {
   confirmEsrFolderPrompt,
   pushSource,
+  reopenApexClass,
   setupWorkbenchAndAuth,
   waitForOasCommands,
   waitForEsrFile
@@ -46,8 +46,8 @@ test('OAS: explorer context menu generates OAS doc', async ({ page, workspaceDir
   });
 
   await test.step('invoke OAS via explorer context menu (palette fallback on macOS)', async () => {
+    await reopenApexClass(page, 'CaseManager.cls');
     if (isMacDesktop()) {
-      await openFileByName(page, 'CaseManager.cls');
       await executeCommandWithCommandPalette(page, 'SFDX: Create OpenAPI Document from This Class');
     } else {
       await executeExplorerContextMenuCommand(page, 'CaseManager.cls', 'SFDX: Create OpenAPI Document from This Class');

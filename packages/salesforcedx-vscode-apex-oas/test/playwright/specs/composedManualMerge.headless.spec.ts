@@ -11,7 +11,6 @@ import {
   closeAllEditors,
   createApexClass,
   executeCommandWithCommandPalette,
-  openFileByName,
   setupConsoleMonitoring,
   setupNetworkMonitoring,
   validateNoCriticalErrors,
@@ -21,6 +20,7 @@ import { caseManagerClassText } from '../testData/sampleClassData';
 import {
   confirmEsrFolderPrompt,
   pushSource,
+  reopenApexClass,
   setupWorkbenchAndAuth,
   waitForOasCommands,
   waitForEsrFile
@@ -46,7 +46,7 @@ test('OAS: composed mode → manual merge produces diff editor + timestamped ESR
   });
 
   await test.step('first generation: overwrite (creates baseline ESR)', async () => {
-    await openFileByName(page, 'CaseManager.cls');
+    await reopenApexClass(page, 'CaseManager.cls');
     await executeCommandWithCommandPalette(page, 'SFDX: Create OpenAPI Document from This Class');
     await confirmEsrFolderPrompt(page);
     await clickModalDialogButton(page, 'Overwrite').catch(() => {});
@@ -56,7 +56,7 @@ test('OAS: composed mode → manual merge produces diff editor + timestamped ESR
 
   await test.step('second generation: manual merge', async () => {
     await closeAllEditors(page).catch(() => {});
-    await openFileByName(page, 'CaseManager.cls');
+    await reopenApexClass(page, 'CaseManager.cls');
     await executeCommandWithCommandPalette(page, 'SFDX: Create OpenAPI Document from This Class');
     await confirmEsrFolderPrompt(page);
     // The merge dialog renders first; generation runs after the merge button is clicked and can take 30-180s.

@@ -28,6 +28,7 @@ import { getIdealCaseManagerOASDoc } from '../testData/oasDocs';
 import {
   confirmEsrFolderPrompt,
   pushSource,
+  reopenApexClass,
   setupWorkbenchAndAuth,
   setWorkspaceApiVersion,
   waitForOasCommands,
@@ -59,7 +60,7 @@ test('OAS: composed mode → overwrite → revalidate → deploy', async ({ page
   });
 
   await test.step('generate OAS doc via command palette (composed mode, overwrite)', async () => {
-    await openFileByName(page, 'CaseManager.cls');
+    await reopenApexClass(page, 'CaseManager.cls');
     await executeCommandWithCommandPalette(page, 'SFDX: Create OpenAPI Document from This Class');
     await confirmEsrFolderPrompt(page);
     await clickModalDialogButton(page, 'Overwrite').catch(() => {});

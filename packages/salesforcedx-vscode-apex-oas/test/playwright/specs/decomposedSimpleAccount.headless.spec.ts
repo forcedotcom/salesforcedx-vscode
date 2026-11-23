@@ -31,6 +31,7 @@ import {
 import {
   confirmEsrFolderPrompt,
   pushSource,
+  reopenApexClass,
   setupWorkbenchAndAuth,
   waitForOasCommands,
   writeWorkspaceFile
@@ -61,7 +62,7 @@ test('OAS: decomposed mode opens YAML+XML, validates, deploys', async ({ page, w
   });
 
   await test.step('generate decomposed OAS doc via command palette', async () => {
-    await openFileByName(page, 'SimpleAccountResource.cls');
+    await reopenApexClass(page, 'SimpleAccountResource.cls');
     await executeCommandWithCommandPalette(page, 'SFDX: Create OpenAPI Document from This Class');
     await confirmEsrFolderPrompt(page);
 

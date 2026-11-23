@@ -10,7 +10,6 @@ import { expect } from '@playwright/test';
 import {
   createApexClass,
   executeCommandWithCommandPalette,
-  openFileByName,
   setupConsoleMonitoring,
   setupNetworkMonitoring,
   validateNoCriticalErrors
@@ -19,6 +18,7 @@ import { caseManagerClassText } from '../testData/sampleClassData';
 import {
   confirmEsrFolderPrompt,
   pushSource,
+  reopenApexClass,
   setupWorkbenchAndAuth,
   waitForOasCommands,
   waitForEsrFile
@@ -47,7 +47,7 @@ test('OAS: composed mode initial generation opens ESR XML and shows success noti
   });
 
   await test.step('generate OAS doc via command palette (composed mode)', async () => {
-    await openFileByName(page, 'CaseManager.cls');
+    await reopenApexClass(page, 'CaseManager.cls');
     await executeCommandWithCommandPalette(page, 'SFDX: Create OpenAPI Document from This Class');
     await confirmEsrFolderPrompt(page);
 

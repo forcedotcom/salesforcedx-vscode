@@ -8,11 +8,13 @@
 import { expect, type Page } from '@playwright/test';
 import {
   clearOutputChannel,
+  closeEditor,
   closeWelcomeTabs,
   createMinimalOrg,
   ensureOutputPanelOpen,
   ensureSecondarySideBarHidden,
   executeCommandWithCommandPalette,
+  openFileByName,
   QUICK_INPUT_WIDGET,
   selectOutputChannel,
   upsertScratchOrgAuthFieldsToSettings,
@@ -40,6 +42,13 @@ export const setupWorkbenchAndAuth = async (page: Page): Promise<void> => {
 export const waitForOasCommands = async (page: Page): Promise<void> => {
   await waitForExtensionsActivated(page);
   await verifyCommandExists(page, 'SFDX: Create OpenAPI Document from This Class', 60_000);
+};
+
+/** Reopen a saved Apex class so OAS analyzes a fresh document rather than the just-edited template buffer. */
+export const reopenApexClass = async (page: Page, fileName: string): Promise<void> => {
+  await openFileByName(page, fileName);
+  await closeEditor(page);
+  await openFileByName(page, fileName);
 };
 
 /** Push current workspace source to the connected scratch org. Asserts on the Salesforce Metadata
