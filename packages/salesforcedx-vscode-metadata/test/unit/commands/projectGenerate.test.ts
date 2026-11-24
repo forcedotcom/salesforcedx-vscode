@@ -17,16 +17,26 @@ const templatesOf = (items: vscode.QuickPickItem[]) =>
 
 describe('projectGenerate buildTemplateItems', () => {
   it('groups known templates under their separators and drops excluded templates', () => {
-    const items = buildTemplateItems(['standard', 'reactexternalapp', 'vueinternalapp', 'nativemobile', 'empty']);
+    const items = buildTemplateItems([
+      'standard',
+      'vueexternalapp',
+      'reactexternalapp',
+      'vueinternalapp',
+      'nativemobile',
+      'empty'
+    ]);
 
-    expect(templatesOf(items)).toEqual(['standard', 'empty', 'vueinternalapp', 'reactexternalapp']);
+    expect(templatesOf(items)).toEqual(['standard', 'empty', 'vueinternalapp', 'vueexternalapp', 'reactexternalapp']);
     expect(separatorLabels(items)).toEqual(['Internal Apps', 'External Apps']);
   });
 
-  it('shows the localized label and detail for a known template', () => {
-    const item = buildTemplateItems(['vueinternalapp']).find(i => 'projectTemplate' in i);
+  it.each<[ProjectTemplate, string, string]>([
+    ['vueinternalapp', 'Vue Internal App', 'For employees (Salesforce login)'],
+    ['vueexternalapp', 'Vue External App', 'For users signing in outside your org']
+  ])('shows the localized label and detail for %s', (template, label, detail) => {
+    const item = buildTemplateItems([template]).find(i => 'projectTemplate' in i);
 
-    expect(item).toMatchObject({ label: 'Vue Internal App', detail: 'For employees (Salesforce login)' });
+    expect(item).toMatchObject({ label, detail });
   });
 
   it('lists a template it has no display text for under Other with its raw name', () => {
