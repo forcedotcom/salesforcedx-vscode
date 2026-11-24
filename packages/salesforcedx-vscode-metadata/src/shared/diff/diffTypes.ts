@@ -19,7 +19,7 @@ const isHashableUri = (u: unknown): u is HashableUri => {
 
 const HashableUriSchema = Schema.declare<HashableUri>(isHashableUri);
 
-const DiffFilePairSchema = Schema.Struct({
+export const DiffFilePairSchema = Schema.Struct({
   localUri: HashableUriSchema,
   remoteUri: HashableUriSchema,
   fileName: Schema.String
@@ -32,5 +32,3 @@ export const createDiffFilePair = (props: {
   remoteUri: HashableUri;
   fileName: string;
 }): DiffFilePair => Data.struct(props);
-
-export const isDiffFilePair = Schema.is(DiffFilePairSchema);

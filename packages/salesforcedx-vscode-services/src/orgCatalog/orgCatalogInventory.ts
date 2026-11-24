@@ -12,13 +12,14 @@ import * as Effect from 'effect/Effect';
 import * as HashMap from 'effect/HashMap';
 import * as Match from 'effect/Match';
 import { isNotUndefined } from 'effect/Predicate';
+import * as Schema from 'effect/Schema';
 import { FOLDERED_METADATA_TYPES, MetadataDescribeService } from '../core/metadataDescribeService';
 import { MetadataRegistryService } from '../core/metadataRegistryService';
 import { componentIdentity, findInventoryComponent, typeCacheKey } from './orgCatalogKeys';
 import { mergeInventory, projectChildren } from './orgCatalogProjection';
 import { OrgCatalogState } from './orgCatalogState';
 import { makeOrgCatalogWorkspace } from './orgCatalogWorkspace';
-import { isOrgMetadataComponentReference, type OrgMetadataComponentReference } from './orgMetadataReference';
+import { OrgMetadataComponentReference } from './orgMetadataReference';
 
 export const makeOrgCatalogInventory = Effect.gen(function* () {
   const [state, workspace, registry, metadataDescribeService] = yield* Effect.all([
@@ -109,7 +110,8 @@ export const makeOrgCatalogInventory = Effect.gen(function* () {
         reference.fullName.split('/').slice(0, -1).join('/') || undefined,
         inventory
       ).pipe(Effect.provideService(MetadataRegistryService, registry))).find(
-        entry => isOrgMetadataComponentReference(entry.reference) && entry.reference.fullName === reference.fullName
+        entry =>
+          Schema.is(OrgMetadataComponentReference)(entry.reference) && entry.reference.fullName === reference.fullName
       )
     );
   });

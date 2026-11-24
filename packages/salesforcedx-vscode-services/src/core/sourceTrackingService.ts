@@ -57,8 +57,6 @@ const toSourceTrackingError = (error: unknown) => new SourceTrackingError({ caus
 
 const ResolvedChangeResultSchema = Schema.Struct({ name: Schema.String, type: Schema.String });
 type SourceTrackingRemoteChange = ChangeResult & Schema.Schema.Type<typeof ResolvedChangeResultSchema>;
-const isResolvedChangeResult = (c: ChangeResult): c is SourceTrackingRemoteChange =>
-  Schema.is(ResolvedChangeResultSchema)(c);
 
 export class SourceTrackingService extends Effect.Service<SourceTrackingService>()('SourceTrackingService', {
   accessors: true,
@@ -238,7 +236,9 @@ export class SourceTrackingService extends Effect.Service<SourceTrackingService>
             Effect.map(
               changeResults =>
                 new ComponentSet(
-                  changeResults.filter(isResolvedChangeResult).map(c => ({ type: c.type, fullName: c.name })),
+                  changeResults
+                    .filter((c): c is SourceTrackingRemoteChange => Schema.is(ResolvedChangeResultSchema)(c))
+                    .map(c => ({ type: c.type, fullName: c.name })),
                   registry
                 )
             ),
@@ -290,7 +290,11 @@ export class SourceTrackingService extends Effect.Service<SourceTrackingService>
                 })
               ],
               { concurrency: 1 }
-            ).pipe(Effect.map(changes => changes.flat().filter(isResolvedChangeResult)))
+            ).pipe(
+              Effect.map(changes =>
+                changes.flat().filter((c): c is SourceTrackingRemoteChange => Schema.is(ResolvedChangeResultSchema)(c))
+              )
+            )
           : Effect.succeed<SourceTrackingRemoteChange[]>([]);
         yield* Effect.annotateCurrentSpan({ remoteChangeRows: remoteChanges.length, statusRows: status.length });
         return { remoteChanges, status };
@@ -365,7 +369,7 @@ export class SourceTrackingService extends Effect.Service<SourceTrackingService>
         );
 
         const unhandled = allRemoteDeletes
-          .filter(isResolvedChangeResult)
+          .filter((c): c is SourceTrackingRemoteChange => Schema.is(ResolvedChangeResultSchema)(c))
           .filter(c => !HashSet.has(handledTypeNames, Data.struct({ type: c.type, fullName: c.name })));
 
         if (unhandled.length > 0) {

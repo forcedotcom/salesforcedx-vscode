@@ -9,8 +9,6 @@ import * as Schema from 'effect/Schema';
 import { URI } from 'vscode-uri';
 import { OrgMetadataCatalogEntrySchema } from '../../../src/orgCatalog/orgMetadataCatalogTypes';
 
-const isCatalogEntry = Schema.is(OrgMetadataCatalogEntrySchema);
-
 describe('OrgMetadataCatalogEntrySchema', () => {
   const baseEntry = {
     orgId: '00D000000000001',
@@ -24,7 +22,7 @@ describe('OrgMetadataCatalogEntrySchema', () => {
 
   it('accepts a component with a conventional type reference', () => {
     expect(
-      isCatalogEntry({
+      Schema.is(OrgMetadataCatalogEntrySchema)({
         ...baseEntry,
         kind: 'component',
         reference: { type: 'ApexClass', fullName: 'Example' }
@@ -34,7 +32,7 @@ describe('OrgMetadataCatalogEntrySchema', () => {
 
   it('rejects a component without a full name', () => {
     expect(
-      isCatalogEntry({
+      Schema.is(OrgMetadataCatalogEntrySchema)({
         ...baseEntry,
         kind: 'component',
         reference: { type: 'ApexClass' }

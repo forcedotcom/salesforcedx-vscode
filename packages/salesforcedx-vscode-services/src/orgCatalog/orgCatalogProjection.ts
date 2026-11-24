@@ -13,9 +13,10 @@ import * as Effect from 'effect/Effect';
 import { pipe } from 'effect/Function';
 import * as HashMap from 'effect/HashMap';
 import * as Option from 'effect/Option';
+import * as Schema from 'effect/Schema';
 import { type URI } from 'vscode-uri';
 import { componentIdentity, findInventoryComponent } from './orgCatalogKeys';
-import { documentUri, isOrgMetadataComponentReference } from './orgMetadataReference';
+import { documentUri, OrgMetadataComponentReference } from './orgMetadataReference';
 
 export const mergeInventory = Effect.fn('mergeInventory')(function* ({
   orgId,
@@ -77,7 +78,9 @@ export const mergeInventory = Effect.fn('mergeInventory')(function* ({
               observedAt: existing?.observedAt ?? new Date().toISOString(),
               provenance: existing ? ('metadata-api+workspace' as const) : ('workspace' as const),
               reference:
-                existing && isOrgMetadataComponentReference(existing.reference) ? existing.reference : reference,
+                existing && Schema.is(OrgMetadataComponentReference)(existing.reference)
+                  ? existing.reference
+                  : reference,
               documentUri: uri,
               name: existing?.name ?? fullName.split('/').at(-1) ?? fullName,
               kind: 'component' as const,
@@ -110,7 +113,9 @@ export const projectChildren = Effect.fn('projectChildren')(function* (
   const inventoryFullNames = pipe(
     HashMap.toValues(inventory.components),
     Arr.filterMap(component =>
-      isOrgMetadataComponentReference(component.reference) ? Option.some(component.reference.fullName) : Option.none()
+      Schema.is(OrgMetadataComponentReference)(component.reference)
+        ? Option.some(component.reference.fullName)
+        : Option.none()
     ),
     Arr.appendAll(HashMap.keys(inventory.folders))
   );
@@ -131,7 +136,8 @@ export const projectChildren = Effect.fn('projectChildren')(function* (
             return { ...component, name };
           const descendants = HashMap.toValues(inventory.components).filter(
             entry =>
-              isOrgMetadataComponentReference(entry.reference) && entry.reference.fullName.startsWith(`${fullName}/`)
+              Schema.is(OrgMetadataComponentReference)(entry.reference) &&
+              entry.reference.fullName.startsWith(`${fullName}/`)
           );
           return {
             orgId,
