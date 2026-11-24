@@ -24,6 +24,7 @@ import { MetadataRetrieveService } from '../core/metadataRetrieveService';
 import { ProjectService } from '../core/projectService';
 import { QueryService } from '../core/queryService';
 import { orgIdFromConnection } from '../core/schemas/authFields';
+import { preventOrgChanges } from '../core/targetOrgGuard';
 import { TransmogrifierService } from '../core/transmogrifierService';
 import {
   ApexSourceTypeSchema,
@@ -157,8 +158,6 @@ export class OrgMetadataCatalog extends Effect.Service<OrgMetadataCatalog>()('Or
             ('namespacePrefix' in component ? (component.namespacePrefix ?? null) : null) === identity.namespacePrefix
         ) === true;
       if (recorded) {
-        // Fail if the default org changed after this find operation captured orgId.
-        yield* connectionService.getConnectionForOrg(orgId);
         return true;
       }
 
@@ -300,151 +299,157 @@ export class OrgMetadataCatalog extends Effect.Service<OrgMetadataCatalog>()('Or
       }).pipe(Effect.map(entries => entries.map(entry => (entry ? toCatalogEntry(entry) : entry))));
     });
 
-    const find = Effect.fn('OrgMetadataCatalog.find')(function* (query: OrgMetadataCatalogFindQuery) {
-      const orgId = yield* getActiveOrgId();
-      yield* Effect.annotateCurrentSpan({
-        evidenceCount: query.evidence.length,
-        metadataTypeCount: new Set(query.evidence.map(reference => reference.type)).size,
-        componentRequested: query.resultKinds.includes('component'),
-        sobjectRequested: query.resultKinds.includes('sobject')
-      });
-      const results = yield* Effect.forEach(
-        query.evidence,
-        reference =>
-          Effect.gen(function* () {
-            const observedAt = DateTime.formatIso(yield* DateTime.now);
-            if (isApexSourceReference(reference) && query.resultKinds.includes('component')) {
-              const [workspaceResolution] = yield* workspace.findWorkspaceComponents([
-                toInternalComponentReference(reference)
-              ]);
-              const inOrg = yield* findApexSource(orgId, reference);
-              if (!workspaceResolution?.workspaceUri && !inOrg) {
-                return [{ _tag: 'not-found' as const, reference, resultKind: 'component' as const }];
-              }
-              const resolvedDocumentUri =
-                workspaceResolution?.workspaceUri ??
-                (yield* catalogDocumentUri({ orgId, ...toInternalComponentReference(reference) }).pipe(
-                  Effect.provideService(MetadataRegistryService, registry)
-                ));
-              return [
-                {
-                  _tag: 'component' as const,
-                  reference,
-                  entry: {
-                    kind: 'component',
-                    reference,
-                    orgId,
-                    observedAt,
-                    provenance:
-                      inOrg && workspaceResolution?.workspaceUri
-                        ? 'metadata-api+workspace'
-                        : inOrg
-                          ? 'tooling-api'
-                          : 'workspace',
-                    name: reference.fullName,
-                    documentUri: resolvedDocumentUri,
-                    inOrg,
-                    inWorkspace: Boolean(workspaceResolution?.workspaceUri),
-                    ...(workspaceResolution?.workspaceUri ? { workspaceUri: workspaceResolution.workspaceUri } : {})
-                  } satisfies OrgMetadataCatalogComponentEntry
-                }
-              ];
-            }
-            const component = query.resultKinds.includes('component')
-              ? yield* workspace.findWorkspaceComponents([toInternalComponentReference(reference)]).pipe(
-                  Effect.flatMap(([workspaceResolution]) => {
-                    if (workspaceResolution?.workspaceUri) {
-                      return Effect.succeed<readonly OrgMetadataCatalogFindResult[]>([
-                        {
-                          _tag: 'component' as const,
-                          reference,
-                          entry: {
-                            kind: 'component',
-                            reference,
-                            orgId,
-                            observedAt,
-                            provenance: 'workspace',
-                            name: reference.fullName,
-                            documentUri: workspaceResolution.workspaceUri,
-                            inOrg: false,
-                            inWorkspace: true,
-                            workspaceUri: workspaceResolution.workspaceUri
-                          } satisfies OrgMetadataCatalogComponentEntry
-                        }
-                      ]);
+    const find = Effect.fn('OrgMetadataCatalog.find')((query: OrgMetadataCatalogFindQuery) =>
+      preventOrgChanges(
+        Effect.gen(function* () {
+          const orgId = yield* getActiveOrgId();
+          yield* Effect.annotateCurrentSpan({
+            evidenceCount: query.evidence.length,
+            metadataTypeCount: new Set(query.evidence.map(reference => reference.type)).size,
+            componentRequested: query.resultKinds.includes('component'),
+            sobjectRequested: query.resultKinds.includes('sobject')
+          });
+          const results = yield* Effect.forEach(
+            query.evidence,
+            reference =>
+              Effect.gen(function* () {
+                const observedAt = DateTime.formatIso(yield* DateTime.now);
+                if (isApexSourceReference(reference) && query.resultKinds.includes('component')) {
+                  const [workspaceResolution] = yield* workspace.findWorkspaceComponents([
+                    toInternalComponentReference(reference)
+                  ]);
+                  const inOrg = yield* findApexSource(orgId, reference);
+                  if (!workspaceResolution?.workspaceUri && !inOrg) {
+                    return [{ _tag: 'not-found' as const, reference, resultKind: 'component' as const }];
+                  }
+                  const resolvedDocumentUri =
+                    workspaceResolution?.workspaceUri ??
+                    (yield* catalogDocumentUri({ orgId, ...toInternalComponentReference(reference) }).pipe(
+                      Effect.provideService(MetadataRegistryService, registry)
+                    ));
+                  return [
+                    {
+                      _tag: 'component' as const,
+                      reference,
+                      entry: {
+                        kind: 'component',
+                        reference,
+                        orgId,
+                        observedAt,
+                        provenance:
+                          inOrg && workspaceResolution?.workspaceUri
+                            ? 'metadata-api+workspace'
+                            : inOrg
+                              ? 'tooling-api'
+                              : 'workspace',
+                        name: reference.fullName,
+                        documentUri: resolvedDocumentUri,
+                        inOrg,
+                        inWorkspace: Boolean(workspaceResolution?.workspaceUri),
+                        ...(workspaceResolution?.workspaceUri ? { workspaceUri: workspaceResolution.workspaceUri } : {})
+                      } satisfies OrgMetadataCatalogComponentEntry
                     }
-                    return inventories.getEntry(orgId, toInternalComponentReference(reference)).pipe(
-                      Effect.map((entry): readonly OrgMetadataCatalogFindResult[] =>
-                        entry?.kind === 'component'
-                          ? [
-                              {
-                                _tag: 'component' as const,
+                  ];
+                }
+                const component = query.resultKinds.includes('component')
+                  ? yield* workspace.findWorkspaceComponents([toInternalComponentReference(reference)]).pipe(
+                      Effect.flatMap(([workspaceResolution]) => {
+                        if (workspaceResolution?.workspaceUri) {
+                          return Effect.succeed<readonly OrgMetadataCatalogFindResult[]>([
+                            {
+                              _tag: 'component' as const,
+                              reference,
+                              entry: {
+                                kind: 'component',
                                 reference,
-                                entry: {
-                                  ...entry,
-                                  kind: 'component' as const,
-                                  reference: { type: entry.reference.xmlName, fullName: entry.reference.fullName }
-                                }
-                              }
-                            ]
-                          : [{ _tag: 'not-found' as const, reference, resultKind: 'component' as const }]
-                      )
-                    );
-                  })
-                )
-              : [];
-            if (reference.type !== 'CustomObject' || !query.resultKinds.includes('sobject')) return component;
+                                orgId,
+                                observedAt,
+                                provenance: 'workspace',
+                                name: reference.fullName,
+                                documentUri: workspaceResolution.workspaceUri,
+                                inOrg: false,
+                                inWorkspace: true,
+                                workspaceUri: workspaceResolution.workspaceUri
+                              } satisfies OrgMetadataCatalogComponentEntry
+                            }
+                          ]);
+                        }
+                        return inventories.getEntry(orgId, toInternalComponentReference(reference)).pipe(
+                          Effect.map((entry): readonly OrgMetadataCatalogFindResult[] =>
+                            entry?.kind === 'component'
+                              ? [
+                                  {
+                                    _tag: 'component' as const,
+                                    reference,
+                                    entry: {
+                                      ...entry,
+                                      kind: 'component' as const,
+                                      reference: { type: entry.reference.xmlName, fullName: entry.reference.fullName }
+                                    }
+                                  }
+                                ]
+                              : [{ _tag: 'not-found' as const, reference, resultKind: 'component' as const }]
+                          )
+                        );
+                      })
+                    )
+                  : [];
+                if (reference.type !== 'CustomObject' || !query.resultKinds.includes('sobject')) return component;
 
-            yield* state.ensureHydrated(orgId);
-            const cached = yield* state.getSObjectDescription(orgId, reference.fullName);
-            if (cached) {
-              return [...component, { _tag: 'sobject' as const, reference, description: cached }];
-            }
-            const rawSObject = yield* metadataDescribeService
-              .describeCustomObject(reference.fullName, orgId)
-              .pipe(
-                Effect.catchTag('MetadataDescribeError', error => (error.notFound ? Effect.void : Effect.fail(error)))
-              );
-            if (rawSObject === undefined) {
-              return [...component, { _tag: 'not-found' as const, reference, resultKind: 'sobject' as const }];
-            }
-            const transformed = yield* transmogrifier.toMinimalSObject(rawSObject);
-            const sobjectDescription = {
-              ...transformed,
-              orgId,
-              observedAt,
-              provenance: 'rest-api' as const
-            };
-            const description = yield* state
-              .getSObjectDescription(orgId, sobjectDescription.name)
-              .pipe(
-                Effect.flatMap(recorded =>
-                  recorded
-                    ? Effect.succeed(recorded)
-                    : state
-                        .setSObjectDescription(orgId, sobjectDescription)
-                        .pipe(Effect.andThen(state.queuePersist(orgId)), Effect.as(sobjectDescription))
-                )
-              );
-            return [
-              ...component,
-              {
-                _tag: 'sobject' as const,
-                reference,
-                description
-              }
-            ];
-          }),
-        { concurrency: 'unbounded' }
-      );
-      const flattened = results.flat();
-      yield* Effect.annotateCurrentSpan({
-        componentResultCount: flattened.filter(result => result._tag === 'component').length,
-        notFoundResultCount: flattened.filter(result => result._tag === 'not-found').length,
-        sobjectResultCount: flattened.filter(result => result._tag === 'sobject').length
-      });
-      return flattened;
-    });
+                yield* state.ensureHydrated(orgId);
+                const cached = yield* state.getSObjectDescription(orgId, reference.fullName);
+                if (cached) {
+                  return [...component, { _tag: 'sobject' as const, reference, description: cached }];
+                }
+                const rawSObject = yield* metadataDescribeService
+                  .describeCustomObject(reference.fullName, orgId)
+                  .pipe(
+                    Effect.catchTag('MetadataDescribeError', error =>
+                      error.notFound ? Effect.void : Effect.fail(error)
+                    )
+                  );
+                if (rawSObject === undefined) {
+                  return [...component, { _tag: 'not-found' as const, reference, resultKind: 'sobject' as const }];
+                }
+                const transformed = yield* transmogrifier.toMinimalSObject(rawSObject);
+                const sobjectDescription = {
+                  ...transformed,
+                  orgId,
+                  observedAt,
+                  provenance: 'rest-api' as const
+                };
+                const description = yield* state
+                  .getSObjectDescription(orgId, sobjectDescription.name)
+                  .pipe(
+                    Effect.flatMap(recorded =>
+                      recorded
+                        ? Effect.succeed(recorded)
+                        : state
+                            .setSObjectDescription(orgId, sobjectDescription)
+                            .pipe(Effect.andThen(state.queuePersist(orgId)), Effect.as(sobjectDescription))
+                    )
+                  );
+                return [
+                  ...component,
+                  {
+                    _tag: 'sobject' as const,
+                    reference,
+                    description
+                  }
+                ];
+              }),
+            { concurrency: 'unbounded' }
+          );
+          const flattened = results.flat();
+          yield* Effect.annotateCurrentSpan({
+            componentResultCount: flattened.filter(result => result._tag === 'component').length,
+            notFoundResultCount: flattened.filter(result => result._tag === 'not-found').length,
+            sobjectResultCount: flattened.filter(result => result._tag === 'sobject').length
+          });
+          return flattened;
+        })
+      )
+    );
 
     return {
       find,
