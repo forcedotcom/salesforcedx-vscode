@@ -12,6 +12,7 @@ import type {
 } from './orgCatalogInternalTypes';
 import type {
   OrgMetadataCatalogInternalEntry as OrgMetadataCatalogEntry,
+  OrgMetadataCatalogRemoteProvenance,
   OrgSObjectDescription,
   OrgSObjectSummary
 } from './orgMetadataCatalogTypes';
@@ -120,7 +121,7 @@ export class OrgMetadataCatalogRecorder extends Effect.Service<OrgMetadataCatalo
       /** Records positive, possibly partial, evidence learned by another metadata-producing service. */
       const recordRemoteComponents = Effect.fn('OrgMetadataCatalogRecorder.recordRemoteComponents')(function* (
         orgId: string,
-        provenance: 'data-api' | 'metadata-api' | 'tooling-api',
+        provenance: OrgMetadataCatalogRemoteProvenance,
         components: readonly {
           readonly type: string;
           readonly fullName: string;

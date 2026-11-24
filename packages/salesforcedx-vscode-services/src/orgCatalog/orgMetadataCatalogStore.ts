@@ -13,6 +13,10 @@ import { SObjectSchema } from '../core/schemas/sObject';
 import { FsService } from '../vscode/fsService';
 import { isUriEqualOrWithin, uriPathIncludesSegments } from '../vscode/uriContainment';
 import { WorkspaceService } from '../vscode/workspaceService';
+import {
+  OrgMetadataCatalogProvenanceSchema,
+  OrgMetadataCatalogRemoteProvenanceSchema
+} from './orgMetadataCatalogTypes';
 
 const CATALOG_DIRECTORY = 'metadata-catalog';
 const CATALOG_FILE = 'catalog.json';
@@ -28,19 +32,9 @@ export const isOrgMetadataCatalogUri = (workspaceUri: URI, uri: URI): boolean =>
   return isUriEqualOrWithin(root, uri) && uriPathIncludesSegments(uri, [CATALOG_DIRECTORY]);
 };
 
-const ProvenanceSchema = Schema.Literal(
-  'metadata-api',
-  'rest-api',
-  'data-api',
-  'tooling-api',
-  'workspace',
-  'metadata-api+workspace',
-  'source-tracking'
-);
-
 const PersistedListedComponentSchema = Schema.Struct({
   fullName: Schema.String,
-  provenance: Schema.optional(Schema.Literal('data-api', 'metadata-api', 'tooling-api')),
+  provenance: Schema.optional(OrgMetadataCatalogRemoteProvenanceSchema),
   namespacePrefix: Schema.optional(Schema.String),
   manageableState: Schema.optional(Schema.String),
   fileName: Schema.optional(Schema.String),
@@ -60,7 +54,7 @@ export type PersistedTypeInventory = typeof PersistedTypeInventorySchema.Type;
 const PersistedSObjectSummarySchema = Schema.Struct({
   orgId: Schema.String,
   observedAt: Schema.String,
-  provenance: ProvenanceSchema,
+  provenance: OrgMetadataCatalogProvenanceSchema,
   remoteLastModifiedDate: Schema.optional(Schema.String),
   name: Schema.String,
   custom: Schema.Boolean,
@@ -70,7 +64,7 @@ const PersistedSObjectDescriptionSchema = Schema.Struct({
   ...SObjectSchema.fields,
   orgId: Schema.String,
   observedAt: Schema.String,
-  provenance: ProvenanceSchema,
+  provenance: OrgMetadataCatalogProvenanceSchema,
   remoteLastModifiedDate: Schema.optional(Schema.String)
 });
 const PersistedTrackingObservationSchema = Schema.Struct({

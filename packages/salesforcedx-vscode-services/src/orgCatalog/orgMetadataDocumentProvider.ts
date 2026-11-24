@@ -132,7 +132,11 @@ export const runOrgMetadataDocumentProvider = Effect.fn('runOrgMetadataDocumentP
     WorkspaceService
   ]);
   const runtime = yield* Effect.runtime();
-  const reportedDocumentLoadFailures = new Set<string>();
+  const showDocumentLoadErrorOnce = yield* Effect.cachedFunction((message: string) =>
+    Effect.sync(() => {
+      void vscode.window.showErrorMessage(message);
+    })
+  );
   const provider = new OrgMetadataDocumentProvider(uri =>
     Runtime.runPromise(runtime)(
       Effect.gen(function* () {
@@ -140,16 +144,15 @@ export const runOrgMetadataDocumentProvider = Effect.fn('runOrgMetadataDocumentP
           Effect.map(({ orgId }) => orgId),
           Effect.filterOrFail(Schema.is(OrgId), () => vscode.FileSystemError.FileNotFound(uri))
         );
-        return yield* documents.readDocumentUri(activeOrgId, uri).pipe(
-          Effect.tapError(error => {
-            const message = nls.localize('org_metadata_catalog_document_open_failed', getErrorMessage(error));
-            if (reportedDocumentLoadFailures.has(message)) return Effect.void;
-            reportedDocumentLoadFailures.add(message);
-            return Effect.sync(() => {
-              void vscode.window.showErrorMessage(message);
-            });
-          })
-        );
+        return yield* documents
+          .readDocumentUri(activeOrgId, uri)
+          .pipe(
+            Effect.tapError(error =>
+              showDocumentLoadErrorOnce(
+                nls.localize('org_metadata_catalog_document_open_failed', getErrorMessage(error))
+              )
+            )
+          );
       })
     )
   );

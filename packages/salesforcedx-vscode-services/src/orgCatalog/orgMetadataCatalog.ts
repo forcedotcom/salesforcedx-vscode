@@ -65,8 +65,10 @@ const toCatalogEntry = (entry: OrgMetadataCatalogInternalEntry): OrgMetadataCata
 const escapeSoql = (value: string): string => value.replaceAll('\\', '\\\\').replaceAll("'", "\\'");
 
 type ApexSourceType = 'ApexClass' | 'ApexTrigger';
+type ApexSourceReference = OrgMetadataCatalogComponentReference & { readonly type: ApexSourceType };
 
-const isApexSourceType = (type: string): type is ApexSourceType => type === 'ApexClass' || type === 'ApexTrigger';
+const isApexSourceReference = (reference: OrgMetadataCatalogComponentReference): reference is ApexSourceReference =>
+  reference.type === 'ApexClass' || reference.type === 'ApexTrigger';
 
 const apexSourceQuery = (type: ApexSourceType, name: string, namespacePrefix: string | null): string =>
   `SELECT Id FROM ${type} WHERE Name = '${escapeSoql(name)}' AND NamespacePrefix = ${
@@ -146,14 +148,13 @@ export class OrgMetadataCatalog extends Effect.Service<OrgMetadataCatalog>()('Or
 
     const findApexSource = Effect.fn('OrgMetadataCatalog.findApexSource')(function* (
       orgId: string,
-      type: ApexSourceType,
-      reference: OrgMetadataCatalogComponentReference
+      reference: ApexSourceReference
     ) {
       const { name, namespacePrefix } = apexSourceToolingIdentity(reference.fullName);
       yield* state.ensureHydrated(orgId);
       const [loaded, persisted] = yield* Effect.all([
-        state.getInventory(orgId, type),
-        state.getPersistedInventory(orgId, type)
+        state.getInventory(orgId, reference.type),
+        state.getPersistedInventory(orgId, reference.type)
       ]);
       const internalReference = toInternalComponentReference(reference);
       const recorded =
@@ -165,11 +166,12 @@ export class OrgMetadataCatalog extends Effect.Service<OrgMetadataCatalog>()('Or
             ('namespacePrefix' in component ? (component.namespacePrefix ?? null) : null) === namespacePrefix
         ) === true;
       if (recorded) {
+        // Ensure cached evidence still belongs to the active org before reporting it available.
         yield* connectionService.getConnectionForOrg(orgId);
         return true;
       }
 
-      const key = `${orgId}\0${type}\0${reference.fullName}`;
+      const key = `${orgId}\0${reference.type}\0${reference.fullName}`;
       const fresh = yield* Deferred.make<Exit.Exit<boolean, unknown>>();
       const winner = yield* Ref.modify(inFlightApexSourceLookups, current => {
         const existing = HashMap.get(current, key);
@@ -181,7 +183,7 @@ export class OrgMetadataCatalog extends Effect.Service<OrgMetadataCatalog>()('Or
       }
       const resultExit = yield* queryService
         .query(
-          { soql: apexSourceQuery(type, name, namespacePrefix), tooling: true, orgId },
+          { soql: apexSourceQuery(reference.type, name, namespacePrefix), tooling: true, orgId },
           Schema.Struct({ Id: Schema.String })
         )
         .pipe(
@@ -189,7 +191,11 @@ export class OrgMetadataCatalog extends Effect.Service<OrgMetadataCatalog>()('Or
           Effect.tap(isFound =>
             isFound
               ? recorder.recordRemoteComponents(orgId, 'tooling-api', [
-                  { type, fullName: reference.fullName, ...(namespacePrefix !== null ? { namespacePrefix } : {}) }
+                  {
+                    type: reference.type,
+                    fullName: reference.fullName,
+                    ...(namespacePrefix !== null ? { namespacePrefix } : {})
+                  }
                 ])
               : Effect.void
           ),
@@ -312,13 +318,13 @@ export class OrgMetadataCatalog extends Effect.Service<OrgMetadataCatalog>()('Or
         reference =>
           Effect.gen(function* () {
             const observedAt = DateTime.formatIso(yield* DateTime.now);
-            if (isApexSourceType(reference.type) && query.resultKinds.includes('component')) {
+            if (isApexSourceReference(reference) && query.resultKinds.includes('component')) {
               const [workspaceResolution] = yield* workspace.findWorkspaceComponents([
                 toInternalComponentReference(reference)
               ]);
-              const inOrg = yield* findApexSource(orgId, reference.type, reference);
+              const inOrg = yield* findApexSource(orgId, reference);
               if (!workspaceResolution?.workspaceUri && !inOrg) {
-                return [{ kind: 'not-found' as const, reference, resultKind: 'component' as const }];
+                return [{ _tag: 'not-found' as const, reference, resultKind: 'component' as const }];
               }
               const resolvedDocumentUri =
                 workspaceResolution?.workspaceUri ??
@@ -327,7 +333,7 @@ export class OrgMetadataCatalog extends Effect.Service<OrgMetadataCatalog>()('Or
                 ));
               return [
                 {
-                  kind: 'component' as const,
+                  _tag: 'component' as const,
                   reference,
                   entry: {
                     kind: 'component',
@@ -355,7 +361,7 @@ export class OrgMetadataCatalog extends Effect.Service<OrgMetadataCatalog>()('Or
                     if (workspaceResolution?.workspaceUri) {
                       return Effect.succeed<readonly OrgMetadataCatalogFindResult[]>([
                         {
-                          kind: 'component' as const,
+                          _tag: 'component' as const,
                           reference,
                           entry: {
                             kind: 'component',
@@ -377,7 +383,7 @@ export class OrgMetadataCatalog extends Effect.Service<OrgMetadataCatalog>()('Or
                         entry?.kind === 'component'
                           ? [
                               {
-                                kind: 'component' as const,
+                                _tag: 'component' as const,
                                 reference,
                                 entry: {
                                   ...entry,
@@ -386,7 +392,7 @@ export class OrgMetadataCatalog extends Effect.Service<OrgMetadataCatalog>()('Or
                                 }
                               }
                             ]
-                          : [{ kind: 'not-found' as const, reference, resultKind: 'component' as const }]
+                          : [{ _tag: 'not-found' as const, reference, resultKind: 'component' as const }]
                       )
                     );
                   })
@@ -397,7 +403,7 @@ export class OrgMetadataCatalog extends Effect.Service<OrgMetadataCatalog>()('Or
             yield* state.ensureHydrated(orgId);
             const cached = yield* state.getSObjectDescription(orgId, reference.fullName);
             if (cached) {
-              return [...component, { kind: 'sobject' as const, reference, description: cached }];
+              return [...component, { _tag: 'sobject' as const, reference, description: cached }];
             }
             const rawSObject = yield* metadataDescribeService
               .describeCustomObject(reference.fullName, orgId)
@@ -405,7 +411,7 @@ export class OrgMetadataCatalog extends Effect.Service<OrgMetadataCatalog>()('Or
                 Effect.catchTag('MetadataDescribeError', error => (error.notFound ? Effect.void : Effect.fail(error)))
               );
             if (rawSObject === undefined) {
-              return [...component, { kind: 'not-found' as const, reference, resultKind: 'sobject' as const }];
+              return [...component, { _tag: 'not-found' as const, reference, resultKind: 'sobject' as const }];
             }
             const transformed = yield* transmogrifier.toMinimalSObject(rawSObject);
             const sobjectDescription = {
@@ -428,7 +434,7 @@ export class OrgMetadataCatalog extends Effect.Service<OrgMetadataCatalog>()('Or
             return [
               ...component,
               {
-                kind: 'sobject' as const,
+                _tag: 'sobject' as const,
                 reference,
                 description
               }
@@ -438,9 +444,9 @@ export class OrgMetadataCatalog extends Effect.Service<OrgMetadataCatalog>()('Or
       );
       const flattened = results.flat();
       yield* Effect.annotateCurrentSpan({
-        componentResultCount: flattened.filter(result => result.kind === 'component').length,
-        notFoundResultCount: flattened.filter(result => result.kind === 'not-found').length,
-        sobjectResultCount: flattened.filter(result => result.kind === 'sobject').length
+        componentResultCount: flattened.filter(result => result._tag === 'component').length,
+        notFoundResultCount: flattened.filter(result => result._tag === 'not-found').length,
+        sobjectResultCount: flattened.filter(result => result._tag === 'sobject').length
       });
       return flattened;
     });

@@ -437,11 +437,11 @@ describe('OrgMetadataCatalog contract', () => {
 
     expect(results).toEqual([
       expect.objectContaining({
-        kind: 'component',
+        _tag: 'component',
         entry: expect.objectContaining({ reference: { type: 'CustomObject', fullName: 'Account' } })
       }),
       expect.objectContaining({
-        kind: 'sobject',
+        _tag: 'sobject',
         description: expect.objectContaining({ name: 'Account', provenance: 'rest-api' })
       })
     ]);
@@ -484,7 +484,7 @@ describe('OrgMetadataCatalog contract', () => {
       })
     );
 
-    expect(results.map(result => [result.kind, result.reference.fullName])).toEqual([
+    expect(results.map(result => [result._tag, result.reference.fullName])).toEqual([
       ['component', 'RemoteClass'],
       ['not-found', 'Account'],
       ['sobject', 'Account'],
@@ -506,7 +506,7 @@ describe('OrgMetadataCatalog contract', () => {
     );
 
     expect(results).toEqual([
-      expect.objectContaining({ kind: 'sobject', description: expect.objectContaining({ name: 'Account' }) })
+      expect.objectContaining({ _tag: 'sobject', description: expect.objectContaining({ name: 'Account' }) })
     ]);
     expect(mocks.listMetadata).not.toHaveBeenCalled();
     expect(mocks.buildComponentSetFromSource).not.toHaveBeenCalled();
@@ -533,7 +533,7 @@ describe('OrgMetadataCatalog contract', () => {
     );
 
     expect(results).toEqual([
-      { kind: 'not-found', reference: { type: 'CustomObject', fullName: 'Missing__c' }, resultKind: 'sobject' }
+      { _tag: 'not-found', reference: { type: 'CustomObject', fullName: 'Missing__c' }, resultKind: 'sobject' }
     ]);
     expect(mocks.describeCustomObject).toHaveBeenCalledWith('Missing__c', '00D000000000001');
     expect(mocks.listSObjects).not.toHaveBeenCalled();
@@ -550,7 +550,7 @@ describe('OrgMetadataCatalog contract', () => {
     );
 
     expect(results).toEqual([
-      { kind: 'not-found', reference: { type: 'ApexClass', fullName: 'MissingClass' }, resultKind: 'component' }
+      { _tag: 'not-found', reference: { type: 'ApexClass', fullName: 'MissingClass' }, resultKind: 'component' }
     ]);
   });
 
@@ -574,7 +574,7 @@ describe('OrgMetadataCatalog contract', () => {
 
     expect(results).toEqual([
       expect.objectContaining({
-        kind: 'component',
+        _tag: 'component',
         entry: expect.objectContaining({ inOrg: false, inWorkspace: true, provenance: 'workspace' })
       })
     ]);
@@ -607,7 +607,7 @@ describe('OrgMetadataCatalog contract', () => {
 
     expect(results).toEqual([
       expect.objectContaining({
-        kind: 'component',
+        _tag: 'component',
         entry: expect.objectContaining({ inOrg: true, inWorkspace: true, provenance: 'metadata-api+workspace' })
       })
     ]);
@@ -643,7 +643,7 @@ describe('OrgMetadataCatalog contract', () => {
 
     expect(results).toEqual([
       expect.objectContaining({
-        kind: 'component',
+        _tag: 'component',
         entry: expect.objectContaining({ inOrg: true, inWorkspace: false, provenance: 'tooling-api' })
       })
     ]);
@@ -667,7 +667,7 @@ describe('OrgMetadataCatalog contract', () => {
     );
 
     expect(results).toEqual([
-      { kind: 'not-found', reference: { type: 'ApexClass', fullName: 'MissingClass' }, resultKind: 'component' }
+      { _tag: 'not-found', reference: { type: 'ApexClass', fullName: 'MissingClass' }, resultKind: 'component' }
     ]);
     expect(mocks.listMetadata).not.toHaveBeenCalled();
   });
@@ -695,7 +695,7 @@ describe('OrgMetadataCatalog contract', () => {
 
     expect(results).toEqual([
       expect.objectContaining({
-        kind: 'component',
+        _tag: 'component',
         entry: expect.objectContaining({
           reference: { type: 'ApexTrigger', fullName: 'InvoiceTrigger' },
           inOrg: true,
@@ -731,7 +731,7 @@ describe('OrgMetadataCatalog contract', () => {
 
     expect(results).toEqual([
       expect.objectContaining({
-        kind: 'component',
+        _tag: 'component',
         entry: expect.objectContaining({
           reference: { type: 'ApexTrigger', fullName: 'B__InvoiceTrigger' },
           inOrg: true,
@@ -801,8 +801,8 @@ describe('OrgMetadataCatalog contract', () => {
       )
     );
 
-    expect(first.map(result => result.kind)).toEqual(['not-found', 'not-found']);
-    expect(second.map(result => result.kind)).toEqual(['not-found']);
+    expect(first.map(result => result._tag)).toEqual(['not-found', 'not-found']);
+    expect(second.map(result => result._tag)).toEqual(['not-found']);
     expect(mocks.query).toHaveBeenCalledTimes(1);
 
     expect(mocks.storeSave).not.toHaveBeenCalled();
@@ -831,7 +831,7 @@ describe('OrgMetadataCatalog contract', () => {
 
     expect(results).toEqual([
       expect.objectContaining({
-        kind: 'component',
+        _tag: 'component',
         entry: expect.objectContaining({ inOrg: false, inWorkspace: true, provenance: 'workspace' })
       })
     ]);
@@ -864,7 +864,7 @@ describe('OrgMetadataCatalog contract', () => {
 
     expect(results).toEqual([
       expect.objectContaining({
-        kind: 'component',
+        _tag: 'component',
         entry: expect.objectContaining({ inOrg: true, inWorkspace: false, provenance: 'tooling-api' })
       })
     ]);
@@ -901,7 +901,7 @@ describe('OrgMetadataCatalog contract', () => {
       })
     );
 
-    expect(results.map(result => result.kind)).toEqual(['component', 'component']);
+    expect(results.map(result => result._tag)).toEqual(['component', 'component']);
     expect(restarted.mocks.query).not.toHaveBeenCalled();
   });
 
@@ -920,7 +920,7 @@ describe('OrgMetadataCatalog contract', () => {
       })
     );
 
-    expect(results.map(result => result.kind)).toEqual(['not-found', 'component']);
+    expect(results.map(result => result._tag)).toEqual(['not-found', 'component']);
     expect(mocks.query).toHaveBeenNthCalledWith(
       1,
       expect.objectContaining({

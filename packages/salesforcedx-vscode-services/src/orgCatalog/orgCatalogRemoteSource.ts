@@ -184,7 +184,7 @@ export class OrgCatalogRemoteSource extends Effect.Service<OrgCatalogRemoteSourc
       const [result] = yield* remoteRetrieve.materializeRetrievedComponents(orgId, [
         { reference, expectedRemoteLastModifiedDate: entry.lastModifiedDate }
       ]);
-      return result!.artifact;
+      return result.artifact;
     });
 
     return { materializePrimaryDocument } as const;

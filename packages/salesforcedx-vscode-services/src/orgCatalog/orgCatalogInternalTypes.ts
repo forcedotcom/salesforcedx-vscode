@@ -6,13 +6,16 @@
  */
 
 import type { PersistedTypeInventory } from './orgMetadataCatalogStore';
-import type { OrgMetadataCatalogInternalEntry as OrgMetadataCatalogEntry } from './orgMetadataCatalogTypes';
+import type {
+  OrgMetadataCatalogInternalEntry as OrgMetadataCatalogEntry,
+  OrgMetadataCatalogRemoteProvenance
+} from './orgMetadataCatalogTypes';
 import type { OrgMetadataComponentReference } from './orgMetadataReference';
 import type * as HashMap from 'effect/HashMap';
 
 export type ListedMetadataComponent = {
   readonly fullName: string;
-  readonly provenance?: 'data-api' | 'metadata-api' | 'tooling-api';
+  readonly provenance?: OrgMetadataCatalogRemoteProvenance;
   readonly namespacePrefix?: string;
   readonly manageableState?: string;
   readonly fileName?: string;

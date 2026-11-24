@@ -156,10 +156,6 @@ export const makeOrgCatalogWorkspace = Effect.gen(function* () {
     return resolutions;
   });
 
-  const scanWorkspace = Effect.fn('OrgCatalogWorkspace.scanWorkspace')((xmlName: string) =>
-    scanWorkspaceInventory(xmlName)
-  );
-
   const getWorkspaceMetadataTypes = Effect.fn('OrgCatalogWorkspace.getWorkspaceMetadataTypes')(function* (
     orgId: string
   ) {
@@ -193,7 +189,7 @@ export const makeOrgCatalogWorkspace = Effect.gen(function* () {
     const xmlNames = Arr.dedupe(componentReferences.map(reference => reference.xmlName));
     const workspaceByType = yield* Effect.forEach(
       xmlNames,
-      xmlName => scanWorkspace(xmlName).pipe(Effect.map(inventory => [xmlName, inventory] as const)),
+      xmlName => scanWorkspaceInventory(xmlName).pipe(Effect.map(inventory => [xmlName, inventory] as const)),
       { concurrency: 10 }
     ).pipe(Effect.map(HashMap.fromIterable));
     const orgUris = yield* documentUris(componentReferences.map(reference => ({ orgId, ...reference }))).pipe(
