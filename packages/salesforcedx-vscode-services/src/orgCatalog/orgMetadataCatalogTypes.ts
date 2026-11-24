@@ -6,9 +6,9 @@
  */
 
 import type { OrgMetadataReference } from './orgMetadataReference';
-import type { SObject } from '../core/schemas/sObject';
 import * as Schema from 'effect/Schema';
 import { URI } from 'vscode-uri';
+import { SObjectSchema, type SObject } from '../core/schemas/sObject';
 
 const UriSchema = Schema.declare((value): value is URI => URI.isUri(value), {
   identifier: 'URI',
@@ -33,29 +33,35 @@ export type OrgMetadataCatalogReference = {
   readonly fullName?: string;
 };
 
-const OrgMetadataCatalogComponentReferenceSchema = Schema.Struct({
+export const OrgMetadataCatalogComponentReferenceSchema = Schema.Struct({
   type: Schema.String.pipe(Schema.minLength(1)),
   fullName: Schema.String.pipe(Schema.minLength(1))
 });
 export type OrgMetadataCatalogComponentReference = typeof OrgMetadataCatalogComponentReferenceSchema.Type;
 
+export const OrgMetadataCatalogRemoteProvenanceSchema = Schema.Literal('metadata-api', 'data-api', 'tooling-api');
+export type OrgMetadataCatalogRemoteProvenance = typeof OrgMetadataCatalogRemoteProvenanceSchema.Type;
+
+export const OrgMetadataCatalogProvenanceSchema = Schema.Union(
+  OrgMetadataCatalogRemoteProvenanceSchema,
+  Schema.Literal('rest-api', 'workspace', 'metadata-api+workspace', 'source-tracking')
+);
+
 const OrgCatalogObservationSchema = Schema.Struct({
   orgId: Schema.String,
   observedAt: Schema.String,
-  provenance: Schema.Literal(
-    'metadata-api',
-    'rest-api',
-    'tooling-api',
-    'workspace',
-    'metadata-api+workspace',
-    'source-tracking'
-  ),
+  provenance: OrgMetadataCatalogProvenanceSchema,
   remoteLastModifiedDate: Schema.optional(Schema.String)
 });
 type OrgCatalogObservation = typeof OrgCatalogObservationSchema.Type;
 
 export type OrgSObjectSummary = OrgCatalogObservation & Pick<SObject, 'name' | 'custom' | 'queryable'>;
 export type OrgSObjectDescription = SObject & OrgCatalogObservation;
+
+const OrgSObjectDescriptionSchema = Schema.Struct({
+  ...SObjectSchema.fields,
+  ...OrgCatalogObservationSchema.fields
+});
 
 const OrgMetadataFieldDetailsSchema = Schema.Struct({
   name: Schema.String,
@@ -142,3 +148,39 @@ export const OrgMetadataCatalogEntrySchema = Schema.Union(
 );
 /** Consumer-facing catalog entry. */
 export type OrgMetadataCatalogEntry = typeof OrgMetadataCatalogEntrySchema.Type;
+
+const OrgMetadataCatalogFindResultKindSchema = Schema.Literal('component', 'sobject');
+
+/**
+ * Evidence-based query over the active org catalog. Evidence preserves caller casing and results preserve evidence order,
+ * including duplicates. Each evidence item emits component results before SObject results. Empty evidence or result
+ * kinds are valid no-op queries that return no results.
+ */
+export const OrgMetadataCatalogFindQuerySchema = Schema.Struct({
+  evidence: Schema.Array(OrgMetadataCatalogComponentReferenceSchema),
+  resultKinds: Schema.Array(OrgMetadataCatalogFindResultKindSchema)
+});
+export type OrgMetadataCatalogFindQuery = typeof OrgMetadataCatalogFindQuerySchema.Type;
+
+const OrgMetadataCatalogComponentFindResultSchema = Schema.TaggedStruct('component', {
+  reference: OrgMetadataCatalogComponentReferenceSchema,
+  entry: OrgMetadataCatalogComponentEntrySchema
+});
+
+const OrgMetadataCatalogSObjectFindResultSchema = Schema.TaggedStruct('sobject', {
+  reference: OrgMetadataCatalogComponentReferenceSchema,
+  description: OrgSObjectDescriptionSchema
+});
+
+const OrgMetadataCatalogNotFoundResultSchema = Schema.TaggedStruct('not-found', {
+  reference: OrgMetadataCatalogComponentReferenceSchema,
+  resultKind: OrgMetadataCatalogFindResultKindSchema
+});
+
+/** Catalog-native values returned by an evidence query. */
+export const OrgMetadataCatalogFindResultSchema = Schema.Union(
+  OrgMetadataCatalogComponentFindResultSchema,
+  OrgMetadataCatalogSObjectFindResultSchema,
+  OrgMetadataCatalogNotFoundResultSchema
+);
+export type OrgMetadataCatalogFindResult = typeof OrgMetadataCatalogFindResultSchema.Type;

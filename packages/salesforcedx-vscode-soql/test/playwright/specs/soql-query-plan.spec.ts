@@ -13,25 +13,27 @@ import {
   ensureSecondarySideBarHidden,
   executeCommandWithCommandPalette,
   QUICK_INPUT_WIDGET,
+  resetContainerWorkbench,
   saveFile,
-  saveScreenshot,
   selectOutputChannel,
   setupConsoleMonitoring,
   setupMinimalOrgAndAuth,
   setupNetworkMonitoring,
+  startVideoRecording,
   validateNoCriticalErrors,
   verifyCommandExists,
   waitForExtensionsActivated,
   waitForOutputChannelText,
   waitForQuickInputFirstOption
 } from '@salesforce/playwright-vscode-ext';
-import { test } from '../fixtures';
+import { isContainer, test } from '../fixtures';
 import packageNls from '../../../package.nls.json';
 
 // "Query plan retrieved successfully" comes from i18n key query_plan_complete
 const PLAN_COMPLETE_TEXT = 'Query plan retrieved successfully';
 const SOQL_CHANNEL = 'SOQL';
-const SOQL_FILE = 'MySoqlQueryPlanFile';
+// Unique per run so container's shared, persistent workbench never collides across specs or retries.
+const SOQL_FILE = `MySoqlQueryPlanFile${Date.now()}`;
 const SOQL_QUERY = 'SELECT Id, Name FROM Account LIMIT 10';
 const APEX_CLASS = 'SoqlQueryPlanSelection';
 // Bracketed inline SOQL sits alone on its line so a triple-click selects `[SELECT ...]` exactly;
@@ -47,114 +49,122 @@ const APEX_CLASS_CONTENT = `public with sharing class ${APEX_CLASS} {
 // Waiting for it directly avoids racing with ensureOutputPanelOpen.
 const OUTPUT_PANEL = '[id="workbench.panel.output"]';
 
-test('SOQL Query Plan: code lens, current file, selected text via command palette', async ({ page }) => {
-  test.setTimeout(180_000);
+// Shared persistent workbench in container mode: reset editors + notifications between specs.
+test.beforeEach(async ({ page }) => {
+  if (isContainer) {
+    await resetContainerWorkbench(page);
+  }
+});
+
+test('SOQL Query Plan: code lens, current file, selected text via command palette', async ({ page }, testInfo) => {
+  test.setTimeout(5 * 60 * 1000);
   const consoleErrors = setupConsoleMonitoring(page);
   const networkErrors = setupNetworkMonitoring(page);
 
   await test.step('setup workbench', async () => {
-    await setupMinimalOrgAndAuth(page);
-    await waitForExtensionsActivated(page);
-    await ensureSecondarySideBarHidden(page);
-    await saveScreenshot(page, 'setup.complete.png');
-    await verifyCommandExists(page, packageNls.soql_open_new_text_editor);
+    // Container boots with the org already authed by the orchestrator; desktop/web must create it
+    // (idempotently — reuses the shared org if already created) before this spec can hit real APIs.
+    if (isContainer) {
+      await ensureSecondarySideBarHidden(page);
+    } else {
+      await setupMinimalOrgAndAuth(page);
+      await waitForExtensionsActivated(page);
+      await ensureSecondarySideBarHidden(page);
+    }
+    await verifyCommandExists(page, packageNls.soql_open_new_text_editor, 120_000);
   });
 
-  await test.step('create SOQL file via text editor command', async () => {
-    await executeCommandWithCommandPalette(page, packageNls.soql_open_new_text_editor);
-    await saveScreenshot(page, 'step1.after-command.png');
+  const videoName = [testInfo.project.name, ...testInfo.titlePath, 'query-plan', `retry-${testInfo.retry}`]
+    .join('-')
+    .replaceAll(/[^a-zA-Z0-9._-]+/g, '-')
+    .replaceAll(/^-+|-+$/g, '');
+  const stopRecording = await startVideoRecording(page, testInfo, videoName);
+  try {
+    await test.step('create SOQL file via text editor command', async () => {
+      await executeCommandWithCommandPalette(page, packageNls.soql_open_new_text_editor);
 
-    const quickInput = page.locator(QUICK_INPUT_WIDGET);
-    await quickInput.waitFor({ state: 'visible', timeout: 30_000 });
-    await page.keyboard.type(SOQL_FILE);
-    await page.keyboard.press('Enter');
-    await saveScreenshot(page, 'step1.file-name-entered.png');
+      const quickInput = page.locator(QUICK_INPUT_WIDGET);
+      await quickInput.waitFor({ state: 'visible', timeout: 30_000 });
+      await page.keyboard.type(SOQL_FILE);
+      await page.keyboard.press('Enter');
 
-    await waitForQuickInputFirstOption(page, { quickInputVisibleTimeout: 10_000, optionVisibleTimeout: 10_000 });
-    await page.keyboard.press('Enter');
-    await saveScreenshot(page, 'step1.dir-selected.png');
+      await waitForQuickInputFirstOption(page, { quickInputVisibleTimeout: 10_000, optionVisibleTimeout: 10_000 });
+      await page.keyboard.press('Enter');
 
-    const soqlTab = page.locator('[role="tab"]').filter({ hasText: `${SOQL_FILE}.soql` });
-    await expect(soqlTab, `${SOQL_FILE}.soql tab should be visible`).toBeVisible({ timeout: 20_000 });
-    await saveScreenshot(page, 'step1.soql-tab-visible.png');
+      const soqlTab = page.locator('[role="tab"]').filter({ hasText: `${SOQL_FILE}.soql` });
+      await expect(soqlTab, `${SOQL_FILE}.soql tab should be visible`).toBeVisible({ timeout: 20_000 });
 
-    // Type the query into the empty editor (file opens focused and ready for input)
-    await page.locator(EDITOR).first().click();
-    await page.keyboard.type(SOQL_QUERY);
-    await saveFile(page);
-    await saveScreenshot(page, 'step1.query-saved.png');
-  });
-
-  await test.step('get query plan via "Get Query Plan" code lens', async () => {
-    const planLens = page.getByRole('button', { name: 'Get Query Plan' });
-    await expect(planLens, '"Get Query Plan" code lens should be visible').toBeVisible({ timeout: 15_000 });
-    await saveScreenshot(page, 'step2.code-lens-visible.png');
-
-    await planLens.click();
-
-    // Get Query Plan always uses REST API — no API-picker quick input is shown
-    // executeQueryPlan calls vscChannel.show() in finally — wait for the panel to open naturally
-    await page.locator(OUTPUT_PANEL).waitFor({ state: 'visible', timeout: 30_000 });
-    await selectOutputChannel(page, SOQL_CHANNEL);
-    await waitForOutputChannelText(page, { expectedText: PLAN_COMPLETE_TEXT, timeout: 30_000 });
-    await saveScreenshot(page, 'step2.get-query-plan-output-verified.png');
-  });
-
-  await test.step('get query plan with current file via command palette', async () => {
-    const soqlTab = page.locator('[role="tab"]').filter({ hasText: `${SOQL_FILE}.soql` });
-    await soqlTab.click();
-
-    await selectOutputChannel(page, SOQL_CHANNEL);
-    await clearOutputChannel(page);
-
-    await executeCommandWithCommandPalette(page, packageNls.query_plan_document_text);
-    await saveScreenshot(page, 'step3.command-executed.png');
-
-    // Get Query Plan does not prompt for API type
-    await waitForOutputChannelText(page, { expectedText: PLAN_COMPLETE_TEXT, timeout: 30_000 });
-    await saveScreenshot(page, 'step3.current-file-plan-output-verified.png');
-  });
-
-  await test.step('get query plan with currently selected text via command palette', async () => {
-    // The selection command is only offered in Apex files (.cls/.trigger/.apex), where inline SOQL lives
-    await createApexClass(page, APEX_CLASS, APEX_CLASS_CONTENT);
-    await saveScreenshot(page, 'step4.apex-class-created.png');
-
-    await selectOutputChannel(page, SOQL_CHANNEL);
-    await clearOutputChannel(page);
-
-    // Select the query line in the editor via triple-click. This single gesture both focuses
-    // Monaco and creates a real editor selection (setting `editorHasSelection` true). On web,
-    // `click + Ctrl/Cmd+A` is unreliable because the synthetic click on `.view-line` doesn't
-    // always forward focus to Monaco's hidden input textarea, so the shortcut lands on the
-    // browser (DOM-level selection) instead.
-    const apexEditor = page.locator(`${EDITOR}[data-uri$="${APEX_CLASS}.cls"]`);
-    await apexEditor.locator('.view-line').filter({ hasText: SOQL_QUERY }).click({ clickCount: 3 });
-    // Sanity check: VS Code's status bar shows "(N selected)" only when the active editor has a
-    // real, non-empty selection. If this never appears, the triple-click didn't reach Monaco and
-    // the palette command would be hidden by `editorHasSelection`.
-    await expect(
-      page
-        .locator('.statusbar-item')
-        .filter({ hasText: /\(\d+ selected\)/ })
-        .first()
-    ).toBeVisible({
-      timeout: 5000
+      // Type the query into the empty editor (file opens focused and ready for input)
+      await page.locator(EDITOR).first().click();
+      await page.keyboard.type(SOQL_QUERY);
+      await saveFile(page);
     });
-    await saveScreenshot(page, 'step4.text-selected.png');
 
-    // Pass preserveSelection so the shared helper skips the `.monaco-workbench` click before F1;
-    // that click lands in the editor and clears the selection, which would make
-    // `editorHasSelection` false and hide this command from the palette.
-    await executeCommandWithCommandPalette(page, packageNls.query_plan_selection_text, undefined, {
-      preserveSelection: true
+    await test.step('get query plan via "Get Query Plan" code lens', async () => {
+      const planLens = page.getByRole('button', { name: 'Get Query Plan' });
+      await expect(planLens, '"Get Query Plan" code lens should be visible').toBeVisible({ timeout: 15_000 });
+
+      await planLens.click();
+
+      // Get Query Plan always uses REST API — no API-picker quick input is shown
+      // executeQueryPlan calls vscChannel.show() in finally — wait for the panel to open naturally
+      await page.locator(OUTPUT_PANEL).waitFor({ state: 'visible', timeout: 30_000 });
+      await selectOutputChannel(page, SOQL_CHANNEL);
+      await waitForOutputChannelText(page, { expectedText: PLAN_COMPLETE_TEXT, timeout: 30_000 });
     });
-    await saveScreenshot(page, 'step4.command-executed.png');
 
-    // Get Query Plan does not prompt for API type
-    await waitForOutputChannelText(page, { expectedText: PLAN_COMPLETE_TEXT, timeout: 30_000 });
-    await saveScreenshot(page, 'step4.selected-text-plan-output-verified.png');
-  });
+    await test.step('get query plan with current file via command palette', async () => {
+      const soqlTab = page.locator('[role="tab"]').filter({ hasText: `${SOQL_FILE}.soql` });
+      await soqlTab.click();
 
-  await validateNoCriticalErrors(test, consoleErrors, networkErrors);
+      await selectOutputChannel(page, SOQL_CHANNEL);
+      await clearOutputChannel(page);
+
+      await executeCommandWithCommandPalette(page, packageNls.query_plan_document_text);
+
+      // Get Query Plan does not prompt for API type
+      await waitForOutputChannelText(page, { expectedText: PLAN_COMPLETE_TEXT, timeout: 30_000 });
+    });
+
+    await test.step('get query plan with currently selected text via command palette', async () => {
+      // The selection command is only offered in Apex files (.cls/.trigger/.apex), where inline SOQL lives
+      await createApexClass(page, APEX_CLASS, APEX_CLASS_CONTENT);
+
+      await selectOutputChannel(page, SOQL_CHANNEL);
+      await clearOutputChannel(page);
+
+      // Select the query line in the editor via triple-click. This single gesture both focuses
+      // Monaco and creates a real editor selection (setting `editorHasSelection` true). On web,
+      // `click + Ctrl/Cmd+A` is unreliable because the synthetic click on `.view-line` doesn't
+      // always forward focus to Monaco's hidden input textarea, so the shortcut lands on the
+      // browser (DOM-level selection) instead.
+      const apexEditor = page.locator(`${EDITOR}[data-uri$="${APEX_CLASS}.cls"]`);
+      await apexEditor.locator('.view-line').filter({ hasText: SOQL_QUERY }).click({ clickCount: 3 });
+      // Sanity check: VS Code's status bar shows "(N selected)" only when the active editor has a
+      // real, non-empty selection. If this never appears, the triple-click didn't reach Monaco and
+      // the palette command would be hidden by `editorHasSelection`.
+      await expect(
+        page
+          .locator('.statusbar-item')
+          .filter({ hasText: /\(\d+ selected\)/ })
+          .first()
+      ).toBeVisible({
+        timeout: 5000
+      });
+
+      // Pass preserveSelection so the shared helper skips the `.monaco-workbench` click before F1;
+      // that click lands in the editor and clears the selection, which would make
+      // `editorHasSelection` false and hide this command from the palette.
+      await executeCommandWithCommandPalette(page, packageNls.query_plan_selection_text, undefined, {
+        preserveSelection: true
+      });
+
+      // Get Query Plan does not prompt for API type
+      await waitForOutputChannelText(page, { expectedText: PLAN_COMPLETE_TEXT, timeout: 30_000 });
+    });
+
+    await validateNoCriticalErrors(test, consoleErrors, networkErrors);
+  } finally {
+    await stopRecording();
+  }
 });

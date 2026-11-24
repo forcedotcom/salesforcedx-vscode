@@ -1,8 +1,9 @@
+// These node:test callbacks are entry points; each provides its test layers before Effect.runPromise.
+// @effect-diagnostics effect/strictEffectProvide:off
 import * as NodeContext from '@effect/platform-node/NodeContext';
-import { ConfigProvider, Effect, Either } from 'effect';
+import { ConfigProvider, Effect, Either, Layer } from 'effect';
 import assert from 'node:assert/strict';
-import { execFileSync } from 'node:child_process';
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { test } from 'node:test';
 import { parse } from 'yaml';
@@ -21,7 +22,7 @@ import {
   tempDirectory
 } from './ciAiFixtures.mts';
 
-test('category judgment uses one configured model, stdin, isolated configuration, and no inherited credentials', async t => {
+test('category judgment uses the first configured model with isolated stdin and credentials', async t => {
   const directory = tempDirectory(t);
   const capturePath = join(directory, 'capture.json');
   const policy = readFileSync(new URL('../APPROVAL_POLICY.md', import.meta.url), 'utf8');
@@ -65,9 +66,8 @@ test('category judgment uses one configured model, stdin, isolated configuration
         });
       `
         );
-      })
+      }).pipe(Layer.provideMerge(NodeContext.layer))
     ),
-    Effect.provide(NodeContext.layer),
     Effect.withConfigProvider(config()),
     Effect.runPromise
   );
@@ -94,18 +94,24 @@ for (const output of [
   `${events('ok')}{"type":"error"}\n`
 ]) {
   test(`rejects incomplete or invalid OpenCode output: ${JSON.stringify(output)}`, async () => {
+    let calls = 0;
     const result = await openCodePrompt({ prompt: 'judge' }).pipe(
-      Effect.provide(commands(command => nodeCommand(command, `process.stdout.write(${JSON.stringify(output)});`))),
-      Effect.provide(NodeContext.layer),
+      Effect.provide(
+        commands(command => {
+          calls += 1;
+          return nodeCommand(command, `process.stdout.write(${JSON.stringify(output)});`);
+        }).pipe(Layer.provideMerge(NodeContext.layer))
+      ),
       Effect.withConfigProvider(config()),
       Effect.either,
       Effect.runPromise
     );
     assert.equal(result._tag, 'Left');
+    assert.equal(calls, 1);
   });
 }
 
-test('uses only final-step text and never retries a failed process', async () => {
+test('uses only final-step text and does not retry non-retryable process failures', async () => {
   let calls = 0;
   const run = (output: string, code: number) =>
     openCodePrompt({ prompt: 'judge' }).pipe(
@@ -113,9 +119,8 @@ test('uses only final-step text and never retries a failed process', async () =>
         commands(command => {
           calls += 1;
           return nodeCommand(command, `process.stdout.write(${JSON.stringify(output)}); process.exitCode = ${code};`);
-        })
+        }).pipe(Layer.provideMerge(NodeContext.layer))
       ),
-      Effect.provide(NodeContext.layer),
       Effect.withConfigProvider(config()),
       Effect.either,
       Effect.runPromise
@@ -128,15 +133,163 @@ test('uses only final-step text and never retries a failed process', async () =>
   assert.equal(calls, 2);
 });
 
+for (const message of [
+  'HTTP 410 Gone',
+  'HTTP 429 Too Many Requests',
+  'RateLimit.FreeUsageLimitError',
+  'Free usage limit reached',
+  'ModelUnavailableError',
+  'ProviderModelNotFoundError',
+  'Model is unavailable',
+  'Model opencode/first not found',
+  'No free models available'
+]) {
+  for (const errorEvent of [false, true]) {
+    test(`retries ${errorEvent ? 'error event' : 'process failure'}: ${message}`, async () => {
+      const attemptedModels: string[] = [];
+      const output = errorEvent ? JSON.stringify({ type: 'error', error: { message } }) + '\n' : message;
+      const result = await openCodePrompt({ prompt: 'judge' }).pipe(
+        Effect.provide(
+          commands(command => {
+            const model = command.args.at(-1);
+            assert.ok(model);
+            attemptedModels.push(model);
+            return nodeCommand(
+              command,
+              model === 'opencode/first'
+                ? `process.${errorEvent ? 'stdout' : 'stderr'}.write(${JSON.stringify(output)}); process.exitCode = ${errorEvent ? 0 : 1};`
+                : `process.stdout.write(${JSON.stringify(events('{"categories":["prose"]}'))});`
+            );
+          }).pipe(Layer.provideMerge(NodeContext.layer))
+        ),
+        Effect.withConfigProvider(config('["opencode/first","opencode/second","opencode/third"]')),
+        Effect.either,
+        Effect.runPromise
+      );
+
+      assert.deepEqual(result, Either.right('{"categories":["prose"]}'));
+      assert.deepEqual(attemptedModels, ['opencode/first', 'opencode/second']);
+    });
+  }
+}
+
+test('continues through multiple model errors until a configured model succeeds', async () => {
+  const attemptedModels: string[] = [];
+  const result = await openCodePrompt({ prompt: 'judge' }).pipe(
+    Effect.provide(
+      commands(command => {
+        const model = command.args.at(-1);
+        assert.ok(model);
+        attemptedModels.push(model);
+        return nodeCommand(
+          command,
+          model === 'opencode/third'
+            ? `process.stdout.write(${JSON.stringify(events('{"categories":["prose"]}'))});`
+            : `process.stdout.write(${JSON.stringify(JSON.stringify({ type: 'error', error: { name: 'APIError', data: { statusCode: model === 'opencode/first' ? 410 : 429 } } }) + '\n')});`
+        );
+      }).pipe(Layer.provideMerge(NodeContext.layer))
+    ),
+    Effect.withConfigProvider(config('["opencode/first","opencode/second","opencode/third"]')),
+    Effect.either,
+    Effect.runPromise
+  );
+
+  assert.deepEqual(result, Either.right('{"categories":["prose"]}'));
+  assert.deepEqual(attemptedModels, ['opencode/first', 'opencode/second', 'opencode/third']);
+});
+
+for (const configuredModels of [['opencode/only'], ['opencode/third', 'opencode/first', 'opencode/second']]) {
+  test(`exhausts configured models in order: ${configuredModels.join(', ')}`, async () => {
+    const attemptedModels: string[] = [];
+    const result = await openCodePrompt({ prompt: 'judge' }).pipe(
+      Effect.provide(
+        commands(command => {
+          const model = command.args.at(-1);
+          assert.ok(model);
+          attemptedModels.push(model);
+          return nodeCommand(command, `process.stderr.write('Model unavailable'); process.exitCode = 1;`);
+        }).pipe(Layer.provideMerge(NodeContext.layer))
+      ),
+      Effect.withConfigProvider(config(JSON.stringify(configuredModels))),
+      Effect.either,
+      Effect.runPromise
+    );
+
+    assert.ok(Either.isLeft(result));
+    assert.equal(
+      result.left.message,
+      `All configured OpenCode models were unavailable or rate limited (last: ${configuredModels.at(-1)})`
+    );
+    assert.deepEqual(attemptedModels, configuredModels);
+  });
+}
+
+for (const [stdout, stderr, code, expectedTag] of [
+  ['', 'Invalid API key', 1, 'Left'],
+  ['', 'HTTP 403 Forbidden', 1, 'Left'],
+  ['', 'Configuration error at line 429', 1, 'Left'],
+  ['', 'Failed to read file 410', 1, 'Left'],
+  ['', 'Model configuration file not found', 1, 'Left'],
+  [JSON.stringify({ type: 'error', error: { message: 'Invalid API key', requestId: '429' } }) + '\n', '', 0, 'Left'],
+  [events('Model unavailable HTTP 429 RateLimit.FreeUsageLimitError'), '', 1, 'Left'],
+  [events('HTTP 410 is documentation, not an error'), 'HTTP 429 diagnostic', 0, 'Right']
+] as const) {
+  test(`does not retry unrelated output: ${JSON.stringify({ stdout, stderr, code })}`, async () => {
+    const attemptedModels: string[] = [];
+    const result = await openCodePrompt({ prompt: 'judge' }).pipe(
+      Effect.provide(
+        commands(command => {
+          const model = command.args.at(-1);
+          assert.ok(model);
+          attemptedModels.push(model);
+          return nodeCommand(
+            command,
+            `process.stdout.write(${JSON.stringify(stdout)}); process.stderr.write(${JSON.stringify(stderr)}); process.exitCode = ${code};`
+          );
+        }).pipe(Layer.provideMerge(NodeContext.layer))
+      ),
+      Effect.withConfigProvider(config()),
+      Effect.either,
+      Effect.runPromise
+    );
+
+    assert.equal(result._tag, expectedTag);
+    assert.deepEqual(attemptedModels, ['opencode/first']);
+  });
+}
+
+test('stops at an unrelated failure after a retryable model error', async () => {
+  const attemptedModels: string[] = [];
+  const result = await openCodePrompt({ prompt: 'judge' }).pipe(
+    Effect.provide(
+      commands(command => {
+        const model = command.args.at(-1);
+        assert.ok(model);
+        attemptedModels.push(model);
+        return nodeCommand(
+          command,
+          `process.stderr.write(${JSON.stringify(model === 'opencode/first' ? 'HTTP 429' : 'Invalid API key')}); process.exitCode = 1;`
+        );
+      }).pipe(Layer.provideMerge(NodeContext.layer))
+    ),
+    Effect.withConfigProvider(config('["opencode/first","opencode/second","opencode/third"]')),
+    Effect.either,
+    Effect.runPromise
+  );
+
+  assert.ok(Either.isLeft(result));
+  assert.equal(result.left.message, 'OpenCode exited 1');
+  assert.deepEqual(attemptedModels, ['opencode/first', 'opencode/second']);
+});
+
 for (const models of ['', '[]', 'not json', '["auto"]', '["opencode/first", 3]']) {
   test(`invalid model configuration fails before starting OpenCode: ${models}`, async () => {
     const result = await openCodePrompt({ prompt: 'judge' }).pipe(
       Effect.provide(
         commands(() => {
           assert.fail('OpenCode must not start');
-        })
+        }).pipe(Layer.provideMerge(NodeContext.layer))
       ),
-      Effect.provide(NodeContext.layer),
       Effect.withConfigProvider(config(models)),
       Effect.either,
       Effect.runPromise
@@ -151,9 +304,8 @@ test('missing or empty API key fails before starting OpenCode', async () => {
       Effect.provide(
         commands(() => {
           assert.fail('OpenCode must not start');
-        })
+        }).pipe(Layer.provideMerge(NodeContext.layer))
       ),
-      Effect.provide(NodeContext.layer),
       Effect.withConfigProvider(ConfigProvider.fromMap(new Map(entries.map(([key, value]) => [key, value] as const)))),
       Effect.either,
       Effect.runPromise
@@ -182,9 +334,8 @@ test('changelog migration keeps rendered links and rejects missing PRs, duplicat
         });
       `
           );
-        })
+        }).pipe(Layer.provideMerge(NodeContext.layer))
       ),
-      Effect.provide(NodeContext.layer),
       Effect.withConfigProvider(config()),
       Effect.either,
       Effect.runPromise
@@ -217,41 +368,12 @@ test('workflows keep trusted approval execution and share the OpenCode key and m
     const text = readFileSync(new URL(`../.github/workflows/${name}.yml`, import.meta.url), 'utf8');
     assert.match(text, /OPENCODE_API_KEY: \$\{\{ secrets.OPENCODE_API_KEY \}\}/);
     assert.match(text, /OPENCODE_MODELS: \$\{\{ vars.OPENCODE_MODELS \}\}/);
-    if (name !== 'categoryApprove') assert.doesNotMatch(text, /CURSOR|cursor|elif/);
+    assert.doesNotMatch(text, /CURSOR|cursor|elif/);
   }
   const workflow = parse(readFileSync(new URL('../.github/workflows/categoryApprove.yml', import.meta.url), 'utf8'));
   const steps = workflow.jobs['category-approve'].steps;
   const install = steps.find((step: { name?: string }) => step.name === 'Install OpenCode CLI');
-  assert.equal(install.if, "steps.preflight.outputs.result == 'true' && steps.approver.outputs.cli == 'opencode'");
+  assert.equal(install.if, "steps.preflight.outputs.result == 'true'");
+  assert.match(install.run, /--allow-scripts=@opencode\/cli/);
   assert.match(steps.at(-1).run, /node "\$RUNNER_TEMP\/trusted-approver\/scripts\/categoryApprove.mts"/);
-});
-
-test('category approval selects the runtime and credentials matching trusted develop during rollout', t => {
-  const workflow = parse(readFileSync(new URL('../.github/workflows/categoryApprove.yml', import.meta.url), 'utf8'));
-  const steps = workflow.jobs['category-approve'].steps;
-  const select = steps.find((step: { id?: string }) => step.id === 'approver');
-  assert.equal(select.if, "steps.preflight.outputs.result == 'true'");
-  const directory = tempDirectory(t);
-  const scripts = join(directory, 'trusted-approver/scripts');
-  mkdirSync(scripts, { recursive: true });
-  for (const [cli, source] of [
-    ['cursor', "Command.make('agent'); Config.string('CURSOR_API_KEY');"],
-    ['opencode', readFileSync(new URL('../scripts/categoryApprove.mts', import.meta.url), 'utf8')]
-  ]) {
-    const output = join(directory, `${cli}.txt`);
-    writeFileSync(join(scripts, 'categoryApprove.mts'), source);
-    execFileSync('bash', ['-eu', '-c', select.run], {
-      env: { ...process.env, RUNNER_TEMP: directory, GITHUB_OUTPUT: output }
-    });
-    assert.equal(readFileSync(output, 'utf8'), `cli=${cli}\n`);
-  }
-  const legacyInstall = steps.find(
-    (step: { name?: string }) => step.name === 'Install Cursor CLI for legacy trusted approver'
-  );
-  assert.equal(legacyInstall.if, "steps.preflight.outputs.result == 'true' && steps.approver.outputs.cli == 'cursor'");
-  assert.match(legacyInstall.run, /curl https:\/\/cursor.com\/install -fsS \| bash/);
-  assert.equal(
-    steps.at(-1).env.CURSOR_API_KEY,
-    "${{ steps.approver.outputs.cli == 'cursor' && secrets.IDEE_CURSOR_API_KEY || '' }}"
-  );
 });

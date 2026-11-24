@@ -1,3 +1,12 @@
+# [1.8.0](https://github.com/forcedotcom/salesforcedx-vscode/compare/playwright-vscode-ext-v1.7.2...playwright-vscode-ext-v1.8.0) (2026-11-24)
+
+
+### Features
+
+* **codebuilder-e2e:** container spec parity across packages + coverage ledger - W-23898526 ([#8102](https://github.com/forcedotcom/salesforcedx-vscode/issues/8102)) ([01c3d52](https://github.com/forcedotcom/salesforcedx-vscode/commit/01c3d52c8d66d521bf0e7609144c040842a872b6)), closes [#8165](https://github.com/forcedotcom/salesforcedx-vscode/issues/8165)
+
+
+
 ## [1.7.2](https://github.com/forcedotcom/salesforcedx-vscode/compare/playwright-vscode-ext-v1.7.1...playwright-vscode-ext-v1.7.2) (2026-10-16)
 
 

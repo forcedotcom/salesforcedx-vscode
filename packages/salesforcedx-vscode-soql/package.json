@@ -10,7 +10,7 @@
   "repository": {
     "url": "https://github.com/forcedotcom/salesforcedx-vscode"
   },
-  "version": "68.15.2",
+  "version": "68.15.6",
   "publisher": "salesforce",
   "o11yUploadEndpoint": "https://794testsite.my.site.com/byolwr/webruntime/log/metrics",
   "enableO11y": "true",
@@ -35,7 +35,7 @@
     "soql builder"
   ],
   "dependencies": {
-    "@jsforce/jsforce-node": "^3.10.24",
+    "@jsforce/jsforce-node": "^3.13.1",
     "@salesforce/effect-ext-utils": "workspace:*",
     "@salesforce/soql-builder-ui": "workspace:*",
     "@salesforce/soql-common": "workspace:*",
@@ -44,7 +44,7 @@
     "@salesforce/vscode-i18n": "workspace:*",
     "antlr4ts": "^0.5.0-alpha.3",
     "debounce": "^2.2.0",
-    "effect": "^3.21.2",
+    "effect": "^3.22.4",
     "papaparse": "^5.3.0",
     "vscode-languageclient": "^9.0.1",
     "vscode-uri": "^3.1.0"
@@ -94,6 +94,7 @@
     "test:web": "wireit",
     "test:web:ui": "DEBUG_MODE=1 pnpm --dir ../.. --filter ./packages/salesforcedx-vscode-soql test:web --headed",
     "test:web:debug": "pnpm --dir ../.. --filter ./packages/salesforcedx-vscode-soql test:web --debug",
+    "test:container": "wireit",
     "test:desktop": "wireit",
     "test:desktop:debug": "pnpm --dir ../.. --filter ./packages/salesforcedx-vscode-soql test:desktop --debug",
     "test:e2e": "wireit",
@@ -397,6 +398,29 @@
         "test/playwright/**/*.{ts,mts}",
         "package*.json",
         "../../.github/**"
+      ],
+      "output": []
+    },
+    "test:container": {
+      "command": "playwright test --config=test/playwright/playwright.config.container.ts",
+      "env": {
+        "VSCODE_CONTAINER": "1",
+        "CODE_BUILDER_URL": {
+          "external": true
+        },
+        "CB_GREP": {
+          "external": true
+        },
+        "CB_UNDER_TEST": {
+          "external": true
+        }
+      },
+      "dependencies": [
+        "../playwright-vscode-ext:compile"
+      ],
+      "files": [
+        "test/playwright/**",
+        "package*.json"
       ],
       "output": []
     },

@@ -1,1 +1,1 @@
-{"version":3,"file":"nodeVersions.d.ts","sourceRoot":"","sources":["../src/nodeVersions.ts"],"names":[],"mappings":"AAKA,eAAO,MAAM,iBAAiB,GAAI,aAAa,IAAI,MACjD,UAAU,MAAM,EAAE,KACjB,OAAO,CAAC,OAAO,CAejB,CAAC"}
+{"version":3,"file":"nodeVersions.d.ts","sourceRoot":"","sources":["../src/nodeVersions.ts"],"names":[],"mappings":"AAOA,OAAO,KAAK,UAAU,MAAM,6BAA6B,CAAC;AAG1D,OAAO,KAAK,MAAM,MAAM,eAAe,CAAC;AAQxC,eAAO,MAAM,iBAAiB,6KAoB5B,CAAC"}

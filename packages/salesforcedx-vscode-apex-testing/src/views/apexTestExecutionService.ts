@@ -238,7 +238,9 @@ export class ApexTestExecutionService extends Effect.Service<ApexTestExecutionSe
       // Run-All group to "older results"; see W-… history in the shell). Non-fatal: a write failure logs
       // and the run continues (report + result push still happen), matching the legacy console.error path.
       yield* writeTestResultJsonFile(result, outputDir, codeCoverage).pipe(
-        Effect.catchTag('FileOutputError', error => Effect.logError('Failed to write JSON test result file', { error }))
+        Effect.catchTag('FileOutputError', 'PartialResultFilesError', error =>
+          Effect.logError('Failed to write JSON test result file', { error })
+        )
       );
       const writtenResultFilename = `test-result-${result.summary?.testRunId ?? 'default'}.json`;
       yield* Ref.set(lastProcessedResultFile, Option.some(Utils.joinPath(outputDir, writtenResultFilename)));

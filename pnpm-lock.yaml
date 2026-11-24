@@ -164,6 +164,7 @@ settings:
 
 overrides:
   '@azure/monitor-opentelemetry-exporter': 1.0.0-beta.47
+  '@jsforce/jsforce-node': 3.13.1
   '@vscode/test-web>playwright': ^1.64.1
   '@vscode/test-web>@playwright/browser-chromium': ^1.64.1
   jest: 30.4.2
@@ -186,8 +187,8 @@ importers:
         specifier: workspace:*
         version: link:packages/salesforcedx-utils
       jsforce:
-        specifier: ^3.10.24
-        version: 3.10.25(@types/node@24.19.2)
+        specifier: ^3.13.1
+        version: 3.13.1(@types/node@24.19.2)
       memfs:
         specifier: ^4.32.0
         version: 4.74.0
@@ -220,11 +221,11 @@ importers:
         specifier: ^0.87.2
         version: 0.87.2
       '@effect/platform':
-        specifier: 0.96.1
-        version: 0.96.1(effect@3.22.2)
+        specifier: 0.97.3
+        version: 0.97.3(effect@3.22.4)
       '@effect/platform-node':
-        specifier: 0.106.0
-        version: 0.106.0(@effect/cluster@0.58.2(@effect/platform@0.96.1(effect@3.22.2))(@effect/rpc@0.75.1(@effect/platform@0.96.1(effect@3.22.2))(effect@3.22.2))(@effect/sql@0.51.1(@effect/experimental@0.60.0(@effect/platform@0.96.1(effect@3.22.2))(effect@3.22.2))(@effect/platform@0.96.1(effect@3.22.2))(effect@3.22.2))(@effect/workflow@0.18.2(@effect/experimental@0.60.0(@effect/platform@0.96.1(effect@3.22.2))(effect@3.22.2))(@effect/platform@0.96.1(effect@3.22.2))(@effect/rpc@0.75.1(@effect/platform@0.96.1(effect@3.22.2))(effect@3.22.2))(effect@3.22.2))(effect@3.22.2))(@effect/platform@0.96.1(effect@3.22.2))(@effect/rpc@0.75.1(@effect/platform@0.96.1(effect@3.22.2))(effect@3.22.2))(@effect/sql@0.51.1(@effect/experimental@0.60.0(@effect/platform@0.96.1(effect@3.22.2))(effect@3.22.2))(@effect/platform@0.96.1(effect@3.22.2))(effect@3.22.2))(effect@3.22.2)
+        specifier: 0.108.4
+        version: 0.108.4(@effect/cluster@0.60.5(@effect/platform@0.97.3(effect@3.22.4))(@effect/rpc@0.76.4(@effect/platform@0.97.3(effect@3.22.4))(effect@3.22.4))(@effect/sql@0.52.2(@effect/experimental@0.61.2(@effect/platform@0.97.3(effect@3.22.4))(effect@3.22.4))(@effect/platform@0.97.3(effect@3.22.4))(effect@3.22.4))(@effect/workflow@0.19.1(@effect/experimental@0.61.2(@effect/platform@0.97.3(effect@3.22.4))(effect@3.22.4))(@effect/platform@0.97.3(effect@3.22.4))(@effect/rpc@0.76.4(@effect/platform@0.97.3(effect@3.22.4))(effect@3.22.4))(effect@3.22.4))(effect@3.22.4))(@effect/platform@0.97.3(effect@3.22.4))(@effect/rpc@0.76.4(@effect/platform@0.97.3(effect@3.22.4))(effect@3.22.4))(@effect/sql@0.52.2(@effect/experimental@0.61.2(@effect/platform@0.97.3(effect@3.22.4))(effect@3.22.4))(@effect/platform@0.97.3(effect@3.22.4))(effect@3.22.4))(effect@3.22.4)
       '@eslint/json':
         specifier: ^0.14.0
         version: 0.14.0
@@ -257,7 +258,7 @@ importers:
         version: 2.0.3
       '@salesforce/core':
         specifier: ^9.4.1
-        version: 9.5.0
+        version: 9.6.0
       '@salesforce/dev-config':
         specifier: ^4.3.2
         version: 4.3.3
@@ -294,6 +295,9 @@ importers:
       '@types/xml2js':
         specifier: 0.4.14
         version: 0.4.14
+      '@types/yauzl':
+        specifier: 3.4.0
+        version: 3.4.0
       '@typescript-eslint/eslint-plugin':
         specifier: ^8.72.0
         version: 8.72.0(@typescript-eslint/parser@8.72.0(eslint@10.13.0(jiti@2.7.0)(supports-color@8.1.1))(supports-color@8.1.1)(typescript@6.0.3))(eslint@10.13.0(jiti@2.7.0)(supports-color@8.1.1))(supports-color@8.1.1)(typescript@6.0.3)
@@ -343,8 +347,8 @@ importers:
         specifier: ^3.14.0
         version: 3.15.1
       effect:
-        specifier: ^3.21.2
-        version: 3.22.2
+        specifier: ^3.22.4
+        version: 3.22.4
       esbuild:
         specifier: ^0.28.1
         version: 0.28.2
@@ -501,15 +505,18 @@ importers:
       yaml:
         specifier: ^2.9.0
         version: 2.9.0
+      yauzl:
+        specifier: 3.4.0
+        version: 3.4.0
 
   packages/drivable-vscode:
     dependencies:
       '@effect/platform':
-        specifier: 0.96.1
-        version: 0.96.1(effect@3.22.2)
+        specifier: 0.97.3
+        version: 0.97.3(effect@3.22.4)
       '@effect/platform-node':
-        specifier: 0.106.0
-        version: 0.106.0(@effect/cluster@0.58.2(@effect/platform@0.96.1(effect@3.22.2))(@effect/rpc@0.75.1(@effect/platform@0.96.1(effect@3.22.2))(effect@3.22.2))(@effect/sql@0.51.1(@effect/experimental@0.60.0(@effect/platform@0.96.1(effect@3.22.2))(effect@3.22.2))(@effect/platform@0.96.1(effect@3.22.2))(effect@3.22.2))(@effect/workflow@0.18.2(@effect/experimental@0.60.0(@effect/platform@0.96.1(effect@3.22.2))(effect@3.22.2))(@effect/platform@0.96.1(effect@3.22.2))(@effect/rpc@0.75.1(@effect/platform@0.96.1(effect@3.22.2))(effect@3.22.2))(effect@3.22.2))(effect@3.22.2))(@effect/platform@0.96.1(effect@3.22.2))(@effect/rpc@0.75.1(@effect/platform@0.96.1(effect@3.22.2))(effect@3.22.2))(@effect/sql@0.51.1(@effect/experimental@0.60.0(@effect/platform@0.96.1(effect@3.22.2))(effect@3.22.2))(@effect/platform@0.96.1(effect@3.22.2))(effect@3.22.2))(effect@3.22.2)
+        specifier: 0.108.4
+        version: 0.108.4(@effect/cluster@0.60.5(@effect/platform@0.97.3(effect@3.22.4))(@effect/rpc@0.76.4(@effect/platform@0.97.3(effect@3.22.4))(effect@3.22.4))(@effect/sql@0.52.2(@effect/experimental@0.61.2(@effect/platform@0.97.3(effect@3.22.4))(effect@3.22.4))(@effect/platform@0.97.3(effect@3.22.4))(effect@3.22.4))(@effect/workflow@0.19.1(@effect/experimental@0.61.2(@effect/platform@0.97.3(effect@3.22.4))(effect@3.22.4))(@effect/platform@0.97.3(effect@3.22.4))(@effect/rpc@0.76.4(@effect/platform@0.97.3(effect@3.22.4))(effect@3.22.4))(effect@3.22.4))(effect@3.22.4))(@effect/platform@0.97.3(effect@3.22.4))(@effect/rpc@0.76.4(@effect/platform@0.97.3(effect@3.22.4))(effect@3.22.4))(@effect/sql@0.52.2(@effect/experimental@0.61.2(@effect/platform@0.97.3(effect@3.22.4))(effect@3.22.4))(@effect/platform@0.97.3(effect@3.22.4))(effect@3.22.4))(effect@3.22.4)
       '@modelcontextprotocol/sdk':
         specifier: 1.32.0
         version: 1.32.0(supports-color@8.1.1)(zod@4.6.7)
@@ -526,8 +533,8 @@ importers:
         specifier: 3.1.0
         version: 3.1.0(supports-color@8.1.1)
       effect:
-        specifier: ^3.21.2
-        version: 3.22.2
+        specifier: ^3.22.4
+        version: 3.22.4
 
   packages/effect-ext-utils:
     dependencies:
@@ -535,8 +542,8 @@ importers:
         specifier: ^1.90.0
         version: 1.90.0
       effect:
-        specifier: ^3.21.2
-        version: 3.22.2
+        specifier: ^3.22.4
+        version: 3.22.4
       vscode-uri:
         specifier: ^3.1.0
         version: 3.2.0
@@ -548,8 +555,8 @@ importers:
   packages/effect-octokit:
     dependencies:
       '@effect/platform':
-        specifier: 0.96.1
-        version: 0.96.1(effect@3.22.2)
+        specifier: 0.97.3
+        version: 0.97.3(effect@3.22.4)
       '@octokit/core':
         specifier: ^7.0.6
         version: 7.0.8
@@ -569,8 +576,8 @@ importers:
         specifier: '*'
         version: link:../salesforcedx-utils
       effect:
-        specifier: ^3.21.2
-        version: 3.22.2
+        specifier: ^3.22.4
+        version: 3.22.4
 
   packages/eslint-local-rules:
     dependencies:
@@ -615,14 +622,14 @@ importers:
   packages/playwright-vscode-ext:
     dependencies:
       '@effect/platform':
-        specifier: ^0.96.1
-        version: 0.96.1(effect@3.22.2)
+        specifier: ^0.97.3
+        version: 0.97.3(effect@3.22.4)
       '@playwright/test':
         specifier: ^1.64.1
         version: 1.64.1
       '@salesforce/core':
         specifier: ^9.4.1
-        version: 9.5.0
+        version: 9.6.0
       '@salesforce/salesforcedx-utils':
         specifier: '*'
         version: link:../salesforcedx-utils
@@ -633,17 +640,23 @@ importers:
         specifier: ^0.0.81
         version: 0.0.81(supports-color@8.1.1)
       effect:
-        specifier: ^3.21.2
-        version: 3.22.2
+        specifier: ^3.22.4
+        version: 3.22.4
       jsonc-parser:
         specifier: ^3.3.1
         version: 3.3.1
 
   packages/salesforcedx-apex:
     dependencies:
+      '@effect/platform':
+        specifier: ^0.97.3
+        version: 0.97.3(effect@3.22.4)
+      '@effect/platform-node':
+        specifier: 0.108.4
+        version: 0.108.4(@effect/cluster@0.60.5(@effect/platform@0.97.3(effect@3.22.4))(@effect/rpc@0.76.4(@effect/platform@0.97.3(effect@3.22.4))(effect@3.22.4))(@effect/sql@0.52.2(@effect/experimental@0.61.2(@effect/platform@0.97.3(effect@3.22.4))(effect@3.22.4))(@effect/platform@0.97.3(effect@3.22.4))(effect@3.22.4))(@effect/workflow@0.19.1(@effect/experimental@0.61.2(@effect/platform@0.97.3(effect@3.22.4))(effect@3.22.4))(@effect/platform@0.97.3(effect@3.22.4))(@effect/rpc@0.76.4(@effect/platform@0.97.3(effect@3.22.4))(effect@3.22.4))(effect@3.22.4))(effect@3.22.4))(@effect/platform@0.97.3(effect@3.22.4))(@effect/rpc@0.76.4(@effect/platform@0.97.3(effect@3.22.4))(effect@3.22.4))(@effect/sql@0.52.2(@effect/experimental@0.61.2(@effect/platform@0.97.3(effect@3.22.4))(effect@3.22.4))(@effect/platform@0.97.3(effect@3.22.4))(effect@3.22.4))(effect@3.22.4)
       '@salesforce/core':
         specifier: ^9.4.1
-        version: 9.5.0
+        version: 9.6.0
       '@salesforce/kit':
         specifier: ^4.0.0
         version: 4.0.0
@@ -651,8 +664,8 @@ importers:
         specifier: '*'
         version: link:../salesforcedx-utils
       effect:
-        specifier: ^3.21.2
-        version: 3.22.2
+        specifier: ^3.22.4
+        version: 3.22.4
       faye:
         specifier: 1.4.1
         version: 1.4.1
@@ -670,8 +683,8 @@ importers:
         version: 0.2.17
     devDependencies:
       '@jsforce/jsforce-node':
-        specifier: ^3.10.18
-        version: 3.12.0
+        specifier: 3.13.1
+        version: 3.13.1
       '@types/istanbul-lib-coverage':
         specifier: ^2.0.6
         version: 2.0.6
@@ -698,7 +711,7 @@ importers:
     dependencies:
       '@salesforce/core':
         specifier: ^9.4.1
-        version: 9.5.0
+        version: 9.6.0
       '@salesforce/salesforcedx-utils':
         specifier: workspace:*
         version: link:../salesforcedx-utils
@@ -718,8 +731,8 @@ importers:
         specifier: 7.0.6
         version: 7.0.6
       effect:
-        specifier: ^3.21.2
-        version: 3.22.2
+        specifier: ^3.22.4
+        version: 3.22.4
       faye:
         specifier: 1.4.1
         version: 1.4.1
@@ -755,8 +768,8 @@ importers:
         specifier: 1.68.0
         version: 1.68.0
       effect:
-        specifier: ^3.21.2
-        version: 3.22.2
+        specifier: ^3.22.4
+        version: 3.22.4
       vscode-uri:
         specifier: ^3.1.0
         version: 3.2.0
@@ -789,8 +802,8 @@ importers:
         specifier: ^6.0.0
         version: 6.2.0
       effect:
-        specifier: ^3.21.2
-        version: 3.22.2
+        specifier: ^3.22.4
+        version: 3.22.4
       line-column:
         specifier: ^1.0.2
         version: 1.0.2
@@ -822,8 +835,8 @@ importers:
         specifier: workspace:*
         version: link:../salesforcedx-vscode-i18n
       effect:
-        specifier: ^3.21.2
-        version: 3.22.2
+        specifier: ^3.22.4
+        version: 3.22.4
       ejs:
         specifier: ^3.1.10
         version: 3.1.10
@@ -904,8 +917,8 @@ importers:
         specifier: ^0.7.6
         version: 0.7.6
       effect:
-        specifier: ^3.21.2
-        version: 3.22.2
+        specifier: ^3.22.4
+        version: 3.22.4
       ejs:
         specifier: ^3.1.10
         version: 3.1.10
@@ -990,8 +1003,8 @@ importers:
         specifier: workspace:*
         version: link:../salesforcedx-vscode-i18n
       effect:
-        specifier: ^3.21.2
-        version: 3.22.2
+        specifier: ^3.22.4
+        version: 3.22.4
       find-java-home:
         specifier: 1.2.2
         version: 1.2.2
@@ -1007,7 +1020,7 @@ importers:
     devDependencies:
       '@salesforce/core':
         specifier: ^9.4.1
-        version: 9.5.0
+        version: 9.6.0
       '@salesforce/playwright-vscode-ext':
         specifier: workspace:*
         version: link:../playwright-vscode-ext
@@ -1019,7 +1032,7 @@ importers:
     dependencies:
       '@salesforce/core':
         specifier: ^9.4.1
-        version: 9.5.0
+        version: 9.6.0
       '@salesforce/effect-ext-utils':
         specifier: workspace:*
         version: link:../effect-ext-utils
@@ -1030,8 +1043,8 @@ importers:
         specifier: workspace:*
         version: link:../salesforcedx-vscode-i18n
       effect:
-        specifier: ^3.21.2
-        version: 3.22.2
+        specifier: ^3.22.4
+        version: 3.22.4
       sanitize-filename:
         specifier: ^1.6.1
         version: 1.6.4
@@ -1064,15 +1077,15 @@ importers:
         specifier: workspace:*
         version: link:../salesforcedx-vscode-i18n
       effect:
-        specifier: ^3.21.2
-        version: 3.22.2
+        specifier: ^3.22.4
+        version: 3.22.4
       vscode-uri:
         specifier: ^3.1.0
         version: 3.2.0
     devDependencies:
       '@salesforce/core':
         specifier: ^9.4.1
-        version: 9.5.0
+        version: 9.6.0
       '@salesforce/playwright-vscode-ext':
         specifier: workspace:*
         version: link:../playwright-vscode-ext
@@ -1101,8 +1114,8 @@ importers:
         specifier: 1.22.6
         version: 1.22.6(encoding@0.1.13)
       effect:
-        specifier: ^3.21.2
-        version: 3.22.2
+        specifier: ^3.22.4
+        version: 3.22.4
       ejs:
         specifier: 3.1.10
         version: 3.1.10
@@ -1156,8 +1169,8 @@ importers:
         specifier: workspace:*
         version: link:../salesforcedx-vscode-i18n
       effect:
-        specifier: ^3.21.2
-        version: 3.22.2
+        specifier: ^3.22.4
+        version: 3.22.4
       salesforcedx-vscode-apex-log:
         specifier: workspace:*
         version: link:../salesforcedx-vscode-apex-log
@@ -1170,7 +1183,7 @@ importers:
         version: 1.64.1
       '@salesforce/core':
         specifier: ^9.4.1
-        version: 9.5.0
+        version: 9.6.0
       '@salesforce/playwright-vscode-ext':
         specifier: workspace:*
         version: link:../playwright-vscode-ext
@@ -1202,21 +1215,21 @@ importers:
         specifier: workspace:*
         version: link:../salesforcedx-vscode-i18n
       effect:
-        specifier: ^3.21.2
-        version: 3.22.2
+        specifier: ^3.22.4
+        version: 3.22.4
       vscode-uri:
         specifier: ^3.1.0
         version: 3.2.0
     devDependencies:
       '@salesforce/core':
-        specifier: ^9.4.1
-        version: 9.5.0
+        specifier: ^9.6.0
+        version: 9.6.0
       '@salesforce/playwright-vscode-ext':
         specifier: workspace:*
         version: link:../playwright-vscode-ext
       '@salesforce/source-deploy-retrieve':
-        specifier: ^13.13.0
-        version: 13.13.0(supports-color@8.1.1)
+        specifier: ^13.14.1
+        version: 13.14.1(supports-color@8.1.1)
       salesforcedx-vscode-services:
         specifier: workspace:*
         version: link:../salesforcedx-vscode-services
@@ -1225,7 +1238,7 @@ importers:
     dependencies:
       '@salesforce/core':
         specifier: ^9.4.1
-        version: 9.5.0
+        version: 9.6.0
       '@salesforce/effect-ext-utils':
         specifier: workspace:*
         version: link:../effect-ext-utils
@@ -1236,8 +1249,8 @@ importers:
         specifier: workspace:*
         version: link:../salesforcedx-vscode-i18n
       effect:
-        specifier: ^3.21.2
-        version: 3.22.2
+        specifier: ^3.22.4
+        version: 3.22.4
       fast-xml-parser:
         specifier: ^5.7.1
         version: 5.11.2
@@ -1290,8 +1303,8 @@ importers:
         specifier: 1.8.10
         version: 1.8.10
       effect:
-        specifier: ^3.21.2
-        version: 3.22.2
+        specifier: ^3.22.4
+        version: 3.22.4
       vscode-html-languageservice:
         specifier: ^5.5.1
         version: 5.6.2
@@ -1321,8 +1334,8 @@ importers:
         specifier: workspace:*
         version: link:../salesforcedx-vscode-i18n
       effect:
-        specifier: ^3.21.2
-        version: 3.22.2
+        specifier: ^3.22.4
+        version: 3.22.4
       jest-editor-support:
         specifier: 31.1.2
         version: 31.1.2(supports-color@8.1.1)
@@ -1344,7 +1357,7 @@ importers:
     devDependencies:
       '@salesforce/core':
         specifier: ^9.4.1
-        version: 9.5.0
+        version: 9.6.0
       '@salesforce/playwright-vscode-ext':
         specifier: workspace:*
         version: link:../playwright-vscode-ext
@@ -1367,8 +1380,8 @@ importers:
         specifier: workspace:*
         version: link:../salesforcedx-vscode-i18n
       effect:
-        specifier: ^3.21.2
-        version: 3.22.2
+        specifier: ^3.22.4
+        version: 3.22.4
       vscode-uri:
         specifier: ^3.1.0
         version: 3.2.0
@@ -1377,8 +1390,8 @@ importers:
         specifier: workspace:*
         version: link:../playwright-vscode-ext
       '@salesforce/source-deploy-retrieve':
-        specifier: ^13.13.0
-        version: 13.13.0(supports-color@8.1.1)
+        specifier: ^13.14.1
+        version: 13.14.1(supports-color@8.1.1)
       '@salesforce/source-tracking':
         specifier: ^8.1.16
         version: 8.1.16(supports-color@8.1.1)
@@ -1404,18 +1417,18 @@ importers:
         specifier: workspace:*
         version: link:../salesforcedx-vscode-services-types
       effect:
-        specifier: ^3.21.2
-        version: 3.22.2
+        specifier: ^3.22.4
+        version: 3.22.4
       vscode-uri:
         specifier: ^3.0.8
         version: 3.2.0
     devDependencies:
       '@effect/opentelemetry':
-        specifier: 0.63.0
-        version: 0.63.0(@effect/platform@0.96.1(effect@3.22.2))(@opentelemetry/api@1.9.1)(@opentelemetry/resources@2.12.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-logs@0.221.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-metrics@2.12.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-base@2.10.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-node@2.8.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-web@2.8.0(@opentelemetry/api@1.9.1))(@opentelemetry/semantic-conventions@1.43.0)(effect@3.22.2)
+        specifier: 0.64.0
+        version: 0.64.0(@effect/platform@0.97.3(effect@3.22.4))(@opentelemetry/api@1.9.1)(@opentelemetry/resources@2.12.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-logs@0.221.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-metrics@2.12.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-base@2.10.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-node@2.8.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-web@2.8.0(@opentelemetry/api@1.9.1))(@opentelemetry/semantic-conventions@1.43.0)(effect@3.22.4)
       '@salesforce/core':
         specifier: ^9.4.1
-        version: 9.5.0
+        version: 9.6.0
       '@salesforce/playwright-vscode-ext':
         specifier: workspace:*
         version: link:../playwright-vscode-ext
@@ -1432,21 +1445,21 @@ importers:
         specifier: workspace:*
         version: link:../salesforcedx-vscode-i18n
       effect:
-        specifier: ^3.21.2
-        version: 3.22.2
+        specifier: ^3.22.4
+        version: 3.22.4
       vscode-uri:
         specifier: ^3.1.0
         version: 3.2.0
     devDependencies:
       '@salesforce/core':
-        specifier: ^9.4.1
-        version: 9.5.0
+        specifier: ^9.6.0
+        version: 9.6.0
       '@salesforce/playwright-vscode-ext':
         specifier: workspace:*
         version: link:../playwright-vscode-ext
       '@salesforce/source-deploy-retrieve':
-        specifier: ^13.13.0
-        version: 13.13.0(supports-color@8.1.1)
+        specifier: ^13.14.1
+        version: 13.14.1(supports-color@8.1.1)
       salesforcedx-vscode-services:
         specifier: workspace:*
         version: link:../salesforcedx-vscode-services
@@ -1457,17 +1470,17 @@ importers:
         specifier: 1.0.0-beta.47
         version: 1.0.0-beta.47(supports-color@8.1.1)
       '@effect/opentelemetry':
-        specifier: 0.63.0
-        version: 0.63.0(@effect/platform@0.96.1(effect@3.22.2))(@opentelemetry/api@1.9.1)(@opentelemetry/resources@2.11.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-logs@0.219.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-metrics@2.12.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-base@2.10.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-node@2.8.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-web@2.8.0(@opentelemetry/api@1.9.1))(@opentelemetry/semantic-conventions@1.43.0)(effect@3.22.2)
+        specifier: 0.64.0
+        version: 0.64.0(@effect/platform@0.97.3(effect@3.22.4))(@opentelemetry/api@1.9.1)(@opentelemetry/resources@2.11.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-logs@0.219.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-metrics@2.12.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-base@2.10.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-node@2.8.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-web@2.8.0(@opentelemetry/api@1.9.1))(@opentelemetry/semantic-conventions@1.43.0)(effect@3.22.4)
       '@effect/platform':
-        specifier: ^0.96.1
-        version: 0.96.1(effect@3.22.2)
+        specifier: ^0.97.3
+        version: 0.97.3(effect@3.22.4)
       '@effect/platform-node-shared':
-        specifier: 0.59.0
-        version: 0.59.0(@effect/cluster@0.58.2(@effect/platform@0.96.1(effect@3.22.2))(@effect/rpc@0.75.1(@effect/platform@0.96.1(effect@3.22.2))(effect@3.22.2))(@effect/sql@0.51.1(@effect/experimental@0.60.0(@effect/platform@0.96.1(effect@3.22.2))(effect@3.22.2))(@effect/platform@0.96.1(effect@3.22.2))(effect@3.22.2))(@effect/workflow@0.18.2(@effect/experimental@0.60.0(@effect/platform@0.96.1(effect@3.22.2))(effect@3.22.2))(@effect/platform@0.96.1(effect@3.22.2))(@effect/rpc@0.75.1(@effect/platform@0.96.1(effect@3.22.2))(effect@3.22.2))(effect@3.22.2))(effect@3.22.2))(@effect/platform@0.96.1(effect@3.22.2))(@effect/rpc@0.75.1(@effect/platform@0.96.1(effect@3.22.2))(effect@3.22.2))(@effect/sql@0.51.1(@effect/experimental@0.60.0(@effect/platform@0.96.1(effect@3.22.2))(effect@3.22.2))(@effect/platform@0.96.1(effect@3.22.2))(effect@3.22.2))(effect@3.22.2)
+        specifier: 0.61.2
+        version: 0.61.2(@effect/cluster@0.60.5(@effect/platform@0.97.3(effect@3.22.4))(@effect/rpc@0.76.4(@effect/platform@0.97.3(effect@3.22.4))(effect@3.22.4))(@effect/sql@0.52.2(@effect/experimental@0.61.2(@effect/platform@0.97.3(effect@3.22.4))(effect@3.22.4))(@effect/platform@0.97.3(effect@3.22.4))(effect@3.22.4))(@effect/workflow@0.19.1(@effect/experimental@0.61.2(@effect/platform@0.97.3(effect@3.22.4))(effect@3.22.4))(@effect/platform@0.97.3(effect@3.22.4))(@effect/rpc@0.76.4(@effect/platform@0.97.3(effect@3.22.4))(effect@3.22.4))(effect@3.22.4))(effect@3.22.4))(@effect/platform@0.97.3(effect@3.22.4))(@effect/rpc@0.76.4(@effect/platform@0.97.3(effect@3.22.4))(effect@3.22.4))(@effect/sql@0.52.2(@effect/experimental@0.61.2(@effect/platform@0.97.3(effect@3.22.4))(effect@3.22.4))(@effect/platform@0.97.3(effect@3.22.4))(effect@3.22.4))(effect@3.22.4)
       '@jsforce/jsforce-node':
-        specifier: ^3.10.24
-        version: 3.12.0
+        specifier: 3.13.1
+        version: 3.13.1
       '@opentelemetry/api':
         specifier: 1.9.1
         version: 1.9.1
@@ -1499,8 +1512,8 @@ importers:
         specifier: workspace:*
         version: link:../salesforcedx-apex
       '@salesforce/core':
-        specifier: ^9.4.1
-        version: 9.5.0
+        specifier: ^9.6.0
+        version: 9.6.0
       '@salesforce/o11y-reporter':
         specifier: ^1.8.5
         version: 1.8.5
@@ -1508,8 +1521,8 @@ importers:
         specifier: workspace:*
         version: link:../salesforcedx-utils
       '@salesforce/source-deploy-retrieve':
-        specifier: ^13.13.0
-        version: 13.13.0(supports-color@8.1.1)
+        specifier: ^13.14.1
+        version: 13.14.1(supports-color@8.1.1)
       '@salesforce/source-tracking':
         specifier: ^8.1.16
         version: 8.1.16(supports-color@8.1.1)
@@ -1526,11 +1539,11 @@ importers:
         specifier: 7.0.6
         version: 7.0.6
       effect:
-        specifier: ^3.21.2
-        version: 3.22.2
+        specifier: ^3.22.4
+        version: 3.22.4
       jsforce:
-        specifier: ^3.10.24
-        version: 3.10.25(@types/node@24.19.2)
+        specifier: ^3.13.1
+        version: 3.13.1(@types/node@24.19.2)
       o11y_schema:
         specifier: ^264.89.0
         version: 264.124.0
@@ -1560,8 +1573,8 @@ importers:
         specifier: 1.0.0-beta.47
         version: 1.0.0-beta.47(supports-color@8.1.1)
       '@effect/opentelemetry':
-        specifier: 0.63.0
-        version: 0.63.0(@effect/platform@0.96.1(effect@3.22.2))(@opentelemetry/api@1.9.1)(@opentelemetry/resources@2.12.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-logs@0.219.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-metrics@2.12.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-base@2.10.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-node@2.8.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-web@2.8.0(@opentelemetry/api@1.9.1))(@opentelemetry/semantic-conventions@1.43.0)(effect@3.22.2)
+        specifier: 0.64.0
+        version: 0.64.0(@effect/platform@0.97.3(effect@3.22.4))(@opentelemetry/api@1.9.1)(@opentelemetry/resources@2.12.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-logs@0.219.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-metrics@2.12.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-base@2.10.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-node@2.8.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-web@2.8.0(@opentelemetry/api@1.9.1))(@opentelemetry/semantic-conventions@1.43.0)(effect@3.22.4)
       '@opentelemetry/api':
         specifier: 1.9.1
         version: 1.9.1
@@ -1587,11 +1600,11 @@ importers:
         specifier: 2.8.0
         version: 2.8.0(@opentelemetry/api@1.9.1)
       '@salesforce/core':
-        specifier: ^9.4.1
-        version: 9.5.0
+        specifier: ^9.6.0
+        version: 9.6.0
       '@salesforce/source-deploy-retrieve':
-        specifier: ^13.13.0
-        version: 13.13.0(supports-color@8.1.1)
+        specifier: ^13.14.1
+        version: 13.14.1(supports-color@8.1.1)
       '@salesforce/source-tracking':
         specifier: ^8.1.16
         version: 8.1.16(supports-color@8.1.1)
@@ -1599,11 +1612,11 @@ importers:
         specifier: ^1.129.0
         version: 1.140.0
       effect:
-        specifier: ^3.21.2
-        version: 3.22.2
+        specifier: ^3.22.4
+        version: 3.22.4
       jsforce:
-        specifier: ^3.10.24
-        version: 3.10.25(@types/node@24.19.2)
+        specifier: ^3.13.1
+        version: 3.13.1(@types/node@24.19.2)
       vscode-uri:
         specifier: ^3.1.0
         version: 3.2.0
@@ -1615,8 +1628,8 @@ importers:
   packages/salesforcedx-vscode-soql:
     dependencies:
       '@jsforce/jsforce-node':
-        specifier: ^3.10.24
-        version: 3.12.0
+        specifier: 3.13.1
+        version: 3.13.1
       '@salesforce/effect-ext-utils':
         specifier: workspace:*
         version: link:../effect-ext-utils
@@ -1642,8 +1655,8 @@ importers:
         specifier: ^2.2.0
         version: 2.2.0
       effect:
-        specifier: ^3.21.2
-        version: 3.22.2
+        specifier: ^3.22.4
+        version: 3.22.4
       papaparse:
         specifier: ^5.3.0
         version: 5.7.0
@@ -1695,7 +1708,7 @@ importers:
         version: 1.0.0(rollup@4.63.1)
       '@salesforce/core':
         specifier: ^9.4.1
-        version: 9.5.0
+        version: 9.6.0
       '@salesforce/eslint-config-lwc':
         specifier: ^4.1.2
         version: 4.1.2(107e08d063f4899a7b654f3a416377a2)
@@ -1727,8 +1740,8 @@ importers:
         specifier: workspace:*
         version: link:../salesforcedx-vscode-i18n
       effect:
-        specifier: ^3.21.2
-        version: 3.22.2
+        specifier: ^3.22.4
+        version: 3.22.4
       vscode-css-languageservice:
         specifier: ^6.3.7
         version: 6.3.10
@@ -1758,8 +1771,8 @@ importers:
         specifier: ^2.5.1
         version: 2.5.1(@vscode/codicons@0.0.45)
       effect:
-        specifier: ^3.21.2
-        version: 3.22.2
+        specifier: ^3.22.4
+        version: 3.22.4
       lit:
         specifier: 3.3.3
         version: 3.3.3
@@ -2411,23 +2424,23 @@ packages:
   '@dprint/typescript@0.91.8':
     resolution: {integrity: sha512-tuKn4leCPItox1O4uunHcQF0QllDCvPWklnNQIh2PiWWVtRAGltJJnM4Cwj5AciplosD1Hiz7vAY3ew3crLb3A==}
 
-  '@effect/cluster@0.58.2':
-    resolution: {integrity: sha512-oxQ3zUhXq0mJA7Y4TliALMP39Bx0LtAIxcqOW1Bdjh6uk+nG7kul/Puw80SwlcYGv3ul50SG+gvSRUTXB8d3JQ==}
+  '@effect/cluster@0.60.5':
+    resolution: {integrity: sha512-F/TDvMI2IMMWEWTDKn15T8nlM3FSHEzfKSN5Cm4gP22+oEAR33//EG7RfNi5utgjOJiCGJFnexr995f950Ip/Q==}
     peerDependencies:
-      '@effect/platform': ^0.96.1
-      '@effect/rpc': ^0.75.1
-      '@effect/sql': ^0.51.1
-      '@effect/workflow': ^0.18.0
-      effect: ^3.21.2
+      '@effect/platform': ^0.97.3
+      '@effect/rpc': ^0.76.4
+      '@effect/sql': ^0.52.2
+      '@effect/workflow': ^0.19.1
+      effect: ^3.22.4
 
   '@effect/eslint-plugin@0.3.2':
     resolution: {integrity: sha512-c4Vs9t3r54A4Zpl+wo8+PGzZz3JWYsip41H+UrebRLjQ2Hk/ap63IeCgN/HWcYtxtyhRopjp7gW9nOQ2Snbl+g==}
 
-  '@effect/experimental@0.60.0':
-    resolution: {integrity: sha512-i5zIg7Xup2KgHyqHlYtkgqSE1bNzCL0GbbTQxrpIzKF0q/ebknOk/ox8B/gIq2vImjoEE81h/oxU+6i1NH210g==}
+  '@effect/experimental@0.61.2':
+    resolution: {integrity: sha512-iW2tFXXGUzvBN7zQC+4hMRu3k1L4HU58lvtPkmmPOlP8UILTFb/tCEaLf0vK9rOdfW/GpwLdcPyx0vvnb3okBQ==}
     peerDependencies:
-      '@effect/platform': ^0.96.0
-      effect: ^3.21.0
+      '@effect/platform': ^0.97.3
+      effect: ^3.22.4
       ioredis: ^5
       lmdb: ^3
     peerDependenciesMeta:
@@ -2440,10 +2453,10 @@ packages:
     resolution: {integrity: sha512-CfiSoaVQO8pZgaMZGw5VvMvRGybsJ2LaSDoLYaqiVGvo/YYPYVR2GzUKY0h1NtIweq/+SQ5XLrvtzPIttWQ0GQ==}
     hasBin: true
 
-  '@effect/opentelemetry@0.63.0':
-    resolution: {integrity: sha512-2yUG2QWNATi1uKP0kwhaP5eLp+c5NDzAL3EOpIcGLBAC0cbXZrx4n9Qw/QwUKxpuV+pbhrBUPCiByyWAFKfuCw==}
+  '@effect/opentelemetry@0.64.0':
+    resolution: {integrity: sha512-fLdsyh/u5ImTyvWUfDQy53PVgHEWO0fOjwKzpmhQzW6CYs8wFBU6pP/VpuRYvCGgpZxk8KW4ySr+fvQ0o74rrA==}
     peerDependencies:
-      '@effect/platform': ^0.96.0
+      '@effect/platform': ^0.97.0
       '@opentelemetry/api': ^1.9
       '@opentelemetry/resources': ^2.0.0
       '@opentelemetry/sdk-logs': '>=0.203.0 <0.300.0'
@@ -2452,51 +2465,51 @@ packages:
       '@opentelemetry/sdk-trace-node': ^2.0.0
       '@opentelemetry/sdk-trace-web': ^2.0.0
       '@opentelemetry/semantic-conventions': ^1.33.0
-      effect: ^3.21.0
+      effect: ^3.22.0
 
-  '@effect/platform-node-shared@0.59.0':
-    resolution: {integrity: sha512-3bq2YKKfLY7UFauZSxqZUneCXoA3SMSls82V+0RKunvRlfPuPQW0hVn6t1RkvEdh0PDoygWG2mZXYQa6Iqgp9A==}
+  '@effect/platform-node-shared@0.61.2':
+    resolution: {integrity: sha512-TpmCdBxxrOh4oCi9yckOic9mvOdfSD54iRN6AvM47Qb/3+YZB+jdfOgMxE4jaMdTKgNaK55D7EODtgoSAcgCqA==}
     peerDependencies:
-      '@effect/cluster': ^0.58.0
-      '@effect/platform': ^0.96.0
-      '@effect/rpc': ^0.75.0
-      '@effect/sql': ^0.51.0
-      effect: ^3.21.0
+      '@effect/cluster': ^0.60.5
+      '@effect/platform': ^0.97.3
+      '@effect/rpc': ^0.76.4
+      '@effect/sql': ^0.52.2
+      effect: ^3.22.4
 
-  '@effect/platform-node@0.106.0':
-    resolution: {integrity: sha512-mpsJK2jNLVd0jQAjHKBo8j3wdKWznSGvfnKBcAuG/9Rr4mb8bMRZFLXHHT9wUP7EvnZ0tDZJgEDxkC+j+ByRag==}
+  '@effect/platform-node@0.108.4':
+    resolution: {integrity: sha512-2rP4Wp3PZbgxk60no8M8JCfWWK/Sy2L8oCVU90L3Xb0WVzRXzhzTxr9aaRUFtAi9N0nUeafdiNLh0C/8xFmMfQ==}
     peerDependencies:
-      '@effect/cluster': ^0.58.0
-      '@effect/platform': ^0.96.0
-      '@effect/rpc': ^0.75.0
-      '@effect/sql': ^0.51.0
-      effect: ^3.21.0
+      '@effect/cluster': ^0.60.5
+      '@effect/platform': ^0.97.3
+      '@effect/rpc': ^0.76.4
+      '@effect/sql': ^0.52.2
+      effect: ^3.22.4
 
-  '@effect/platform@0.96.1':
-    resolution: {integrity: sha512-cjB1QZZYEP8JXCFNGvBLVi0T6YUBQTmOVEUA3SDbiQ6RUO+p6CE3eyD2vMWmrz5nE8yY5QSAuOV9v0boEcUv+A==}
+  '@effect/platform@0.97.3':
+    resolution: {integrity: sha512-1TCJP7jAYDE8kXMSMdc2Xlpt+JjGkgLkTGOT4fjDf3HiyXj6l2ouAghJnfebBYvocF5fNH30bWq0uX4n8parnA==}
     peerDependencies:
-      effect: ^3.21.2
+      effect: ^3.22.4
 
-  '@effect/rpc@0.75.1':
-    resolution: {integrity: sha512-8yxF8+mMGGEbF8BUCp34HjdJj7CvTpGeZxBcpsDF6v7zPiGbJL1UDLzA8ZqYjmcngBHhPecbmeONTk/LiLAaEg==}
+  '@effect/rpc@0.76.4':
+    resolution: {integrity: sha512-DF+yMxGIuBC1u5efwtSRX9QFVP5vkwBbYLddudoR05pn6TIEz8tTsJFDk5RvVn3I4vxFZFguidofA4khKt/2KA==}
     peerDependencies:
-      '@effect/platform': ^0.96.1
-      effect: ^3.21.2
+      '@effect/platform': ^0.97.3
+      effect: ^3.22.4
 
-  '@effect/sql@0.51.1':
-    resolution: {integrity: sha512-iPDAefrJcI0HcTk9keP9Gq8Pg08K1HmpnmZZt85AqyTcvorhoNsXDFiKBbPldfV2CortwVkacX8KjO9GPpSYCA==}
+  '@effect/sql@0.52.2':
+    resolution: {integrity: sha512-HZP08FIVtQb9jJOuFf8g4C2vvQvRzVzspMOVxUSEZE/64u4rVoVV72gOPdFpyslyCC0BFb7nNiFkT9CabkLagA==}
     peerDependencies:
-      '@effect/experimental': ^0.60.0
-      '@effect/platform': ^0.96.1
-      effect: ^3.21.2
+      '@effect/experimental': ^0.61.2
+      '@effect/platform': ^0.97.3
+      effect: ^3.22.4
 
-  '@effect/workflow@0.18.2':
-    resolution: {integrity: sha512-2av0TexhxHnapQa3eLn6TkniokUFRZKf8dlWlLqbODMpXAJ3mm+DOHWM0ozMGkg9K/+zGCtiL3dMqJyJ8r7G8g==}
+  '@effect/workflow@0.19.1':
+    resolution: {integrity: sha512-irU6ddHdIxYOhv0cJiJTk2AUxRmPYjRJ5JdB5UCvpJC4vLCyR2XyKspiCNDiEX1aSGPhVWEXhVMWXR1cErMS3A==}
     peerDependencies:
-      '@effect/experimental': ^0.60.0
-      '@effect/platform': ^0.96.1
-      '@effect/rpc': ^0.75.1
-      effect: ^3.21.2
+      '@effect/experimental': ^0.61.1
+      '@effect/platform': ^0.97.1
+      '@effect/rpc': ^0.76.2
+      effect: ^3.22.1
 
   '@emnapi/core@1.10.0':
     resolution: {integrity: sha512-yq6OkJ4p82CAfPl0u9mQebQHKPJkY7WrIuk205cTYnYe+k2Z8YBh11FrbRG/H6ihirqcacOgl2BIO8oyMQLeXw==}
@@ -3119,8 +3132,8 @@ packages:
     peerDependencies:
       jsep: ^0.4.0||^1.0.0
 
-  '@jsforce/jsforce-node@3.12.0':
-    resolution: {integrity: sha512-c13YUjHhXg7+oTK4g1loStb/psJ0Xy5TP6mQbtRgr4R5mOe9AmPcmHBSbxsn90Enep3J4/omt20AvMkhhtDFSw==}
+  '@jsforce/jsforce-node@3.13.1':
+    resolution: {integrity: sha512-vpHhwc+Wcufk9vARzL4oxYSzg8ndNButSn88D6pMImjns7/NTkwPZ9qQwD2F/P4c+A0lwTyDl4Alry0BMgFsTg==}
     engines: {node: '>=22'}
 
   '@jsonjoy.com/base64@1.1.2':
@@ -4639,8 +4652,8 @@ packages:
   '@salesforce/apex@0.0.21':
     resolution: {integrity: sha512-sRQ7eHDzgjCN2FEDZgyDK35TonKT9MWC3Qb1dsOqpmc4icdTIpGxzKd8IZ8JlMIH1TkvJ1VfksFRV9zdn+D+eg==}
 
-  '@salesforce/core@9.5.0':
-    resolution: {integrity: sha512-18OsyaRZfnXKLNPAc0eVTsqLQh+q+YsjrjUEocWtfjl9wZNn6Owc255IhjBb0LZ+GXPKFNmlh4ufY/r2zAi1VA==}
+  '@salesforce/core@9.6.0':
+    resolution: {integrity: sha512-zaKpx/G5ECPPTAD/V9qHsYEXA7Q74KmuUHUyKNMDZts5L6j4SwcJOIjSkOSQQNstQQt0sbaVuY8vEUne+xYjKw==}
     engines: {node: '>=22.0.0'}
 
   '@salesforce/dev-config@4.3.3':
@@ -4690,8 +4703,8 @@ packages:
   '@salesforce/soql-language-server@1.1.0':
     resolution: {integrity: sha512-zlUe2knV7Hd7VoJGfB78PU7JtybOLiJFU7YR6vY0PrTc3vCUzfl+eQBO+fvZH8UI18qfNMEY0+tzysY+ifejcQ==}
 
-  '@salesforce/source-deploy-retrieve@13.13.0':
-    resolution: {integrity: sha512-RnvYfjYtlfMF3kA5//he468upzVuaEF+M0dYa3WzKyaqbzeUZQ+5wBCY5Q5X3W7Rk0pcew5vrgPIgnUVzZCDqg==}
+  '@salesforce/source-deploy-retrieve@13.14.1':
+    resolution: {integrity: sha512-eSeN2QaPUy9Ph0xOmVA24jus0cbospOhzeWM6ud+SKY45E4MeGW8E0pYl8AQJH9ufnKyuLZO4NfiE+dIY8gNuQ==}
     engines: {node: '>=22.0.0'}
 
   '@salesforce/source-tracking@8.1.16':
@@ -4820,10 +4833,12 @@ packages:
   '@secretlint/secretlint-rule-preset-recommend@10.2.2':
     resolution: {integrity: sha512-K3jPqjva8bQndDKJqctnGfwuAxU2n9XNCPtbXVI5JvC7FnQiNg/yWlQPbMUlBXtBoBGFYp08A94m6fvtc9v+zA==}
     engines: {node: '>=20.0.0'}
+    deprecated: Built into secretlint v14 and later. Remove this package; the rule id still works. https://github.com/secretlint/secretlint/blob/HEAD/docs/rules/preset-recommend.md
 
   '@secretlint/secretlint-rule-preset-recommend@9.3.4':
     resolution: {integrity: sha512-RvzrLNN2A0B2bYQgRSRjh2dkdaIDuhXjj4SO5bElK1iBtJNiD6VBTxSSY1P3hXYaBeva7MEF+q1PZ3cCL8XYOA==}
     engines: {node: ^14.13.1 || >=16.0.0}
+    deprecated: Built into secretlint v14 and later. Remove this package; the rule id still works. https://github.com/secretlint/secretlint/blob/HEAD/docs/rules/preset-recommend.md
 
   '@secretlint/source-creator@10.2.2':
     resolution: {integrity: sha512-h6I87xJfwfUTgQ7irWq7UTdq/Bm1RuQ/fYhA3dtTIAop5BwSFmZyrchph4WcoEvbN460BWKmk4RYSvPElIIvxw==}
@@ -5008,9 +5023,6 @@ packages:
     peerDependencies:
       eslint: '>=7.7.0'
 
-  '@tootallnate/quickjs-emscripten@0.23.0':
-    resolution: {integrity: sha512-C5Mc6rdnsaJDjO3UpGW/CQTHtCKaYlScZTly4JIu97Jxo/odCiH0ITnDXSJPTOrEKk/ycSZ0AOgTmkDtkOsvIA==}
-
   '@tybys/wasm-util@0.10.3':
     resolution: {integrity: sha512-F3fo1MYrRJYL3zER0OUOmkutjr1Vp23m7OsSgp7nq4SP6OqX6C/56XFIPAl5bt3zaBRjmW7SGz3u/6LwFpYcOg==}
 
@@ -5163,6 +5175,9 @@ packages:
 
   '@types/yargs@17.0.35':
     resolution: {integrity: sha512-qUHkeCyQFxMXg79wQfTtfndEC+N9ZZg76HJftDJp+qH2tV7Gj4OJi7l+PiWwJ+pWtW8GwSmqsDj/oymhrTWXjg==}
+
+  '@types/yauzl@3.4.0':
+    resolution: {integrity: sha512-NRPn5w6h8dhcnmx3YIRQcqMywY/+nND/uOkJessedcrowO3C0AssHp3tMJpxKAwOhFOo0OV1y9VtsC5hbKKBAw==}
 
   '@typescript-eslint/eslint-plugin@8.70.0':
     resolution: {integrity: sha512-/v8HZt6RlyIZxB3ntehELOcUcfxKPVGWXnQdJuHRmzrqgF8nQypcC/oxGW+Ot4VGKDq81XugPKxx0n5PBtf9PA==}
@@ -6011,6 +6026,10 @@ packages:
     resolution: {integrity: sha512-bopVNp6ugyA150DDuZfPFdt1KZ5a94ZDiwX4hMgZDzF+GttD80lEy8kj98kbyhLXnPvhtIo93mdnLIjpCAeeOw==}
     engines: {node: '>=10.0.0'}
 
+  basic-ftp@6.2.6:
+    resolution: {integrity: sha512-0EjZCaodOz6yiokv2JA1VyKGNdGxULZ+GGlPgG9tm4d+T/bHtX1hUch8CumDneBfpIbiSdn7TaCGwpM+gwsOlw==}
+    engines: {node: '>=10.0.0'}
+
   before-after-hook@4.0.0:
     resolution: {integrity: sha512-q6tR3RPqIB1pMiTRMFcZwuG5T8vwp+vUvEG0vuI6B+Rikh5BfPp2fQ82c925FOs+b0lcFQ8CFrL+KbilfZFhOQ==}
 
@@ -6623,9 +6642,6 @@ packages:
     resolution: {integrity: sha512-7D2EPVltRrsTkhpQmksIu+LxeWAIEk6wRDMJ1qljlv+CKHJM+cJLlfhWIzNA44eAsHXSNe3+vO6DW1yCYx8SuQ==}
     engines: {node: '>=20'}
 
-  csv-parse@5.6.0:
-    resolution: {integrity: sha512-l3nz3euub2QMg5ouu5U09Ew9Wf6/wQ8I++ch1loQ0ljmzhmfZYrH9fflS22i/PQEvsPvxCwxgz5q7UB8K1JO4Q==}
-
   csv-parse@7.0.3:
     resolution: {integrity: sha512-YFd3QM/yo17vH91L1IOZuvl09zM0zEEtdfTcOCKWcMdM++MNaQSyp09slXyFCLaPXvHstQFx/xC8myiFHSMUvw==}
 
@@ -6646,10 +6662,6 @@ packages:
   data-uri-to-buffer@4.0.1:
     resolution: {integrity: sha512-0R9ikRb668HB7QDxT1vkpuUBtqc53YyAwMwGeUFKRojY/NWKvdZ+9UYtRfGmhqNbRkTSVpMbmyhXipFFv2cb/A==}
     engines: {node: '>= 12'}
-
-  data-uri-to-buffer@6.0.2:
-    resolution: {integrity: sha512-7hvf7/GW8e86rW0ptuwS3OcBGDjIi6SZva7hCyWC0yYry2cOPmLIjXAUHI6DK2HsnwJd9ifmt57i8eV2n4YNpw==}
-    engines: {node: '>= 14'}
 
   data-uri-to-buffer@8.0.0:
     resolution: {integrity: sha512-6UHfyCux51b8PTGDgveqtz1tvphBku5DrMKKJbFAZAJOI2zsjDpDoYE1+QGj7FOMS4BdTFNJsJiR3zEB0xH0yQ==}
@@ -6777,15 +6789,17 @@ packages:
     resolution: {integrity: sha512-8QmQKqEASLd5nx0U1B1okLElbUuuttJ/AnYmRXbbbGDWh6uS208EjD4Xqq/I9wK7u0v6O08XhTWnt5XtEbR6Dg==}
     engines: {node: '>= 0.4'}
 
-  degenerator@5.0.1:
-    resolution: {integrity: sha512-TllpMR/t0M5sqCXfj85i4XaAzxmS5tVA16dqvdkMwGmzI+dXLXnw3J+3Vdv7VKw+ThlTMboK6i9rnZ6Nntj5CQ==}
-    engines: {node: '>= 14'}
-
   degenerator@7.0.1:
     resolution: {integrity: sha512-ABErK0IefDSyHjlPH7WUEenIAX2rPPnrDcDM+TS3z3+zu9TfyKKi07BQM+8rmxpdE2y1v5fjjdoAS/x4D2U60w==}
     engines: {node: '>= 20'}
     peerDependencies:
       quickjs-wasi: ^2.2.0
+
+  degenerator@7.0.2:
+    resolution: {integrity: sha512-j47S7YEAqh4U3UR355ts14Ipq0Zgn+AaMRdJuoyF7Ry2eSazevFvaviLMp0iOXAq7/FiBs3/33UIkE7rWRoLWQ==}
+    engines: {node: '>= 20'}
+    peerDependencies:
+      quickjs-wasi: ^3.0.0
 
   delayed-stream@1.0.0:
     resolution: {integrity: sha512-ZySD7Nf91aLB0RxL4KGrKHBXl7Eds1DAmEdcoVawXnLD7SDhpNgtuII2aAkg7a7QS41jxPSZ17p4VdGnMHk3MQ==}
@@ -6910,8 +6924,8 @@ packages:
   ee-first@1.1.1:
     resolution: {integrity: sha512-WMwm9LhRUo+WUaRN+vRuETqG89IgZphVSNkdFgeb6sS/E4OrDIN7t48CAewSHXc6C8lefD8KKfr5vY61brQlow==}
 
-  effect@3.22.2:
-    resolution: {integrity: sha512-fm1CQXCs7GTMwpadZxwU5rnAb2bN6mbQpknq/pXBGCzSKkosNYb9k0wsoL0TfB10rSa5xOEZJjo77u/KLXSANg==}
+  effect@3.22.4:
+    resolution: {integrity: sha512-RNshu7AXVxxDh6aS4lothhJ+QoZ4xSykbWNaaVdvDN72RMyVwhCGdALkyl1TbEydgAmRIdD1eTyJqBUGwSBGDA==}
 
   ejs@3.1.10:
     resolution: {integrity: sha512-UeJmFfOrAQS8OJWPZ4qtgHyWExa088/MtK5UEyoJGFH67cDEXkZSviOiKRCZ4Xij0zxI3JECgYs3oKx+AizQBA==}
@@ -7782,12 +7796,12 @@ packages:
   get-tsconfig@4.14.3:
     resolution: {integrity: sha512-++QEw4DIY7WGoukz+/+A/8dGYPT9l9yIadnmSgZ8Rjr3YVSVDipQSO9CdnJo9ePqFqUUqh+wk9uIaoiAwsiPkA==}
 
-  get-uri@6.0.5:
-    resolution: {integrity: sha512-b1O07XYq8eRuVzBNgJLstU6FYc1tS6wnMtF1I1D9lE8LxZSOGZ7LhxN54yPP6mGw5f2CkXY2BQUL9Fx41qvcIg==}
-    engines: {node: '>= 14'}
-
   get-uri@8.0.1:
     resolution: {integrity: sha512-/5N/P4Lrh0p/mDwlDRi7Y1+P2o/OyzZI3l6Iz1Ov6XXwwm1y3RlZLuo3gVgML99djrEDtV980bBxSuOeHLk8ww==}
+    engines: {node: '>= 20'}
+
+  get-uri@8.0.2:
+    resolution: {integrity: sha512-H1sU7ppM+Hdb+FJgOTaQ7SHiV7ogUgnb+VgZ55Dz3YzLqZ4bMAClcdveHYt56npM9M7eclEg1j92ZnmSOP9uhA==}
     engines: {node: '>= 20'}
 
   git-raw-commits@4.0.0:
@@ -8808,8 +8822,8 @@ packages:
     engines: {node: '>=6'}
     hasBin: true
 
-  jsforce@3.10.25:
-    resolution: {integrity: sha512-QVo8RULJjXcQM1CMhROLuFa+KQIdzmyRHPBV5MugpWE1kkWMgOQeoP2/0E/oW8/QnyxM+L81XmHHi4l0HhxHCQ==}
+  jsforce@3.13.1:
+    resolution: {integrity: sha512-3c3bsc1up6EWibs57+cSDWNm7Licx/WZ4va0PxYDGS0pC7ezGBAcZ1DhNXtd/HHEazVpzaprb80Ska4N+2Jnfw==}
     engines: {node: '>=22'}
     hasBin: true
 
@@ -9207,8 +9221,8 @@ packages:
   makeerror@1.0.12:
     resolution: {integrity: sha512-JmqCvUhmt43madlpFzG4BQzG2Z3m6tvQDNKdClZnO3VbIudJYmxsT0FNJMeiB2+JTSlTQTSbU8QdesVmwJcmLg==}
 
-  markdown-it@14.3.1:
-    resolution: {integrity: sha512-4Ej49aYTDFIQ+uBkfX8GBvJGccoARxxPep+7aWTs55ozbjQJpW9M26Fe53vnGgvLeVzva/amzjQQaQu9w0vMhA==}
+  markdown-it@14.3.3:
+    resolution: {integrity: sha512-L//tDAkjTjJCU6pBUSBTgs3Kg4InVaZuUZog/b6V12UKhcDQ7S78877ibbCanRExwPuYP1CZD7Gd2dxSy1GXRg==}
     hasBin: true
 
   markdown-link-check@3.15.0:
@@ -9431,8 +9445,8 @@ packages:
   msgpackr@1.12.1:
     resolution: {integrity: sha512-4EUH9tQHnMmEgzW/MdAP0KIfa1T9AF+htl0ffe2n5vb2EKn9y2co8ccpgWko6S52Jy1PQZKwRnx5/KkYjtd9MQ==}
 
-  multipasta@0.2.8:
-    resolution: {integrity: sha512-ZPWuMKyv0cSO29f7hozp+k6+crZbQijV8ipMvxNxRf2SwtYGTX1ZX89Kd20VV4H9Znonx+EQn+iy1wGQsJ+b+Q==}
+  multipasta@0.2.9:
+    resolution: {integrity: sha512-kAovZHgxryqb0xTFz7OTCPxbas8UBTTwCDhfrlaNecp1/z6xcMfp5PVhDxsW7jONHyDF10/ccp30MxA2+66GJw==}
 
   multistream@3.1.0:
     resolution: {integrity: sha512-zBgD3kn8izQAN/TaL1PCMv15vYpf+Vcrsfub06njuYVYlzUldzpopTlrEZ53pZVEbfn3Shtv7vRFoOv6LOV87Q==}
@@ -9788,23 +9802,25 @@ packages:
     resolution: {integrity: sha512-R4nPAVTAU0B9D35/Gk3uJf/7XYbQcyohSKdvAxIRSNghFl4e71hVoGnBNQz9cWaXxO2I10KTC+3jMdvvoKw6dQ==}
     engines: {node: '>=6'}
 
-  pac-proxy-agent@7.2.0:
-    resolution: {integrity: sha512-TEB8ESquiLMc0lV8vcd5Ql/JAKAoyzHFXaStwjkzpOpC5Yv+pIzLfHvjTSdf3vpa2bMiUQrg9i6276yn8666aA==}
-    engines: {node: '>= 14'}
-
   pac-proxy-agent@9.1.0:
     resolution: {integrity: sha512-1aU+1mpj3DrQPfo3gh+3Gap3G5x+axnMx1P/y0ZF2ch7kb2meyOCAH8K2k9d27ROsTE7TnAerzxqF9aon2jqnA==}
     engines: {node: '>= 20'}
 
-  pac-resolver@7.0.1:
-    resolution: {integrity: sha512-5NPgf87AT2STgwa2ntRMr45jTKrYBGkVU36yT0ig/n/GMAa3oPqhZfIQ2kMEimReg0+t9kZViDVZ83qfVUlckg==}
-    engines: {node: '>= 14'}
+  pac-proxy-agent@9.1.1:
+    resolution: {integrity: sha512-P30j9cFU4vcu9TKjSVAwdzb+tY8ktfAwsVvxFSXmsoe09I4yZV52JAO8Z/Fptpi9VWxFTluDgqzGfgvYJlTzjg==}
+    engines: {node: '>= 20'}
 
   pac-resolver@9.0.1:
     resolution: {integrity: sha512-lJbS008tmkj08VhoM8Hzuv/VE5tK9MS0OIQ/7+s0lIF+BYhiQWFYzkSpML7lXs9iBu2jfmzBTLzhe9n6BX+dYw==}
     engines: {node: '>= 20'}
     peerDependencies:
       quickjs-wasi: ^2.2.0
+
+  pac-resolver@9.0.2:
+    resolution: {integrity: sha512-FyLebKd2X1SzQAc6P+AAgWRGnAgEAYEwn1oJucBIdQivJ50dV3Lndjqso4mebnHiLaYeHtVaDfSL33BJYLi7QA==}
+    engines: {node: '>= 20'}
+    peerDependencies:
+      quickjs-wasi: ^3.0.0
 
   package-hash@4.0.0:
     resolution: {integrity: sha512-whdkPIooSu/bASggZ96BWVvZTRMOFxnyUG5PnTSGKoJE2gd5mbVNmR2Nj20QFzxYYgAXpoqC+AiXzl+UMRh7zQ==}
@@ -10135,8 +10151,8 @@ packages:
     resolution: {integrity: sha512-M71sTMB146U3u0di3yup8iM+zv8yPRNQVr1KK4tyBitl3qFvEGucq/rGDRShD2rsJhtN02RJaJ7j5X5hmy8SJg==}
     engines: {node: '>=12.0.0'}
 
-  proxy-addr@2.0.7:
-    resolution: {integrity: sha512-llQsMLSUDUPT44jdrU/O37qlnifitDP+ZwrmmZcoSKyLKvtZxpyV0n2/bD/N4tBAAZ/gJEdZU7KMraoK1+XYAg==}
+  proxy-addr@2.0.8:
+    resolution: {integrity: sha512-5nnx0yGyVUcY6t9RnWcARWtwT9F1D8O9rt08htPvnd49W1IgZtmLkhu9WfMzQj1cFxjHIO6connUNVW5k7AVyQ==}
     engines: {node: '>= 0.10'}
 
   proxy-agent-negotiate@1.1.0:
@@ -10148,12 +10164,12 @@ packages:
       kerberos:
         optional: true
 
-  proxy-agent@6.5.0:
-    resolution: {integrity: sha512-TmatMXdr2KlRiA2CyDu8GqR8EjahTG3aY3nXjdzFyoZbmB8hrBsTyMezhULIXKnC0jpfjlmiZ3+EaCzoInSu/A==}
-    engines: {node: '>= 14'}
-
   proxy-agent@8.0.2:
     resolution: {integrity: sha512-idLLRewuemWd7GH/BDJzGiB0dWGfT2SQs3jy6NtZtGWU9uPTTSdeC1/cdbqLwgzhfv027daGFuXX426e2Eg20A==}
+    engines: {node: '>= 20'}
+
+  proxy-agent@8.0.3:
+    resolution: {integrity: sha512-SYjxPOWaz3CrRZxqgj3A/261L3ZSCcWzM0dFsxNP27m43/KiHWtUmtHZFsHvh7fn11E/SmBfcNsWcWqMhZ6fAw==}
     engines: {node: '>= 20'}
 
   proxy-from-env@1.1.0:
@@ -10255,6 +10271,9 @@ packages:
 
   quickjs-wasi@2.2.0:
     resolution: {integrity: sha512-zQxXmQMrEoD3S+jQdYsloq4qAuaxKFHZj6hHqOYGwB2iQZH+q9e/lf5zQPXCKOk0WJuAjzRFbO4KwHIp2D05Iw==}
+
+  quickjs-wasi@3.7.0:
+    resolution: {integrity: sha512-6nOShBtCglrQL6yH+hptIfEdA1WlSmvY/Mm5Ypn9IvtsaDsrYIg8x+xoIXQt02w66a0f1eLTAj1lhfgAbJ4WVw==}
 
   randombytes@2.1.0:
     resolution: {integrity: sha512-vYl3iOX+4CKUWuxGi9Ukhie6fsqXqS9FE2Zaic4tNFD2N2QQaXOMFbuKK4QmDHC0JO6B1Zp41J0LpT0oR68amQ==}
@@ -10691,8 +10710,8 @@ packages:
     resolution: {integrity: sha512-RQsvleCbF8cVHEv+xuDGaA4pOizFqJ0GgjtMSRo6oP8pnN7WsigHgVGey6aILRBKv4W2YOMHLqbKdnB6hpB9fw==}
     engines: {node: '>=20.0.0'}
 
-  smol-toml@1.8.0:
-    resolution: {integrity: sha512-kCZr2V3ch9i00x8zXRhjUNVcjG9ijES5dDudkXvUVCT5QlJNQWElSJdZqyPemffHoLNUYwOcou0Fy+ojN0uHSQ==}
+  smol-toml@1.9.1:
+    resolution: {integrity: sha512-j7WyPdf0CJoutMzMoPLF/bVXHtKZIT9Rb4eGeEbWw8X2t5oirjPgpL+OpaENZrILYaXqYwnVH+qgUwVbl+pUJQ==}
     engines: {node: '>= 18'}
 
   snake-case@3.0.4:
@@ -10713,9 +10732,9 @@ packages:
   sonic-boom@4.2.1:
     resolution: {integrity: sha512-w6AxtubXa2wTXAUsZMMWERrsIRAdrK0Sc+FUytWvYAhBJLyuI4llrMIC1DtlNSdI99EI86KZum2MMq3EAZlF9Q==}
 
-  source-map-js@1.2.1:
-    resolution: {integrity: sha512-UXWMKhLOwVKb728IUtQPXxfYU+usdybtUrK/8uGE8CQMvrhOpwvzDBwj0QhSL7MQc7vIsISBG8VQ8+IDQxpfQA==}
-    engines: {node: '>=0.10.0'}
+  source-map-js@1.2.4:
+    resolution: {integrity: sha512-J7ZjMvHd9O1fcT/5V09QWaaSl2BbWx3F6O08spde82Namf9UB0GxRVIPiNbVsdKkoizHiSpTodo3vp2bAy91MA==}
+    engines: {node: '>=6.0.0'}
 
   source-map-support@0.5.13:
     resolution: {integrity: sha512-SHSKFHadjVA5oR4PPqhtAVdcBWwRYVd6g6cAXnIbRiIwc2EhPrTuKUBdSLvlEKyIP3GCf89fltvcZiP9MMFA1w==}
@@ -12861,13 +12880,13 @@ snapshots:
 
   '@dprint/typescript@0.91.8': {}
 
-  '@effect/cluster@0.58.2(@effect/platform@0.96.1(effect@3.22.2))(@effect/rpc@0.75.1(@effect/platform@0.96.1(effect@3.22.2))(effect@3.22.2))(@effect/sql@0.51.1(@effect/experimental@0.60.0(@effect/platform@0.96.1(effect@3.22.2))(effect@3.22.2))(@effect/platform@0.96.1(effect@3.22.2))(effect@3.22.2))(@effect/workflow@0.18.2(@effect/experimental@0.60.0(@effect/platform@0.96.1(effect@3.22.2))(effect@3.22.2))(@effect/platform@0.96.1(effect@3.22.2))(@effect/rpc@0.75.1(@effect/platform@0.96.1(effect@3.22.2))(effect@3.22.2))(effect@3.22.2))(effect@3.22.2)':
+  '@effect/cluster@0.60.5(@effect/platform@0.97.3(effect@3.22.4))(@effect/rpc@0.76.4(@effect/platform@0.97.3(effect@3.22.4))(effect@3.22.4))(@effect/sql@0.52.2(@effect/experimental@0.61.2(@effect/platform@0.97.3(effect@3.22.4))(effect@3.22.4))(@effect/platform@0.97.3(effect@3.22.4))(effect@3.22.4))(@effect/workflow@0.19.1(@effect/experimental@0.61.2(@effect/platform@0.97.3(effect@3.22.4))(effect@3.22.4))(@effect/platform@0.97.3(effect@3.22.4))(@effect/rpc@0.76.4(@effect/platform@0.97.3(effect@3.22.4))(effect@3.22.4))(effect@3.22.4))(effect@3.22.4)':
     dependencies:
-      '@effect/platform': 0.96.1(effect@3.22.2)
-      '@effect/rpc': 0.75.1(@effect/platform@0.96.1(effect@3.22.2))(effect@3.22.2)
-      '@effect/sql': 0.51.1(@effect/experimental@0.60.0(@effect/platform@0.96.1(effect@3.22.2))(effect@3.22.2))(@effect/platform@0.96.1(effect@3.22.2))(effect@3.22.2)
-      '@effect/workflow': 0.18.2(@effect/experimental@0.60.0(@effect/platform@0.96.1(effect@3.22.2))(effect@3.22.2))(@effect/platform@0.96.1(effect@3.22.2))(@effect/rpc@0.75.1(@effect/platform@0.96.1(effect@3.22.2))(effect@3.22.2))(effect@3.22.2)
-      effect: 3.22.2
+      '@effect/platform': 0.97.3(effect@3.22.4)
+      '@effect/rpc': 0.76.4(@effect/platform@0.97.3(effect@3.22.4))(effect@3.22.4)
+      '@effect/sql': 0.52.2(@effect/experimental@0.61.2(@effect/platform@0.97.3(effect@3.22.4))(effect@3.22.4))(@effect/platform@0.97.3(effect@3.22.4))(effect@3.22.4)
+      '@effect/workflow': 0.19.1(@effect/experimental@0.61.2(@effect/platform@0.97.3(effect@3.22.4))(effect@3.22.4))(@effect/platform@0.97.3(effect@3.22.4))(@effect/rpc@0.76.4(@effect/platform@0.97.3(effect@3.22.4))(effect@3.22.4))(effect@3.22.4)
+      effect: 3.22.4
       kubernetes-types: 1.30.0
 
   '@effect/eslint-plugin@0.3.2':
@@ -12876,17 +12895,17 @@ snapshots:
       '@dprint/typescript': 0.91.8
       prettier-linter-helpers: 1.0.1
 
-  '@effect/experimental@0.60.0(@effect/platform@0.96.1(effect@3.22.2))(effect@3.22.2)':
+  '@effect/experimental@0.61.2(@effect/platform@0.97.3(effect@3.22.4))(effect@3.22.4)':
     dependencies:
-      '@effect/platform': 0.96.1(effect@3.22.2)
-      effect: 3.22.2
+      '@effect/platform': 0.97.3(effect@3.22.4)
+      effect: 3.22.4
       uuid: 11.1.1
 
   '@effect/language-service@0.87.2': {}
 
-  '@effect/opentelemetry@0.63.0(@effect/platform@0.96.1(effect@3.22.2))(@opentelemetry/api@1.9.1)(@opentelemetry/resources@2.11.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-logs@0.219.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-metrics@2.12.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-base@2.10.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-node@2.8.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-web@2.8.0(@opentelemetry/api@1.9.1))(@opentelemetry/semantic-conventions@1.43.0)(effect@3.22.2)':
+  '@effect/opentelemetry@0.64.0(@effect/platform@0.97.3(effect@3.22.4))(@opentelemetry/api@1.9.1)(@opentelemetry/resources@2.11.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-logs@0.219.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-metrics@2.12.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-base@2.10.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-node@2.8.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-web@2.8.0(@opentelemetry/api@1.9.1))(@opentelemetry/semantic-conventions@1.43.0)(effect@3.22.4)':
     dependencies:
-      '@effect/platform': 0.96.1(effect@3.22.2)
+      '@effect/platform': 0.97.3(effect@3.22.4)
       '@opentelemetry/api': 1.9.1
       '@opentelemetry/resources': 2.11.0(@opentelemetry/api@1.9.1)
       '@opentelemetry/sdk-logs': 0.219.0(@opentelemetry/api@1.9.1)
@@ -12895,11 +12914,11 @@ snapshots:
       '@opentelemetry/sdk-trace-node': 2.8.0(@opentelemetry/api@1.9.1)
       '@opentelemetry/sdk-trace-web': 2.8.0(@opentelemetry/api@1.9.1)
       '@opentelemetry/semantic-conventions': 1.43.0
-      effect: 3.22.2
+      effect: 3.22.4
 
-  '@effect/opentelemetry@0.63.0(@effect/platform@0.96.1(effect@3.22.2))(@opentelemetry/api@1.9.1)(@opentelemetry/resources@2.12.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-logs@0.219.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-metrics@2.12.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-base@2.10.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-node@2.8.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-web@2.8.0(@opentelemetry/api@1.9.1))(@opentelemetry/semantic-conventions@1.43.0)(effect@3.22.2)':
+  '@effect/opentelemetry@0.64.0(@effect/platform@0.97.3(effect@3.22.4))(@opentelemetry/api@1.9.1)(@opentelemetry/resources@2.12.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-logs@0.219.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-metrics@2.12.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-base@2.10.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-node@2.8.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-web@2.8.0(@opentelemetry/api@1.9.1))(@opentelemetry/semantic-conventions@1.43.0)(effect@3.22.4)':
     dependencies:
-      '@effect/platform': 0.96.1(effect@3.22.2)
+      '@effect/platform': 0.97.3(effect@3.22.4)
       '@opentelemetry/api': 1.9.1
       '@opentelemetry/resources': 2.12.0(@opentelemetry/api@1.9.1)
       '@opentelemetry/sdk-logs': 0.219.0(@opentelemetry/api@1.9.1)
@@ -12908,11 +12927,11 @@ snapshots:
       '@opentelemetry/sdk-trace-node': 2.8.0(@opentelemetry/api@1.9.1)
       '@opentelemetry/sdk-trace-web': 2.8.0(@opentelemetry/api@1.9.1)
       '@opentelemetry/semantic-conventions': 1.43.0
-      effect: 3.22.2
+      effect: 3.22.4
 
-  '@effect/opentelemetry@0.63.0(@effect/platform@0.96.1(effect@3.22.2))(@opentelemetry/api@1.9.1)(@opentelemetry/resources@2.12.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-logs@0.221.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-metrics@2.12.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-base@2.10.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-node@2.8.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-web@2.8.0(@opentelemetry/api@1.9.1))(@opentelemetry/semantic-conventions@1.43.0)(effect@3.22.2)':
+  '@effect/opentelemetry@0.64.0(@effect/platform@0.97.3(effect@3.22.4))(@opentelemetry/api@1.9.1)(@opentelemetry/resources@2.12.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-logs@0.221.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-metrics@2.12.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-base@2.10.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-node@2.8.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-web@2.8.0(@opentelemetry/api@1.9.1))(@opentelemetry/semantic-conventions@1.43.0)(effect@3.22.4)':
     dependencies:
-      '@effect/platform': 0.96.1(effect@3.22.2)
+      '@effect/platform': 0.97.3(effect@3.22.4)
       '@opentelemetry/api': 1.9.1
       '@opentelemetry/resources': 2.12.0(@opentelemetry/api@1.9.1)
       '@opentelemetry/sdk-logs': 0.221.0(@opentelemetry/api@1.9.1)
@@ -12921,30 +12940,30 @@ snapshots:
       '@opentelemetry/sdk-trace-node': 2.8.0(@opentelemetry/api@1.9.1)
       '@opentelemetry/sdk-trace-web': 2.8.0(@opentelemetry/api@1.9.1)
       '@opentelemetry/semantic-conventions': 1.43.0
-      effect: 3.22.2
+      effect: 3.22.4
 
-  '@effect/platform-node-shared@0.59.0(@effect/cluster@0.58.2(@effect/platform@0.96.1(effect@3.22.2))(@effect/rpc@0.75.1(@effect/platform@0.96.1(effect@3.22.2))(effect@3.22.2))(@effect/sql@0.51.1(@effect/experimental@0.60.0(@effect/platform@0.96.1(effect@3.22.2))(effect@3.22.2))(@effect/platform@0.96.1(effect@3.22.2))(effect@3.22.2))(@effect/workflow@0.18.2(@effect/experimental@0.60.0(@effect/platform@0.96.1(effect@3.22.2))(effect@3.22.2))(@effect/platform@0.96.1(effect@3.22.2))(@effect/rpc@0.75.1(@effect/platform@0.96.1(effect@3.22.2))(effect@3.22.2))(effect@3.22.2))(effect@3.22.2))(@effect/platform@0.96.1(effect@3.22.2))(@effect/rpc@0.75.1(@effect/platform@0.96.1(effect@3.22.2))(effect@3.22.2))(@effect/sql@0.51.1(@effect/experimental@0.60.0(@effect/platform@0.96.1(effect@3.22.2))(effect@3.22.2))(@effect/platform@0.96.1(effect@3.22.2))(effect@3.22.2))(effect@3.22.2)':
+  '@effect/platform-node-shared@0.61.2(@effect/cluster@0.60.5(@effect/platform@0.97.3(effect@3.22.4))(@effect/rpc@0.76.4(@effect/platform@0.97.3(effect@3.22.4))(effect@3.22.4))(@effect/sql@0.52.2(@effect/experimental@0.61.2(@effect/platform@0.97.3(effect@3.22.4))(effect@3.22.4))(@effect/platform@0.97.3(effect@3.22.4))(effect@3.22.4))(@effect/workflow@0.19.1(@effect/experimental@0.61.2(@effect/platform@0.97.3(effect@3.22.4))(effect@3.22.4))(@effect/platform@0.97.3(effect@3.22.4))(@effect/rpc@0.76.4(@effect/platform@0.97.3(effect@3.22.4))(effect@3.22.4))(effect@3.22.4))(effect@3.22.4))(@effect/platform@0.97.3(effect@3.22.4))(@effect/rpc@0.76.4(@effect/platform@0.97.3(effect@3.22.4))(effect@3.22.4))(@effect/sql@0.52.2(@effect/experimental@0.61.2(@effect/platform@0.97.3(effect@3.22.4))(effect@3.22.4))(@effect/platform@0.97.3(effect@3.22.4))(effect@3.22.4))(effect@3.22.4)':
     dependencies:
-      '@effect/cluster': 0.58.2(@effect/platform@0.96.1(effect@3.22.2))(@effect/rpc@0.75.1(@effect/platform@0.96.1(effect@3.22.2))(effect@3.22.2))(@effect/sql@0.51.1(@effect/experimental@0.60.0(@effect/platform@0.96.1(effect@3.22.2))(effect@3.22.2))(@effect/platform@0.96.1(effect@3.22.2))(effect@3.22.2))(@effect/workflow@0.18.2(@effect/experimental@0.60.0(@effect/platform@0.96.1(effect@3.22.2))(effect@3.22.2))(@effect/platform@0.96.1(effect@3.22.2))(@effect/rpc@0.75.1(@effect/platform@0.96.1(effect@3.22.2))(effect@3.22.2))(effect@3.22.2))(effect@3.22.2)
-      '@effect/platform': 0.96.1(effect@3.22.2)
-      '@effect/rpc': 0.75.1(@effect/platform@0.96.1(effect@3.22.2))(effect@3.22.2)
-      '@effect/sql': 0.51.1(@effect/experimental@0.60.0(@effect/platform@0.96.1(effect@3.22.2))(effect@3.22.2))(@effect/platform@0.96.1(effect@3.22.2))(effect@3.22.2)
+      '@effect/cluster': 0.60.5(@effect/platform@0.97.3(effect@3.22.4))(@effect/rpc@0.76.4(@effect/platform@0.97.3(effect@3.22.4))(effect@3.22.4))(@effect/sql@0.52.2(@effect/experimental@0.61.2(@effect/platform@0.97.3(effect@3.22.4))(effect@3.22.4))(@effect/platform@0.97.3(effect@3.22.4))(effect@3.22.4))(@effect/workflow@0.19.1(@effect/experimental@0.61.2(@effect/platform@0.97.3(effect@3.22.4))(effect@3.22.4))(@effect/platform@0.97.3(effect@3.22.4))(@effect/rpc@0.76.4(@effect/platform@0.97.3(effect@3.22.4))(effect@3.22.4))(effect@3.22.4))(effect@3.22.4)
+      '@effect/platform': 0.97.3(effect@3.22.4)
+      '@effect/rpc': 0.76.4(@effect/platform@0.97.3(effect@3.22.4))(effect@3.22.4)
+      '@effect/sql': 0.52.2(@effect/experimental@0.61.2(@effect/platform@0.97.3(effect@3.22.4))(effect@3.22.4))(@effect/platform@0.97.3(effect@3.22.4))(effect@3.22.4)
       '@parcel/watcher': 2.6.0
-      effect: 3.22.2
-      multipasta: 0.2.8
+      effect: 3.22.4
+      multipasta: 0.2.9
       ws: 8.21.3
     transitivePeerDependencies:
       - bufferutil
       - utf-8-validate
 
-  '@effect/platform-node@0.106.0(@effect/cluster@0.58.2(@effect/platform@0.96.1(effect@3.22.2))(@effect/rpc@0.75.1(@effect/platform@0.96.1(effect@3.22.2))(effect@3.22.2))(@effect/sql@0.51.1(@effect/experimental@0.60.0(@effect/platform@0.96.1(effect@3.22.2))(effect@3.22.2))(@effect/platform@0.96.1(effect@3.22.2))(effect@3.22.2))(@effect/workflow@0.18.2(@effect/experimental@0.60.0(@effect/platform@0.96.1(effect@3.22.2))(effect@3.22.2))(@effect/platform@0.96.1(effect@3.22.2))(@effect/rpc@0.75.1(@effect/platform@0.96.1(effect@3.22.2))(effect@3.22.2))(effect@3.22.2))(effect@3.22.2))(@effect/platform@0.96.1(effect@3.22.2))(@effect/rpc@0.75.1(@effect/platform@0.96.1(effect@3.22.2))(effect@3.22.2))(@effect/sql@0.51.1(@effect/experimental@0.60.0(@effect/platform@0.96.1(effect@3.22.2))(effect@3.22.2))(@effect/platform@0.96.1(effect@3.22.2))(effect@3.22.2))(effect@3.22.2)':
+  '@effect/platform-node@0.108.4(@effect/cluster@0.60.5(@effect/platform@0.97.3(effect@3.22.4))(@effect/rpc@0.76.4(@effect/platform@0.97.3(effect@3.22.4))(effect@3.22.4))(@effect/sql@0.52.2(@effect/experimental@0.61.2(@effect/platform@0.97.3(effect@3.22.4))(effect@3.22.4))(@effect/platform@0.97.3(effect@3.22.4))(effect@3.22.4))(@effect/workflow@0.19.1(@effect/experimental@0.61.2(@effect/platform@0.97.3(effect@3.22.4))(effect@3.22.4))(@effect/platform@0.97.3(effect@3.22.4))(@effect/rpc@0.76.4(@effect/platform@0.97.3(effect@3.22.4))(effect@3.22.4))(effect@3.22.4))(effect@3.22.4))(@effect/platform@0.97.3(effect@3.22.4))(@effect/rpc@0.76.4(@effect/platform@0.97.3(effect@3.22.4))(effect@3.22.4))(@effect/sql@0.52.2(@effect/experimental@0.61.2(@effect/platform@0.97.3(effect@3.22.4))(effect@3.22.4))(@effect/platform@0.97.3(effect@3.22.4))(effect@3.22.4))(effect@3.22.4)':
     dependencies:
-      '@effect/cluster': 0.58.2(@effect/platform@0.96.1(effect@3.22.2))(@effect/rpc@0.75.1(@effect/platform@0.96.1(effect@3.22.2))(effect@3.22.2))(@effect/sql@0.51.1(@effect/experimental@0.60.0(@effect/platform@0.96.1(effect@3.22.2))(effect@3.22.2))(@effect/platform@0.96.1(effect@3.22.2))(effect@3.22.2))(@effect/workflow@0.18.2(@effect/experimental@0.60.0(@effect/platform@0.96.1(effect@3.22.2))(effect@3.22.2))(@effect/platform@0.96.1(effect@3.22.2))(@effect/rpc@0.75.1(@effect/platform@0.96.1(effect@3.22.2))(effect@3.22.2))(effect@3.22.2))(effect@3.22.2)
-      '@effect/platform': 0.96.1(effect@3.22.2)
-      '@effect/platform-node-shared': 0.59.0(@effect/cluster@0.58.2(@effect/platform@0.96.1(effect@3.22.2))(@effect/rpc@0.75.1(@effect/platform@0.96.1(effect@3.22.2))(effect@3.22.2))(@effect/sql@0.51.1(@effect/experimental@0.60.0(@effect/platform@0.96.1(effect@3.22.2))(effect@3.22.2))(@effect/platform@0.96.1(effect@3.22.2))(effect@3.22.2))(@effect/workflow@0.18.2(@effect/experimental@0.60.0(@effect/platform@0.96.1(effect@3.22.2))(effect@3.22.2))(@effect/platform@0.96.1(effect@3.22.2))(@effect/rpc@0.75.1(@effect/platform@0.96.1(effect@3.22.2))(effect@3.22.2))(effect@3.22.2))(effect@3.22.2))(@effect/platform@0.96.1(effect@3.22.2))(@effect/rpc@0.75.1(@effect/platform@0.96.1(effect@3.22.2))(effect@3.22.2))(@effect/sql@0.51.1(@effect/experimental@0.60.0(@effect/platform@0.96.1(effect@3.22.2))(effect@3.22.2))(@effect/platform@0.96.1(effect@3.22.2))(effect@3.22.2))(effect@3.22.2)
-      '@effect/rpc': 0.75.1(@effect/platform@0.96.1(effect@3.22.2))(effect@3.22.2)
-      '@effect/sql': 0.51.1(@effect/experimental@0.60.0(@effect/platform@0.96.1(effect@3.22.2))(effect@3.22.2))(@effect/platform@0.96.1(effect@3.22.2))(effect@3.22.2)
-      effect: 3.22.2
+      '@effect/cluster': 0.60.5(@effect/platform@0.97.3(effect@3.22.4))(@effect/rpc@0.76.4(@effect/platform@0.97.3(effect@3.22.4))(effect@3.22.4))(@effect/sql@0.52.2(@effect/experimental@0.61.2(@effect/platform@0.97.3(effect@3.22.4))(effect@3.22.4))(@effect/platform@0.97.3(effect@3.22.4))(effect@3.22.4))(@effect/workflow@0.19.1(@effect/experimental@0.61.2(@effect/platform@0.97.3(effect@3.22.4))(effect@3.22.4))(@effect/platform@0.97.3(effect@3.22.4))(@effect/rpc@0.76.4(@effect/platform@0.97.3(effect@3.22.4))(effect@3.22.4))(effect@3.22.4))(effect@3.22.4)
+      '@effect/platform': 0.97.3(effect@3.22.4)
+      '@effect/platform-node-shared': 0.61.2(@effect/cluster@0.60.5(@effect/platform@0.97.3(effect@3.22.4))(@effect/rpc@0.76.4(@effect/platform@0.97.3(effect@3.22.4))(effect@3.22.4))(@effect/sql@0.52.2(@effect/experimental@0.61.2(@effect/platform@0.97.3(effect@3.22.4))(effect@3.22.4))(@effect/platform@0.97.3(effect@3.22.4))(effect@3.22.4))(@effect/workflow@0.19.1(@effect/experimental@0.61.2(@effect/platform@0.97.3(effect@3.22.4))(effect@3.22.4))(@effect/platform@0.97.3(effect@3.22.4))(@effect/rpc@0.76.4(@effect/platform@0.97.3(effect@3.22.4))(effect@3.22.4))(effect@3.22.4))(effect@3.22.4))(@effect/platform@0.97.3(effect@3.22.4))(@effect/rpc@0.76.4(@effect/platform@0.97.3(effect@3.22.4))(effect@3.22.4))(@effect/sql@0.52.2(@effect/experimental@0.61.2(@effect/platform@0.97.3(effect@3.22.4))(effect@3.22.4))(@effect/platform@0.97.3(effect@3.22.4))(effect@3.22.4))(effect@3.22.4)
+      '@effect/rpc': 0.76.4(@effect/platform@0.97.3(effect@3.22.4))(effect@3.22.4)
+      '@effect/sql': 0.52.2(@effect/experimental@0.61.2(@effect/platform@0.97.3(effect@3.22.4))(effect@3.22.4))(@effect/platform@0.97.3(effect@3.22.4))(effect@3.22.4)
+      effect: 3.22.4
       mime: 3.0.0
       undici: 7.29.1
       ws: 8.21.3
@@ -12952,32 +12971,32 @@ snapshots:
       - bufferutil
       - utf-8-validate
 
-  '@effect/platform@0.96.1(effect@3.22.2)':
+  '@effect/platform@0.97.3(effect@3.22.4)':
     dependencies:
-      effect: 3.22.2
+      effect: 3.22.4
       find-my-way-ts: 0.1.6
       msgpackr: 1.12.1
-      multipasta: 0.2.8
+      multipasta: 0.2.9
 
-  '@effect/rpc@0.75.1(@effect/platform@0.96.1(effect@3.22.2))(effect@3.22.2)':
+  '@effect/rpc@0.76.4(@effect/platform@0.97.3(effect@3.22.4))(effect@3.22.4)':
     dependencies:
-      '@effect/platform': 0.96.1(effect@3.22.2)
-      effect: 3.22.2
+      '@effect/platform': 0.97.3(effect@3.22.4)
+      effect: 3.22.4
       msgpackr: 1.12.1
 
-  '@effect/sql@0.51.1(@effect/experimental@0.60.0(@effect/platform@0.96.1(effect@3.22.2))(effect@3.22.2))(@effect/platform@0.96.1(effect@3.22.2))(effect@3.22.2)':
+  '@effect/sql@0.52.2(@effect/experimental@0.61.2(@effect/platform@0.97.3(effect@3.22.4))(effect@3.22.4))(@effect/platform@0.97.3(effect@3.22.4))(effect@3.22.4)':
     dependencies:
-      '@effect/experimental': 0.60.0(@effect/platform@0.96.1(effect@3.22.2))(effect@3.22.2)
-      '@effect/platform': 0.96.1(effect@3.22.2)
-      effect: 3.22.2
+      '@effect/experimental': 0.61.2(@effect/platform@0.97.3(effect@3.22.4))(effect@3.22.4)
+      '@effect/platform': 0.97.3(effect@3.22.4)
+      effect: 3.22.4
       uuid: 11.1.1
 
-  '@effect/workflow@0.18.2(@effect/experimental@0.60.0(@effect/platform@0.96.1(effect@3.22.2))(effect@3.22.2))(@effect/platform@0.96.1(effect@3.22.2))(@effect/rpc@0.75.1(@effect/platform@0.96.1(effect@3.22.2))(effect@3.22.2))(effect@3.22.2)':
+  '@effect/workflow@0.19.1(@effect/experimental@0.61.2(@effect/platform@0.97.3(effect@3.22.4))(effect@3.22.4))(@effect/platform@0.97.3(effect@3.22.4))(@effect/rpc@0.76.4(@effect/platform@0.97.3(effect@3.22.4))(effect@3.22.4))(effect@3.22.4)':
     dependencies:
-      '@effect/experimental': 0.60.0(@effect/platform@0.96.1(effect@3.22.2))(effect@3.22.2)
-      '@effect/platform': 0.96.1(effect@3.22.2)
-      '@effect/rpc': 0.75.1(@effect/platform@0.96.1(effect@3.22.2))(effect@3.22.2)
-      effect: 3.22.2
+      '@effect/experimental': 0.61.2(@effect/platform@0.97.3(effect@3.22.4))(effect@3.22.4)
+      '@effect/platform': 0.97.3(effect@3.22.4)
+      '@effect/rpc': 0.76.4(@effect/platform@0.97.3(effect@3.22.4))(effect@3.22.4)
+      effect: 3.22.4
 
   '@emnapi/core@1.10.0':
     dependencies:
@@ -13680,7 +13699,7 @@ snapshots:
     dependencies:
       jsep: 1.4.0
 
-  '@jsforce/jsforce-node@3.12.0':
+  '@jsforce/jsforce-node@3.13.1':
     dependencies:
       '@sindresorhus/is': 4.6.0
       base64url: 3.0.1
@@ -15040,9 +15059,9 @@ snapshots:
 
   '@salesforce/apex@0.0.21': {}
 
-  '@salesforce/core@9.5.0':
+  '@salesforce/core@9.6.0':
     dependencies:
-      '@jsforce/jsforce-node': 3.12.0
+      '@jsforce/jsforce-node': 3.13.1
       '@salesforce/kit': 4.0.10
       '@salesforce/ts-types': 3.2.4
       ajv: 8.20.0
@@ -15120,36 +15139,46 @@ snapshots:
       vscode-languageserver-protocol: 3.17.5
       vscode-languageserver-textdocument: 1.0.12
 
-  '@salesforce/source-deploy-retrieve@13.13.0(supports-color@8.1.1)':
+  '@salesforce/source-deploy-retrieve@13.14.1(supports-color@8.1.1)':
     dependencies:
-      '@salesforce/core': 9.5.0
+      '@salesforce/core': 9.6.0
       '@salesforce/kit': 4.0.10
       '@salesforce/ts-types': 3.2.4
       '@salesforce/types': 1.9.0
       fast-levenshtein: 3.0.0
       fast-xml-parser: 5.12.1
+      form-data: 4.0.6
       got: 11.8.6
       graceful-fs: 4.2.11
       ignore: 5.3.2
       jszip: 3.10.2
       mime: 2.6.0
       minimatch: 11.0.4
-      proxy-agent: 6.5.0(supports-color@8.1.1)
+      proxy-agent: 8.0.3(supports-color@8.1.1)
+      tar-stream: 3.2.1
       yaml: 2.9.1
     transitivePeerDependencies:
+      - bare-abort-controller
+      - bare-buffer
+      - kerberos
+      - react-native-b4a
       - supports-color
 
   '@salesforce/source-tracking@8.1.16(supports-color@8.1.1)':
     dependencies:
-      '@salesforce/core': 9.5.0
+      '@salesforce/core': 9.6.0
       '@salesforce/kit': 4.0.8
-      '@salesforce/source-deploy-retrieve': 13.13.0(supports-color@8.1.1)
+      '@salesforce/source-deploy-retrieve': 13.14.1(supports-color@8.1.1)
       '@salesforce/ts-types': 3.2.3
       fast-xml-parser: 5.11.2
       graceful-fs: 4.2.11
       isomorphic-git: 1.44.2
       ts-retry-promise: 0.8.1
     transitivePeerDependencies:
+      - bare-abort-controller
+      - bare-buffer
+      - kerberos
+      - react-native-b4a
       - supports-color
 
   '@salesforce/templates@66.19.0':
@@ -15658,8 +15687,6 @@ snapshots:
     dependencies:
       eslint: 10.13.0(jiti@2.7.0)(supports-color@8.1.1)
 
-  '@tootallnate/quickjs-emscripten@0.23.0': {}
-
   '@tybys/wasm-util@0.10.3':
     dependencies:
       tslib: 2.8.1
@@ -15825,6 +15852,10 @@ snapshots:
   '@types/yargs@17.0.35':
     dependencies:
       '@types/yargs-parser': 21.0.3
+
+  '@types/yauzl@3.4.0':
+    dependencies:
+      '@types/node': 24.19.2
 
   '@typescript-eslint/eslint-plugin@8.70.0(@typescript-eslint/parser@8.70.0(eslint@10.13.0(jiti@2.7.0)(supports-color@8.1.1))(supports-color@8.1.1)(typescript@6.0.3))(eslint@10.13.0(jiti@2.7.0)(supports-color@8.1.1))(supports-color@8.1.1)(typescript@6.0.3)':
     dependencies:
@@ -16339,7 +16370,7 @@ snapshots:
       hosted-git-info: 4.1.0
       jsonc-parser: 3.3.1
       leven: 3.1.0
-      markdown-it: 14.3.1
+      markdown-it: 14.3.3
       mime: 1.6.0
       minimatch: 3.1.5
       parse-semver: 1.1.1
@@ -16375,7 +16406,7 @@ snapshots:
       hosted-git-info: 4.1.0
       jsonc-parser: 3.3.1
       leven: 3.1.0
-      markdown-it: 14.3.1
+      markdown-it: 14.3.3
       mime: 1.6.0
       minimatch: 10.2.6
       parse-semver: 1.1.1
@@ -16802,6 +16833,8 @@ snapshots:
       safe-buffer: 5.1.2
 
   basic-ftp@5.3.1: {}
+
+  basic-ftp@6.2.6: {}
 
   before-after-hook@4.0.0: {}
 
@@ -17493,17 +17526,17 @@ snapshots:
   css-tree@2.2.1:
     dependencies:
       mdn-data: 2.0.28
-      source-map-js: 1.2.1
+      source-map-js: 1.2.4
 
   css-tree@2.3.1:
     dependencies:
       mdn-data: 2.0.30
-      source-map-js: 1.2.1
+      source-map-js: 1.2.4
 
   css-tree@3.2.1:
     dependencies:
       mdn-data: 2.27.1
-      source-map-js: 1.2.1
+      source-map-js: 1.2.4
 
   css-what@6.2.2: {}
 
@@ -17519,8 +17552,6 @@ snapshots:
       '@csstools/css-syntax-patches-for-csstree': 1.1.15(css-tree@3.2.1)
       css-tree: 3.2.1
       lru-cache: 11.5.2
-
-  csv-parse@5.6.0: {}
 
   csv-parse@7.0.3: {}
 
@@ -17545,8 +17576,6 @@ snapshots:
   dargs@8.1.0: {}
 
   data-uri-to-buffer@4.0.1: {}
-
-  data-uri-to-buffer@6.0.2: {}
 
   data-uri-to-buffer@8.0.0: {}
 
@@ -17651,18 +17680,19 @@ snapshots:
       has-property-descriptors: 1.0.2
       object-keys: 1.1.1
 
-  degenerator@5.0.1:
-    dependencies:
-      ast-types: 0.13.4
-      escodegen: 2.1.0
-      esprima: 4.0.1
-
   degenerator@7.0.1(quickjs-wasi@2.2.0):
     dependencies:
       ast-types: 0.13.4
       escodegen: 2.1.0
       esprima: 4.0.1
       quickjs-wasi: 2.2.0
+
+  degenerator@7.0.2(quickjs-wasi@3.7.0):
+    dependencies:
+      ast-types: 0.13.4
+      escodegen: 2.1.0
+      esprima: 4.0.1
+      quickjs-wasi: 3.7.0
 
   delayed-stream@1.0.0: {}
 
@@ -17783,7 +17813,7 @@ snapshots:
 
   ee-first@1.1.1: {}
 
-  effect@3.22.2:
+  effect@3.22.4:
     dependencies:
       '@standard-schema/spec': 1.1.0
       fast-check: 3.23.2
@@ -18490,7 +18520,7 @@ snapshots:
       on-finished: 2.4.1
       once: 1.4.0
       parseurl: 1.3.3
-      proxy-addr: 2.0.7
+      proxy-addr: 2.0.8
       qs: 6.16.0
       range-parser: 1.3.0
       router: 2.2.0(supports-color@8.1.1)
@@ -18861,17 +18891,17 @@ snapshots:
     dependencies:
       resolve-pkg-maps: 1.0.0
 
-  get-uri@6.0.5(supports-color@8.1.1):
+  get-uri@8.0.1(supports-color@8.1.1):
     dependencies:
       basic-ftp: 5.3.1
-      data-uri-to-buffer: 6.0.2
+      data-uri-to-buffer: 8.0.0
       debug: 4.4.3(supports-color@8.1.1)
     transitivePeerDependencies:
       - supports-color
 
-  get-uri@8.0.1(supports-color@8.1.1):
+  get-uri@8.0.2(supports-color@8.1.1):
     dependencies:
-      basic-ftp: 5.3.1
+      basic-ftp: 6.2.6
       data-uri-to-buffer: 8.0.0
       debug: 4.4.3(supports-color@8.1.1)
     transitivePeerDependencies:
@@ -20233,7 +20263,7 @@ snapshots:
 
   jsesc@3.1.0: {}
 
-  jsforce@3.10.25(@types/node@24.19.2):
+  jsforce@3.13.1(@types/node@24.19.2):
     dependencies:
       '@babel/runtime': 7.29.7
       '@babel/runtime-corejs3': 7.29.7
@@ -20241,9 +20271,10 @@ snapshots:
       base64url: 3.0.1
       commander: 4.1.1
       core-js: 3.50.0
-      csv-parse: 5.6.0
+      cross-spawn: 7.0.6
+      csv-parse: 7.0.3
       csv-stringify: 6.8.3
-      faye: 1.4.1
+      faye: 1.4.3
       form-data: 4.0.6
       inquirer: 8.2.7(@types/node@24.19.2)
       multistream: 3.1.0
@@ -20378,7 +20409,7 @@ snapshots:
       oxc-parser: 0.148.0
       oxc-resolver: 11.24.2
       picomatch: 4.0.7
-      smol-toml: 1.8.0
+      smol-toml: 1.9.1
       strip-json-comments: 5.0.3
       tinyglobby: 0.2.17
       unbash: 4.0.11
@@ -20660,7 +20691,7 @@ snapshots:
     dependencies:
       '@babel/parser': 7.29.8
       '@babel/types': 7.29.8
-      source-map-js: 1.2.1
+      source-map-js: 1.2.4
 
   make-dir@3.1.0:
     dependencies:
@@ -20692,7 +20723,7 @@ snapshots:
     dependencies:
       tmpl: 1.0.5
 
-  markdown-it@14.3.1:
+  markdown-it@14.3.3:
     dependencies:
       argparse: 2.0.1
       entities: 4.5.0
@@ -20940,7 +20971,7 @@ snapshots:
     optionalDependencies:
       msgpackr-extract: 3.0.4
 
-  multipasta@0.2.8: {}
+  multipasta@0.2.9: {}
 
   multistream@3.1.0:
     dependencies:
@@ -21417,19 +21448,6 @@ snapshots:
 
   p-try@2.2.0: {}
 
-  pac-proxy-agent@7.2.0(supports-color@8.1.1):
-    dependencies:
-      '@tootallnate/quickjs-emscripten': 0.23.0
-      agent-base: 7.1.4
-      debug: 4.4.3(supports-color@8.1.1)
-      get-uri: 6.0.5(supports-color@8.1.1)
-      http-proxy-agent: 7.0.2(supports-color@8.1.1)
-      https-proxy-agent: 7.0.6(supports-color@8.1.1)
-      pac-resolver: 7.0.1
-      socks-proxy-agent: 8.0.5(supports-color@8.1.1)
-    transitivePeerDependencies:
-      - supports-color
-
   pac-proxy-agent@9.1.0(supports-color@8.1.1):
     dependencies:
       agent-base: 9.0.0
@@ -21444,16 +21462,31 @@ snapshots:
       - kerberos
       - supports-color
 
-  pac-resolver@7.0.1:
+  pac-proxy-agent@9.1.1(supports-color@8.1.1):
     dependencies:
-      degenerator: 5.0.1
-      netmask: 2.1.1
+      agent-base: 9.0.0
+      debug: 4.4.3(supports-color@8.1.1)
+      get-uri: 8.0.2(supports-color@8.1.1)
+      http-proxy-agent: 9.1.0(supports-color@8.1.1)
+      https-proxy-agent: 9.1.0(supports-color@8.1.1)
+      pac-resolver: 9.0.2(quickjs-wasi@3.7.0)
+      quickjs-wasi: 3.7.0
+      socks-proxy-agent: 10.1.0(supports-color@8.1.1)
+    transitivePeerDependencies:
+      - kerberos
+      - supports-color
 
   pac-resolver@9.0.1(quickjs-wasi@2.2.0):
     dependencies:
       degenerator: 7.0.1(quickjs-wasi@2.2.0)
       netmask: 2.1.1
       quickjs-wasi: 2.2.0
+
+  pac-resolver@9.0.2(quickjs-wasi@3.7.0):
+    dependencies:
+      degenerator: 7.0.2(quickjs-wasi@3.7.0)
+      netmask: 2.1.1
+      quickjs-wasi: 3.7.0
 
   package-hash@4.0.0:
     dependencies:
@@ -21719,13 +21752,13 @@ snapshots:
     dependencies:
       nanoid: 3.3.19
       picocolors: 1.1.1
-      source-map-js: 1.2.1
+      source-map-js: 1.2.4
 
   postcss@8.5.28:
     dependencies:
       nanoid: 3.3.19
       picocolors: 1.1.1
-      source-map-js: 1.2.1
+      source-map-js: 1.2.4
 
   prebuild-install@7.1.3:
     dependencies:
@@ -21826,25 +21859,12 @@ snapshots:
       '@types/node': 24.19.2
       long: 5.3.2
 
-  proxy-addr@2.0.7:
+  proxy-addr@2.0.8:
     dependencies:
       forwarded: 0.2.0
       ipaddr.js: 1.9.1
 
   proxy-agent-negotiate@1.1.0: {}
-
-  proxy-agent@6.5.0(supports-color@8.1.1):
-    dependencies:
-      agent-base: 7.1.4
-      debug: 4.4.3(supports-color@8.1.1)
-      http-proxy-agent: 7.0.2(supports-color@8.1.1)
-      https-proxy-agent: 7.0.6(supports-color@8.1.1)
-      lru-cache: 7.18.3
-      pac-proxy-agent: 7.2.0(supports-color@8.1.1)
-      proxy-from-env: 1.1.0
-      socks-proxy-agent: 8.0.5(supports-color@8.1.1)
-    transitivePeerDependencies:
-      - supports-color
 
   proxy-agent@8.0.2(supports-color@8.1.1):
     dependencies:
@@ -21854,6 +21874,20 @@ snapshots:
       https-proxy-agent: 9.1.0(supports-color@8.1.1)
       lru-cache: 7.18.3
       pac-proxy-agent: 9.1.0(supports-color@8.1.1)
+      proxy-from-env: 2.1.0
+      socks-proxy-agent: 10.1.0(supports-color@8.1.1)
+    transitivePeerDependencies:
+      - kerberos
+      - supports-color
+
+  proxy-agent@8.0.3(supports-color@8.1.1):
+    dependencies:
+      agent-base: 9.0.0
+      debug: 4.4.3(supports-color@8.1.1)
+      http-proxy-agent: 9.1.0(supports-color@8.1.1)
+      https-proxy-agent: 9.1.0(supports-color@8.1.1)
+      lru-cache: 7.18.3
+      pac-proxy-agent: 9.1.1(supports-color@8.1.1)
       proxy-from-env: 2.1.0
       socks-proxy-agent: 10.1.0(supports-color@8.1.1)
     transitivePeerDependencies:
@@ -21986,6 +22020,8 @@ snapshots:
   quick-lru@5.1.1: {}
 
   quickjs-wasi@2.2.0: {}
+
+  quickjs-wasi@3.7.0: {}
 
   randombytes@2.1.0:
     dependencies:
@@ -22521,7 +22557,7 @@ snapshots:
 
   smob@1.6.2: {}
 
-  smol-toml@1.8.0: {}
+  smol-toml@1.9.1: {}
 
   snake-case@3.0.4:
     dependencies:
@@ -22553,7 +22589,7 @@ snapshots:
     dependencies:
       atomic-sleep: 1.0.0
 
-  source-map-js@1.2.1: {}
+  source-map-js@1.2.4: {}
 
   source-map-support@0.5.13:
     dependencies:

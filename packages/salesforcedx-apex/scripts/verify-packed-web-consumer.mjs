@@ -7,9 +7,10 @@
 
 import { execFileSync } from 'node:child_process';
 import assert from 'node:assert/strict';
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { webcrypto } from 'node:crypto';
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import { runInNewContext } from 'node:vm';
 import { build } from 'esbuild';
 import { commonConfigBrowser } from '../../../scripts/bundling/web.mjs';
@@ -321,15 +322,81 @@ try {
   writeFileSync(
     fullEntry,
     "import { TestService } from '@salesforce/apex-node';\n" +
+      "import { fs } from '@salesforce/core/fs';\n" +
       "import { executeAnonymous, runTestSynchronous } from '@salesforce/apex-node/effect';\n" +
-      'globalThis.apexNodeApi = { TestService, executeAnonymous, runTestSynchronous };\n'
+      'const service = new TestService({});\n' +
+      'globalThis.apexNodeApi = { TestService, executeAnonymous, runTestSynchronous,\n' +
+      'writeResults: (...args) => service.writeResultFiles(...args),\n' +
+      "read: path => fs.promises.readFile(path, 'utf8'),\n" +
+      'list: path => fs.promises.readdir(path),\n' +
+      'mkdir: path => fs.promises.mkdir(path, { recursive: true }) };\n'
   );
-  await build({
+  const fullBundle = await build({
     ...commonConfigBrowser,
     entryPoints: [fullEntry],
+    format: 'iife',
     sourcemap: false,
     write: false
   });
+  const fullBrowser = { ...browser, AbortSignal, console, crypto: webcrypto, performance, setInterval, clearInterval };
+  fullBrowser.self = fullBrowser;
+  runInNewContext(fullBundle.outputFiles[0].text, fullBrowser, { displayErrors: false });
+  const nodeApi = fullBrowser.apexNodeApi;
+  const reportConfig = {
+    resultFormats: ['json', 'junit', 'tap', 'markdown', 'text'],
+    fileInfos: [{ filename: 'extra.txt', content: 'résultats 🦊\r\n' }]
+  };
+  const reportOptions = { timestamp: new Date('2026-01-01T00:00:00.000Z') };
+  const reportPaths = await nodeApi.writeResults(result, { ...reportConfig, dirPath: '/reports' }, true, reportOptions);
+  assert.deepEqual(Array.from(reportPaths), [
+    '/reports/test-result-default.json',
+    '/reports/test-result-default-junit.xml',
+    '/reports/test-result-default-tap.txt',
+    '/reports/test-result-default.md',
+    '/reports/test-result-default.txt',
+    '/reports/test-result-default-codecoverage.json',
+    '/reports/extra.txt'
+  ]);
+  assert.equal(
+    await nodeApi.read('/reports/test-result-default.json'),
+    JSON.stringify({ summary: result.summary, tests: result.tests })
+  );
+  assert.equal(await nodeApi.read('/reports/extra.txt'), 'résultats 🦊\r\n');
+  assert.deepEqual(
+    Array.from(await nodeApi.list('/reports')).sort(),
+    Array.from(reportPaths, path => path.split('/').pop()).sort()
+  );
+
+  // Compare every format byte-for-byte with the same packed package on the real Node filesystem.
+  const { TestService } = await import(pathToFileURL(join(installedPackage, 'out/src/index.js')).href);
+  const nodePaths = await new TestService({}).writeResultFiles(
+    result,
+    { ...reportConfig, dirPath: join(consumerRoot, 'node-reports') },
+    true,
+    reportOptions
+  );
+  assert.equal(nodePaths.length, reportPaths.length);
+  for (const [index, nodePath] of nodePaths.entries()) {
+    assert.equal(await nodeApi.read(reportPaths[index]), readFileSync(nodePath, 'utf8'));
+  }
+
+  // The packed Promise adapter preserves typed errors and already committed files in the web filesystem.
+  await nodeApi.mkdir('/partial');
+  await assert.rejects(
+    nodeApi.writeResults(
+      { testRunId: '707000000000002AAA' },
+      {
+        dirPath: '/partial',
+        fileInfos: [{ filename: 'missing/extra.txt', content: 'missing parent directory' }]
+      }
+    ),
+    error =>
+      error._tag === 'PartialResultFilesError' &&
+      error.cause._tag === 'FileOutputError' &&
+      error.cause.operation === 'writeFile' &&
+      JSON.stringify(error.writtenFiles) === JSON.stringify(['/partial/test-run-id.txt'])
+  );
+  assert.deepEqual(Array.from(await nodeApi.list('/partial')), ['test-run-id.txt']);
 } finally {
   rmSync(consumerRoot, { recursive: true, force: true });
 }

@@ -15,7 +15,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "68.15.2",
+  "version": "68.15.6",
   "publisher": "salesforce",
   "o11yUploadEndpoint": "https://794testsite.my.site.com/byolwr/webruntime/log/metrics",
   "enableO11y": "true",
@@ -33,7 +33,7 @@
     "@salesforce/salesforcedx-apex-replay-debugger": "workspace:*",
     "@salesforce/salesforcedx-utils": "workspace:*",
     "@salesforce/vscode-i18n": "workspace:*",
-    "effect": "^3.21.2",
+    "effect": "^3.22.4",
     "salesforcedx-vscode-apex-log": "workspace:*",
     "vscode-uri": "^3.1.0"
   },
@@ -55,6 +55,7 @@
     "preinstall": "node ../../scripts/require-root-install.js",
     "vscode:bundle": "wireit",
     "test:compile": "wireit",
+    "test:container": "wireit",
     "test:desktop": "wireit",
     "vscode:package": "wireit",
     "vscode:sha256": "node ../../scripts/generateSha256.mts >> ../../SHA256",
@@ -188,6 +189,29 @@
       "output": [
         "*.vsix"
       ]
+    },
+    "test:container": {
+      "command": "playwright test --config=test/playwright/playwright.config.container.ts",
+      "env": {
+        "VSCODE_CONTAINER": "1",
+        "CODE_BUILDER_URL": {
+          "external": true
+        },
+        "CB_GREP": {
+          "external": true
+        },
+        "CB_UNDER_TEST": {
+          "external": true
+        }
+      },
+      "dependencies": [
+        "../playwright-vscode-ext:compile"
+      ],
+      "files": [
+        "test/playwright/**",
+        "package*.json"
+      ],
+      "output": []
     },
     "test:desktop": {
       "command": "playwright test --config=test/playwright/playwright.config.desktop.ts",

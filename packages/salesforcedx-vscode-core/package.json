@@ -15,7 +15,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "68.15.2",
+  "version": "68.15.6",
   "publisher": "salesforce",
   "o11yUploadEndpoint": "https://794testsite.my.site.com/byolwr/webruntime/log/metrics",
   "enableO11y": "true",
@@ -32,7 +32,7 @@
     "@salesforce/effect-ext-utils": "workspace:*",
     "@salesforce/salesforcedx-utils": "workspace:*",
     "@salesforce/vscode-i18n": "workspace:*",
-    "effect": "^3.21.2",
+    "effect": "^3.22.4",
     "fast-xml-parser": "^5.7.1",
     "vscode-uri": "^3.1.0"
   },
@@ -209,7 +209,14 @@
     "test:container": {
       "command": "playwright test --config=test/playwright/playwright.config.container.ts",
       "env": {
+        "VSCODE_CONTAINER": "1",
         "CODE_BUILDER_URL": {
+          "external": true
+        },
+        "CB_GREP": {
+          "external": true
+        },
+        "CB_UNDER_TEST": {
           "external": true
         }
       },

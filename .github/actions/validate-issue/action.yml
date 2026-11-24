@@ -5,8 +5,8 @@
 # For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
 #
 
-name: 'Salesforce Extensions Validate Issues Bot'
-description: 'Validate information provided in a new or updated Github issue that is not yet validated.'
+name: 'Salesforce Extensions Issue Automation'
+description: 'Route new and updated issues, post notifications, and validate reported information.'
 author: 'Daphne Yang'
 inputs:
   repo-token:

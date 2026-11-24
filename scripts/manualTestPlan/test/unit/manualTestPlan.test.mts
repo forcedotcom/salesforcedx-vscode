@@ -25,6 +25,7 @@ import {
   spliceManualTestPlan,
   type PromptInput
 } from '../../manualTestPlan.mts';
+import { videosEnd, videosStart } from '../../videoManifest.mts';
 
 const repoRoot = join(import.meta.dirname, '..', '..', '..', '..');
 
@@ -128,11 +129,19 @@ const initRepo = (skill: boolean) => {
 const run = (
   cwd: string,
   prompt: (input: PromptInput) => Effect.Effect<string, OpenCodeRunFailed>,
-  state: { body: string; writes: string[] }
+  state: { body: string; writes: string[] },
+  headMoved = false
 ) =>
   manualTestPlanProgram({
     cwd,
     prompt,
+    readHead: () =>
+      Effect.succeed({
+        state: 'OPEN',
+        headRefOid: headMoved
+          ? 'different-head'
+          : execFileSync('git', ['rev-parse', 'HEAD'], { cwd, env: gitEnv, encoding: 'utf8' }).trim()
+      }),
     readBody: () => Effect.succeed(state.body),
     writeBody: (_pr, body) =>
       Effect.sync(() => {
@@ -152,15 +161,18 @@ test('splice keeps surrounding sections and replaces only the marked block', () 
   const prefix = '## Summary\n\nkept\n\n## Plan\n\nlink\n';
   const first = spliceManualTestPlan(
     prefix,
-    renderManualTestPlan({
-      kind: 'checklist',
-      items: [{ kind: 'manual', step: 'Open the org browser' }]
-    })
+    renderManualTestPlan(
+      {
+        _tag: 'Checklist',
+        items: [{ _tag: 'ManualItem', step: 'Open the org browser' }]
+      },
+      'head'
+    )
   );
   assert.equal(first.slice(0, prefix.length), prefix);
   assert.equal(first.includes('## Manual test plan'), true);
   assert.equal(first.includes('- [ ] Open the org browser'), true);
-  const second = spliceManualTestPlan(first, renderManualTestPlan({ kind: 'nothing' }));
+  const second = spliceManualTestPlan(first, renderManualTestPlan({ _tag: 'Nothing' }, 'head'));
   assert.equal(second.slice(0, prefix.length), prefix);
   assert.equal(second.includes('Open the org browser'), false);
   assert.equal(second.includes('Nothing worth manually testing.'), true);
@@ -168,17 +180,20 @@ test('splice keeps surrounding sections and replaces only the marked block', () 
 });
 
 test('watch-video renders the spec, workflow, and job', () => {
-  const rendered = renderManualTestPlan({
-    kind: 'checklist',
-    items: [
-      {
-        kind: 'watch-video',
-        spec: 'packages/salesforcedx-vscode-core/test/playwright/specs/core.spec.ts',
-        workflow: 'Core E2E (Playwright)',
-        job: 'e2e-desktop'
-      }
-    ]
-  });
+  const rendered = renderManualTestPlan(
+    {
+      _tag: 'Checklist',
+      items: [
+        {
+          _tag: 'WatchVideo',
+          spec: 'packages/salesforcedx-vscode-core/test/playwright/specs/core.spec.ts',
+          workflow: 'Core E2E (Playwright)',
+          job: 'e2e-desktop'
+        }
+      ]
+    },
+    'head'
+  );
   assert.match(
     rendered,
     /- \[ \] Watch video: `packages\/salesforcedx-vscode-core\/test\/playwright\/specs\/core\.spec\.ts` in `Core E2E \(Playwright\)` \(`e2e-desktop`\)/
@@ -188,13 +203,13 @@ test('watch-video renders the spec, workflow, and job', () => {
 test('a real core spec and job pass; a missing job does not', async () => {
   const spec = 'packages/salesforcedx-vscode-core/test/playwright/specs/coreOutputChannel.headless.spec.ts';
   const ok = await judgmentError(repoRoot, {
-    kind: 'checklist',
-    items: [{ kind: 'watch-video', spec, workflow: 'Core E2E (Playwright)', job: 'e2e-desktop' }]
+    _tag: 'Checklist',
+    items: [{ _tag: 'WatchVideo', spec, workflow: 'Core E2E (Playwright)', job: 'e2e-desktop' }]
   }).pipe(Effect.provide(NodeContext.layer), Effect.runPromise);
   assert.equal(ok, undefined);
   const missing = await judgmentError(repoRoot, {
-    kind: 'checklist',
-    items: [{ kind: 'watch-video', spec, workflow: 'Core E2E (Playwright)', job: 'e2e-web' }]
+    _tag: 'Checklist',
+    items: [{ _tag: 'WatchVideo', spec, workflow: 'Core E2E (Playwright)', job: 'e2e-web' }]
   }).pipe(Effect.provide(NodeContext.layer), Effect.runPromise);
   assert.equal(missing, 'job e2e-web is not in Core E2E (Playwright)');
 });
@@ -206,7 +221,7 @@ test('missing skill ref leaves the body unchanged', async () => {
     initRepo(false),
     () => {
       calls.n += 1;
-      return Effect.succeed('{"kind":"nothing"}');
+      return Effect.succeed('{"_tag":"Nothing"}');
     },
     state
   );
@@ -259,18 +274,37 @@ test('an OpenCode failure does not retry', async () => {
   assert.deepEqual(state.writes, []);
 });
 
+test('head moving during AI generation leaves the body intact', async () => {
+  const state: { body: string; writes: string[] } = { body: 'Keep existing manual plan', writes: [] };
+  const result = await run(initRepo(true), replies(['{"_tag":"Nothing"}']), state, true);
+  assert.deepEqual(result, { edited: false });
+  assert.equal(state.body, 'Keep existing manual plan');
+  assert.deepEqual(state.writes, []);
+});
+
+test('an unchanged plan does not clear its already published videos', async () => {
+  const cwd = initRepo(true);
+  const state: { body: string; writes: string[] } = { body: 'Summary\n', writes: [] };
+  await run(cwd, replies(['{"_tag":"Nothing"}']), state);
+  state.body = `${state.body}${videosStart}\nvideo\n${videosEnd}`;
+  const body = state.body;
+  assert.deepEqual(await run(cwd, replies(['{"_tag":"Nothing"}']), state), { edited: false });
+  assert.equal(state.body, body);
+  assert.equal(state.writes.length, 1);
+});
+
 test('schema and watch-video failures retry once', async () => {
   const cwd = initRepo(true);
   const badVideo = JSON.stringify({
-    kind: 'checklist',
-    items: [{ kind: 'watch-video', spec: 'missing.spec.ts', workflow: 'Nope', job: 'e2e-web' }]
+    _tag: 'Checklist',
+    items: [{ _tag: 'WatchVideo', spec: 'missing.spec.ts', workflow: 'Nope', job: 'e2e-web' }]
   });
   const state: { body: string; writes: string[] } = { body: '## Summary\n\nkept\n', writes: [] };
-  const schema = await run(cwd, replies(['not-json', '{"kind":"nothing"}']), state);
+  const schema = await run(cwd, replies(['not-json', '{"_tag":"Nothing"}']), state);
   assert.deepEqual(schema, { edited: true });
   assert.equal(state.body.includes('Nothing worth manually testing.'), true);
   const again: { body: string; writes: string[] } = { body: '## Summary\n\nkept\n', writes: [] };
-  const video = await run(cwd, replies([badVideo, '{"kind":"nothing"}']), again);
+  const video = await run(cwd, replies([badVideo, '{"_tag":"Nothing"}']), again);
   assert.deepEqual(video, { edited: true });
   const stuck: { body: string; writes: string[] } = { body: '## Summary\n\nkept\n', writes: [] };
   const twice = await run(cwd, replies(['not-json', 'still-not-json']), stuck);
@@ -305,7 +339,7 @@ test('manual test plan sends only product-code diffs to OpenCode', async () => {
     initRepo(true),
     input => {
       diffs.push(input.diff);
-      return Effect.succeed('{"kind":"nothing"}');
+      return Effect.succeed('{"_tag":"Nothing"}');
     },
     state
   );
