@@ -112,6 +112,9 @@
         "CB_GREP": {
           "external": true
         },
+        "CB_PHASE": {
+          "external": true
+        },
         "CB_UNDER_TEST": {
           "external": true
         }
@@ -123,7 +126,10 @@
         "test/playwright/**",
         "package*.json"
       ],
-      "output": []
+      "output": [
+        "test-results/**",
+        "playwright-report/**"
+      ]
     },
     "test:web": {
       "command": "playwright test --config=test/playwright/playwright.config.web.ts",
@@ -143,13 +149,19 @@
         "package*.json",
         "../../.github/**"
       ],
-      "output": []
+      "output": [
+        "test-results/**",
+        "playwright-report/**"
+      ]
     },
     "test:desktop": {
       "command": "playwright test --config=test/playwright/playwright.config.desktop.ts",
       "env": {
         "VSCODE_DESKTOP": "1",
         "E2E_FROM_VSIX": {
+          "external": true
+        },
+        "PLAYWRIGHT_VSCODE_VERSION": {
           "external": true
         }
       },
@@ -163,7 +175,10 @@
         "package*.json",
         "../../.github/**"
       ],
-      "output": []
+      "output": [
+        "test-results/**",
+        "playwright-report/**"
+      ]
     },
     "copy:jar": {
       "command": "shx mkdir -p out && shx cp jars/apex-jorje-lsp.jar out/",
