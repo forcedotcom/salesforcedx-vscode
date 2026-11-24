@@ -72,6 +72,8 @@ export const commonConfigBrowser = {
     'node:module': modulePolyfillPath,
     // proper-lockfile and SDR use graceful-fs
     'graceful-fs': fsPolyfillPath,
+    // SDR's compute-app source bundling and PAC proxy config are Node-only in web builds.
+    'fs/promises': emptyPolyfillsPath,
     fs: fsPolyfillPath,
     'node:fs': fsPolyfillPath,
     'node:fs/promises': fsPolyfillPath,
@@ -91,6 +93,7 @@ export const commonConfigBrowser = {
     'node:os': 'os-browserify',
     'node:buffer': 'buffer',
     'node:stream': 'readable-stream',
+    'node:stream/consumers': emptyPolyfillsPath,
     'node:stream/promises': emptyPolyfillsPath,
     'readable-stream/promises': emptyPolyfillsPath,
     'node:util': 'util',

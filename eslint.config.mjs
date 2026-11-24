@@ -452,7 +452,7 @@ export default [
       'import/no-cycle': 'error',
       'import/no-extraneous-dependencies': [
         'error',
-        { devDependencies: ['**/test/**', '**/__tests__/**', '**/scripts/**'] }
+        { devDependencies: ['**/test/**', '**/__tests__/**', '**/scripts/**', '.github/actions/**'] }
       ],
       'import/order': [
         'error',
@@ -829,7 +829,8 @@ export default [
       'packages/soql-builder-ui/src/domain.ts',
       'packages/soql-builder-ui/src/effect/**/*.ts',
       'packages/soql-builder-ui/src/testing/**/*.ts',
-      'packages/salesforcedx-vscode-soql/src/soql-builder-ui/lit/**/*.ts'
+      'packages/salesforcedx-vscode-soql/src/soql-builder-ui/lit/**/*.ts',
+      '.github/actions/validate-issue/src/**/*.ts'
     ],
     rules: {
       'effect/no-import-from-barrel-package': ['error', { packageNames: ['effect'] }],
@@ -858,7 +859,7 @@ export default [
       'import/no-extraneous-dependencies': [
         'error',
         {
-          devDependencies: ['**/test/**', '**/__tests__/**', '**/scripts/**'],
+          devDependencies: ['**/test/**', '**/__tests__/**', '**/scripts/**', '.github/actions/**'],
           // Allow Effect and core Salesforce dependencies
           optionalDependencies: false
         }
@@ -884,6 +885,13 @@ export default [
       '@typescript-eslint/no-unsafe-member-access': 'off',
       '@typescript-eslint/no-unsafe-return': 'off',
       '@typescript-eslint/no-unsafe-assignment': 'off'
+    }
+  },
+  {
+    // These are Node.js GitHub Actions, not VS Code extension-host code.
+    files: ['.github/actions/validate-issue/src/**/*.ts'],
+    rules: {
+      'no-restricted-imports': 'off'
     }
   },
   {
@@ -1121,6 +1129,7 @@ export default [
             'createAuraTemplate',
             'createVisualforceTemplate',
             'runRefreshAndVerify',
+            'triggerLspRestart',
             'upsertSettings',
             'waitForEsrFile',
             'waitForItem',
