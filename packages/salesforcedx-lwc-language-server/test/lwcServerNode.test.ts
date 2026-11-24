@@ -114,6 +114,7 @@ vi.mock('../src/resources/transformed-lwc-standard.json', () => {
 // resolves to out/src/resources/... which we mock using paths relative to the test file.
 
 import type { MockInstance as VitestMockInstance } from 'vitest';
+import { getErrorMessage } from '@salesforce/salesforcedx-utils';
 import type * as lightningLsp from '@salesforce/salesforcedx-lightning-lsp-common';
 import {
   type LspFileSystemAccessor,
@@ -945,7 +946,7 @@ describe('lwcServerNode', () => {
           const sfdxTsConfig = JSON.parse(sfdxTsConfigContent);
           return Object.keys(sfdxTsConfig.compilerOptions.paths ?? {});
         } catch (error) {
-          console.error(`Failed to read tsconfig: ${error instanceof Error ? error.message : String(error)}`);
+          console.error(`Failed to read tsconfig: ${getErrorMessage(error)}`);
           return [];
         }
       };

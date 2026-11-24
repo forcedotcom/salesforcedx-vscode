@@ -588,6 +588,8 @@ export default [
     // Test configs intentionally compose the shared Vitest config by forwarding its default export.
     ignores: ['packages/**/vitest.config.*'],
     rules: {
+      // Standalone automation can run before workspace dependencies are built.
+      'local/no-duplicate-error-message-conversion': 'error',
       'local/no-pass-through-exports': 'error'
     }
   },
