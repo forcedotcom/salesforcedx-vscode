@@ -35,7 +35,7 @@ describe('OrgMetadataCatalogEntrySchema', () => {
 
   it('accepts a component observed through the standard data query API', () => {
     expect(
-      isCatalogEntry({
+      Schema.is(OrgMetadataCatalogEntrySchema)({
         ...baseEntry,
         provenance: 'data-api',
         kind: 'component',
