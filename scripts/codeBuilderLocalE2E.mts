@@ -1151,7 +1151,7 @@ const main = async (): Promise<number> => {
     // restart() resolves only once the workbench URL answers again, so returning from it is the proof
     // code-server reopened the re-seeded non-project folder cleanly (the workspace-shape re-seed spike).
     await restart(handle);
-    log(`Workbench came up after re-seed+restart to the non-project shape (re-seed spike: PASS)`);
+    log('Workbench came up after re-seed+restart to the non-project shape (re-seed spike: PASS)');
     // Re-run the verify gate: the restart re-scans the overrides, so confirm the swapped extensions
     // are STILL present at the expected bytes. Without this a lost extension would make the
     // "commands hidden" assertions pass for the wrong reason (no extension = no commands either).
