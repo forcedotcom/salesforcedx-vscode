@@ -2,6 +2,7 @@
 name: announce-prerelease
 description: Compose and send Slack announcement for pre-release builds. Summarizes changes compared to current marketplace version.
 review: never
+review-complexity: medium
 ---
 
 # Pre-release Slack Announcement

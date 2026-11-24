@@ -234,7 +234,7 @@ Return {shortstat: "<raw stdout of --shortstat, may be empty>", files: [<one pat
 const skillDetectPrompt = skill =>
   `Decide if skill '${skill}' applies to the current branch's diff in ${wt}.
 
-Read ${wt}/${SKILLS_DIR}/${skill}/SKILL.md.
+Read ${wt}/${SKILLS_DIR}/${skill.endsWith('.md') ? skill : `${skill}/SKILL.md`}.
 Examine: git diff ${base}...HEAD (run from ${wt}).
 
 Answer:

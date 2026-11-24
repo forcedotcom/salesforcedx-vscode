@@ -2,6 +2,7 @@
 name: vscode-elements-webviews
 description: Integrate @vscode-elements/elements controls into Lit webviews. Use when adding or changing VSCode Elements selects, text fields, checkboxes, buttons, form association, controlled values, accessibility state, or VS Code theme styling.
 review: never
+review-complexity: high
 ---
 
 # VSCode Elements in Lit webviews

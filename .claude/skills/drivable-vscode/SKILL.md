@@ -2,6 +2,7 @@
 name: drivable-vscode
 description: Operate a real VS Code instance through drivable-vscode. Use for drivable VS Code, exploratory testing, customer bug reproduction, feature verification, screenshots, videos, or other evidence from VS Code.
 review: never
+review-complexity: medium
 ---
 
 # drivable-vscode
