@@ -10,7 +10,7 @@ import * as Arr from 'effect/Array';
 import * as Chunk from 'effect/Chunk';
 import * as Effect from 'effect/Effect';
 import * as Option from 'effect/Option';
-import { isNotUndefined, isString } from 'effect/Predicate';
+import { isNotUndefined } from 'effect/Predicate';
 import * as Schema from 'effect/Schema';
 import * as Stream from 'effect/Stream';
 import * as vscode from 'vscode';
@@ -22,14 +22,14 @@ import { MetadataRetrieveService } from '../core/metadataRetrieveService';
 import { ProjectService } from '../core/projectService';
 import { QueryService } from '../core/queryService';
 import { FsService } from '../vscode/fsService';
+import { apexSourceSoqlWhere, apexSourceToolingIdentity } from './apexSourceTooling';
 import { makeOrgCatalogInventory } from './orgCatalogInventory';
 import { OrgCatalogRemoteRetrieve } from './orgCatalogRemoteRetrieve';
 import { OrgCatalogState } from './orgCatalogState';
 import { OrgMetadataCatalogError } from './orgMetadataCatalogErrors';
+import { OrgMetadataCatalogRecorder } from './orgMetadataCatalogRecorder';
 import { documentUri, type OrgMetadataComponentReference } from './orgMetadataReference';
 import { OrgMetadataShadowStore } from './orgMetadataShadowStore';
-
-const escapeSoql = (value: string): string => value.replaceAll('\\', '\\\\').replaceAll("'", "\\'");
 
 export class OrgCatalogRemoteSource extends Effect.Service<OrgCatalogRemoteSource>()('OrgCatalogRemoteSource', {
   accessors: true,
@@ -43,14 +43,16 @@ export class OrgCatalogRemoteSource extends Effect.Service<OrgCatalogRemoteSourc
     ProjectService.Default,
     OrgCatalogState.Default,
     OrgCatalogRemoteRetrieve.Default,
+    OrgMetadataCatalogRecorder.Default,
     OrgMetadataShadowStore.Default
   ],
   effect: Effect.gen(function* () {
-    const [queryService, fsService, inventories, remoteRetrieve, registry, shadowStore] = yield* Effect.all([
+    const [queryService, fsService, inventories, remoteRetrieve, recorder, registry, shadowStore] = yield* Effect.all([
       QueryService,
       FsService,
       makeOrgCatalogInventory,
       OrgCatalogRemoteRetrieve,
+      OrgMetadataCatalogRecorder,
       MetadataRegistryService,
       OrgMetadataShadowStore
     ]);
@@ -68,13 +70,11 @@ export class OrgCatalogRemoteSource extends Effect.Service<OrgCatalogRemoteSourc
       orgId: string,
       reference: OrgMetadataComponentReference
     ) {
-      const nameParts = reference.fullName.split('.');
+      const identity = apexSourceToolingIdentity(reference.fullName);
       const record = yield* queryService
         .query(
           {
-            soql: `SELECT Body, LastModifiedDate FROM ApexClass WHERE Name = '${escapeSoql(nameParts.at(-1) ?? reference.fullName)}'${
-              nameParts.length > 1 ? ` AND NamespacePrefix = '${escapeSoql(nameParts.slice(0, -1).join('.'))}'` : ''
-            } LIMIT 1`,
+            soql: `SELECT Body, LastModifiedDate FROM ApexClass WHERE ${apexSourceSoqlWhere(identity)} LIMIT 1`,
             tooling: true,
             orgId
           },
@@ -124,51 +124,55 @@ export class OrgCatalogRemoteSource extends Effect.Service<OrgCatalogRemoteSourc
       orgId: string,
       reference: OrgMetadataComponentReference
     ) {
+      if (reference.xmlName === 'ApexClass') {
+        const { content, lastModifiedDate } = yield* fetchApexClass(orgId, reference);
+        yield* recorder.recordRemoteComponents(orgId, 'tooling-api', [
+          {
+            type: reference.xmlName,
+            fullName: reference.fullName,
+            ...(lastModifiedDate ? { lastModifiedDate } : {})
+          }
+        ]);
+        const cachedApexArtifact = yield* shadowStore.get(orgId, reference, lastModifiedDate);
+        if (cachedApexArtifact) return cachedApexArtifact;
+        const { stagingUri } = yield* shadowStore.prepare(orgId, reference, lastModifiedDate);
+        const primaryUri = Utils.joinPath(
+          stagingUri,
+          Utils.basename(
+            yield* documentUri({ orgId, ...reference }).pipe(Effect.provideService(MetadataRegistryService, registry))
+          )
+        );
+        return yield* fsService.safeWriteFile(primaryUri, content).pipe(
+          Effect.flatMap(() =>
+            shadowStore.publish({
+              orgId,
+              reference,
+              stagingUri,
+              primaryUri,
+              fileUris: [primaryUri],
+              remoteLastModifiedDate: lastModifiedDate
+            })
+          ),
+          Effect.filterOrFail(
+            isNotUndefined,
+            () =>
+              new OrgMetadataCatalogError({
+                cause: new Error('Published shadow artifact could not be resolved'),
+                message: `Failed to publish Apex class '${reference.fullName}'`,
+                reference
+              })
+          ),
+          Effect.ensuring(fsService.safeDelete(stagingUri, { recursive: true }))
+        );
+      }
+
       const entry = yield* getEntryInOrg(orgId, reference);
       const cached = yield* shadowStore.get(orgId, reference, entry.lastModifiedDate);
       if (cached) return cached;
-      if (reference.xmlName !== 'ApexClass') {
-        const [result] = yield* remoteRetrieve.materializeRetrievedComponents(orgId, [
-          { reference, expectedRemoteLastModifiedDate: entry.lastModifiedDate }
-        ]);
-        return result!.artifact;
-      }
-
-      const { content, lastModifiedDate } = yield* fetchApexClass(orgId, reference);
-      const shadowRevision = isString(entry.lastModifiedDate)
-        ? entry.lastModifiedDate
-        : isString(lastModifiedDate)
-          ? lastModifiedDate
-          : undefined;
-      const { stagingUri } = yield* shadowStore.prepare(orgId, reference, shadowRevision);
-      const primaryUri = Utils.joinPath(
-        stagingUri,
-        Utils.basename(
-          yield* documentUri({ orgId, ...reference }).pipe(Effect.provideService(MetadataRegistryService, registry))
-        )
-      );
-      return yield* fsService.safeWriteFile(primaryUri, content).pipe(
-        Effect.flatMap(() =>
-          shadowStore.publish({
-            orgId,
-            reference,
-            stagingUri,
-            primaryUri,
-            fileUris: [primaryUri],
-            remoteLastModifiedDate: shadowRevision
-          })
-        ),
-        Effect.filterOrFail(
-          isNotUndefined,
-          () =>
-            new OrgMetadataCatalogError({
-              cause: new Error('Published shadow artifact could not be resolved'),
-              message: `Failed to publish Apex class '${reference.fullName}'`,
-              reference
-            })
-        ),
-        Effect.ensuring(fsService.safeDelete(stagingUri, { recursive: true }))
-      );
+      const [result] = yield* remoteRetrieve.materializeRetrievedComponents(orgId, [
+        { reference, expectedRemoteLastModifiedDate: entry.lastModifiedDate }
+      ]);
+      return result.artifact;
     });
 
     return { materializePrimaryDocument } as const;
