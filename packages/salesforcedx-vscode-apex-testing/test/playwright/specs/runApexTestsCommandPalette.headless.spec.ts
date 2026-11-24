@@ -83,11 +83,9 @@ test('Run Apex Tests via Command Palette: run all, then run single class', async
     await selectOutputChannel(page, 'Apex Testing');
     await executeCommandWithCommandPalette(page, CMD_TOGGLE_MAXIMIZED_PANEL);
     await saveScreenshot(page, 'step.run-single.output-open.png');
-    // The single-class CLI output includes summary fields without the section-heading line.
-    await waitForApexRunOutputLine(page, 'Outcome              Passed');
-    await waitForApexRunOutputLine(page, 'Tests Ran            1');
+    // Single-class CLI output can omit summary fields; assert the executed method's pass row.
+    await waitForApexRunOutputLine(page, `${testClassName}.testMethod1 Pass`);
     await saveScreenshot(page, 'step.run-single.results-visible.png');
-    await waitForApexRunOutputLine(page, testClassName);
     await waitForApexRunOutputLine(page, 'Ended SFDX: Run Apex Tests');
     await verifyNoTestRunInProgress(page);
     await saveScreenshot(page, 'step.run-single.done.png');
@@ -102,9 +100,7 @@ test('Run Apex Tests via Command Palette: run all, then run single class', async
     await waitForRunApexTestsProgressNotificationGone(page, { timeout: TEST_RUN_TIMEOUT });
     await ensureOutputPanelOpen(page);
     await selectOutputChannel(page, 'Apex Testing');
-    await waitForApexRunOutputLine(page, 'Outcome              Passed');
-    await waitForApexRunOutputLine(page, 'Tests Ran            1');
-    await waitForApexRunOutputLine(page, testClassName);
+    await waitForApexRunOutputLine(page, `${testClassName}.testMethod1 Pass`);
     await waitForApexRunOutputLine(page, 'Ended SFDX: Run Apex Tests');
     await verifyNoTestRunInProgress(page);
     await saveScreenshot(page, 'step.rerun-last-class.done.png');
