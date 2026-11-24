@@ -14,9 +14,9 @@ import {
   openFileByName,
   QUICK_INPUT_WIDGET,
   saveFile,
-  saveScreenshot,
   setupConsoleMonitoring,
   setupNetworkMonitoring,
+  startVideoRecording,
   validateNoCriticalErrors,
   waitForExtensionsActivated,
   waitForQuickInputFirstOption,
@@ -47,7 +47,7 @@ const dismissEditorOverlays = async (page: Page): Promise<void> => {
     .catch(() => {});
 };
 
-test('Apex snippets: Insert Snippet applies System Debug in .cls', async ({ page }) => {
+test('Apex snippets: Insert Snippet applies System Debug in .cls', async ({ page }, testInfo) => {
   // timeout comes from playwright.config.desktop.ts (timeout: 360_000)
   const consoleErrors = setupConsoleMonitoring(page);
   const networkErrors = setupNetworkMonitoring(page);
@@ -59,7 +59,6 @@ test('Apex snippets: Insert Snippet applies System Debug in .cls', async ({ page
     // salesforce.apex-language-server-extension (marketplace) ships apex.json snippets; wait until
     // no extension shows "Activating" so the snippet contribution is registered before insertion.
     await waitForExtensionsActivated(page);
-    await saveScreenshot(page, 'apex-snippets.workspace-ready.png');
   });
 
   await test.step('open ExampleClassTest.cls and position cursor on blank line 7', async () => {
@@ -75,39 +74,45 @@ test('Apex snippets: Insert Snippet applies System Debug in .cls', async ({ page
     // Enter — the raw type/press sequence raced the widget and left the caret at EOF, so the
     // snippet landed after the class-closing brace.
     await goToLineCol(page, 7, 1);
-    await saveScreenshot(page, 'apex-snippets.editor-open.png');
   });
 
-  await test.step('insert System Debug snippet', async () => {
-    // preserveSelection: true skips openCommandPalette's workbench focus-click. The seeded file is
-    // only 9 lines in a tall editor pane, so that click lands in the empty area below the last line
-    // and moves the caret to EOF — the snippet then inserts after the class-closing brace instead
-    // of on blank line 7. goToLineCol already gave the editor keyboard focus, so skipping the click
-    // keeps the caret on line 7.
-    await insertSnippet(page, {
-      preserveSelection: true
+  const videoName = [testInfo.project.name, ...testInfo.titlePath, 'insert-snippet', `retry-${testInfo.retry}`]
+    .join('-')
+    .replaceAll(/[^a-zA-Z0-9._-]+/g, '-')
+    .replaceAll(/^-+|-+$/g, '');
+  const stopRecording = await startVideoRecording(page, testInfo, videoName);
+  try {
+    await test.step('insert System Debug snippet', async () => {
+      // preserveSelection: true skips openCommandPalette's workbench focus-click. The seeded file is
+      // only 9 lines in a tall editor pane, so that click lands in the empty area below the last line
+      // and moves the caret to EOF — the snippet then inserts after the class-closing brace instead
+      // of on blank line 7. goToLineCol already gave the editor keyboard focus, so skipping the click
+      // keeps the caret on line 7.
+      await insertSnippet(page, {
+        preserveSelection: true
+      });
+      const quickInput = page.locator(QUICK_INPUT_WIDGET);
+      await quickInput.waitFor({ state: 'visible', timeout: 15_000 });
+      // apex.json picker label = JSON key `System Debug`; prefix `debug` matches the fill.
+      await quickInput.locator('input.input').first().fill('debug');
+      await waitForQuickInputFirstOption(page, { optionVisibleTimeout: 10_000 });
+      await page.keyboard.press('Enter');
+      await quickInput.waitFor({ state: 'hidden', timeout: 10_000 }).catch(() => {});
+      await dismissEditorOverlays(page);
     });
-    const quickInput = page.locator(QUICK_INPUT_WIDGET);
-    await quickInput.waitFor({ state: 'visible', timeout: 15_000 });
-    // apex.json picker label = JSON key `System Debug`; prefix `debug` matches the fill.
-    await quickInput.locator('input.input').first().fill('debug');
-    await waitForQuickInputFirstOption(page, { optionVisibleTimeout: 10_000 });
-    await page.keyboard.press('Enter');
-    await quickInput.waitFor({ state: 'hidden', timeout: 10_000 }).catch(() => {});
-    await dismissEditorOverlays(page);
-    await saveScreenshot(page, 'apex-snippets.after-insert.png');
-  });
 
-  await test.step('save and assert snippet body', async () => {
-    await dismissEditorOverlays(page);
-    await saveFile(page);
-    // body `System.debug($0)`; `$0` is the final cursor (empty render) → saved text `System.debug()`.
-    // Assert it landed on blank line 7 (between the assertEquals and the class-closing brace) so a
-    // misfired Go to Line/Column navigation cannot silently pass on a line-agnostic substring match.
-    const doc = collapseEditorWhitespace(await readActiveEditorDocumentText(page));
-    expect(doc).toMatch(/SayHello should greet the name'\);\s*System\.debug\(\)\s*}/);
-    await saveScreenshot(page, 'apex-snippets.saved.png');
-  });
+    await test.step('save and assert snippet body', async () => {
+      await dismissEditorOverlays(page);
+      await saveFile(page);
+      // body `System.debug($0)`; `$0` is the final cursor (empty render) → saved text `System.debug()`.
+      // Assert it landed on blank line 7 (between the assertEquals and the class-closing brace) so a
+      // misfired Go to Line/Column navigation cannot silently pass on a line-agnostic substring match.
+      const doc = collapseEditorWhitespace(await readActiveEditorDocumentText(page));
+      expect(doc).toMatch(/SayHello should greet the name'\);\s*System\.debug\(\)\s*}/);
+    });
 
-  await validateNoCriticalErrors(test, consoleErrors, networkErrors);
+    await validateNoCriticalErrors(test, consoleErrors, networkErrors);
+  } finally {
+    await stopRecording();
+  }
 });

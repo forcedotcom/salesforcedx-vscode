@@ -11,13 +11,14 @@ import {
   openFileByName,
   setupConsoleMonitoring,
   setupNetworkMonitoring,
+  startVideoRecording,
   validateNoCriticalErrors
 } from '@salesforce/playwright-vscode-ext';
 
 import { desktopTest as test } from '../fixtures/desktopFixtures';
 import { waitForApexLspReady } from '../utils/apexLspUtils';
 
-test('Apex LSP: hover shows method signature for SayHello', async ({ page, workspaceDir }) => {
+test('Apex LSP: hover shows method signature for SayHello', async ({ page, workspaceDir }, testInfo) => {
   const consoleErrors = setupConsoleMonitoring(page);
   const networkErrors = setupNetworkMonitoring(page);
 
@@ -26,22 +27,31 @@ test('Apex LSP: hover shows method signature for SayHello', async ({ page, works
     await waitForApexLspReady(page, workspaceDir);
   });
 
-  await test.step('hover SayHello token and verify method signature in hover card', async () => {
-    const editor = page.locator(`${EDITOR_WITH_URI}[data-uri$="ExampleClass.cls"]`);
-    const sayHelloToken = editor
-      .locator('.view-lines span')
-      .filter({ hasText: /^SayHello$/ })
-      .first();
-    await sayHelloToken.waitFor({ state: 'visible', timeout: 10_000 });
-    await sayHelloToken.hover();
+  const videoName = [testInfo.project.name, ...testInfo.titlePath, 'method-hover', `retry-${testInfo.retry}`]
+    .join('-')
+    .replaceAll(/[^a-zA-Z0-9._-]+/g, '-')
+    .replaceAll(/^-+|-+$/g, '');
+  const stopRecording = await startVideoRecording(page, testInfo, videoName);
+  try {
+    await test.step('hover SayHello token and verify method signature in hover card', async () => {
+      const editor = page.locator(`${EDITOR_WITH_URI}[data-uri$="ExampleClass.cls"]`);
+      const sayHelloToken = editor
+        .locator('.view-lines span')
+        .filter({ hasText: /^SayHello$/ })
+        .first();
+      await sayHelloToken.waitFor({ state: 'visible', timeout: 10_000 });
+      await sayHelloToken.hover();
 
-    const hoverCard = page.locator('.monaco-hover:not(.hidden)').filter({ hasText: 'SayHello' });
-    await expect(hoverCard, 'Apex LSP hover card should appear with SayHello method signature').toBeVisible({
-      timeout: 20_000
+      const hoverCard = page.locator('.monaco-hover:not(.hidden)').filter({ hasText: 'SayHello' });
+      await expect(hoverCard, 'Apex LSP hover card should appear with SayHello method signature').toBeVisible({
+        timeout: 20_000
+      });
+      // Apex LSP returns the full method signature: return type, declaring class, and parameter types
+      await expect(hoverCard).toContainText('String ExampleClass.SayHello(String name)', { timeout: 10_000 });
     });
-    // Apex LSP returns the full method signature: return type, declaring class, and parameter types
-    await expect(hoverCard).toContainText('String ExampleClass.SayHello(String name)', { timeout: 10_000 });
-  });
 
-  await validateNoCriticalErrors(test, consoleErrors, networkErrors);
+    await validateNoCriticalErrors(test, consoleErrors, networkErrors);
+  } finally {
+    await stopRecording();
+  }
 });

@@ -8,9 +8,9 @@
 import { expect } from '@playwright/test';
 import {
   openFileByName,
-  saveScreenshot,
   setupConsoleMonitoring,
   setupNetworkMonitoring,
+  startVideoRecording,
   validateNoCriticalErrors
 } from '@salesforce/playwright-vscode-ext';
 import { existsSync } from 'node:fs';
@@ -38,7 +38,7 @@ test.describe('Apex LSP restart', () => {
   });
 
   for (const { cleanDb, via, label } of matrix) {
-    test(label, async ({ page, workspaceDir }) => {
+    test(label, async ({ page, workspaceDir }, testInfo) => {
       // timeout comes from playwright.config.desktop.ts (timeout: 360_000)
       const consoleErrors = setupConsoleMonitoring(page);
       const networkErrors = setupNetworkMonitoring(page);
@@ -55,19 +55,27 @@ test.describe('Apex LSP restart', () => {
           : 'StandardApexLibrary should exist before restart'
       ).toBe(!cleanDb);
 
-      const releaseAfter = await triggerLspRestart(page, workspaceDir, { cleanDb, via });
-      await saveScreenshot(page, `step.restart-${via}-${cleanDb ? 'cleandb' : 'only'}.png`);
+      const videoName = [testInfo.project.name, ...testInfo.titlePath, 'lsp-restart', `retry-${testInfo.retry}`]
+        .join('-')
+        .replaceAll(/[^a-zA-Z0-9._-]+/g, '-')
+        .replaceAll(/^-+|-+$/g, '');
+      const stopRecording = await startVideoRecording(page, testInfo, videoName);
+      try {
+        const releaseAfter = await triggerLspRestart(page, workspaceDir, { cleanDb, via });
 
-      const stdLibAfter = path.join(workspaceDir, '.sfdx', 'tools', releaseAfter, 'StandardApexLibrary');
-      // waitForApexLspReady (called from triggerLspRestart) already polls for this — assert here for explicitness.
-      expect(
-        existsSync(stdLibAfter),
-        cleanDb
-          ? 'StandardApexLibrary should be re-created after clean restart'
-          : 'StandardApexLibrary should exist after restart'
-      ).toBe(true);
+        const stdLibAfter = path.join(workspaceDir, '.sfdx', 'tools', releaseAfter, 'StandardApexLibrary');
+        // waitForApexLspReady (called from triggerLspRestart) already polls for this — assert here for explicitness.
+        expect(
+          existsSync(stdLibAfter),
+          cleanDb
+            ? 'StandardApexLibrary should be re-created after clean restart'
+            : 'StandardApexLibrary should exist after restart'
+        ).toBe(true);
 
-      await validateNoCriticalErrors(test, consoleErrors, networkErrors);
+        await validateNoCriticalErrors(test, consoleErrors, networkErrors);
+      } finally {
+        await stopRecording();
+      }
     });
   }
 });
