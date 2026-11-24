@@ -30,6 +30,8 @@ export type {
   OrgAuthorizationSummary,
   DefaultOrgInfoSchema,
   ChildRelationship,
+  OrgMetadataCatalogFindQuery,
+  OrgMetadataCatalogFindResult,
   SObject,
   SObjectField
 } from 'salesforcedx-vscode-services';

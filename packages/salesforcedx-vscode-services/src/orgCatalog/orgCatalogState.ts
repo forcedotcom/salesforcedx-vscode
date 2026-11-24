@@ -65,6 +65,9 @@ const toPersistedInventory = (xmlName: string, value: TypeInventory): PersistedT
                 fullName: Schema.is(OrgMetadataComponentReference)(component.reference)
                   ? component.reference.fullName
                   : component.name,
+                ...(component.provenance === 'data-api' || component.provenance === 'tooling-api'
+                  ? { provenance: component.provenance }
+                  : {}),
                 namespacePrefix: component.namespacePrefix,
                 manageableState: component.manageableState,
                 fileName: component.fileName,
@@ -135,7 +138,34 @@ export class OrgCatalogState extends Effect.Service<OrgCatalogState>()('OrgCatal
         (current, value, key) => {
           if (!key.startsWith(`${orgId}\0`)) return current;
           const xmlName = key.slice(orgId.length + 1);
-          return HashMap.set(current, xmlName, toPersistedInventory(xmlName, value));
+          const next = toPersistedInventory(xmlName, value);
+          const previous = Option.getOrUndefined(HashMap.get(current, xmlName));
+          if (!previous || value.complete) return HashMap.set(current, xmlName, next);
+          const nextIdentities = new Set(
+            next.components.map(component =>
+              componentIdentity(
+                { xmlName, fullName: component.fullName },
+                'namespacePrefix' in component ? (component.namespacePrefix ?? null) : null
+              )
+            )
+          );
+          return HashMap.set(current, xmlName, {
+            ...next,
+            complete: previous.complete !== false || next.complete,
+            components: [
+              ...previous.components.filter(
+                component =>
+                  !nextIdentities.has(
+                    componentIdentity(
+                      { xmlName, fullName: component.fullName },
+                      'namespacePrefix' in component ? (component.namespacePrefix ?? null) : null
+                    )
+                  )
+              ),
+              ...next.components
+            ],
+            folders: previous.folders
+          });
         }
       );
       const generation = yield* Ref.modify(persistedGenerations, generations => {
@@ -354,7 +384,8 @@ export class OrgCatalogState extends Effect.Service<OrgCatalogState>()('OrgCatal
                 HashMap.filter(current, (_value, key) => !key.startsWith(`${orgId}\0`))
               ),
               Ref.update(persistedInventoryCache, current =>
-                HashMap.filter(current, (_value, key) => !key.startsWith(`${orgId}\0`))
+                // Keep exact, incomplete discoveries so a source read remains available after a broad invalidation.
+                HashMap.filter(current, (value, key) => !key.startsWith(`${orgId}\0`) || value.complete === false)
               ),
               Ref.update(workspaceTypeCache, current => HashMap.remove(current, orgId))
             ],

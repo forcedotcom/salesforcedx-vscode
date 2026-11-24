@@ -28,7 +28,11 @@ export const makeOrgCatalogInventory = Effect.gen(function* () {
     MetadataRegistryService,
     MetadataDescribeService
   ]);
-  const loadType = Effect.fn('OrgCatalogInventory.loadType')(function* (orgId: string, xmlName: string) {
+  const loadType = Effect.fn('OrgCatalogInventory.loadType')(function* (
+    orgId: string,
+    xmlName: string,
+    requestedReference?: OrgMetadataComponentReference
+  ) {
     yield* state.ensureHydrated(orgId);
     const key = typeCacheKey(orgId, xmlName);
     const cached = yield* state.getInventory(orgId, xmlName);
@@ -39,25 +43,34 @@ export const makeOrgCatalogInventory = Effect.gen(function* () {
       if (coalesced?.complete) return coalesced;
       const restored = yield* state.getPersistedInventory(orgId, xmlName);
       const restoreComplete = isNotUndefined(restored) && restored.complete !== false;
-      const listOrgComponents = restoreComplete
-        ? Effect.succeed({ components: restored.components, folders: restored.folders })
-        : Match.value(FOLDERED_METADATA_TYPES.has(xmlName)).pipe(
-            Match.when(true, () =>
-              Effect.gen(function* () {
-                const folders = yield* metadataDescribeService.listMetadataFolders(xmlName, orgId);
-                const folderComponents = yield* Effect.all(
-                  folders.map(folder => metadataDescribeService.listMetadata(xmlName, folder.fullName, orgId)),
-                  { concurrency: 10 }
-                );
-                return { components: folderComponents.flat(), folders };
-              })
-            ),
-            Match.orElse(() =>
-              metadataDescribeService
-                .listMetadata(xmlName, undefined, orgId)
-                .pipe(Effect.map(components => ({ components, folders: [] })))
-            )
-          );
+      const restoresRequestedComponent =
+        requestedReference !== undefined &&
+        restored?.components.some(component => component.fullName === requestedReference.fullName);
+      const restoredInventory = !isNotUndefined(restored)
+        ? undefined
+        : restoreComplete || restoresRequestedComponent
+          ? { components: restored.components, folders: restored.folders }
+          : undefined;
+      const listOrgComponents =
+        restoredInventory !== undefined
+          ? Effect.succeed(restoredInventory)
+          : Match.value(FOLDERED_METADATA_TYPES.has(xmlName)).pipe(
+              Match.when(true, () =>
+                Effect.gen(function* () {
+                  const folders = yield* metadataDescribeService.listMetadataFolders(xmlName, orgId);
+                  const folderComponents = yield* Effect.all(
+                    folders.map(folder => metadataDescribeService.listMetadata(xmlName, folder.fullName, orgId)),
+                    { concurrency: 10 }
+                  );
+                  return { components: folderComponents.flat(), folders };
+                })
+              ),
+              Match.orElse(() =>
+                metadataDescribeService
+                  .listMetadata(xmlName, undefined, orgId)
+                  .pipe(Effect.map(components => ({ components, folders: [] })))
+              )
+            );
       const [orgListing, workspaceInventory] = yield* Effect.all(
         [listOrgComponents, workspace.scanWorkspaceInventory(xmlName)],
         { concurrency: 'unbounded' }
@@ -65,7 +78,7 @@ export const makeOrgCatalogInventory = Effect.gen(function* () {
       const observedAt = restoreComplete ? restored.observedAt : DateTime.formatIso(yield* DateTime.now);
       const inventory = {
         observedAt,
-        complete: true,
+        complete: restored?.complete ?? true,
         components: yield* mergeInventory({
           orgId,
           xmlName,
@@ -101,7 +114,7 @@ export const makeOrgCatalogInventory = Effect.gen(function* () {
     const inventory =
       cached && findInventoryComponent(cached.components, reference)
         ? cached
-        : yield* loadType(orgId, reference.xmlName);
+        : yield* loadType(orgId, reference.xmlName, reference);
     return (
       findInventoryComponent(inventory.components, reference) ??
       (yield* projectChildren(
