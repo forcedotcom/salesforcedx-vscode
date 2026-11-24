@@ -5,7 +5,15 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { test } from '../fixtures';
+/*
+ * Covers the Generate Manifest entry points: reachable from the editor context menu and the explorer
+ * folder context menu, writing a package.xml into the workspace.
+ *
+ * Container: runs against the container's boot-authed org instead of a freshly created minimal org.
+ * The throwaway class and both manifests are uniquely named and removed after the test, so the shared,
+ * persistent workbench never collides across runs.
+ */
+
 import { expect } from '@playwright/test';
 import {
   activeQuickInputWidget,
@@ -18,42 +26,77 @@ import {
   executeEditorContextMenuCommand,
   executeExplorerContextMenuCommand,
   focusOnFilesExplorer,
+  resetContainerWorkbench,
   saveScreenshot,
   setupConsoleMonitoring,
   setupNetworkMonitoring,
   upsertScratchOrgAuthFieldsToSettings,
   validateNoCriticalErrors,
+  verifyCommandExists,
   waitForVSCodeWorkbench
 } from '@salesforce/playwright-vscode-ext';
 import { SourceTrackingStatusBarPage } from '../pages/sourceTrackingStatusBarPage';
 import packageNls from '../../../package.nls.json';
 import { messages } from '../../../src/messages/i18n';
+import { isContainer, sharedTest as test } from '../fixtures';
+import { cleanupContainerFiles } from '../utils/containerCleanup';
+
+// Container-only: the throwaway class's files and the generated manifests, removed after the test (pass
+// or fail) so they don't pile up on the shared workbench — see utils/containerCleanup. The class is
+// never deployed, so removing its files is enough (it also clears the pending local change).
+const createdFiles: string[] = [];
+
+if (isContainer) {
+  test.beforeEach(async ({ page }) => {
+    await resetContainerWorkbench(page);
+  });
+  test.afterEach(() => {
+    cleanupContainerFiles(createdFiles.splice(0));
+  });
+}
 
 test('Generate Manifest: generates via context menu entry points', async ({ page }) => {
   const consoleErrors = setupConsoleMonitoring(page);
   const networkErrors = setupNetworkMonitoring(page);
 
-  let className: string;
-  let statusBarPage: SourceTrackingStatusBarPage;
+  const className = `GenerateManifestTest${Date.now()}`;
+  // Unique per run so the container's shared, persistent workbench never overwrites an existing manifest.
+  const editorManifestBase = `genManifestEditor${Date.now()}`;
+  const folderManifestBase = `genManifestFolder${Date.now()}`;
+  createdFiles.push(
+    `force-app/main/default/classes/${className}.cls`,
+    `force-app/main/default/classes/${className}.cls-meta.xml`,
+    `manifest/${editorManifestBase}.xml`,
+    `manifest/${folderManifestBase}.xml`
+  );
 
-  await test.step('setup minimal org', async () => {
-    const createResult = await createMinimalOrg();
-    await waitForVSCodeWorkbench(page);
+  await test.step('setup', async () => {
+    // The container's fixture already awaited the workbench, and its boot org is already authed.
+    const createResult = isContainer ? undefined : await createMinimalOrg();
+    if (!isContainer) {
+      await waitForVSCodeWorkbench(page);
+    }
     await closeWelcomeTabs(page);
     await ensureSecondarySideBarHidden(page);
     await saveScreenshot(page, 'setup.after-workbench.png');
-    await upsertScratchOrgAuthFieldsToSettings(page, createResult);
-    await saveScreenshot(page, 'setup.after-auth-fields.png');
-    statusBarPage = new SourceTrackingStatusBarPage(page);
+    if (createResult) {
+      await upsertScratchOrgAuthFieldsToSettings(page, createResult);
+      await saveScreenshot(page, 'setup.after-auth-fields.png');
+    }
+
+    const statusBarPage = new SourceTrackingStatusBarPage(page);
     await statusBarPage.waitForVisible(120_000);
     await saveScreenshot(page, 'setup.after-status-bar-visible.png');
   });
 
   await test.step('1. Editor context menu', async () => {
     // Create apex class (opens editor automatically)
-    className = `GenerateManifestTest${Date.now()}`;
     await createApexClass(page, className);
     await saveScreenshot(page, 'step1.after-create-class.png');
+
+    // The editor context keys settle a beat after the file opens; wait until the command is contributed
+    // for it so the context menu below includes it.
+    await verifyCommandExists(page, packageNls.project_generate_manifest_text, 60_000);
 
     // Right-click in the editor → "SFDX: Generate Manifest File"
     await executeEditorContextMenuCommand(page, packageNls.project_generate_manifest_text, `${className}.cls`);
@@ -65,18 +108,19 @@ test('Generate Manifest: generates via context menu entry points', async ({ page
     await quickInput.getByText(messages.manifest_input_save_prompt).waitFor({ state: 'attached', timeout: 10_000 });
     await saveScreenshot(page, 'step1.manifest-prompt-visible.png');
 
-    // Accept default filename (package.xml) by pressing Enter
+    // Replace the pre-selected default "package.xml" (the .xml extension is added automatically).
+    await page.keyboard.type(editorManifestBase);
     await page.keyboard.press('Enter');
     await saveScreenshot(page, 'step1.after-accept-filename.png');
 
     // Wait for manifest file to be created and opened
-    const manifestEditor = page.locator(`${EDITOR}[data-uri*="manifest/package.xml"]`).first();
+    const manifestEditor = page.locator(`${EDITOR}[data-uri*="manifest/${editorManifestBase}.xml"]`).first();
     await manifestEditor.waitFor({ state: 'visible', timeout: 15_000 });
     await saveScreenshot(page, 'step1.manifest-opened.png');
 
     // Assert manifest file exists in explorer - focus explorer first, then look for file
     await focusOnFilesExplorer(page);
-    const manifestFile = page.getByRole('treeitem', { name: /package\.xml/i });
+    const manifestFile = page.getByRole('treeitem', { name: new RegExp(`${editorManifestBase}\\.xml`, 'i') });
     await expect(manifestFile).toBeVisible({ timeout: 10_000 });
     await saveScreenshot(page, 'step1.manifest-in-explorer.png');
 
@@ -97,19 +141,19 @@ test('Generate Manifest: generates via context menu entry points', async ({ page
     await saveScreenshot(page, 'step2.manifest-prompt-visible.png');
 
     // Type a different filename to avoid overwrite prompt
-    await page.keyboard.type('package2');
+    await page.keyboard.type(folderManifestBase);
     await saveScreenshot(page, 'step2.after-type-filename.png');
     await page.keyboard.press('Enter');
     await saveScreenshot(page, 'step2.after-accept-filename.png');
 
     // Wait for manifest file to be created and opened
-    const manifestEditor = page.locator(`${EDITOR}[data-uri*="manifest/package2.xml"]`).first();
+    const manifestEditor = page.locator(`${EDITOR}[data-uri*="manifest/${folderManifestBase}.xml"]`).first();
     await manifestEditor.waitFor({ state: 'visible', timeout: 15_000 });
     await saveScreenshot(page, 'step2.manifest-opened.png');
 
     // Assert manifest file exists in explorer - focus explorer first, then look for file
     await focusOnFilesExplorer(page);
-    const manifestFile = page.getByRole('treeitem', { name: /package2\.xml/i });
+    const manifestFile = page.getByRole('treeitem', { name: new RegExp(`${folderManifestBase}\\.xml`, 'i') });
     await expect(manifestFile).toBeVisible({ timeout: 10_000 });
     await saveScreenshot(page, 'step2.manifest-in-explorer.png');
   });

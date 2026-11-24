@@ -46,12 +46,9 @@ test('denies git --no-verify', () => {
 });
 
 test('denies git commit -n short no-verify spellings', () => {
-  [
-    'git commit -n -m "x"',
-    'git commit -nm "x"',
-    'git commit -qn -m "x"',
-    'git -C repo commit -n -m "x"'
-  ].forEach(command => assert.equal(commandDenial({ command, cwd: '/tmp' }), NO_VERIFY_REASON, command));
+  ['git commit -n -m "x"', 'git commit -nm "x"', 'git commit -qn -m "x"', 'git -C repo commit -n -m "x"'].forEach(
+    command => assert.equal(commandDenial({ command, cwd: '/tmp' }), NO_VERIFY_REASON, command)
+  );
 });
 
 test('denies git core.hooksPath overrides that skip hooks', () => {

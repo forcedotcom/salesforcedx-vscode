@@ -15,7 +15,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "68.15.5",
+  "version": "68.15.6",
   "publisher": "salesforce",
   "o11yUploadEndpoint": "https://794testsite.my.site.com/byolwr/webruntime/log/metrics",
   "enableO11y": "true",
@@ -43,10 +43,10 @@
     "@opentelemetry/sdk-trace-node": "2.8.0",
     "@opentelemetry/sdk-trace-web": "2.8.0",
     "@salesforce/apex-node": "workspace:*",
-    "@salesforce/core": "^9.4.1",
+    "@salesforce/core": "^9.6.0",
     "@salesforce/o11y-reporter": "^1.8.5",
     "@salesforce/salesforcedx-utils": "workspace:*",
-    "@salesforce/source-deploy-retrieve": "^13.13.0",
+    "@salesforce/source-deploy-retrieve": "^13.14.1",
     "@salesforce/source-tracking": "^8.1.16",
     "@salesforce/templates": "^66.19.0",
     "@salesforce/vscode-i18n": "workspace:*",
@@ -77,6 +77,7 @@
     "clean": "shx rm -rf node_modules out dist coverage .nyc_output .wireit .eslintcache *.vsix .circular-deps.json resources",
     "test": "wireit",
     "run:web": "wireit",
+    "test:container": "wireit",
     "test:web": "wireit",
     "test:web:ui": "DEBUG_MODE=1 pnpm --dir ../.. --filter ./packages/salesforcedx-vscode-services test:web --headed",
     "test:web:debug": "pnpm --dir ../.. --filter ./packages/salesforcedx-vscode-services test:web --debug",
@@ -248,6 +249,28 @@
       "output": [
         "*.vsix"
       ]
+    },
+    "test:container": {
+      "command": "playwright test --config=test/playwright/playwright.config.container.ts",
+      "env": {
+        "CODE_BUILDER_URL": {
+          "external": true
+        },
+        "CB_GREP": {
+          "external": true
+        },
+        "CB_UNDER_TEST": {
+          "external": true
+        }
+      },
+      "dependencies": [
+        "../playwright-vscode-ext:compile"
+      ],
+      "files": [
+        "test/playwright/**",
+        "package*.json"
+      ],
+      "output": []
     },
     "test:web": {
       "command": "playwright test --config=test/playwright/playwright.config.web.ts",
