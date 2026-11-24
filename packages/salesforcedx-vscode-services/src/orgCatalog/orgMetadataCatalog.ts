@@ -25,6 +25,12 @@ import { ProjectService } from '../core/projectService';
 import { QueryService } from '../core/queryService';
 import { orgIdFromConnection } from '../core/schemas/authFields';
 import { TransmogrifierService } from '../core/transmogrifierService';
+import {
+  ApexSourceTypeSchema,
+  apexSourceSoqlWhere,
+  apexSourceToolingIdentity,
+  type ApexSourceType
+} from './apexSourceTooling';
 import { makeOrgCatalogInventory } from './orgCatalogInventory';
 import { findInventoryComponent } from './orgCatalogKeys';
 import { OrgCatalogState } from './orgCatalogState';
@@ -62,27 +68,12 @@ const toCatalogEntry = (entry: OrgMetadataCatalogInternalEntry): OrgMetadataCata
     ? { ...entry, reference: { type: entry.reference.xmlName } }
     : { ...entry, reference: { type: entry.reference.xmlName, fullName: entry.reference.fullName } };
 
-const escapeSoql = (value: string): string => value.replaceAll('\\', '\\\\').replaceAll("'", "\\'");
-
-type ApexSourceType = 'ApexClass' | 'ApexTrigger';
 type ApexSourceReference = OrgMetadataCatalogComponentReference & { readonly type: ApexSourceType };
 
+const isApexSourceType = Schema.is(ApexSourceTypeSchema);
+
 const isApexSourceReference = (reference: OrgMetadataCatalogComponentReference): reference is ApexSourceReference =>
-  reference.type === 'ApexClass' || reference.type === 'ApexTrigger';
-
-const apexSourceQuery = (type: ApexSourceType, name: string, namespacePrefix: string | null): string =>
-  `SELECT Id FROM ${type} WHERE Name = '${escapeSoql(name)}' AND NamespacePrefix = ${
-    namespacePrefix === null ? 'null' : `'${escapeSoql(namespacePrefix)}'`
-  } LIMIT 1`;
-
-const apexSourceToolingIdentity = (
-  fullName: string
-): { readonly name: string; readonly namespacePrefix: string | null } => {
-  const separatorIndex = fullName.indexOf('__');
-  return separatorIndex === -1
-    ? { name: fullName, namespacePrefix: null }
-    : { name: fullName.slice(separatorIndex + '__'.length), namespacePrefix: fullName.slice(0, separatorIndex) };
-};
+  isApexSourceType(reference.type);
 
 /**
  * Canonical, services-owned inventory and content catalog for metadata in the
@@ -150,7 +141,7 @@ export class OrgMetadataCatalog extends Effect.Service<OrgMetadataCatalog>()('Or
       orgId: string,
       reference: ApexSourceReference
     ) {
-      const { name, namespacePrefix } = apexSourceToolingIdentity(reference.fullName);
+      const identity = apexSourceToolingIdentity(reference.fullName);
       yield* state.ensureHydrated(orgId);
       const [loaded, persisted] = yield* Effect.all([
         state.getInventory(orgId, reference.type),
@@ -158,12 +149,12 @@ export class OrgMetadataCatalog extends Effect.Service<OrgMetadataCatalog>()('Or
       ]);
       const internalReference = toInternalComponentReference(reference);
       const recorded =
-        findInventoryComponent(loaded?.components ?? HashMap.empty(), internalReference, namespacePrefix)?.inOrg ===
-          true ||
+        findInventoryComponent(loaded?.components ?? HashMap.empty(), internalReference, identity.namespacePrefix)
+          ?.inOrg === true ||
         persisted?.components.some(
           component =>
             component.fullName === reference.fullName &&
-            ('namespacePrefix' in component ? (component.namespacePrefix ?? null) : null) === namespacePrefix
+            ('namespacePrefix' in component ? (component.namespacePrefix ?? null) : null) === identity.namespacePrefix
         ) === true;
       if (recorded) {
         // Ensure cached evidence still belongs to the active org before reporting it available.
@@ -183,7 +174,11 @@ export class OrgMetadataCatalog extends Effect.Service<OrgMetadataCatalog>()('Or
       }
       const resultExit = yield* queryService
         .query(
-          { soql: apexSourceQuery(reference.type, name, namespacePrefix), tooling: true, orgId },
+          {
+            soql: `SELECT Id FROM ${reference.type} WHERE ${apexSourceSoqlWhere(identity)} LIMIT 1`,
+            tooling: true,
+            orgId
+          },
           Schema.Struct({ Id: Schema.String })
         )
         .pipe(
@@ -194,7 +189,7 @@ export class OrgMetadataCatalog extends Effect.Service<OrgMetadataCatalog>()('Or
                   {
                     type: reference.type,
                     fullName: reference.fullName,
-                    ...(namespacePrefix !== null ? { namespacePrefix } : {})
+                    ...(identity.namespacePrefix !== null ? { namespacePrefix: identity.namespacePrefix } : {})
                   }
                 ])
               : Effect.void
@@ -205,7 +200,7 @@ export class OrgMetadataCatalog extends Effect.Service<OrgMetadataCatalog>()('Or
         Effect.zipRight(Ref.update(inFlightApexSourceLookups, HashMap.remove(key)))
       );
       const found = yield* Exit.match(resultExit, { onFailure: Effect.failCause, onSuccess: Effect.succeed });
-      yield* Effect.annotateCurrentSpan({ found, namespaceQualified: namespacePrefix !== null });
+      yield* Effect.annotateCurrentSpan({ found, namespaceQualified: identity.namespacePrefix !== null });
       return found;
     });
 

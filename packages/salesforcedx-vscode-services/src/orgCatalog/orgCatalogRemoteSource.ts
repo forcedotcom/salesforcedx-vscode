@@ -22,6 +22,7 @@ import { MetadataRetrieveService } from '../core/metadataRetrieveService';
 import { ProjectService } from '../core/projectService';
 import { QueryService } from '../core/queryService';
 import { FsService } from '../vscode/fsService';
+import { apexSourceSoqlWhere, apexSourceToolingIdentity } from './apexSourceTooling';
 import { makeOrgCatalogInventory } from './orgCatalogInventory';
 import { OrgCatalogRemoteRetrieve } from './orgCatalogRemoteRetrieve';
 import { OrgCatalogState } from './orgCatalogState';
@@ -29,15 +30,6 @@ import { OrgMetadataCatalogError } from './orgMetadataCatalogErrors';
 import { OrgMetadataCatalogRecorder } from './orgMetadataCatalogRecorder';
 import { documentUri, type OrgMetadataComponentReference } from './orgMetadataReference';
 import { OrgMetadataShadowStore } from './orgMetadataShadowStore';
-
-const escapeSoql = (value: string): string => value.replaceAll('\\', '\\\\').replaceAll("'", "\\'");
-
-const apexClassToolingIdentity = (fullName: string): { name: string; namespacePrefix: string | undefined } => {
-  const separator = fullName.indexOf('__');
-  return separator > 0
-    ? { name: fullName.slice(separator + 2), namespacePrefix: fullName.slice(0, separator) }
-    : { name: fullName, namespacePrefix: undefined };
-};
 
 export class OrgCatalogRemoteSource extends Effect.Service<OrgCatalogRemoteSource>()('OrgCatalogRemoteSource', {
   accessors: true,
@@ -78,15 +70,11 @@ export class OrgCatalogRemoteSource extends Effect.Service<OrgCatalogRemoteSourc
       orgId: string,
       reference: OrgMetadataComponentReference
     ) {
-      const { name, namespacePrefix } = apexClassToolingIdentity(reference.fullName);
+      const identity = apexSourceToolingIdentity(reference.fullName);
       const record = yield* queryService
         .query(
           {
-            soql: `SELECT Body, LastModifiedDate FROM ApexClass WHERE Name = '${escapeSoql(name)}'${
-              namespacePrefix
-                ? ` AND NamespacePrefix = '${escapeSoql(namespacePrefix)}'`
-                : ' AND NamespacePrefix = null'
-            } LIMIT 1`,
+            soql: `SELECT Body, LastModifiedDate FROM ApexClass WHERE ${apexSourceSoqlWhere(identity)} LIMIT 1`,
             tooling: true,
             orgId
           },
