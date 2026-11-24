@@ -23,11 +23,16 @@ import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import { ConnectionService, InactiveOrgOperationError } from '../../../src/core/connectionService';
 import { getDefaultOrgRef } from '../../../src/core/defaultOrgRef';
-import { ListMetadataError, MetadataDescribeService } from '../../../src/core/metadataDescribeService';
+import {
+  ListMetadataError,
+  MetadataDescribeError,
+  MetadataDescribeService
+} from '../../../src/core/metadataDescribeService';
 import { MetadataRegistryService } from '../../../src/core/metadataRegistryService';
 import { MetadataChangeNotificationService } from '../../../src/core/metadataChangeNotificationService';
 import { MetadataRetrieveService } from '../../../src/core/metadataRetrieveService';
 import { ProjectService } from '../../../src/core/projectService';
+import { QueryService } from '../../../src/core/queryService';
 import { TransmogrifierService } from '../../../src/core/transmogrifierService';
 import { OrgId } from '../../../src/core/schemas/salesforceId';
 import type { SObject } from '../../../src/core/schemas/sObject';
@@ -47,6 +52,7 @@ import type * as metadataDescribeService from '../../../src/core/metadataDescrib
 import type * as metadataRegistryService from '../../../src/core/metadataRegistryService';
 import type * as metadataRetrieveService from '../../../src/core/metadataRetrieveService';
 import type * as projectService from '../../../src/core/projectService';
+import type * as queryService from '../../../src/core/queryService';
 import type * as transmogrifierService from '../../../src/core/transmogrifierService';
 import type * as orgMetadataCatalogStore from '../../../src/orgCatalog/orgMetadataCatalogStore';
 
@@ -108,6 +114,15 @@ vi.mock('../../../src/core/projectService', async () => {
     })
   };
 });
+vi.mock('../../../src/core/queryService', async () => {
+  const actual = await vi.importActual<typeof queryService>('../../../src/core/queryService');
+  return {
+    ...actual,
+    QueryService: Object.defineProperty(actual.QueryService, 'Default', {
+      value: (await vi.importActual<typeof Layer>('effect/Layer')).effect(actual.QueryService, actual.QueryService)
+    })
+  };
+});
 vi.mock('../../../src/core/transmogrifierService', async () => {
   const actual = await vi.importActual<typeof transmogrifierService>('../../../src/core/transmogrifierService');
   return {
@@ -155,11 +170,19 @@ type HarnessOptions = {
   readonly workspaceComponents?: readonly WorkspaceComponent[];
   readonly sobjects?: readonly { readonly name: string; readonly custom: boolean; readonly queryable: boolean }[];
   readonly descriptions?: Readonly<Record<string, SObject>>;
+  readonly toolingArtifacts?: readonly {
+    readonly type: 'ApexClass' | 'ApexTrigger';
+    readonly fullName: string;
+    readonly name: string;
+    readonly namespacePrefix: string | null;
+  }[];
   readonly catalogSnapshots?: Map<string, OrgMetadataCatalogSnapshot>;
   readonly storeLoadError?: Error;
   readonly storeSaveError?: Error;
   readonly connectionOrgId?: string;
   readonly listMetadataError?: InactiveOrgOperationError;
+  readonly toolingQueryError?: InactiveOrgOperationError;
+  readonly toolingQueryDelay?: boolean;
   readonly failListMetadataTypes?: readonly string[];
 };
 
@@ -231,9 +254,12 @@ const makeHarness = (options: HarnessOptions = {}) => {
   const listMetadataFolders = vi.fn((xmlName: string, _expectedOrgId?: string) =>
     Effect.succeed([...(options.metadataFoldersByType?.[xmlName] ?? metadataByType[`${xmlName}Folder`] ?? [])])
   );
-  const describeCustomObject = vi.fn((apiName: string) =>
-    Effect.succeed(descriptions[apiName] ?? emptySObject(apiName))
-  );
+  const describeCustomObject = vi.fn((apiName: string) => {
+    const description = descriptions[apiName];
+    return description instanceof MetadataDescribeError
+      ? Effect.fail(description)
+      : Effect.succeed(description ?? emptySObject(apiName));
+  });
   const describeCustomObjects = vi.fn((apiNames: readonly string[]) =>
     Effect.succeed(Stream.fromIterable(apiNames.map(apiName => descriptions[apiName] ?? emptySObject(apiName))))
   );
@@ -247,6 +273,25 @@ const makeHarness = (options: HarnessOptions = {}) => {
     Effect.succeed({
       getSourceComponents: () => workspaceComponents
     })
+  );
+  const query = vi.fn((queryOptions: { readonly soql: string }) =>
+    options.toolingQueryError
+      ? Effect.fail(options.toolingQueryError)
+      : Effect.succeed({
+          totalSize: options.toolingArtifacts?.some(
+            artifact =>
+              queryOptions.soql.includes(`FROM ${artifact.type}`) &&
+              queryOptions.soql.includes(`Name = '${artifact.name}'`) &&
+              queryOptions.soql.includes(
+                artifact.namespacePrefix === null
+                  ? 'NamespacePrefix = null'
+                  : `NamespacePrefix = '${artifact.namespacePrefix}'`
+              )
+          )
+            ? 1
+            : 0,
+          records: Stream.empty
+        }).pipe(options.toolingQueryDelay ? Effect.delay('5 millis') : effect => effect)
   );
   const catalogSnapshots = options.catalogSnapshots ?? new Map<string, OrgMetadataCatalogSnapshot>();
   const storeLoad = vi.fn((orgId: string) =>
@@ -320,6 +365,7 @@ const makeHarness = (options: HarnessOptions = {}) => {
         }),
       getProjectNamespace: () => Effect.succeed(null)
     } as unknown as InstanceType<typeof ProjectService>),
+    Layer.succeed(QueryService, { query } as unknown as InstanceType<typeof QueryService>),
     Layer.succeed(TransmogrifierService, {
       toMinimalSObject: (value: SObject) => Effect.succeed(value)
     } as unknown as InstanceType<typeof TransmogrifierService>)
@@ -344,6 +390,7 @@ const makeHarness = (options: HarnessOptions = {}) => {
       listMetadata,
       listMetadataFolders,
       listSObjects,
+      query,
       storeLoad,
       storeSave
     }
@@ -373,12 +420,576 @@ const getEntry = (
     .pipe(Effect.map(entries => entries[0]));
 
 describe('OrgMetadataCatalog contract', () => {
+  it('finds component and SObject records from catalog evidence', async () => {
+    const accountDescription = emptySObject('Account');
+    const { layer, mocks } = makeHarness({
+      metadataByType: { CustomObject: [{ fullName: 'Account' }] },
+      descriptions: { Account: accountDescription },
+      sobjects: [{ name: 'Account', custom: false, queryable: true }]
+    });
+
+    const results = await runWithCatalog(layer, catalog =>
+      catalog.find({
+        evidence: [{ type: 'CustomObject', fullName: 'Account' }],
+        resultKinds: ['component', 'sobject']
+      })
+    );
+
+    expect(results).toEqual([
+      expect.objectContaining({
+        _tag: 'component',
+        entry: expect.objectContaining({ reference: { type: 'CustomObject', fullName: 'Account' } })
+      }),
+      expect.objectContaining({
+        _tag: 'sobject',
+        description: expect.objectContaining({ name: 'Account', provenance: 'rest-api' })
+      })
+    ]);
+    expect(mocks.describeCustomObject).toHaveBeenCalledWith('Account', '00D000000000001');
+  });
+
+  it('returns no results without acquisition when evidence or result kinds are empty', async () => {
+    const { layer, mocks } = makeHarness();
+
+    const [emptyEvidence, emptyResultKinds] = await runWithCatalog(layer, catalog =>
+      Effect.all([
+        catalog.find({ evidence: [], resultKinds: ['component'] }),
+        catalog.find({ evidence: [{ type: 'ApexClass', fullName: 'Ignored' }], resultKinds: [] })
+      ])
+    );
+
+    expect(emptyEvidence).toEqual([]);
+    expect(emptyResultKinds).toEqual([]);
+    expect(mocks.query).not.toHaveBeenCalled();
+    expect(mocks.listMetadata).not.toHaveBeenCalled();
+    expect(mocks.describeCustomObject).not.toHaveBeenCalled();
+    expect(mocks.storeLoad).not.toHaveBeenCalled();
+    expect(mocks.storeSave).not.toHaveBeenCalled();
+  });
+
+  it('preserves evidence order and emits component before SObject results', async () => {
+    const { layer } = makeHarness({
+      toolingArtifacts: [{ type: 'ApexClass', fullName: 'RemoteClass', name: 'RemoteClass', namespacePrefix: null }],
+      descriptions: { Account: emptySObject('Account') }
+    });
+
+    const results = await runWithCatalog(layer, catalog =>
+      catalog.find({
+        evidence: [
+          { type: 'ApexClass', fullName: 'RemoteClass' },
+          { type: 'CustomObject', fullName: 'Account' },
+          { type: 'ApexClass', fullName: 'MissingClass' }
+        ],
+        resultKinds: ['component', 'sobject']
+      })
+    );
+
+    expect(results.map(result => [result._tag, result.reference.fullName])).toEqual([
+      ['component', 'RemoteClass'],
+      ['not-found', 'Account'],
+      ['sobject', 'Account'],
+      ['not-found', 'MissingClass']
+    ]);
+  });
+
+  it('finds an SObject without acquiring component inventory', async () => {
+    const { layer, mocks } = makeHarness({
+      descriptions: { Account: emptySObject('Account') },
+      sobjects: [{ name: 'Account', custom: false, queryable: true }]
+    });
+
+    const results = await runWithCatalog(layer, catalog =>
+      catalog.find({
+        evidence: [{ type: 'CustomObject', fullName: 'Account' }],
+        resultKinds: ['sobject']
+      })
+    );
+
+    expect(results).toEqual([
+      expect.objectContaining({ _tag: 'sobject', description: expect.objectContaining({ name: 'Account' }) })
+    ]);
+    expect(mocks.listMetadata).not.toHaveBeenCalled();
+    expect(mocks.buildComponentSetFromSource).not.toHaveBeenCalled();
+  });
+
+  it('returns a typed miss when SObject evidence is absent from the org', async () => {
+    const { layer, mocks } = makeHarness({
+      descriptions: {
+        Missing__c: new MetadataDescribeError({
+          cause: new Error('The requested resource does not exist'),
+          function: 'describeCustomObject',
+          objectName: 'Missing__c',
+          notFound: true,
+          message: 'SObject Missing__c was not found'
+        }) as never
+      }
+    });
+
+    const results = await runWithCatalog(layer, catalog =>
+      catalog.find({
+        evidence: [{ type: 'CustomObject', fullName: 'Missing__c' }],
+        resultKinds: ['sobject']
+      })
+    );
+
+    expect(results).toEqual([
+      { _tag: 'not-found', reference: { type: 'CustomObject', fullName: 'Missing__c' }, resultKind: 'sobject' }
+    ]);
+    expect(mocks.describeCustomObject).toHaveBeenCalledWith('Missing__c', '00D000000000001');
+    expect(mocks.listSObjects).not.toHaveBeenCalled();
+  });
+
+  it('returns a typed miss when component evidence is absent from the catalog', async () => {
+    const { layer } = makeHarness();
+
+    const results = await runWithCatalog(layer, catalog =>
+      catalog.find({
+        evidence: [{ type: 'ApexClass', fullName: 'MissingClass' }],
+        resultKinds: ['component']
+      })
+    );
+
+    expect(results).toEqual([
+      { _tag: 'not-found', reference: { type: 'ApexClass', fullName: 'MissingClass' }, resultKind: 'component' }
+    ]);
+  });
+
+  it('finds a workspace component without acquiring org metadata inventory', async () => {
+    const { layer, mocks } = makeHarness({
+      workspaceComponents: [
+        {
+          type: { name: 'CustomObject' },
+          fullName: 'Local__c',
+          xml: '/workspace/force-app/main/default/objects/Local__c/Local__c.object-meta.xml'
+        }
+      ]
+    });
+
+    const results = await runWithCatalog(layer, catalog =>
+      catalog.find({
+        evidence: [{ type: 'CustomObject', fullName: 'Local__c' }],
+        resultKinds: ['component']
+      })
+    );
+
+    expect(results).toEqual([
+      expect.objectContaining({
+        _tag: 'component',
+        entry: expect.objectContaining({ inOrg: false, inWorkspace: true, provenance: 'workspace' })
+      })
+    ]);
+    expect(mocks.listMetadata).not.toHaveBeenCalled();
+  });
+
+  it('checks a namespaced Apex class in the org after finding its exact workspace component', async () => {
+    const { layer, mocks } = makeHarness({
+      toolingArtifacts: [{ type: 'ApexClass', fullName: 'B__Foo', name: 'Foo', namespacePrefix: 'B' }],
+      workspaceComponents: [
+        {
+          type: { name: 'ApexClass' },
+          fullName: 'B__Foo',
+          content: '/workspace/force-app/main/default/classes/Foo.cls'
+        }
+      ]
+    });
+
+    const results = await runWithCatalog(layer, catalog =>
+      catalog.find({
+        evidence: [
+          {
+            type: 'ApexClass',
+            fullName: 'B__Foo'
+          }
+        ],
+        resultKinds: ['component']
+      })
+    );
+
+    expect(results).toEqual([
+      expect.objectContaining({
+        _tag: 'component',
+        entry: expect.objectContaining({ inOrg: true, inWorkspace: true, provenance: 'metadata-api+workspace' })
+      })
+    ]);
+    expect(mocks.query).toHaveBeenCalledWith(
+      expect.objectContaining({
+        orgId: '00D000000000001',
+        tooling: true,
+        soql: "SELECT Id FROM ApexClass WHERE Name = 'Foo' AND NamespacePrefix = 'B' LIMIT 1"
+      }),
+      expect.anything()
+    );
+    expect(mocks.listMetadata).not.toHaveBeenCalled();
+  });
+
+  it('uses an unpackaged namespace predicate for an Apex class found only in the org', async () => {
+    const { layer, mocks } = makeHarness({
+      toolingArtifacts: [
+        { type: 'ApexClass', fullName: 'UnpackagedClass', name: 'UnpackagedClass', namespacePrefix: null }
+      ]
+    });
+
+    const results = await runWithCatalog(layer, catalog =>
+      catalog.find({
+        evidence: [
+          {
+            type: 'ApexClass',
+            fullName: 'UnpackagedClass'
+          }
+        ],
+        resultKinds: ['component']
+      })
+    );
+
+    expect(results).toEqual([
+      expect.objectContaining({
+        _tag: 'component',
+        entry: expect.objectContaining({ inOrg: true, inWorkspace: false, provenance: 'tooling-api' })
+      })
+    ]);
+    expect(mocks.query).toHaveBeenCalledWith(
+      expect.objectContaining({
+        soql: "SELECT Id FROM ApexClass WHERE Name = 'UnpackagedClass' AND NamespacePrefix = null LIMIT 1"
+      }),
+      expect.anything()
+    );
+    expect(mocks.listMetadata).not.toHaveBeenCalled();
+  });
+
+  it('returns a typed miss for an Apex class absent from workspace and org', async () => {
+    const { layer, mocks } = makeHarness();
+
+    const results = await runWithCatalog(layer, catalog =>
+      catalog.find({
+        evidence: [{ type: 'ApexClass', fullName: 'MissingClass' }],
+        resultKinds: ['component']
+      })
+    );
+
+    expect(results).toEqual([
+      { _tag: 'not-found', reference: { type: 'ApexClass', fullName: 'MissingClass' }, resultKind: 'component' }
+    ]);
+    expect(mocks.listMetadata).not.toHaveBeenCalled();
+  });
+
+  it('finds an Apex trigger in both the workspace and org', async () => {
+    const { layer, mocks } = makeHarness({
+      toolingArtifacts: [
+        { type: 'ApexTrigger', fullName: 'InvoiceTrigger', name: 'InvoiceTrigger', namespacePrefix: null }
+      ],
+      workspaceComponents: [
+        {
+          type: { name: 'ApexTrigger' },
+          fullName: 'InvoiceTrigger',
+          content: '/workspace/force-app/main/default/triggers/InvoiceTrigger.trigger'
+        }
+      ]
+    });
+
+    const results = await runWithCatalog(layer, catalog =>
+      catalog.find({
+        evidence: [{ type: 'ApexTrigger', fullName: 'InvoiceTrigger' }],
+        resultKinds: ['component']
+      })
+    );
+
+    expect(results).toEqual([
+      expect.objectContaining({
+        _tag: 'component',
+        entry: expect.objectContaining({
+          reference: { type: 'ApexTrigger', fullName: 'InvoiceTrigger' },
+          inOrg: true,
+          inWorkspace: true,
+          documentUri: URI.file('/workspace/force-app/main/default/triggers/InvoiceTrigger.trigger')
+        })
+      })
+    ]);
+    expect(mocks.query).toHaveBeenCalledWith(
+      expect.objectContaining({
+        orgId: '00D000000000001',
+        tooling: true,
+        soql: "SELECT Id FROM ApexTrigger WHERE Name = 'InvoiceTrigger' AND NamespacePrefix = null LIMIT 1"
+      }),
+      expect.anything()
+    );
+    expect(mocks.listMetadata).not.toHaveBeenCalled();
+  });
+
+  it('finds a namespaced Apex trigger only in the org', async () => {
+    const { layer, mocks } = makeHarness({
+      toolingArtifacts: [
+        { type: 'ApexTrigger', fullName: 'B__InvoiceTrigger', name: 'InvoiceTrigger', namespacePrefix: 'B' }
+      ]
+    });
+
+    const results = await runWithCatalog(layer, catalog =>
+      catalog.find({
+        evidence: [{ type: 'ApexTrigger', fullName: 'B__InvoiceTrigger' }],
+        resultKinds: ['component']
+      })
+    );
+
+    expect(results).toEqual([
+      expect.objectContaining({
+        _tag: 'component',
+        entry: expect.objectContaining({
+          reference: { type: 'ApexTrigger', fullName: 'B__InvoiceTrigger' },
+          inOrg: true,
+          inWorkspace: false,
+          documentUri: URI.parse('sf-org-metadata:/orgs/00D000000000001/ApexTrigger/B__InvoiceTrigger.trigger')
+        })
+      })
+    ]);
+    expect(mocks.query).toHaveBeenCalledWith(
+      expect.objectContaining({
+        soql: "SELECT Id FROM ApexTrigger WHERE Name = 'InvoiceTrigger' AND NamespacePrefix = 'B' LIMIT 1"
+      }),
+      expect.anything()
+    );
+    expect(mocks.listMetadata).not.toHaveBeenCalled();
+  });
+
+  it('coalesces duplicate and concurrent Apex source find requests', async () => {
+    const { layer, mocks } = makeHarness({
+      toolingArtifacts: [{ type: 'ApexClass', fullName: 'RemoteClass', name: 'RemoteClass', namespacePrefix: null }],
+      toolingQueryDelay: true
+    });
+
+    const [first, second] = await runWithCatalog(layer, catalog =>
+      Effect.all(
+        [
+          catalog.find({
+            evidence: [
+              { type: 'ApexClass', fullName: 'RemoteClass' },
+              { type: 'ApexClass', fullName: 'RemoteClass' }
+            ],
+            resultKinds: ['component']
+          }),
+          catalog.find({
+            evidence: [{ type: 'ApexClass', fullName: 'RemoteClass' }],
+            resultKinds: ['component']
+          })
+        ],
+        { concurrency: 'unbounded' }
+      )
+    );
+
+    expect(first).toHaveLength(2);
+    expect(second).toHaveLength(1);
+    expect(mocks.query).toHaveBeenCalledTimes(1);
+  });
+
+  it('coalesces duplicate and concurrent Apex source misses without persisting them', async () => {
+    const { layer, mocks } = makeHarness({ toolingQueryDelay: true });
+
+    const [first, second] = await runWithCatalog(layer, catalog =>
+      Effect.all(
+        [
+          catalog.find({
+            evidence: [
+              { type: 'ApexTrigger', fullName: 'MissingTrigger' },
+              { type: 'ApexTrigger', fullName: 'MissingTrigger' }
+            ],
+            resultKinds: ['component']
+          }),
+          catalog.find({
+            evidence: [{ type: 'ApexTrigger', fullName: 'MissingTrigger' }],
+            resultKinds: ['component']
+          })
+        ],
+        { concurrency: 'unbounded' }
+      )
+    );
+
+    expect(first.map(result => result._tag)).toEqual(['not-found', 'not-found']);
+    expect(second.map(result => result._tag)).toEqual(['not-found']);
+    expect(mocks.query).toHaveBeenCalledTimes(1);
+
+    expect(mocks.storeSave).not.toHaveBeenCalled();
+  });
+
+  it('does not promote a warmed workspace-only Apex source inventory to org presence', async () => {
+    const { layer, mocks } = makeHarness({
+      workspaceComponents: [
+        {
+          type: { name: 'ApexClass' },
+          fullName: 'WorkspaceOnlyClass',
+          content: '/workspace/force-app/main/default/classes/WorkspaceOnlyClass.cls'
+        }
+      ]
+    });
+
+    const results = await runWithCatalog(layer, catalog =>
+      Effect.gen(function* () {
+        yield* catalog.getChildren({ type: 'ApexClass' });
+        return yield* catalog.find({
+          evidence: [{ type: 'ApexClass', fullName: 'WorkspaceOnlyClass' }],
+          resultKinds: ['component']
+        });
+      })
+    );
+
+    expect(results).toEqual([
+      expect.objectContaining({
+        _tag: 'component',
+        entry: expect.objectContaining({ inOrg: false, inWorkspace: true, provenance: 'workspace' })
+      })
+    ]);
+    expect(mocks.query).toHaveBeenCalledTimes(1);
+  });
+
+  it('reuses a persisted Apex source discovery without another Tooling query', async () => {
+    const catalogSnapshots = new Map<string, OrgMetadataCatalogSnapshot>();
+    const first = makeHarness({
+      catalogSnapshots,
+      toolingArtifacts: [
+        { type: 'ApexTrigger', fullName: 'RemoteTrigger', name: 'RemoteTrigger', namespacePrefix: null }
+      ]
+    });
+
+    await runWithCatalog(first.layer, catalog =>
+      catalog.find({
+        evidence: [{ type: 'ApexTrigger', fullName: 'RemoteTrigger' }],
+        resultKinds: ['component']
+      })
+    );
+
+    const restarted = makeHarness({ catalogSnapshots });
+    const results = await runWithCatalog(restarted.layer, catalog =>
+      catalog.find({
+        evidence: [{ type: 'ApexTrigger', fullName: 'RemoteTrigger' }],
+        resultKinds: ['component']
+      })
+    );
+
+    expect(results).toEqual([
+      expect.objectContaining({
+        _tag: 'component',
+        entry: expect.objectContaining({ inOrg: true, inWorkspace: false, provenance: 'tooling-api' })
+      })
+    ]);
+    expect(restarted.mocks.query).not.toHaveBeenCalled();
+  });
+
+  it('retains persisted Apex source discoveries after recording another source', async () => {
+    const catalogSnapshots = new Map<string, OrgMetadataCatalogSnapshot>();
+    const first = makeHarness({
+      catalogSnapshots,
+      toolingArtifacts: [{ type: 'ApexClass', fullName: 'FirstClass', name: 'FirstClass', namespacePrefix: null }]
+    });
+
+    await runWithCatalog(first.layer, catalog =>
+      catalog.find({ evidence: [{ type: 'ApexClass', fullName: 'FirstClass' }], resultKinds: ['component'] })
+    );
+
+    const second = makeHarness({
+      catalogSnapshots,
+      toolingArtifacts: [{ type: 'ApexClass', fullName: 'SecondClass', name: 'SecondClass', namespacePrefix: null }]
+    });
+    await runWithCatalog(second.layer, catalog =>
+      catalog.find({ evidence: [{ type: 'ApexClass', fullName: 'SecondClass' }], resultKinds: ['component'] })
+    );
+
+    const restarted = makeHarness({ catalogSnapshots });
+    const results = await runWithCatalog(restarted.layer, catalog =>
+      catalog.find({
+        evidence: [
+          { type: 'ApexClass', fullName: 'FirstClass' },
+          { type: 'ApexClass', fullName: 'SecondClass' }
+        ],
+        resultKinds: ['component']
+      })
+    );
+
+    expect(results.map(result => result._tag)).toEqual(['component', 'component']);
+    expect(restarted.mocks.query).not.toHaveBeenCalled();
+  });
+
+  it('keeps namespaced and unpackaged Apex source identities distinct', async () => {
+    const { layer, mocks } = makeHarness({
+      toolingArtifacts: [{ type: 'ApexClass', fullName: 'B__SharedName', name: 'SharedName', namespacePrefix: 'B' }]
+    });
+
+    const results = await runWithCatalog(layer, catalog =>
+      catalog.find({
+        evidence: [
+          { type: 'ApexClass', fullName: 'SharedName' },
+          { type: 'ApexClass', fullName: 'B__SharedName' }
+        ],
+        resultKinds: ['component']
+      })
+    );
+
+    expect(results.map(result => result._tag)).toEqual(['not-found', 'component']);
+    expect(mocks.query).toHaveBeenNthCalledWith(
+      1,
+      expect.objectContaining({
+        soql: "SELECT Id FROM ApexClass WHERE Name = 'SharedName' AND NamespacePrefix = null LIMIT 1"
+      }),
+      expect.anything()
+    );
+    expect(mocks.query).toHaveBeenNthCalledWith(
+      2,
+      expect.objectContaining({
+        soql: "SELECT Id FROM ApexClass WHERE Name = 'SharedName' AND NamespacePrefix = 'B' LIMIT 1"
+      }),
+      expect.anything()
+    );
+  });
+
+  it('preserves case in Apex source lookup evidence', async () => {
+    const { layer, mocks } = makeHarness();
+
+    await runWithCatalog(layer, catalog =>
+      catalog.find({
+        evidence: [{ type: 'ApexClass', fullName: 'MixedCaseClass' }],
+        resultKinds: ['component']
+      })
+    );
+
+    expect(mocks.query).toHaveBeenCalledWith(
+      expect.objectContaining({
+        soql: "SELECT Id FROM ApexClass WHERE Name = 'MixedCaseClass' AND NamespacePrefix = null LIMIT 1"
+      }),
+      expect.anything()
+    );
+  });
+
+  it('propagates active-org changes during Apex source lookup', async () => {
+    const { layer, mocks } = makeHarness({
+      toolingQueryError: new InactiveOrgOperationError({
+        message: "The active org changed while an operation for '00D000000000001' was in progress",
+        expectedOrgId: '00D000000000001',
+        observedOrgId: '00D000000000002'
+      })
+    });
+
+    const exit = await Effect.runPromiseExit(
+      Effect.gen(function* () {
+        yield* setOrg('00D000000000001');
+        return yield* (yield* OrgMetadataCatalog).find({
+          evidence: [{ type: 'ApexTrigger', fullName: 'RemoteTrigger' }],
+          resultKinds: ['component']
+        });
+      }).pipe(Effect.provide(layer))
+    );
+
+    expect(Exit.isFailure(exit)).toBe(true);
+    if (!Exit.isFailure(exit)) return;
+    expect(Cause.failureOption(exit.cause).pipe(Option.getOrUndefined)).toMatchObject({
+      _tag: 'InactiveOrgOperationError',
+      expectedOrgId: '00D000000000001',
+      observedOrgId: '00D000000000002'
+    });
+    expect(mocks.storeSave).not.toHaveBeenCalled();
+  });
+
   it('exposes only consumer-shaped operations', async () => {
     const { layer } = makeHarness();
 
     const keys = await runWithCatalog(layer, catalog => Effect.succeed(Object.keys(catalog).toSorted()));
 
-    expect(keys).toEqual(['getChildren', 'getEntries', 'hasTypeInventory', 'resolveComponents']);
+    expect(keys).toEqual(['find', 'getChildren', 'getEntries', 'hasTypeInventory', 'resolveComponents']);
   });
 
   it('resolves consumer-known components during startup before the default org ref is populated', async () => {
@@ -450,6 +1061,23 @@ describe('OrgMetadataCatalog contract', () => {
         ]
       })
     );
+  });
+
+  it('reopens a persisted consumer-discovered component without acquiring Metadata API inventory', async () => {
+    const catalogSnapshots = new Map<string, OrgMetadataCatalogSnapshot>();
+    const first = makeHarness({ catalogSnapshots });
+
+    await runWithCatalog(first.layer, catalog =>
+      catalog.resolveComponents([{ type: 'ApexClass', fullName: 'RemoteTest' }])
+    );
+
+    const restarted = makeHarness({ catalogSnapshots });
+    const entry = await runWithCatalog(restarted.layer, catalog =>
+      getEntry(catalog, { xmlName: 'ApexClass', fullName: 'RemoteTest' })
+    );
+
+    expect(entry).toMatchObject({ inOrg: true, reference: { type: 'ApexClass', fullName: 'RemoteTest' } });
+    expect(restarted.mocks.listMetadata).not.toHaveBeenCalled();
   });
 
   it('coalesces equivalent inventory requests and merges org/workspace presence with remote timestamps', async () => {
