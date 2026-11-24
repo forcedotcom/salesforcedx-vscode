@@ -159,7 +159,6 @@ jobs:
     with:
       release-tag: ${{ needs.prepare.outputs.release-tag }}
       dry-run: ${{ inputs.dry-run || false }}
-    secrets: inherit
 
   # Confirms the version actually landed on Open VSX before closing the change case. Skipped
   # alongside ctc-open when this isn't a CTC-gated run -- see that job's comment.
