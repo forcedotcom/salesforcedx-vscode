@@ -1,6 +1,6 @@
 ---
 name: snyk
-description: Use when a Snyk finding blocks a change or PR, or when asked to diagnose Snyk results. Run the Snyk CLI scan and explain findings by severity.
+description: Use when a Snyk finding blocks a change or PR, or when asked to diagnose Snyk results. Run the local CLI; distinguish it from the inaccessible Salesforce OSS check.
 review: never
 ---
 
@@ -12,4 +12,8 @@ review: never
 4. Report findings in descending severity: Critical, High, Medium, Low, Info. For each, include the project, package and installed version, issue/CVE, direct or transitive status when shown, and fixed version or remediation when available. Preserve Snyk's wording and don't infer missing details. If no findings, say so.
 5. If the scan cannot run, give the exact blocker and the command the consumer must run; don't claim a result.
 
-Snyk links shown in GitHub checks or PRs cannot be inspected here. Diagnose those findings only through `snyk test --all-projects`; ask the consumer to provide the CLI output if it isn't available.
+## Salesforce OSS PR checks
+
+- The Salesforce OSS Snyk report is inaccessible here. Never open or fetch its report URL.
+- Run local `snyk test --all-projects`; this is the only available diagnostic. Its projects and findings may differ from the OSS job.
+- Keep local scan results separate from the OSS check. Do not claim they explain its failures or prove it passes. Do not ask the user to retrieve the inaccessible report; state the mismatch when the OSS check remains unresolved.
