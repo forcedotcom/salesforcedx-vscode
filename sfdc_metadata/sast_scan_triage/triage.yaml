@@ -1,16 +1,5 @@
 false_positive: []
 not_exploitable:
-  - id: .github/workflows/publishOpenVSXTrusted.yml:4f436dbe760c062b3a67bee3db777800233c6eb9715d2b825018a3806993c204
-    justification: >
-      The ctc-open job calls salesforcecli/github-workflows/.github/workflows/ctcOpen.yml@main,
-      which declares only `inputs:`/`outputs:` under `on.workflow_call` -- it has no `secrets:`
-      block, so GitHub Actions rejects an explicit `secrets: { NAME: ... }` map here (validation
-      error: "Invalid secret, ... is not defined in the referenced workflow"). `secrets: inherit`
-      is therefore the only syntax GitHub Actions accepts for this call; scoping it from this repo
-      alone is not possible without salesforcecli/github-workflows first declaring a secrets
-      contract on ctcOpen.yml. Same org-trust reasoning as the publishVSCode.yml entry below also
-      applies: salesforcecli/github-workflows is an internally-owned Salesforce repo, not a
-      third-party dependency, so this does not cross a supply-chain trust boundary.
   - id: .github/workflows/publishVSCode.yml:a707e0df59dea45aaa0f92a2c73207e93aab8c9204a8ac5054c5f0d89a6b96fc
     justification: >
       salesforcecli/github-workflows is an internally-owned Salesforce repo, not a third-party

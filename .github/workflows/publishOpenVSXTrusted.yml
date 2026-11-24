@@ -134,8 +134,11 @@ jobs:
   ctc-open:
     needs: [prepare]
     if: always() && needs.prepare.result == 'success' && (github.event_name == 'release' || inputs.do-ctc == true) && inputs.dry-run != true
-    uses: salesforcecli/github-workflows/.github/workflows/ctcOpen.yml@main
-    secrets: inherit
+    uses: salesforcecli/github-workflows/.github/workflows/ctcOpen.yml@fix/ctc-explicit-secrets
+    secrets:
+      SF_CHANGE_CASE_SFDX_AUTH_URL: ${{ secrets.SF_CHANGE_CASE_SFDX_AUTH_URL }}
+      SF_CHANGE_CASE_TEMPLATE_ID: ${{ secrets.SF_CHANGE_CASE_TEMPLATE_ID }}
+      SF_CHANGE_CASE_CONFIGURATION_ITEM: ${{ secrets.SF_CHANGE_CASE_CONFIGURATION_ITEM }}
 
   # Required-reviewers approval gate for the stable channel only -- same stable-vs-prerelease
   # condition as ctc-open above, so the weekly automated prerelease dispatch still sails through
@@ -219,16 +222,22 @@ jobs:
   ctcCloseSuccess:
     needs: [ctc-open, verify-published]
     if: needs.ctc-open.result == 'success' && needs.verify-published.result == 'success' && needs.ctc-open.outputs.changeCaseId
-    uses: salesforcecli/github-workflows/.github/workflows/ctcClose.yml@main
-    secrets: inherit
+    uses: salesforcecli/github-workflows/.github/workflows/ctcClose.yml@fix/ctc-explicit-secrets
+    secrets:
+      SF_CHANGE_CASE_SFDX_AUTH_URL: ${{ secrets.SF_CHANGE_CASE_SFDX_AUTH_URL }}
+      SF_CHANGE_CASE_TEMPLATE_ID: ${{ secrets.SF_CHANGE_CASE_TEMPLATE_ID }}
+      SF_CHANGE_CASE_CONFIGURATION_ITEM: ${{ secrets.SF_CHANGE_CASE_CONFIGURATION_ITEM }}
     with:
       changeCaseId: ${{ needs.ctc-open.outputs.changeCaseId }}
 
   ctcCloseFail:
     needs: [ctc-open, verify-published]
     if: always() && needs.ctc-open.result == 'success' && needs.ctc-open.outputs.changeCaseId && needs.verify-published.result != 'success'
-    uses: salesforcecli/github-workflows/.github/workflows/ctcClose.yml@main
-    secrets: inherit
+    uses: salesforcecli/github-workflows/.github/workflows/ctcClose.yml@fix/ctc-explicit-secrets
+    secrets:
+      SF_CHANGE_CASE_SFDX_AUTH_URL: ${{ secrets.SF_CHANGE_CASE_SFDX_AUTH_URL }}
+      SF_CHANGE_CASE_TEMPLATE_ID: ${{ secrets.SF_CHANGE_CASE_TEMPLATE_ID }}
+      SF_CHANGE_CASE_CONFIGURATION_ITEM: ${{ secrets.SF_CHANGE_CASE_CONFIGURATION_ITEM }}
     with:
       changeCaseId: ${{ needs.ctc-open.outputs.changeCaseId }}
       status: Not Implemented
