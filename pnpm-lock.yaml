@@ -1396,8 +1396,8 @@ importers:
         specifier: ^8.1.16
         version: 8.1.16(supports-color@8.1.1)
       '@salesforce/templates':
-        specifier: ^66.19.0
-        version: 66.19.0
+        specifier: ^66.21.1
+        version: 66.21.1
       '@salesforce/types':
         specifier: ^1.8.0
         version: 1.8.0
@@ -1527,14 +1527,14 @@ importers:
         specifier: ^8.1.16
         version: 8.1.16(supports-color@8.1.1)
       '@salesforce/templates':
-        specifier: ^66.19.0
-        version: 66.19.0
+        specifier: ^66.21.1
+        version: 66.21.1
       '@salesforce/vscode-i18n':
         specifier: workspace:*
         version: link:../salesforcedx-vscode-i18n
       '@vscode/extension-telemetry':
         specifier: ^1.0.0
-        version: 1.5.2(tslib@2.8.1)
+        version: 1.5.2(tslib@2.9.1)
       cross-spawn:
         specifier: 7.0.6
         version: 7.0.6
@@ -4711,8 +4711,8 @@ packages:
     resolution: {integrity: sha512-hl8KXvnbT6sBiy7QXbghAymbXDYlb8Q9BjBAVDuuERAEEWC2suHBI9tbrmlKH2pn+t+NcmtlqA93aFZzj9fX7w==}
     engines: {node: '>=22.0.0'}
 
-  '@salesforce/templates@66.19.0':
-    resolution: {integrity: sha512-pvkQT//+NRUuia0e6HHTcUnoVNY00mDFGj2iZN4qGmaflKbgs8gVRIlefFRMsxnm4zookojqkdrwwyqT9Ob6wA==}
+  '@salesforce/templates@66.21.1':
+    resolution: {integrity: sha512-GkNJA1LhY7wOgv2/UXkvDdayiYcDBDFOCnqylCEKfHExTrjL5qRy4f7V5vtJip6R03YgluSbbqXlgm7bQII75Q==}
     engines: {node: '>=22.0.0'}
 
   '@salesforce/ts-types@3.2.0':
@@ -10992,6 +10992,10 @@ packages:
     resolution: {integrity: sha512-MFO/QzvtAOmJbkhOaCTvbGcFN9L9b+JunIsDwaKljSOdcLMea3NJ1k9Usz/rjdfSXTq4dfzfeS7W4p4YOAAHeA==}
     engines: {node: '>=18'}
 
+  tar@7.5.23:
+    resolution: {integrity: sha512-lkukzdoGngZHJZXxW4S/E4Fp9ghTDlyZXrQGRNoJ/LXvDKcXUTq2sg5yQe74po7Voea6n/IN09+wE/QvJMiifA==}
+    engines: {node: '>=18'}
+
   teex@1.0.1:
     resolution: {integrity: sha512-eYE6iEI62Ni1H8oIa7KlDU6uQBtqr4Eajni3wX7rpfXD8ysFx8z0+dri+KWEPWpBsxXfxu58x/0jvTVT1ekOSg==}
 
@@ -11203,6 +11207,9 @@ packages:
 
   tslib@2.8.1:
     resolution: {integrity: sha512-oJFu94HQb+KVduSUQL7wnpmqnfmLsOA/nAh6b6EH0wCEoK0/mPeXU6c3wKDV83MkOuHPRHtSXKKU99IBazS/2w==}
+
+  tslib@2.9.1:
+    resolution: {integrity: sha512-a4Ux9VKuIMHsOS7ENbEq6hK2ZGYIT27Rtl0E4eD9KqwxhKiQeMZE/9xb3IdYwWaSOyIBQLExhQgXDTYoiCxnWA==}
 
   tsscmp@1.0.6:
     resolution: {integrity: sha512-LxhtAkPDTkVCMQjt2h6eBVY28KCjikZqZfMcC15YBeNjkgUpdCfBu5HoiOTDu86v6smE8yOjyEktJ8hlbANHQA==}
@@ -14167,9 +14174,9 @@ snapshots:
 
   '@lwc/wire-service@2.50.0': {}
 
-  '@microsoft/1ds-core-js@4.4.4(tslib@2.8.1)':
+  '@microsoft/1ds-core-js@4.4.4(tslib@2.9.1)':
     dependencies:
-      '@microsoft/applicationinsights-core-js': 3.4.4(tslib@2.8.1)
+      '@microsoft/applicationinsights-core-js': 3.4.4(tslib@2.9.1)
       '@microsoft/applicationinsights-shims': 3.0.1
       '@microsoft/dynamicproto-js': 2.0.5
       '@nevware21/ts-async': 0.5.5
@@ -14177,9 +14184,9 @@ snapshots:
     transitivePeerDependencies:
       - tslib
 
-  '@microsoft/1ds-post-js@4.4.4(tslib@2.8.1)':
+  '@microsoft/1ds-post-js@4.4.4(tslib@2.9.1)':
     dependencies:
-      '@microsoft/applicationinsights-core-js': 3.4.4(tslib@2.8.1)
+      '@microsoft/applicationinsights-core-js': 3.4.4(tslib@2.9.1)
       '@microsoft/applicationinsights-shims': 3.0.1
       '@microsoft/dynamicproto-js': 2.0.5
       '@nevware21/ts-async': 0.5.5
@@ -14187,44 +14194,44 @@ snapshots:
     transitivePeerDependencies:
       - tslib
 
-  '@microsoft/applicationinsights-channel-js@3.4.4(tslib@2.8.1)':
+  '@microsoft/applicationinsights-channel-js@3.4.4(tslib@2.9.1)':
     dependencies:
-      '@microsoft/applicationinsights-core-js': 3.4.4(tslib@2.8.1)
+      '@microsoft/applicationinsights-core-js': 3.4.4(tslib@2.9.1)
       '@microsoft/applicationinsights-shims': 3.0.1
       '@microsoft/dynamicproto-js': 2.0.5
       '@nevware21/ts-async': 0.5.5
       '@nevware21/ts-utils': 0.16.0
-      tslib: 2.8.1
+      tslib: 2.9.1
 
-  '@microsoft/applicationinsights-common@3.4.4(tslib@2.8.1)':
+  '@microsoft/applicationinsights-common@3.4.4(tslib@2.9.1)':
     dependencies:
-      '@microsoft/applicationinsights-core-js': 3.4.4(tslib@2.8.1)
+      '@microsoft/applicationinsights-core-js': 3.4.4(tslib@2.9.1)
       '@microsoft/applicationinsights-shims': 3.0.1
       '@microsoft/dynamicproto-js': 2.0.5
       '@nevware21/ts-utils': 0.16.0
-      tslib: 2.8.1
+      tslib: 2.9.1
 
-  '@microsoft/applicationinsights-core-js@3.4.4(tslib@2.8.1)':
+  '@microsoft/applicationinsights-core-js@3.4.4(tslib@2.9.1)':
     dependencies:
       '@microsoft/applicationinsights-shims': 3.0.1
       '@microsoft/dynamicproto-js': 2.0.5
       '@nevware21/ts-async': 0.5.5
       '@nevware21/ts-utils': 0.16.0
-      tslib: 2.8.1
+      tslib: 2.9.1
 
   '@microsoft/applicationinsights-shims@3.0.1':
     dependencies:
       '@nevware21/ts-utils': 0.16.0
 
-  '@microsoft/applicationinsights-web-basic@3.4.4(tslib@2.8.1)':
+  '@microsoft/applicationinsights-web-basic@3.4.4(tslib@2.9.1)':
     dependencies:
-      '@microsoft/applicationinsights-channel-js': 3.4.4(tslib@2.8.1)
-      '@microsoft/applicationinsights-core-js': 3.4.4(tslib@2.8.1)
+      '@microsoft/applicationinsights-channel-js': 3.4.4(tslib@2.9.1)
+      '@microsoft/applicationinsights-core-js': 3.4.4(tslib@2.9.1)
       '@microsoft/applicationinsights-shims': 3.0.1
       '@microsoft/dynamicproto-js': 2.0.5
       '@nevware21/ts-async': 0.5.5
       '@nevware21/ts-utils': 0.16.0
-      tslib: 2.8.1
+      tslib: 2.9.1
 
   '@microsoft/dynamicproto-js@2.0.5':
     dependencies:
@@ -15167,16 +15174,16 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@salesforce/templates@66.19.0':
+  '@salesforce/templates@66.21.1':
     dependencies:
-      '@salesforce/kit': 4.0.8
+      '@salesforce/kit': 4.0.10
       ejs: 3.1.10
       got: 11.8.6
       hpagent: 1.2.0
       mime-types: 3.0.2
       proxy-from-env: 1.1.0
-      tar: 7.5.22
-      tslib: 2.8.1
+      tar: 7.5.23
+      tslib: 2.9.1
 
   '@salesforce/ts-types@3.2.0': {}
 
@@ -16255,13 +16262,13 @@ snapshots:
 
   '@vscode/debugprotocol@1.68.0': {}
 
-  '@vscode/extension-telemetry@1.5.2(tslib@2.8.1)':
+  '@vscode/extension-telemetry@1.5.2(tslib@2.9.1)':
     dependencies:
-      '@microsoft/1ds-core-js': 4.4.4(tslib@2.8.1)
-      '@microsoft/1ds-post-js': 4.4.4(tslib@2.8.1)
-      '@microsoft/applicationinsights-common': 3.4.4(tslib@2.8.1)
-      '@microsoft/applicationinsights-core-js': 3.4.4(tslib@2.8.1)
-      '@microsoft/applicationinsights-web-basic': 3.4.4(tslib@2.8.1)
+      '@microsoft/1ds-core-js': 4.4.4(tslib@2.9.1)
+      '@microsoft/1ds-post-js': 4.4.4(tslib@2.9.1)
+      '@microsoft/applicationinsights-common': 3.4.4(tslib@2.9.1)
+      '@microsoft/applicationinsights-core-js': 3.4.4(tslib@2.9.1)
+      '@microsoft/applicationinsights-web-basic': 3.4.4(tslib@2.9.1)
     transitivePeerDependencies:
       - tslib
 
@@ -22924,6 +22931,14 @@ snapshots:
       minizlib: 3.1.0
       yallist: 5.0.0
 
+  tar@7.5.23:
+    dependencies:
+      '@isaacs/fs-minipass': 4.0.1
+      chownr: 3.0.0
+      minipass: 7.1.3
+      minizlib: 3.1.0
+      yallist: 5.0.0
+
   teex@1.0.1:
     dependencies:
       streamx: 2.28.1
@@ -23119,6 +23134,8 @@ snapshots:
   tslib@1.14.1: {}
 
   tslib@2.8.1: {}
+
+  tslib@2.9.1: {}
 
   tsscmp@1.0.6: {}
 
