@@ -5,9 +5,11 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { expect } from '@playwright/test';
+import { expect, type Page } from '@playwright/test';
 
 import {
+  clearAllNotifications,
+  clearOutputChannel,
   clickCodeLens,
   closeEditor,
   EDITOR_WITH_URI,
@@ -17,6 +19,7 @@ import {
   expectProblemsCountAtLeast,
   NOTIFICATION_LIST_ITEM,
   QUICK_INPUT_WIDGET,
+  resetContainerWorkbench,
   saveScreenshot,
   selectAll,
   selectOutputChannel,
@@ -27,32 +30,64 @@ import {
   validateNoCriticalErrors,
   verifyCommandExists,
   waitForOutputChannelText,
-  waitForQuickInputFirstOption
+  waitForQuickInputFirstOption,
+  waitForVSCodeWorkbench
 } from '@salesforce/playwright-vscode-ext';
 
 import packageNls from '../../../package.nls.json';
-import { test } from '../fixtures';
+import { isContainer, test } from '../fixtures';
+
+const APEX_LOG_CHANNEL = 'Salesforce Apex Log';
+// Target the `.apex` editor by URI: "Open Log" opens a second editor (debug.log)
+const APEX_EDITOR = `${EDITOR_WITH_URI}[data-uri$=".apex"]`;
 
 // Applies to fixtures (e.g. launching VS Code); inner test.setTimeout runs too late for page setup.
-test.describe.configure({ timeout: 180_000 });
+test.describe.configure({ timeout: 300_000 });
+
+// Runs against a fresh desktop/web instance and against the one shared, serial container workbench
+// alike: waitForVSCodeWorkbench is a no-op once ready, and resetContainerWorkbench's cleanup is a
+// harmless best-effort on a fresh instance.
+test.beforeEach(async ({ page }) => {
+  await waitForVSCodeWorkbench(page);
+  await resetContainerWorkbench(page);
+});
+
+/**
+ * Start each execution from an empty Apex Log channel and no notifications, so its assertions can only
+ * match its own run — not an earlier step's, or (on the container's shared workbench) an earlier run's.
+ */
+const clearExecutionSignals = async (page: Page): Promise<void> => {
+  await clearAllNotifications(page);
+  await ensureOutputPanelOpen(page);
+  await selectOutputChannel(page, APEX_LOG_CHANNEL);
+  await clearOutputChannel(page);
+};
 
 test('Execute Anonymous Apex: document, selection, script creation, runtime and compile errors', async ({ page }) => {
   const consoleErrors = setupConsoleMonitoring(page);
   const networkErrors = setupNetworkMonitoring(page);
 
   const scriptName = `AnonTest${Date.now()}`;
+  const editor = page.locator(APEX_EDITOR).first();
+  const successNotification = page
+    .locator(NOTIFICATION_LIST_ITEM)
+    .filter({ hasText: /executed successfully/i })
+    .first();
 
-  await test.step('setup minimal org auth', async () => {
-    await setupMinimalOrgAndAuth(page);
+  await test.step('setup', async () => {
+    // The container runs against the org the orchestrator boot-authed
+    if (!isContainer) {
+      await setupMinimalOrgAndAuth(page);
+    }
     await ensureSecondarySideBarHidden(page);
   });
 
   await test.step('cancel anonymous Apex script creation', async () => {
-    await verifyCommandExists(page, packageNls['apexLog.command.createAnonymousApexScript'], 30_000);
+    await verifyCommandExists(page, packageNls['apexLog.command.createAnonymousApexScript'], 120_000);
     await executeCommandWithCommandPalette(page, packageNls['apexLog.command.createAnonymousApexScript']);
     const quickInput = page.locator(QUICK_INPUT_WIDGET);
-    await quickInput.waitFor({ state: 'visible', timeout: 10_000 });
-    await quickInput.getByText(/Enter script name/i).waitFor({ state: 'visible', timeout: 5000 });
+    await quickInput.waitFor({ state: 'visible', timeout: 30_000 });
+    await quickInput.getByText(/Enter script name/i).waitFor({ state: 'visible', timeout: 15_000 });
     await page.keyboard.press('Escape');
     await expect(quickInput).not.toBeVisible({ timeout: 5000 });
     await expect(page.locator(TAB).filter({ hasText: new RegExp(`${scriptName}\\.apex$`) })).not.toBeVisible();
@@ -61,16 +96,15 @@ test('Execute Anonymous Apex: document, selection, script creation, runtime and 
   await test.step('create anonymous apex script via command palette', async () => {
     await executeCommandWithCommandPalette(page, packageNls['apexLog.command.createAnonymousApexScript']);
     const quickInput = page.locator(QUICK_INPUT_WIDGET);
-    await quickInput.waitFor({ state: 'visible', timeout: 10_000 });
-    await quickInput.getByText(/Enter script name/i).waitFor({ state: 'visible', timeout: 5000 });
+    await quickInput.waitFor({ state: 'visible', timeout: 30_000 });
+    await quickInput.getByText(/Enter script name/i).waitFor({ state: 'visible', timeout: 15_000 });
     const quickInputText = quickInput.locator('input.input').first();
     await quickInputText.waitFor({ state: 'visible', timeout: 5000 });
     await quickInputText.fill(`  ${scriptName}  `);
     await page.keyboard.press('Enter');
     await waitForQuickInputFirstOption(page);
     await page.keyboard.press('Enter');
-    const editor = page.locator(EDITOR_WITH_URI).first();
-    await editor.waitFor({ state: 'visible', timeout: 15_000 });
+    await editor.waitFor({ state: 'visible', timeout: 30_000 });
     await expect(page.locator(TAB).filter({ hasText: new RegExp(`${scriptName}\\.apex$`) })).toBeVisible({
       timeout: 5000
     });
@@ -78,25 +112,21 @@ test('Execute Anonymous Apex: document, selection, script creation, runtime and 
   });
 
   await test.step('type simple Apex and execute document', async () => {
-    const editor = page.locator(EDITOR_WITH_URI).first();
+    await clearExecutionSignals(page);
     await editor.click();
     await editor.locator('.view-line').first().waitFor({ state: 'visible', timeout: 5000 });
     await selectAll(page);
     await page.keyboard.press('Delete');
     await page.keyboard.type("System.debug('hello');\nSystem.debug('selection');");
     await executeCommandWithCommandPalette(page, packageNls['apexLog.command.executeDocument']);
-    const successNotification = page
-      .locator(NOTIFICATION_LIST_ITEM)
-      .filter({ hasText: /executed successfully/i })
-      .first();
-    await expect(successNotification).toBeVisible({ timeout: 60_000 });
+    await expect(successNotification).toBeVisible({ timeout: 120_000 });
     await ensureOutputPanelOpen(page);
-    await selectOutputChannel(page, 'Salesforce Apex Log');
-    await waitForOutputChannelText(page, { expectedText: 'Execute anonymous succeeded', timeout: 10_000 });
-    await waitForOutputChannelText(page, { expectedText: 'USER_DEBUG', timeout: 5000 });
+    await selectOutputChannel(page, APEX_LOG_CHANNEL);
+    await waitForOutputChannelText(page, { expectedText: 'Execute anonymous succeeded', timeout: 60_000 });
+    await waitForOutputChannelText(page, { expectedText: 'USER_DEBUG', timeout: 10_000 });
     await successNotification.getByRole('button', { name: /Open Log/i }).click();
     const logTab = page.locator(TAB).filter({ hasText: /debug\.log/ });
-    await expect(logTab).toBeVisible({ timeout: 10_000 });
+    await expect(logTab).toBeVisible({ timeout: 30_000 });
     await saveScreenshot(page, 'exec-document.success.png');
     // Close debug.log so the .apex file is active for the next step
     await closeEditor(page);
@@ -104,7 +134,7 @@ test('Execute Anonymous Apex: document, selection, script creation, runtime and 
   });
 
   await test.step('select first line and execute selection', async () => {
-    const editor = page.locator(EDITOR_WITH_URI).first();
+    await clearExecutionSignals(page);
     await editor.click();
     await editor.locator('.view-line').first().waitFor({ state: 'visible', timeout: 5000 });
     // editorHasSelection must be true for the selection command. Triple-click is a native
@@ -131,18 +161,14 @@ test('Execute Anonymous Apex: document, selection, script creation, runtime and 
       preserveSelection: true
     });
 
-    const successNotification = page
-      .locator(NOTIFICATION_LIST_ITEM)
-      .filter({ hasText: /executed successfully/i })
-      .first();
-    await expect(successNotification).toBeVisible({ timeout: 60_000 });
+    await expect(successNotification).toBeVisible({ timeout: 120_000 });
     await ensureOutputPanelOpen(page);
-    await selectOutputChannel(page, 'Salesforce Apex Log');
-    await waitForOutputChannelText(page, { expectedText: 'Execute anonymous succeeded', timeout: 10_000 });
-    await waitForOutputChannelText(page, { expectedText: 'execute_anonymous_apex', timeout: 5000 });
+    await selectOutputChannel(page, APEX_LOG_CHANNEL);
+    await waitForOutputChannelText(page, { expectedText: 'Execute anonymous succeeded', timeout: 60_000 });
+    await waitForOutputChannelText(page, { expectedText: 'execute_anonymous_apex', timeout: 10_000 });
     await successNotification.getByRole('button', { name: /Open Log/i }).click();
     const logTab = page.locator(TAB).filter({ hasText: /debug\.log/ });
-    await expect(logTab).toBeVisible({ timeout: 10_000 });
+    await expect(logTab).toBeVisible({ timeout: 30_000 });
     await saveScreenshot(page, 'exec-selection.success.png');
     // Close debug.log so the .apex file is active for the next step
     await closeEditor(page);
@@ -150,7 +176,6 @@ test('Execute Anonymous Apex: document, selection, script creation, runtime and 
   });
 
   await test.step('execute with runtime error and verify error notification', async () => {
-    const editor = page.locator(EDITOR_WITH_URI).first();
     await editor.click();
     await selectAll(page);
     await page.keyboard.press('Delete');
@@ -172,37 +197,33 @@ test('Execute Anonymous Apex: document, selection, script creation, runtime and 
   });
 
   await test.step('execute with compile error and verify error notification', async () => {
-    const editor = page.locator(EDITOR_WITH_URI).first();
+    await clearExecutionSignals(page);
     await editor.click();
     await selectAll(page);
     await page.keyboard.press('Delete');
     await page.keyboard.type("Integer x = 'bad';");
-    await clickCodeLens(page, 'Execute', { timeout: 15_000 });
+    await clickCodeLens(page, 'Execute', { timeout: 30_000 });
     const errorNotification = page
       .locator(NOTIFICATION_LIST_ITEM)
       .filter({ hasText: /Line \d+.*Column \d+/ })
       .first();
-    await expect(errorNotification).toBeVisible({ timeout: 15_000 });
+    await expect(errorNotification).toBeVisible({ timeout: 60_000 });
     await saveScreenshot(page, 'compile-error.notification.png');
   });
 
   await test.step('fix code, re-execute, verify diagnostics cleared', async () => {
-    await expectProblemsCountAtLeast(page, 1, { timeout: 15_000 });
-    const editor = page.locator(EDITOR_WITH_URI).first();
+    await expectProblemsCountAtLeast(page, 1, { timeout: 30_000 });
+    await clearExecutionSignals(page);
     await editor.click();
     await selectAll(page);
     await page.keyboard.press('Delete');
     await page.keyboard.type("System.debug('fixed');");
-    await clickCodeLens(page, 'Execute', { timeout: 15_000 });
-    const successNotification = page
-      .locator(NOTIFICATION_LIST_ITEM)
-      .filter({ hasText: /executed successfully/i })
-      .first();
-    await expect(successNotification).toBeVisible({ timeout: 60_000 });
+    await clickCodeLens(page, 'Execute', { timeout: 30_000 });
+    await expect(successNotification).toBeVisible({ timeout: 120_000 });
     await ensureOutputPanelOpen(page);
-    await selectOutputChannel(page, 'Salesforce Apex Log');
-    await waitForOutputChannelText(page, { expectedText: 'Execute anonymous succeeded', timeout: 10_000 });
-    await waitForOutputChannelText(page, { expectedText: 'fixed', timeout: 5000 });
+    await selectOutputChannel(page, APEX_LOG_CHANNEL);
+    await waitForOutputChannelText(page, { expectedText: 'Execute anonymous succeeded', timeout: 60_000 });
+    await waitForOutputChannelText(page, { expectedText: 'fixed', timeout: 10_000 });
     await saveScreenshot(page, 'fix-re-execute.success.png');
   });
 

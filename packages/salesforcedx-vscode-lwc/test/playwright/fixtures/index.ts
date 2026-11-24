@@ -7,9 +7,11 @@
 
 import { test as webTest } from '@playwright/test';
 
+import { containerTest } from './containerFixtures';
 import { desktopTest } from './desktopFixtures';
 
 const isDesktop = process.env.VSCODE_DESKTOP === '1';
+export const isContainer = process.env.VSCODE_CONTAINER === '1';
 
 webTest.afterEach(async ({ page }, testInfo) => {
   if (process.env.DEBUG_MODE && testInfo.status !== 'passed') {
@@ -19,4 +21,4 @@ webTest.afterEach(async ({ page }, testInfo) => {
   }
 });
 
-export const test = isDesktop ? desktopTest : webTest;
+export const sharedTest = isContainer ? containerTest : isDesktop ? desktopTest : webTest;

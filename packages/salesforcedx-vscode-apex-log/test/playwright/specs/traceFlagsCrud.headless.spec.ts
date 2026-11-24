@@ -9,6 +9,7 @@ import { expect, type Page } from '@playwright/test';
 import {
   APEX_TRACE_FLAG_STATUS_BAR,
   closeSettingsTab,
+  closeWelcomeTabs,
   CODELENS_ITEM,
   EDITOR_WITH_URI,
   ensureSecondarySideBarHidden,
@@ -25,8 +26,9 @@ import {
   verifyCommandExists
 } from '@salesforce/playwright-vscode-ext';
 
+import { messages } from '../../../src/messages/i18n';
 import packageNls from '../../../package.nls.json';
-import { test } from '../fixtures';
+import { isContainer, test } from '../fixtures';
 import { waitForTraceFlagStatusBar } from '../helpers';
 
 /** Open find dialog via command palette, search for query, assert positive match count, close. */
@@ -53,6 +55,15 @@ const openTraceFlagsAndExpectContent = async (page: Page, query: string): Promis
   }).toPass({ timeout: 30_000 });
 };
 
+// Self-clean the org-global trace flag and debug level this spec creates, even if a step failed.
+// Matters most for container's one shared, persistent workbench, but harmless everywhere else.
+test.afterEach(async ({ page }) => {
+  await executeCommandWithCommandPalette(page, packageNls['apexLog.command.traceFlagsDeleteForCurrentUser']).catch(
+    () => {}
+  );
+  await removeAllDebugLevels(page).catch(() => {});
+});
+
 test('Trace Flags CRUD: open, create/delete current user trace flag, create/delete debug level', async ({ page }) => {
   test.setTimeout(240_000);
   const consoleErrors = setupConsoleMonitoring(page);
@@ -60,8 +71,14 @@ test('Trace Flags CRUD: open, create/delete current user trace flag, create/dele
   const debugLevelMasterLabel = `TraceCrud${Date.now()}`;
   const debugLevelDeveloperName = debugLevelMasterLabel.slice(0, 40);
 
-  await test.step('setup minimal org auth', async () => {
-    await setupMinimalOrgAndAuth(page);
+  await test.step('setup org auth', async () => {
+    // Container boots with the org already authed by the orchestrator; desktop/web must create it
+    // (idempotently — reuses the shared org if already created) before this spec can hit real APIs.
+    if (isContainer) {
+      await closeWelcomeTabs(page);
+    } else {
+      await setupMinimalOrgAndAuth(page);
+    }
     await closeSettingsTab(page);
     await ensureSecondarySideBarHidden(page);
   });
@@ -123,9 +140,17 @@ test('Trace Flags CRUD: open, create/delete current user trace flag, create/dele
     await quickInput.locator('input.input').fill(debugLevelDeveloperName);
     await page.keyboard.press('Enter');
 
-    await selectQuickInputOption(page, 'Yes (Apex=DEBUG, VF=INFO, DB=INFO)', { optionVisibleTimeout: 10_000 });
+    // Match by accessible name (substring) rather than exact full-row text: a QuickPick option row
+    // can carry a trailing keybinding badge that would break an exact-text match.
+    await selectQuickInputOption(page, messages.trace_flag_create_log_level_use_defaults_yes, {
+      optionVisibleTimeout: 10_000
+    });
 
+    // The debug level lands in the virtual doc under its master label...
     await openTraceFlagsAndExpectContent(page, debugLevelMasterLabel);
+    // ...and carries the preset's Apex=DEBUG level, proving the named "Yes" preset (not some other
+    // pick) actually took effect. ReplayDebuggerLevels uses FINEST, so this is the created level.
+    await openTraceFlagsAndExpectContent(page, '"apexCode": "DEBUG"');
     await saveScreenshot(page, 'debug-level.created.png');
   });
 

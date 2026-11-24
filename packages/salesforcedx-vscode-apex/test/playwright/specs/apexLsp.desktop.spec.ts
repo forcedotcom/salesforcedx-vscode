@@ -9,8 +9,6 @@ import { expect } from '@playwright/test';
 import {
   EDITOR_WITH_URI,
   goToLineColumn,
-  openFileByName,
-  openFileFromExplorerTree,
   saveFile,
   setupConsoleMonitoring,
   setupNetworkMonitoring,
@@ -18,11 +16,18 @@ import {
   validateNoCriticalErrors
 } from '@salesforce/playwright-vscode-ext';
 
-import { desktopTest as test } from '../fixtures/desktopFixtures';
-import { waitForApexLspReady } from '../utils/apexLspUtils';
+import { isContainer, sharedTest as test } from '../fixtures';
+import { openApexFileFromExplorerTree, waitForApexLspReady } from '../utils/containerApexLspUtils';
 
-test('Apex LSP: indexing, go-to-definition, autocompletion', async ({ page, workspaceDir }, testInfo) => {
-  // timeout comes from playwright.config.desktop.ts (timeout: 360_000)
+// force-app/main/default/classes on desktop (fixtures/desktopFixtures.ts seeds it there); the
+// container's bind-mounted fixture project uses the same layout, so the path is shared.
+const CLASSES_DIR = ['force-app', 'main', 'default', 'classes'];
+
+test('Apex LSP: indexing, go-to-definition, autocompletion', async ({ page }, testInfo) => {
+  if (isContainer) {
+    test.setTimeout(6 * 60 * 1000);
+  }
+  // else: timeout comes from playwright.config.desktop.ts (timeout: 360_000)
   const consoleErrors = setupConsoleMonitoring(page);
   const networkErrors = setupNetworkMonitoring(page);
 
@@ -33,8 +38,8 @@ test('Apex LSP: indexing, go-to-definition, autocompletion', async ({ page, work
   await test.step('open ExampleClass.cls and wait for indexing complete', async () => {
     // Files were pre-seeded onto disk before Electron launched (see fixtures/desktopFixtures.ts);
     // jorje picks them up during its startup scan, so no reloadWindow workaround is needed.
-    await openFileByName(page, 'ExampleClass.cls');
-    await waitForApexLspReady(page, workspaceDir);
+    await openApexFileFromExplorerTree(page, 'ExampleClass.cls', CLASSES_DIR);
+    await waitForApexLspReady(page);
   });
 
   const videoName = [
@@ -51,7 +56,7 @@ test('Apex LSP: indexing, go-to-definition, autocompletion', async ({ page, work
     await test.step('Go to Definition from ExampleClassTest into ExampleClass', async () => {
       // Use Explorer tree instead of Quick Open — VS Code's file-search index may not have
       // discovered the pre-seeded file yet (only "recently opened" files appear reliably).
-      await openFileFromExplorerTree(page, 'ExampleClassTest.cls', ['classes']);
+      await openApexFileFromExplorerTree(page, 'ExampleClassTest.cls', CLASSES_DIR);
       // Wait for ExampleClassTest.cls to become the active tab before issuing editor commands;
       // openFileFromExplorerTree resolves on any visible editor, which may be the previously-opened
       // ExampleClass.cls — causing Go to Line and Go to Definition to target the wrong file.
@@ -89,7 +94,7 @@ test('Apex LSP: indexing, go-to-definition, autocompletion', async ({ page, work
     });
 
     await test.step('Autocompletion suggests SayHello and inserts call', async () => {
-      await openFileFromExplorerTree(page, 'ExampleClassTest.cls', ['classes']);
+      await openApexFileFromExplorerTree(page, 'ExampleClassTest.cls', CLASSES_DIR);
       // Wait for ExampleClassTest.cls to become the active tab (same race as Go to Definition step).
       const testTab = page.getByRole('tab', { name: 'ExampleClassTest.cls', exact: true }).first();
       await expect(testTab).toHaveAttribute('aria-selected', 'true', { timeout: 10_000 });
@@ -124,7 +129,7 @@ test('Apex LSP: indexing, go-to-definition, autocompletion', async ({ page, work
       // Explorer tree since Quick Open's file-search index may not have discovered it yet. The
       // ['scripts', 'apex'] path tolerates VS Code compact-folder rendering (missing intermediate
       // rows are skipped, leaf still reached).
-      await openFileFromExplorerTree(page, 'ExampleAnon.apex', ['scripts', 'apex']);
+      await openApexFileFromExplorerTree(page, 'ExampleAnon.apex', ['scripts', 'apex']);
       const anonTab = page.getByRole('tab', { name: 'ExampleAnon.apex', exact: true }).first();
       await expect(anonTab).toHaveAttribute('aria-selected', 'true', { timeout: 10_000 });
 
