@@ -12,6 +12,7 @@ import type { RequestError } from '@octokit/request-error';
 import { type Endpoints } from '@octokit/types';
 import { getErrorMessage } from '@salesforce/salesforcedx-utils';
 import * as Config from 'effect/Config';
+import * as ConfigProvider from 'effect/ConfigProvider';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
 import { isError, isNullable } from 'effect/Predicate';
@@ -287,6 +288,77 @@ export class GitHub extends Effect.Service<GitHub>()('GitHub', {
       );
     });
 
+    /** Read one comment page, preserving the issue actions' listComments behavior. */
+    const issueComments = Effect.fn('GitHub.issueComments')(function* (
+      owner: string,
+      repo: string,
+      issueNumber: number
+    ) {
+      return yield* run('GET', `/repos/${owner}/${repo}/issues/${issueNumber}/comments`, () =>
+        octokit
+          .request('GET /repos/{owner}/{repo}/issues/{issue_number}/comments', {
+            owner,
+            repo,
+            issue_number: issueNumber
+          })
+          .then(response => response.data)
+      );
+    });
+
+    const createIssueComment = Effect.fn('GitHub.createIssueComment')(function* (
+      owner: string,
+      repo: string,
+      issueNumber: number,
+      body: string
+    ) {
+      return yield* run('POST', `/repos/${owner}/${repo}/issues/${issueNumber}/comments`, () =>
+        octokit
+          .request('POST /repos/{owner}/{repo}/issues/{issue_number}/comments', {
+            owner,
+            repo,
+            issue_number: issueNumber,
+            body
+          })
+          .then(response => response.data)
+      );
+    });
+
+    const addIssueLabels = Effect.fn('GitHub.addIssueLabels')(function* (
+      owner: string,
+      repo: string,
+      issueNumber: number,
+      labels: readonly string[]
+    ) {
+      yield* run('POST', `/repos/${owner}/${repo}/issues/${issueNumber}/labels`, () =>
+        octokit
+          .request('POST /repos/{owner}/{repo}/issues/{issue_number}/labels', {
+            owner,
+            repo,
+            issue_number: issueNumber,
+            labels: [...labels]
+          })
+          .then(() => undefined)
+      );
+    });
+
+    const removeIssueLabel = Effect.fn('GitHub.removeIssueLabel')(function* (
+      owner: string,
+      repo: string,
+      issueNumber: number,
+      label: string
+    ) {
+      yield* run('DELETE', `/repos/${owner}/${repo}/issues/${issueNumber}/labels/${label}`, () =>
+        octokit
+          .request('DELETE /repos/{owner}/{repo}/issues/{issue_number}/labels/{name}', {
+            owner,
+            repo,
+            issue_number: issueNumber,
+            name: label
+          })
+          .then(() => undefined)
+      );
+    });
+
     const pullReviews = Effect.fn('GitHub.pullReviews')(function* (owner: string, repo: string, pullNumber: number) {
       return yield* run('GET', `/repos/${owner}/${repo}/pulls/${pullNumber}/reviews`, () =>
         octokit.paginate('GET /repos/{owner}/{repo}/pulls/{pull_number}/reviews', {
@@ -501,6 +573,10 @@ export class GitHub extends Effect.Service<GitHub>()('GitHub', {
       paginate,
       teamMembership,
       pullFiles,
+      issueComments,
+      createIssueComment,
+      addIssueLabels,
+      removeIssueLabel,
       pullReviews,
       checkRuns,
       workflowRunJobs,
@@ -518,3 +594,11 @@ export class GitHub extends Effect.Service<GitHub>()('GitHub', {
     };
   })
 }) {}
+
+/** Build the GitHub service using only the supplied token, never runner environment credentials. */
+export const githubFromToken = Effect.fn('GitHub.fromToken')((token: string) =>
+  GitHub.pipe(
+    Effect.provide(GitHub.Default),
+    Effect.withConfigProvider(ConfigProvider.fromMap(new Map([['GITHUB_TOKEN', token]])))
+  )
+);

@@ -46,3 +46,15 @@ not_exploitable:
       not an external workflow. The e2e jobs need several org/auth secrets, and this is the
       established pattern already used by the existing e2e.yml, playwrightE2EFullSuite.yml and
       publish workflows on develop; enumerating each secret would only add drift risk.
+  - id: .github/workflows/validateNewIssues.yml:b8cecb2ba0ae1cd4ba572316b0af5ac33661cc4b18454b98e5ca3ecc49f6e454
+    justification: >
+      salesforcecli/github-workflows is an internally-owned Salesforce repo, not a third-party
+      dependency, so its @main reference does not cross a third-party supply-chain trust boundary.
+      This matches the established repo pattern and the existing not-exploitable triage for
+      publishVSCode.yml.
+  - id: .github/workflows/validateUpdatedIssues.yml:b8cecb2ba0ae1cd4ba572316b0af5ac33661cc4b18454b98e5ca3ecc49f6e454
+    justification: >
+      salesforcecli/github-workflows is an internally-owned Salesforce repo, not a third-party
+      dependency, so its @main reference does not cross a third-party supply-chain trust boundary.
+      This matches the established repo pattern and the existing not-exploitable triage for
+      publishVSCode.yml.

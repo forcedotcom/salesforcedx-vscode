@@ -8,7 +8,25 @@
     // this fails to resolve and collapses the Octokit type to `any`. Map it to the on-disk declaration.
     "paths": {
       "@octokit/core/dist-types/types": ["../../../node_modules/@octokit/core/dist-types/types.d.ts"]
-    }
+    },
+    "plugins": [
+      {
+        "name": "@effect/language-service",
+        "diagnosticSeverity": {
+          "floatingEffect": "error",
+          "globalRandom": "error",
+          "globalRandomInEffect": "error",
+          "globalFetchInEffect": "error",
+          "globalTimersInEffect": "error",
+          "missedPipeableOpportunity": "error",
+          "nestedEffectGenYield": "error",
+          "effectFnOpportunity": "warning",
+          // The action entry point is where FetchHttpClient.layer is provided.
+          "strictEffectProvide": "off"
+        }
+      },
+      { "name": "@salesforce/vscode-i18n/tsPlugin" }
+    ]
   },
   "files": [
     "src/index.ts",
