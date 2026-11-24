@@ -157,7 +157,7 @@ export class OrgMetadataCatalog extends Effect.Service<OrgMetadataCatalog>()('Or
             ('namespacePrefix' in component ? (component.namespacePrefix ?? null) : null) === identity.namespacePrefix
         ) === true;
       if (recorded) {
-        // Ensure cached evidence still belongs to the active org before reporting it available.
+        // Fail if the default org changed after this find operation captured orgId.
         yield* connectionService.getConnectionForOrg(orgId);
         return true;
       }
