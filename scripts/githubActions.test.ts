@@ -264,6 +264,32 @@ describe('issue actions', () => {
     expect(setFailed).not.toHaveBeenCalled();
   });
 
+  it.each(['6.0.0', '7.209.6', '8.0.0'])('rejects unsupported sfdx-cli/%s', async version => {
+    const { calls, setFailed } = await runAction('validate-issue', {
+      issue: { ...issue, body: validBody.replace('2.157.8', `sfdx-cli/${version}`) }
+    });
+    const message = readFileSync('.github/actions/validate-issue/messages/deprecated-cli.md', 'utf8')
+      .replaceAll('THE_AUTHOR', 'author')
+      .replaceAll('OLD_CLI', '`sfdx`');
+    expect(calls.filter(call => call.method === 'POST').map(call => call.body)).toEqual([
+      { body: message },
+      { labels: ['missing required information'] },
+      { labels: ['missing required information'] }
+    ]);
+    expect(setFailed).not.toHaveBeenCalled();
+  });
+
+  it('accepts sf v2 when an obsolete sfdx version is also reported', async () => {
+    const { calls, setFailed } = await runAction('validate-issue', {
+      issue: { ...issue, body: `${validBody}\nSalesforce CLI Version: sfdx-cli/6.0.0` }
+    });
+    expect(calls.filter(call => call.path === commentsPath && call.method === 'POST')).toEqual([]);
+    expect(calls).toContainEqual(
+      expect.objectContaining({ method: 'POST', path: labelsPath, body: { labels: ['validated'] } })
+    );
+    expect(setFailed).not.toHaveBeenCalled();
+  });
+
   it('posts the existing required-information template and labels incomplete issues', async () => {
     const { calls, setFailed } = await runAction('validate-issue');
     const expectedMessage = readFileSync(
