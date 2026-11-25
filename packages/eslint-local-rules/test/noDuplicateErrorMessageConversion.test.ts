@@ -130,11 +130,20 @@ ruleTester.run('no-duplicate-error-message-conversion', noDuplicateErrorMessageC
   ]
 });
 
-it.each([
-  'packages/salesforcedx-vscode-apex-testing/src/services/fsServiceFileOutput.ts',
-  'packages/salesforcedx-lwc-language-server/test/lwcServerNode.test.ts'
-])('enables duplicate-conversion checks for %s', async filePath => {
+describe('repository configuration', () => {
   const eslint = new ESLint({ cwd: path.resolve(__dirname, '../../..') });
-  const config = await eslint.calculateConfigForFile(filePath);
-  expect(config.rules['local/no-duplicate-error-message-conversion']).toEqual([2]);
+  const filePaths = [
+    'packages/salesforcedx-vscode-apex-testing/src/services/fsServiceFileOutput.ts',
+    'packages/salesforcedx-lwc-language-server/test/lwcServerNode.test.ts'
+  ];
+
+  beforeAll(async () => {
+    // Loading the repository's ESLint plugins can exceed 5s under CI load.
+    await eslint.calculateConfigForFile(filePaths[0]);
+  }, 60_000);
+
+  it.each(filePaths)('enables duplicate-conversion checks for %s', async filePath => {
+    const config = await eslint.calculateConfigForFile(filePath);
+    expect(config.rules['local/no-duplicate-error-message-conversion']).toEqual([2]);
+  });
 });
