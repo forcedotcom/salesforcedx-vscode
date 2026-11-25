@@ -12,38 +12,16 @@ inputs:
 runs:
   using: composite
   steps:
-    - name: Setup pnpm
-      uses: pnpm/action-setup@v4
-    - name: Setup Node.js
-      uses: actions/setup-node@v7
+    - name: Setup pnpm and Node.js
+      uses: pnpm/setup@v3
       with:
-        node-version: ${{ inputs.node-version }}
-        package-manager-cache: false
-    - name: Locate pnpm store
-      id: pnpm-store
-      shell: bash
-      run: |
-        echo "path=$(pnpm store path --silent)" >> "$GITHUB_OUTPUT"
-        echo "arch=$(node -p 'process.arch')" >> "$GITHUB_OUTPUT"
-    # Branch-scoped stores crowd out Wireit results. Read develop caches on every
-    # branch, but only populate them from trusted develop workflows.
-    - name: Restore pnpm store
-      id: pnpm-cache
-      uses: actions/cache/restore@v6
-      with:
-        path: ${{ steps.pnpm-store.outputs.path }}
-        key: node-cache-${{ runner.os }}-${{ steps.pnpm-store.outputs.arch }}-pnpm-${{ hashFiles('pnpm-lock.yaml') }}
-        restore-keys: node-cache-${{ runner.os }}-${{ steps.pnpm-store.outputs.arch }}-pnpm-
+        runtime: node@${{ inputs.node-version == 'lts/*' && 'lts' || inputs.node-version }}
+        install: false
+        cache: true
+        save-cache: >-
+          ${{ inputs.install == 'true' &&
+          github.ref == 'refs/heads/develop' &&
+          contains(fromJSON('["push", "workflow_dispatch", "schedule", "repository_dispatch"]'), github.event_name) }}
     - name: Install dependencies
       if: inputs.install == 'true'
       uses: salesforcecli/github-workflows/.github/actions/pnpmInstallWithRetries@main
-    - name: Save pnpm store on develop
-      if: >-
-        inputs.install == 'true' &&
-        github.ref == 'refs/heads/develop' &&
-        contains(fromJSON('["push", "workflow_dispatch", "schedule", "repository_dispatch"]'), github.event_name) &&
-        steps.pnpm-cache.outputs.cache-hit != 'true'
-      uses: actions/cache/save@v6
-      with:
-        path: ${{ steps.pnpm-store.outputs.path }}
-        key: ${{ steps.pnpm-cache.outputs.cache-primary-key }}
