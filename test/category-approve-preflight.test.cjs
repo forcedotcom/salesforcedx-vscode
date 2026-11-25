@@ -285,6 +285,7 @@ test('workflow runs only trusted categoryApprove.mts from the PR working directo
   );
   const workflow = parse(readFileSync(join(__dirname, '../.github/workflows/categoryApprove.yml'), 'utf8'));
   const script = workflow.jobs['category-approve'].steps.find(step => step.name === 'Decide and approve').run;
+  writeFileSync(join(scripts, 'runWithJevServer.mts'), 'await import(process.argv[2]);\n');
   const output = execFileSync('bash', ['-e', '-o', 'pipefail', '-c', script], {
     cwd: join(__dirname, '..'),
     env: { ...process.env, RUNNER_TEMP: directory, GITHUB_EVENT_PATH: '/unscoped/event.json' },

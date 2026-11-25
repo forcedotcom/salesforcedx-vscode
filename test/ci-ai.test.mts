@@ -375,6 +375,9 @@ test('workflows keep trusted approval execution and share the OpenCode key and m
   const steps = workflow.jobs['category-approve'].steps;
   const install = steps.find((step: { name?: string }) => step.name === 'Install OpenCode CLI');
   assert.equal(install, undefined);
-  assert.match(steps.find((step: { name?: string }) => step.name === 'Start decision server').run, /opencode serve/);
+  assert.match(
+    steps.find((step: { name?: string }) => step.name === 'Decide and approve').run,
+    /runWithJevServer\.mts/
+  );
   assert.match(steps.at(-1).run, /node "\$RUNNER_TEMP\/trusted-approver\/scripts\/categoryApprove.mts"/);
 });

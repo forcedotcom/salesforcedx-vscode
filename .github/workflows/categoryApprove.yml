@@ -64,21 +64,12 @@ jobs:
         if: steps.preflight.outputs.result == 'true'
         working-directory: ${{ runner.temp }}/trusted-approver
         run: pnpm --filter @salesforce/effect-octokit compile
-      - name: Start decision server
+      - name: Compile decision client
         if: steps.preflight.outputs.result == 'true'
-        env:
-          OPENCODE_API_KEY: ${{ secrets.OPENCODE_API_KEY }}
-        run: |
-          pnpm --dir "$RUNNER_TEMP/trusted-approver" --filter @salesforce/opencode-decisions compile
-          npm install --global --allow-scripts=@opencode/cli @opencode/cli@2.2.5
-          export OPENCODE_PASSWORD="$(node -e 'process.stdout.write(require("node:crypto").randomBytes(32).toString("hex"))')"
-          echo "::add-mask::$OPENCODE_PASSWORD"
-          echo "OPENCODE_PASSWORD=$OPENCODE_PASSWORD" >> "$GITHUB_ENV"
-          export OPENCODE_CONFIG_CONTENT='{"providers":{"opencode":{"settings":{"apiKey":"{env:OPENCODE_API_KEY}"}}}}'
-          mkdir -p "$RUNNER_TEMP/jev-opencode"
-          cd "$RUNNER_TEMP/jev-opencode"
-          opencode serve --hostname 127.0.0.1 --port 4096 > "$RUNNER_TEMP/jev-server.log" 2>&1 &
-          node --input-type=module -e 'for (let i = 0; i < 60; i++) { try { const r = await fetch("http://127.0.0.1:4096/api/info", { headers: { authorization: "Basic " + Buffer.from("opencode:" + process.env.OPENCODE_PASSWORD).toString("base64") } }); if (r.ok) process.exit(0); } catch {} await new Promise(resolve => setTimeout(resolve, 1000)); } process.exit(1);'
+        working-directory: ${{ runner.temp }}/trusted-approver
+        run: pnpm --filter @salesforce/opencode-decisions compile
+      - uses: ./.github/actions/setup-opencode
+        if: steps.preflight.outputs.result == 'true'
       - name: Decide and approve
         if: steps.preflight.outputs.result == 'true'
         env:
@@ -88,4 +79,4 @@ jobs:
           GITHUB_RUN_ID: ${{ github.run_id }}
         run: |
           export GITHUB_EVENT_PATH="$RUNNER_TEMP/category-approve-event.json"
-          node "$RUNNER_TEMP/trusted-approver/scripts/categoryApprove.mts"
+          node "$RUNNER_TEMP/trusted-approver/scripts/runWithJevServer.mts" "$RUNNER_TEMP/trusted-approver/scripts/categoryApprove.mts"
