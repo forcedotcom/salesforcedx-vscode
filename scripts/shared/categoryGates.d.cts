@@ -2,6 +2,7 @@ import type { CheckRun, CommitStatus, PullFile, PullRequest, PullReview } from '
 
 export declare const BASE_BRANCH: 'develop';
 export declare const BOT_LOGIN: 'svc-idee-bot';
+export declare const REQUIRED_CHECKS: readonly string[];
 
 export type PreClassifyFacts = {
   readonly pull: typeof PullRequest.Type | undefined;

@@ -42,7 +42,6 @@ on:
       - Unit Tests Linux
       - Unit Tests Windows
       - End to End Tests
-      - Rerun Push E2E
       - Code Builder E2E (Playwright)
       - Playwright E2E Full Suite
     types: [completed]

@@ -27,13 +27,14 @@ import * as Option from 'effect/Option';
 import * as Order from 'effect/Order';
 import * as Queue from 'effect/Queue';
 import * as Ref from 'effect/Ref';
+import * as Schema from 'effect/Schema';
 import { componentIdentity, metadataListingKey, sobjectDescriptionKey, typeCacheKey } from './orgCatalogKeys';
 import {
   OrgMetadataCatalogStore,
   type OrgMetadataCatalogSnapshot,
   type PersistedTypeInventory
 } from './orgMetadataCatalogStore';
-import { isOrgMetadataComponentReference } from './orgMetadataReference';
+import { OrgMetadataComponentReference } from './orgMetadataReference';
 
 type PersistedTrackingObservation = OrgMetadataCatalogSnapshot['tracking'][number];
 type PersistedMetadataListingObservation = OrgMetadataCatalogSnapshot['metadataListings'][number];
@@ -61,7 +62,7 @@ const toPersistedInventory = (xmlName: string, value: TypeInventory): PersistedT
         component.inOrg
           ? [
               {
-                fullName: isOrgMetadataComponentReference(component.reference)
+                fullName: Schema.is(OrgMetadataComponentReference)(component.reference)
                   ? component.reference.fullName
                   : component.name,
                 ...(component.provenance === 'data-api' || component.provenance === 'tooling-api'

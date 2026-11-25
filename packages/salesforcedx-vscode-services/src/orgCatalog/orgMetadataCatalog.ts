@@ -71,10 +71,8 @@ const toCatalogEntry = (entry: OrgMetadataCatalogInternalEntry): OrgMetadataCata
 
 type ApexSourceReference = OrgMetadataCatalogComponentReference & { readonly type: ApexSourceType };
 
-const isApexSourceType = Schema.is(ApexSourceTypeSchema);
-
 const isApexSourceReference = (reference: OrgMetadataCatalogComponentReference): reference is ApexSourceReference =>
-  isApexSourceType(reference.type);
+  Schema.is(ApexSourceTypeSchema)(reference.type);
 
 /**
  * Canonical, services-owned inventory and content catalog for metadata in the

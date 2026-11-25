@@ -29,13 +29,11 @@ describe('apexSourceToolingIdentity', () => {
 });
 
 describe('ApexSourceTypeSchema', () => {
-  const isApexSourceType = Schema.is(ApexSourceTypeSchema);
-
   it.each(['ApexClass', 'ApexTrigger'])('accepts %s', type => {
-    expect(isApexSourceType(type)).toBe(true);
+    expect(Schema.is(ApexSourceTypeSchema)(type)).toBe(true);
   });
 
   it('rejects metadata types without an Apex Tooling source object', () => {
-    expect(isApexSourceType('CustomObject')).toBe(false);
+    expect(Schema.is(ApexSourceTypeSchema)('CustomObject')).toBe(false);
   });
 });

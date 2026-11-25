@@ -8,10 +8,11 @@
 import { RegistryAccess } from '@salesforce/source-deploy-retrieve';
 import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
+import * as Schema from 'effect/Schema';
 import { URI } from 'vscode-uri';
 import { MetadataRegistryService } from '../../../src/core/metadataRegistryService';
 import {
-  isOrgMetadataComponentReference,
+  OrgMetadataComponentReference,
   ORG_METADATA_SCHEME,
   orgIdFromOrgMetadataUri,
   documentUris,
@@ -169,8 +170,8 @@ describe('org metadata document references', () => {
   });
 
   it('recognizes only complete, non-empty component references', () => {
-    expect(isOrgMetadataComponentReference({ xmlName: 'ApexClass', fullName: 'MyTest' })).toBe(true);
-    expect(isOrgMetadataComponentReference({ xmlName: 'ApexClass' })).toBe(false);
-    expect(isOrgMetadataComponentReference({ xmlName: '', fullName: 'MyTest' })).toBe(false);
+    expect(Schema.is(OrgMetadataComponentReference)({ xmlName: 'ApexClass', fullName: 'MyTest' })).toBe(true);
+    expect(Schema.is(OrgMetadataComponentReference)({ xmlName: 'ApexClass' })).toBe(false);
+    expect(Schema.is(OrgMetadataComponentReference)({ xmlName: '', fullName: 'MyTest' })).toBe(false);
   });
 });
