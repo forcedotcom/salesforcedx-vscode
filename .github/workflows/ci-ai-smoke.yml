@@ -7,6 +7,8 @@ on:
       - 'scripts/categoryApprove.mts'
       - 'scripts/shared/openCode.mts'
       - 'scripts/shared/category*.mts'
+      - 'scripts/shared/jevDecisions.mts'
+      - 'test/jev-decisions.test.mts'
       - 'test/ci-ai*.mts'
       - 'test/ciAiFixtures.mts'
       - '.opencode/skills/changelog-judgment/**'
@@ -36,3 +38,16 @@ jobs:
       - run: pnpm test:ai-safeguards
       - run: pnpm test:manual-test-plan
       - run: node --test test/ci-ai-smoke.test.mts
+      - name: Verify live Jev classification (manual runs only)
+        if: github.event_name == 'workflow_dispatch'
+        env:
+          OPENCODE_API_KEY: ${{ secrets.OPENCODE_API_KEY }}
+        run: |
+          node --input-type=module -e '
+            import { readFileSync } from "node:fs";
+            import { Effect, Option } from "effect";
+            import { classifyWithJev } from "./scripts/shared/categoryJev.mts";
+            const diff = "diff --git a/test/example.test.ts b/test/example.test.ts\n--- a/test/example.test.ts\n+++ b/test/example.test.ts\n@@ -1 +1,2 @@\n assert.ok(true);\n+assert.equal(1, 1);\n";
+            const result = await classifyWithJev({ policy: readFileSync("APPROVAL_POLICY.md", "utf8"), diff, hasCoveredHunks: false }).pipe(Effect.runPromise);
+            if (Option.isNone(result) || !result.value.includes("tests-only")) throw new Error("Jev did not classify the test addition");
+          '

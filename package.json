@@ -319,7 +319,7 @@
       ]
     },
     "test:ai-safeguards": {
-      "command": "node --test test/ai-safeguards.test.mjs test/ai-auto-approve.test.mjs test/category-approve.test.mts test/category-approve-preflight.test.cjs",
+      "command": "node --test test/ai-safeguards.test.mjs test/ai-auto-approve.test.mjs test/category-approve.test.mts test/category-approve-preflight.test.cjs test/jev-decisions.test.mts",
       "dependencies": [
         "./packages/effect-octokit:compile"
       ],
@@ -339,6 +339,8 @@
         "scripts/shared/categoryGates.cjs",
         "scripts/shared/categoryGates.d.cts",
         "scripts/shared/categoryDecision.mts",
+        "scripts/shared/categoryJev.mts",
+        "scripts/shared/jevDecisions.mts",
         "scripts/shared/openCode.mts",
         "scripts/shared/scriptErrors.mts",
         ".github/workflows/categoryApprove.yml",
@@ -346,6 +348,7 @@
         "test/ai-safeguards.test.mjs",
         "test/ai-auto-approve.test.mjs",
         "test/category-approve.test.mts",
+        "test/jev-decisions.test.mts",
         "test/category-approve-preflight.test.cjs"
       ],
       "output": []

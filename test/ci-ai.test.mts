@@ -368,13 +368,12 @@ test('workflows keep trusted approval execution and share the OpenCode key and m
   for (const name of ['changelog-body', 'categoryApprove', 'manual-test-plan']) {
     const text = readFileSync(new URL(`../.github/workflows/${name}.yml`, import.meta.url), 'utf8');
     assert.match(text, /OPENCODE_API_KEY: \$\{\{ secrets.OPENCODE_API_KEY \}\}/);
-    assert.match(text, /OPENCODE_MODELS: \$\{\{ vars.OPENCODE_MODELS \}\}/);
+    if (name !== 'categoryApprove') assert.match(text, /OPENCODE_MODELS: \$\{\{ vars.OPENCODE_MODELS \}\}/);
     assert.doesNotMatch(text, /CURSOR|cursor|elif/);
   }
   const workflow = parse(readFileSync(new URL('../.github/workflows/categoryApprove.yml', import.meta.url), 'utf8'));
   const steps = workflow.jobs['category-approve'].steps;
   const install = steps.find((step: { name?: string }) => step.name === 'Install OpenCode CLI');
-  assert.equal(install.if, "steps.preflight.outputs.result == 'true'");
-  assert.match(install.run, /--allow-scripts=@opencode\/cli/);
+  assert.equal(install, undefined);
   assert.match(steps.at(-1).run, /node "\$RUNNER_TEMP\/trusted-approver\/scripts\/categoryApprove.mts"/);
 });

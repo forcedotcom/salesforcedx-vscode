@@ -64,15 +64,11 @@ jobs:
         if: steps.preflight.outputs.result == 'true'
         working-directory: ${{ runner.temp }}/trusted-approver
         run: pnpm --filter @salesforce/effect-octokit compile
-      - name: Install OpenCode CLI
-        if: steps.preflight.outputs.result == 'true'
-        run: npm install --global --allow-scripts=@opencode/cli @opencode/cli@2.2.5
       - name: Decide and approve
         if: steps.preflight.outputs.result == 'true'
         env:
           IDEE_GH_TOKEN: ${{ secrets.IDEE_GH_TOKEN }}
           OPENCODE_API_KEY: ${{ secrets.OPENCODE_API_KEY }}
-          OPENCODE_MODELS: ${{ vars.OPENCODE_MODELS }}
           GITHUB_REPOSITORY: ${{ github.repository }}
           GITHUB_RUN_ID: ${{ github.run_id }}
         run: |
