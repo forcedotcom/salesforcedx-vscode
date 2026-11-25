@@ -10,11 +10,14 @@ import type { MetadataDescribeReadError, MetadataListReadError } from './metadat
 import type { OrgMetadataCatalogError } from './orgMetadataCatalogErrors.js';
 import type {
   OrgMetadataCatalogComponentReference,
+  OrgMetadataCatalogFindQuery,
+  OrgMetadataCatalogFindResult,
   OrgMetadataCatalogEntry,
   OrgMetadataCatalogReference,
   OrgMetadataConsistency,
   OrgMetadataHierarchyConsistency
 } from './orgMetadataCatalogTypes.js';
+import type { QueryPageError } from './queryService.js';
 import * as Context from 'effect/Context';
 import type * as Effect from 'effect/Effect';
 import type * as vscode from 'vscode';
@@ -54,6 +57,9 @@ export class OrgMetadataCatalog extends Context.Service<
       readonly OrgMetadataCatalogComponentResolution[],
       ConnectionError | InactiveOrgOperationError | GetRegistryAccessError
     >;
+    readonly find: (
+      query: OrgMetadataCatalogFindQuery
+    ) => Effect.Effect<readonly OrgMetadataCatalogFindResult[], OrgMetadataCatalogReadError | QueryPageError>;
   }
 >()('@salesforce/vscode-services/v2/OrgMetadataCatalog') {}
 

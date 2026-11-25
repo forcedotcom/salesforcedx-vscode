@@ -13,9 +13,11 @@ import * as Option from 'effect/Option';
 import * as Schedule from 'effect/Schedule';
 import * as Schema from 'effect/Schema';
 import * as Stream from 'effect/Stream';
+import { FileOutputError } from '../../src/effect/fileOutput';
 import { apexLogId } from '../schemaHelpers';
 import { UserId } from '../../src/effect/schema/salesforceId';
-import { getLogBody, listLogs, streamLogs } from '../../src/effect/logs';
+import { getLogBody, getLogRecords, getLogs, listLogs, streamLogs } from '../../src/effect/logs';
+import type { EffectApexLogGetOptions } from '../../src/effect/schema/logs';
 
 const firstUserId = Schema.decodeUnknownSync(UserId)('0053t000007OxppAAC');
 const secondUserId = Schema.decodeUnknownSync(UserId)('0053t000007OxppAAD');
@@ -44,7 +46,7 @@ describe('Effect Apex logs', () => {
     const { connection, query } = makeConnection();
     await Effect.runPromise(listLogs(connection));
     expect(query.mock.calls[0][0]).toBe(
-      'SELECT Id, Application, DurationMilliseconds, LogLength, LogUserId, LogUser.Name, Operation, StartTime, Status FROM ApexLog ORDER BY StartTime DESC, Id DESC'
+      'SELECT Id, Application, DurationMilliseconds, Location, LogLength, LogUserId, LogUser.Name, Operation, Request, StartTime, Status FROM ApexLog ORDER BY StartTime DESC, Id DESC'
     );
     await Effect.runPromise(
       listLogs(connection, {
@@ -76,6 +78,15 @@ describe('Effect Apex logs', () => {
     expect(query.mock.calls[4][0]).toContain(
       'WHERE StartTime >= 2026-10-23T12:00:00.000Z ORDER BY StartTime ASC, Id ASC'
     );
+  });
+
+  it('uses userId when userIds is empty and lets a nonempty userIds take precedence', async () => {
+    const { connection, query } = makeConnection();
+    await Effect.runPromise(listLogs(connection, { userId: firstUserId }));
+    await Effect.runPromise(listLogs(connection, { userId: firstUserId, userIds: [secondUserId] }));
+    expect(query.mock.calls[0][0]).toContain(`WHERE LogUserId = '${firstUserId}'`);
+    expect(query.mock.calls[1][0]).toContain(`WHERE LogUserId IN ('${secondUserId}')`);
+    expect(query.mock.calls[1][0]).not.toContain(`LogUserId = '${firstUserId}'`);
   });
 
   it('follows pages and normalizes nullable optional fields', async () => {
@@ -145,6 +156,72 @@ describe('Effect Apex logs', () => {
       message: 'Failed to fetch ApexLog body: body unavailable',
       cause
     });
+  });
+
+  it('keeps CLI record fields, validates counts, and caps record queries at 25', async () => {
+    const { connection, query } = makeConnection();
+    query.mockResolvedValue({
+      totalSize: 1,
+      records: [
+        {
+          ...log('1'),
+          Application: 'ApexUI',
+          DurationMilliseconds: 4,
+          Location: 'SystemLog',
+          LogUserId: firstUserId,
+          LogUser: { Name: 'Test User', attributes: { type: 'User' } },
+          Operation: 'executeAnonymous',
+          Request: 'API'
+        }
+      ]
+    });
+    const records = await Effect.runPromise(getLogRecords(connection, 27));
+    expect(query).toHaveBeenCalledWith(
+      expect.stringContaining('Location, LogLength, LogUserId, LogUser.Name, Operation, Request, StartTime')
+    );
+    expect(query).toHaveBeenCalledWith(expect.stringContaining('LIMIT 25'));
+    expect(records[0]).toMatchObject({
+      Location: 'SystemLog',
+      Request: 'API',
+      LogUser: { Name: 'Test User', attributes: { type: 'User' } }
+    });
+    expect(await Effect.runPromise(Effect.flip(getLogRecords(connection, 0)))).toMatchObject({
+      _tag: 'ApexOperationError',
+      message: 'Expected number of logs to be greater than 0.'
+    });
+  });
+
+  it('retrieves bodies and invokes an injected writer, with count selection taking precedence over ID', async () => {
+    const { connection, query, request } = makeConnection();
+    query.mockResolvedValue({ totalSize: 1, records: [log('1')] });
+    request.mockResolvedValue('body');
+    const writeLog = vi.fn((fileName: string, body: string) => Effect.succeed(`/logs/${fileName}:${body}`));
+    const results = await Effect.runPromise(
+      getLogs(connection, { logId: log('ignored').Id, numberOfLogs: 2 }, writeLog)
+    );
+    expect(query).toHaveBeenCalledWith(expect.stringContaining('LIMIT 2'));
+    expect(request).toHaveBeenCalledWith({ method: 'GET', url: `/tooling/sobjects/ApexLog/${log('1').Id}/Body` });
+    expect(writeLog).toHaveBeenCalledWith(`${log('1').Id}.log`, 'body');
+    expect(results).toEqual([{ logId: log('1').Id, log: 'body', logPath: `/logs/${log('1').Id}.log:body` }]);
+  });
+
+  it('preserves an injected writer error', async () => {
+    const { connection, request } = makeConnection();
+    request.mockResolvedValue('body');
+    const writeLog = () =>
+      Effect.fail(new FileOutputError({ operation: 'writeFile', path: '/logs/log.log', message: 'disk full' }));
+    const error = await Effect.runPromise(Effect.flip(getLogs(connection, { logId: log('1').Id }, writeLog)));
+    expect(error._tag).toBe('FileOutputError');
+    expect(error.message).toBe('disk full');
+  });
+
+  it('requires either a log ID or a record count', async () => {
+    const { connection, query } = makeConnection();
+    expect(await Effect.runPromise(Effect.flip(getLogs(connection, {} as EffectApexLogGetOptions)))).toMatchObject({
+      _tag: 'ApexOperationError',
+      message: 'To retrieve logs, specify the log ID or the number of logs.'
+    });
+    expect(query).not.toHaveBeenCalled();
   });
 
   it('keeps polling after query/body failures and filters before fetching bodies', async () => {

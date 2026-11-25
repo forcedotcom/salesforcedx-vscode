@@ -214,11 +214,14 @@ export {
   parseDocumentUri
 } from './orgMetadataReference.js';
 export {
+  OrgMetadataCatalogComponentReferenceSchema,
   OrgMetadataCatalogEntrySchema,
   type OrgMetadataConsistency,
   type OrgMetadataHierarchyConsistency,
   type OrgMetadataCatalogReference,
   type OrgMetadataCatalogComponentReference,
+  type OrgMetadataCatalogFindQuery,
+  type OrgMetadataCatalogFindResult,
   type OrgSObjectSummary,
   type OrgSObjectDescription,
   type OrgMetadataFieldDetails,

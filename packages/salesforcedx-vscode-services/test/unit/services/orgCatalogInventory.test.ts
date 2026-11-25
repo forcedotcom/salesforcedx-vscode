@@ -1001,6 +1001,42 @@ it('serves the canonical public catalog, refreshes real inventories, and never d
   }
 });
 
+it('finds workspace Apex evidence and reports absent Tooling evidence without loading full inventory', async () => {
+  const { runtime, connection } = await start();
+  const query = vi.spyOn(connection.tooling, 'query').mockResolvedValue({
+    totalSize: 0,
+    done: true,
+    records: []
+  } as Awaited<ReturnType<typeof connection.tooling.query>>);
+  try {
+    const catalog = await runtime.runPromise(OrgMetadataCatalog);
+    const results = await runtime.runPromise(
+      catalog.find({
+        evidence: [
+          { type: 'ApexClass', fullName: 'Local' },
+          { type: 'ApexClass', fullName: 'Missing' }
+        ],
+        resultKinds: ['component']
+      })
+    );
+    expect(results[0]).toMatchObject({
+      _tag: 'component',
+      reference: { type: 'ApexClass', fullName: 'Local' },
+      entry: { inWorkspace: true, inOrg: false, provenance: 'workspace' }
+    });
+    expect(results[1]).toEqual({
+      _tag: 'not-found',
+      reference: { type: 'ApexClass', fullName: 'Missing' },
+      resultKind: 'component'
+    });
+    expect(query).toHaveBeenCalledTimes(2);
+    expect(String(query.mock.calls[0]?.[0])).toContain('NamespacePrefix = null');
+    expect(String(query.mock.calls[1]?.[0])).toContain('NamespacePrefix = null');
+  } finally {
+    await runtime.dispose();
+  }
+});
+
 it('registers one real text provider, reads native Tooling source, notifies requested documents, and disposes the registration', async () => {
   const { runtime, connection } = await start(true);
   installApexReader(connection);

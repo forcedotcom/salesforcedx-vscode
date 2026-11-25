@@ -23,3 +23,50 @@ not_exploitable:
       third-party actions in this repo (e.g. TriPSs/conventional-changelog-action,
       ncipollo/release-action) are pinned to commit SHAs, showing pinning is already applied where
       the trust boundary is actually external.
+  - id: .github/workflows/codeBuilderE2E.yml:b8cecb2ba0ae1cd4ba572316b0af5ac33661cc4b18454b98e5ca3ecc49f6e454
+    justification: >
+      salesforcecli/github-workflows is an internally-owned Salesforce repo, not a third-party
+      dependency, so an @main reference does not cross a supply-chain trust boundary. The same
+      @main pattern is already used throughout this repo's workflows (see the publishVSCode.yml
+      triage above and codeBuilderE2E.yml's sibling steps). The one genuinely third-party action
+      in this workflow (google/wireit) is pinned to a commit SHA.
+  - id: .github/workflows/codeBuilderE2E.yml:49bbdd04f6cc4165f434dfe42f1516dc1b6fcc39adc9f844b193eb21729ad115
+    justification: >
+      salesforcecli/github-workflows is an internally-owned Salesforce repo, not a third-party
+      dependency, so an @main reference does not cross a supply-chain trust boundary. The same
+      @main pattern is already used throughout this repo's workflows (see the publishVSCode.yml
+      triage above and codeBuilderE2E.yml's sibling steps). The one genuinely third-party action
+      in this workflow (google/wireit) is pinned to a commit SHA.
+  - id: .github/workflows/nightly.yml:eaf065b10b00100573446f124ac84c4f885f9eb780e67c65e0a6c4f9629627a7
+    justification: >
+      salesforcecli/github-workflows is an internally-owned Salesforce repo, not a third-party
+      dependency, so an @main reference does not cross a supply-chain trust boundary. The same
+      @main pattern is already used throughout this repo's workflows (see the publishVSCode.yml
+      triage above and codeBuilderE2E.yml's sibling steps). The one genuinely third-party action
+      in this workflow (google/wireit) is pinned to a commit SHA.
+  - id: .github/workflows/e2e.yml:4f436dbe760c062b3a67bee3db777800233c6eb9715d2b825018a3806993c204
+    justification: >
+      `secrets: inherit` here calls a reusable workflow in this same repository
+      (./.github/workflows/*.yml), so the callee is first-party code reviewed in the same PR flow,
+      not an external workflow. The e2e jobs need several org/auth secrets, and this is the
+      established pattern already used by the existing e2e.yml, playwrightE2EFullSuite.yml and
+      publish workflows on develop; enumerating each secret would only add drift risk.
+  - id: .github/workflows/nightly.yml:4f436dbe760c062b3a67bee3db777800233c6eb9715d2b825018a3806993c204
+    justification: >
+      `secrets: inherit` here calls a reusable workflow in this same repository
+      (./.github/workflows/*.yml), so the callee is first-party code reviewed in the same PR flow,
+      not an external workflow. The e2e jobs need several org/auth secrets, and this is the
+      established pattern already used by the existing e2e.yml, playwrightE2EFullSuite.yml and
+      publish workflows on develop; enumerating each secret would only add drift risk.
+  - id: .github/workflows/validateNewIssues.yml:b8cecb2ba0ae1cd4ba572316b0af5ac33661cc4b18454b98e5ca3ecc49f6e454
+    justification: >
+      salesforcecli/github-workflows is an internally-owned Salesforce repo, not a third-party
+      dependency, so its @main reference does not cross a third-party supply-chain trust boundary.
+      This matches the established repo pattern and the existing not-exploitable triage for
+      publishVSCode.yml.
+  - id: .github/workflows/validateUpdatedIssues.yml:b8cecb2ba0ae1cd4ba572316b0af5ac33661cc4b18454b98e5ca3ecc49f6e454
+    justification: >
+      salesforcecli/github-workflows is an internally-owned Salesforce repo, not a third-party
+      dependency, so its @main reference does not cross a third-party supply-chain trust boundary.
+      This matches the established repo pattern and the existing not-exploitable triage for
+      publishVSCode.yml.

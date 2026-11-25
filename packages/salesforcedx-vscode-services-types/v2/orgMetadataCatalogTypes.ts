@@ -20,13 +20,18 @@ export type OrgMetadataConsistency = 'cache-first' | 'refresh';
 export type OrgMetadataHierarchyConsistency = OrgMetadataConsistency | 'cache-only';
 /** Consumer-facing metadata hierarchy uses conventional `type`, not internal `xmlName`. */
 export type OrgMetadataCatalogReference = { readonly type?: string; readonly fullName?: string };
-const ComponentReference = Schema.Struct({ type: Schema.NonEmptyString, fullName: Schema.NonEmptyString });
-export type OrgMetadataCatalogComponentReference = typeof ComponentReference.Type;
+export const OrgMetadataCatalogComponentReferenceSchema = Schema.Struct({
+  type: Schema.NonEmptyString,
+  fullName: Schema.NonEmptyString
+});
+const ComponentReference = OrgMetadataCatalogComponentReferenceSchema;
+export type OrgMetadataCatalogComponentReference = typeof OrgMetadataCatalogComponentReferenceSchema.Type;
 const Observation = Schema.Struct({
   orgId: OrgId,
   observedAt: Schema.String,
   provenance: Schema.Literals([
     'metadata-api',
+    'data-api',
     'rest-api',
     'tooling-api',
     'workspace',
@@ -91,3 +96,24 @@ export type OrgMetadataCatalogFieldEntry = Omit<OrgMetadataCatalogComponentEntry
 };
 export const OrgMetadataCatalogEntrySchema = Schema.Union([TypeEntry, FolderEntry, ComponentEntry]);
 export type OrgMetadataCatalogEntry = typeof OrgMetadataCatalogEntrySchema.Type;
+
+export type OrgMetadataCatalogFindQuery = {
+  readonly evidence: readonly OrgMetadataCatalogComponentReference[];
+  readonly resultKinds: readonly ('component' | 'sobject')[];
+};
+export type OrgMetadataCatalogFindResult =
+  | {
+      readonly _tag: 'component';
+      readonly reference: OrgMetadataCatalogComponentReference;
+      readonly entry: OrgMetadataCatalogComponentEntry;
+    }
+  | {
+      readonly _tag: 'sobject';
+      readonly reference: OrgMetadataCatalogComponentReference;
+      readonly description: OrgSObjectDescription;
+    }
+  | {
+      readonly _tag: 'not-found';
+      readonly reference: OrgMetadataCatalogComponentReference;
+      readonly resultKind: 'component' | 'sobject';
+    };

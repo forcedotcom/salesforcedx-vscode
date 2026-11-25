@@ -11,7 +11,10 @@ import * as SchemaGetter from 'effect/SchemaGetter';
 import { QueryPageSchema } from '../queryPage.js';
 import { ApexLogId, UserId } from '../salesforceId.js';
 
-const LogUserSchema = Schema.Struct({ Name: Schema.String.pipe(Schema.NullOr, Schema.optional) });
+const LogUserSchema = Schema.Struct({
+  Name: Schema.String.pipe(Schema.NullOr, Schema.optional),
+  attributes: Schema.optional(Schema.Record(Schema.String, Schema.String))
+});
 const OptionalLogUserSchema = Schema.NullOr(LogUserSchema).pipe(
   Schema.decodeTo(Schema.UndefinedOr(LogUserSchema), {
     decode: SchemaGetter.transform(value => (isNull(value) ? undefined : value)),
@@ -20,17 +23,22 @@ const OptionalLogUserSchema = Schema.NullOr(LogUserSchema).pipe(
 );
 
 /** ApexLog record from Tooling API query (Id, LogLength, StartTime, Status required per API reference). */
-export const ApexLogListItem = Schema.Struct({
+export const ApexLogRecordSchema = Schema.Struct({
   Id: ApexLogId,
   Application: Schema.String.pipe(Schema.NullOr, Schema.optional),
   DurationMilliseconds: Schema.Number.pipe(Schema.NullOr, Schema.optional),
+  Location: Schema.String.pipe(Schema.NullOr, Schema.optional),
   LogLength: Schema.Number,
   LogUserId: UserId.pipe(Schema.NullOr, Schema.optional),
   LogUser: Schema.optional(OptionalLogUserSchema),
   Operation: Schema.String.pipe(Schema.NullOr, Schema.optional),
+  Request: Schema.String.pipe(Schema.NullOr, Schema.optional),
   StartTime: Schema.String,
   Status: Schema.String
-}).annotate({ identifier: 'ApexLogListItem' });
-export type ApexLogListItem = typeof ApexLogListItem.Type;
+}).annotate({ identifier: 'ApexLogRecord' });
+export type ApexLogRecord = typeof ApexLogRecordSchema.Type;
+
+export const ApexLogListItem = ApexLogRecordSchema.annotate({ identifier: 'ApexLogListItem' });
+export type ApexLogListItem = ApexLogRecord;
 
 export const ApexLogPageSchema = QueryPageSchema(ApexLogListItem).annotate({ identifier: 'ApexLogPage' });

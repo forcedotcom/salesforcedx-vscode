@@ -23,6 +23,7 @@ class OrgMetadataCatalogSnapshotOrgMismatchError extends Schema.TaggedError<OrgM
 ) {}
 const Provenance = Schema.Literals([
   'metadata-api',
+  'data-api',
   'rest-api',
   'tooling-api',
   'workspace',

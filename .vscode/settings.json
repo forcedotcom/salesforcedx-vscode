@@ -28,6 +28,7 @@
   "eslint.enable": true,
   "eslint.experimental.useFlatConfig": true,
   "eslint.validate": ["javascript", "typescript", "json", "html"],
+  "vitest.configSearchPatternInclude": "{vitest.config.mts,packages/**/vitest*.config.mts}",
   "editor.codeActionsOnSave": {
     "source.fixAll.eslint": "explicit"
   },

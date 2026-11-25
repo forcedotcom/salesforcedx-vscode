@@ -93,6 +93,7 @@ export const commonConfigBrowser = {
     'node:os': 'os-browserify',
     'node:buffer': 'buffer',
     'node:stream': 'readable-stream',
+    'node:stream/consumers': emptyPolyfillsPath,
     'node:stream/promises': emptyPolyfillsPath,
     'node:stream/consumers': emptyPolyfillsPath,
     'readable-stream/promises': emptyPolyfillsPath,

@@ -12,48 +12,22 @@ export type ApexLogGetOptions = CommonOptions & {
   outputDir?: string;
 };
 
-export interface LogRecord {
-  Id: string;
-  /**
-   * Application type
-   */
-  Application: 'Unknown' | string;
-  /**
-   * Time to generate log
-   */
-  DurationMilliseconds: number;
-  /**
-   * Where the log was stored
-   */
-  Location: 'SystemLog' | string;
-  /**
-   * Length of the debug log
-   */
-  LogLength: number;
-  /**
-   * Name of the user who generated the log
-   */
-  LogUser: {
-    attributes: {};
-    Name: string;
+export type LogRecord = {
+  readonly Id: string;
+  readonly Application?: string | null;
+  readonly DurationMilliseconds?: number | null;
+  readonly Location?: string | null;
+  readonly LogLength: number;
+  readonly LogUserId?: string | null;
+  readonly LogUser?: {
+    readonly Name?: string | null;
+    readonly attributes?: Readonly<Record<string, string>>;
   };
-  /**
-   * Type of operation
-   */
-  Operation: 'Api' | string;
-  /**
-   * Type of request
-   */
-  Request: 'Api' | string;
-  /**
-   * Time the log was generated
-   */
-  StartTime: string;
-  /**
-   * Status of the operation
-   */
-  Status: string;
-}
+  readonly Operation?: string | null;
+  readonly Request?: string | null;
+  readonly StartTime: string;
+  readonly Status: string;
+};
 
 export type LogResult = {
   logPath?: string;

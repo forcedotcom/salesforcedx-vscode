@@ -123,18 +123,20 @@ const ApexLogGetOptionsSchema = Schema.Struct({
   outputDir: optional(Schema.String)
 }).annotate({ identifier: 'ApexLogGetOptions' });
 
+const LogUserSchema = Schema.Struct({
+  attributes: optional(Schema.Record(Schema.String, Schema.String)),
+  Name: optional(Schema.NullOr(Schema.String))
+});
 const LogRecordSchema = Schema.Struct({
   Id: ApexLogId,
-  Application: Schema.String,
-  DurationMilliseconds: Schema.Finite,
-  Location: Schema.String,
-  LogLength: Schema.Finite,
-  LogUser: Schema.Struct({
-    attributes: Schema.Record(Schema.String, Schema.Unknown),
-    Name: Schema.String
-  }),
-  Operation: Schema.String,
-  Request: Schema.String,
+  Application: optional(Schema.NullOr(Schema.String)),
+  DurationMilliseconds: optional(Schema.NullOr(Schema.Number)),
+  Location: optional(Schema.NullOr(Schema.String)),
+  LogLength: Schema.Number,
+  LogUserId: optional(Schema.NullOr(Schema.String)),
+  LogUser: optional(LogUserSchema),
+  Operation: optional(Schema.NullOr(Schema.String)),
+  Request: optional(Schema.NullOr(Schema.String)),
   StartTime: Schema.String,
   Status: Schema.String
 }).annotate({ identifier: 'LogRecord' });
@@ -338,10 +340,6 @@ type Matches<Contract, Definition extends Schema.Codec<unknown, unknown>> = Equa
   JsonContract<Contract>,
   JsonContract<Schema.Codec.Encoded<Definition>>
 >;
-type SerializableLogRecord = Omit<LogRecord, 'LogUser'> & {
-  LogUser: { attributes: Record<string, unknown>; Name: string };
-};
-
 type PublicContractChecks = {
   ApexCodeCoverage: Matches<ApexCodeCoverage, typeof ApexCodeCoverageSchema>;
   ApexCodeCoverageAggregate: Matches<ApexCodeCoverageAggregate, typeof ApexCodeCoverageAggregateSchema>;
@@ -369,7 +367,7 @@ type PublicContractChecks = {
   CommonOptions: Matches<CommonOptions, typeof CommonOptionsSchema>;
   ExecuteAnonymousResponse: Matches<ExecuteAnonymousResponse, typeof ExecuteAnonymousResponseSchema>;
   LogLevel: Matches<LogLevel, typeof LogLevelSchema>;
-  LogRecord: Matches<SerializableLogRecord, typeof LogRecordSchema>;
+  LogRecord: Matches<LogRecord, typeof LogRecordSchema>;
   LogResult: Matches<LogResult, typeof LogResultSchema>;
   OutputDirConfig: Matches<OutputDirConfig, typeof OutputDirConfigSchema>;
   PerClassCoverage: Matches<PerClassCoverage, typeof PerClassCoverageSchema>;

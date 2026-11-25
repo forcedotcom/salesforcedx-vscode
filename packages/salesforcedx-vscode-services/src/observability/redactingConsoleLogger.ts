@@ -32,11 +32,7 @@ export const redactingConsoleLoggerLayer = makeRedactingConsoleLoggerLayer(redac
 
 /** Shared runtime so Effect.log hits the redacting logger. Unpublished runtime still uses that logger. */
 export const runOnServicesRuntime = <A, E>(effect: Effect.Effect<A, E, never>) =>
-  getServicesRuntime().pipe(
-    Effect.flatMap(runtime =>
-      runtime.contextEffect.pipe(Effect.flatMap(context => effect.pipe(Effect.provide(context))))
-    ),
-    Effect.catchTag('ServicesRuntimeNotReady', () =>
-      effect.pipe(Effect.updateService(References.CurrentLoggers, replaceDefaultRedactingLogger))
-    )
-  );
+  Effect.matchEffect(getServicesRuntime(), {
+    onFailure: () => effect.pipe(Effect.updateService(References.CurrentLoggers, replaceDefaultRedactingLogger)),
+    onSuccess: runtime => runtime.contextEffect.pipe(Effect.flatMap(context => effect.pipe(Effect.provide(context))))
+  });

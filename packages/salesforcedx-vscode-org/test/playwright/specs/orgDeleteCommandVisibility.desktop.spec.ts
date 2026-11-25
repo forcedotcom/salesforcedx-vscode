@@ -9,12 +9,17 @@ import {
   closeWelcomeTabs,
   createMinimalOrg,
   ensureSecondarySideBarHidden,
+  resetContainerWorkbench,
+  saveScreenshot,
+  setupConsoleMonitoring,
+  setupNetworkMonitoring,
   upsertScratchOrgAuthFieldsToSettings,
+  validateNoCriticalErrors,
   verifyCommandExists,
   waitForVSCodeWorkbench
 } from '@salesforce/playwright-vscode-ext';
 import packageNls from '../../../package.nls.json';
-import { orgDesktopMinimalDefaultTest as test } from '../fixtures/desktopFixtures';
+import { isContainer, sharedMinimalDefaultTest as test } from '../fixtures';
 
 // A scratch org is a deletable default (isScratch === true) so sf:default_org_deletable is true
 // and SFDX: Delete Default Org must appear in the palette.
@@ -22,13 +27,23 @@ import { orgDesktopMinimalDefaultTest as test } from '../fixtures/desktopFixture
 // which there is no e2e helper; it is covered by the updateContext jest test and manual verification.
 test('org extension: SFDX: Delete Default Org is visible when the default org is a scratch org', async ({ page }) => {
   test.setTimeout(120_000);
+  const consoleErrors = setupConsoleMonitoring(page);
+  const networkErrors = setupNetworkMonitoring(page);
 
-  await test.step('setup scratch default org', async () => {
-    const createResult = await createMinimalOrg();
-    await waitForVSCodeWorkbench(page);
+  await test.step('setup', async () => {
+    if (isContainer) {
+      // Shared, persistent workbench: reset editor + notification state rather than assuming a clean
+      // slate. The container's boot org is already the tracking scratch org default target-org — no
+      // org creation here.
+      await resetContainerWorkbench(page);
+    } else {
+      const createResult = await createMinimalOrg();
+      await waitForVSCodeWorkbench(page);
+      await upsertScratchOrgAuthFieldsToSettings(page, createResult);
+    }
     await closeWelcomeTabs(page);
     await ensureSecondarySideBarHidden(page);
-    await upsertScratchOrgAuthFieldsToSettings(page, createResult);
+    await saveScreenshot(page, 'orgDeleteCommandVisibility.01-ready.png');
   });
 
   // Gate on an always-present activation command so we don't get a false negative on slow startup.
@@ -36,7 +51,10 @@ test('org extension: SFDX: Delete Default Org is visible when the default org is
     await verifyCommandExists(page, packageNls.org_login_web_authorize_org_text, 60_000);
   });
 
-  await test.step('verify Delete Default Org is visible', async () => {
+  await test.step('verify Delete Default Org is visible (do not run it)', async () => {
+    // Visibility assertion only — the shared boot org must survive for other specs.
     await verifyCommandExists(page, packageNls.org_delete_default_text, 30_000);
   });
+
+  await validateNoCriticalErrors(test, consoleErrors, networkErrors);
 });

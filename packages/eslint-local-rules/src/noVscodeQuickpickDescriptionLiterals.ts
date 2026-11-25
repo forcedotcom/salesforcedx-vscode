@@ -36,10 +36,8 @@ export const noVscodeQuickpickDescriptionLiterals = RuleCreator.withoutDocs({
         if (!descProp?.value) continue;
 
         const value = descProp.value;
-        if (value.type === AST_NODE_TYPES.AssignmentPattern) continue;
 
-        const expr = value as TSESTree.Expression;
-        if (isStringLiteralOrTemplateWithoutNls(expr)) {
+        if (isStringLiteralOrTemplateWithoutNls(value)) {
           context.report({ node: value, messageId: 'noLiteral' });
         }
       }

@@ -31,6 +31,7 @@ import * as Effect from 'effect/Effect';
 import * as Exit from 'effect/Exit';
 import * as Layer from 'effect/Layer';
 import * as Option from 'effect/Option';
+import { isError } from 'effect/Predicate';
 import * as Ref from 'effect/Ref';
 import * as Schema from 'effect/Schema';
 import * as Semaphore from 'effect/Semaphore';
@@ -55,11 +56,14 @@ const successTtl =
   (ttl: Duration.Input) =>
   <A, E>(exit: Exit.Exit<A, E>) =>
     Exit.isSuccess(exit) ? ttl : Duration.zero;
+const isSObjectNotFound = (cause: unknown): boolean =>
+  isError(cause) && /does not exist|not found|invalid type|resource.*not.*found/i.test(cause.message);
 const metadataFailure = (cause: unknown, name: string, objectName?: string) =>
   new MetadataDescribeError({
     cause,
     function: name,
     ...(objectName ? { objectName } : {}),
+    ...(name === 'describeCustomObject' ? { notFound: isSObjectNotFound(cause) } : {}),
     message: `Failed to ${name}${objectName ? ` ${objectName}` : ''}: ${unknownToErrorCause(cause).message}`
   });
 const invalidatedDescribe = () =>

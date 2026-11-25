@@ -129,6 +129,7 @@ export class MetadataDescribeError extends Schema.TaggedError<MetadataDescribeEr
   cause: Schema.Unknown,
   function: Schema.String,
   objectName: Schema.optional(Schema.String),
+  notFound: Schema.optional(Schema.Boolean),
   message: Schema.String
 }) {}
 export class ListMetadataError extends Schema.TaggedError<ListMetadataError>()('ListMetadataError', {

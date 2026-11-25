@@ -61,11 +61,11 @@ const findEffectServiceContexts = (node: TSESTree.Node): EffectServiceContext[] 
   if (config?.type !== AST_NODE_TYPES.ObjectExpression) return contexts;
   const configObj = config;
   const depsProp = configObj.properties.find(
-    (p: TSESTree.ObjectLiteralElement): p is TSESTree.Property =>
+    (p): p is Extract<TSESTree.ObjectExpression['properties'][number], { type: AST_NODE_TYPES.Property }> =>
       p.type === AST_NODE_TYPES.Property && p.key.type === AST_NODE_TYPES.Identifier && p.key.name === 'dependencies'
   );
   const effectProp = configObj.properties.find(
-    (p: TSESTree.ObjectLiteralElement): p is TSESTree.Property =>
+    (p): p is Extract<TSESTree.ObjectExpression['properties'][number], { type: AST_NODE_TYPES.Property }> =>
       p.type === AST_NODE_TYPES.Property && p.key.type === AST_NODE_TYPES.Identifier && p.key.name === 'effect'
   );
   const depsValue = depsProp?.value;

@@ -1,5 +1,8 @@
 import * as NodeServices from '@effect/platform-node/NodeServices';
 import { ConfigProvider, Effect, Result } from 'effect';
+import * as Option from 'effect/Option';
+import * as Redacted from 'effect/Redacted';
+import * as ChildProcess from 'effect/process/ChildProcess';
 import assert from 'node:assert/strict';
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
@@ -20,7 +23,13 @@ import {
   tempDirectory
 } from './ciAiFixtures.mts';
 
-test('category judgment uses one configured model, stdin, isolated configuration, and no inherited credentials', async t => {
+const modelArgument = (command: ChildProcess.StandardCommand) => {
+  const value = command.args.at(-1);
+  assert.ok(value);
+  return typeof value === 'string' ? value : Redacted.value(value);
+};
+
+test('category judgment uses the first configured model with isolated stdin and credentials', async t => {
   const directory = tempDirectory(t);
   const capturePath = join(directory, 'capture.json');
   const policy = readFileSync(new URL('../APPROVAL_POLICY.md', import.meta.url), 'utf8');
@@ -60,7 +69,7 @@ test('category judgment uses one configured model, stdin, isolated configuration
         process.stdin.on('data', chunk => prompt += chunk);
         process.stdin.on('end', () => {
           fs.writeFileSync(${JSON.stringify(capturePath)}, JSON.stringify({ prompt, cwd: process.cwd(), home: fs.realpathSync(process.env.HOME), env: process.env, config: JSON.parse(fs.readFileSync('opencode.json', 'utf8')) }));
-          process.stdout.write(${JSON.stringify(events('{"categories":["prose"]}'))});
+          process.stdout.write(${JSON.stringify(events('{"covered":true,"categories":["tests-only"]}'))});
         });
       `
         );
@@ -70,7 +79,7 @@ test('category judgment uses one configured model, stdin, isolated configuration
     Effect.provide(ConfigProvider.layer(config())),
     Effect.runPromise
   );
-  assert.deepEqual(parseAgentResult(result), ['prose']);
+  assert.deepEqual(parseAgentResult(result), Option.some(['tests-only']));
   const captured = JSON.parse(readFileSync(capturePath, 'utf8'));
   assert.match(captured.prompt, /Diff:\n\+untrusted diff/);
   assert.equal(captured.home, captured.cwd);
@@ -93,18 +102,25 @@ for (const output of [
   `${events('ok')}{"type":"error"}\n`
 ]) {
   test(`rejects incomplete or invalid OpenCode output: ${JSON.stringify(output)}`, async () => {
+    let calls = 0;
     const result = await openCodePrompt({ prompt: 'judge' }).pipe(
-      Effect.provide(commands(command => nodeCommand(command, `process.stdout.write(${JSON.stringify(output)});`))),
+      Effect.provide(
+        commands(command => {
+          calls += 1;
+          return nodeCommand(command, `process.stdout.write(${JSON.stringify(output)});`);
+        })
+      ),
       Effect.provide(NodeServices.layer),
       Effect.provide(ConfigProvider.layer(config())),
       Effect.result,
       Effect.runPromise
     );
     assert.equal(result._tag, 'Failure');
+    assert.equal(calls, 1);
   });
 }
 
-test('uses only final-step text and never retries a failed process', async () => {
+test('uses only final-step text and does not retry non-retryable process failures', async () => {
   let calls = 0;
   const run = (output: string, code: number) =>
     openCodePrompt({ prompt: 'judge' }).pipe(
@@ -125,6 +141,150 @@ test('uses only final-step text and never retries a failed process', async () =>
   );
   assert.equal((await run(events('{"categories":["prose"]}'), 2))._tag, 'Failure');
   assert.equal(calls, 2);
+});
+
+for (const message of [
+  'HTTP 410 Gone',
+  'HTTP 429 Too Many Requests',
+  'RateLimit.FreeUsageLimitError',
+  'Free usage limit reached',
+  'ModelUnavailableError',
+  'ProviderModelNotFoundError',
+  'Model is unavailable',
+  'Model opencode/first not found',
+  'No free models available'
+]) {
+  for (const errorEvent of [false, true]) {
+    test(`retries ${errorEvent ? 'error event' : 'process failure'}: ${message}`, async () => {
+      const attemptedModels: string[] = [];
+      const output = errorEvent ? JSON.stringify({ type: 'error', error: { message } }) + '\n' : message;
+      const result = await openCodePrompt({ prompt: 'judge' }).pipe(
+        Effect.provide(
+          commands(command => {
+            const model = modelArgument(command);
+            attemptedModels.push(model);
+            return nodeCommand(
+              command,
+              model === 'opencode/first'
+                ? `process.${errorEvent ? 'stdout' : 'stderr'}.write(${JSON.stringify(output)}); process.exitCode = ${errorEvent ? 0 : 1};`
+                : `process.stdout.write(${JSON.stringify(events('{"categories":["prose"]}'))});`
+            );
+          })
+        ),
+        Effect.provide(ConfigProvider.layer(config('["opencode/first","opencode/second","opencode/third"]'))),
+        Effect.result,
+        Effect.runPromise
+      );
+
+      assert.deepEqual(result, Result.succeed('{"categories":["prose"]}'));
+      assert.deepEqual(attemptedModels, ['opencode/first', 'opencode/second']);
+    });
+  }
+}
+
+test('continues through multiple model errors until a configured model succeeds', async () => {
+  const attemptedModels: string[] = [];
+  const result = await openCodePrompt({ prompt: 'judge' }).pipe(
+    Effect.provide(
+      commands(command => {
+        const model = modelArgument(command);
+        attemptedModels.push(model);
+        return nodeCommand(
+          command,
+          model === 'opencode/third'
+            ? `process.stdout.write(${JSON.stringify(events('{"categories":["prose"]}'))});`
+            : `process.stdout.write(${JSON.stringify(JSON.stringify({ type: 'error', error: { name: 'APIError', data: { statusCode: model === 'opencode/first' ? 410 : 429 } } }) + '\n')});`
+        );
+      })
+    ),
+    Effect.provide(ConfigProvider.layer(config('["opencode/first","opencode/second","opencode/third"]'))),
+    Effect.result,
+    Effect.runPromise
+  );
+
+  assert.deepEqual(result, Result.succeed('{"categories":["prose"]}'));
+  assert.deepEqual(attemptedModels, ['opencode/first', 'opencode/second', 'opencode/third']);
+});
+
+for (const configuredModels of [['opencode/only'], ['opencode/third', 'opencode/first', 'opencode/second']]) {
+  test(`exhausts configured models in order: ${configuredModels.join(', ')}`, async () => {
+    const attemptedModels: string[] = [];
+    const result = await openCodePrompt({ prompt: 'judge' }).pipe(
+      Effect.provide(
+        commands(command => {
+          const model = modelArgument(command);
+          attemptedModels.push(model);
+          return nodeCommand(command, `process.stderr.write('Model unavailable'); process.exitCode = 1;`);
+        })
+      ),
+      Effect.provide(ConfigProvider.layer(config(JSON.stringify(configuredModels)))),
+      Effect.result,
+      Effect.runPromise
+    );
+
+    assert.ok(Result.isFailure(result));
+    assert.equal(
+      result.failure.message,
+      `All configured OpenCode models were unavailable or rate limited (last: ${configuredModels.at(-1)})`
+    );
+    assert.deepEqual(attemptedModels, configuredModels);
+  });
+}
+
+for (const [stdout, stderr, code, expectedTag] of [
+  ['', 'Invalid API key', 1, 'Left'],
+  ['', 'HTTP 403 Forbidden', 1, 'Left'],
+  ['', 'Configuration error at line 429', 1, 'Left'],
+  ['', 'Failed to read file 410', 1, 'Left'],
+  ['', 'Model configuration file not found', 1, 'Left'],
+  [JSON.stringify({ type: 'error', error: { message: 'Invalid API key', requestId: '429' } }) + '\n', '', 0, 'Left'],
+  [events('Model unavailable HTTP 429 RateLimit.FreeUsageLimitError'), '', 1, 'Left'],
+  [events('HTTP 410 is documentation, not an error'), 'HTTP 429 diagnostic', 0, 'Right']
+] as const) {
+  test(`does not retry unrelated output: ${JSON.stringify({ stdout, stderr, code })}`, async () => {
+    const attemptedModels: string[] = [];
+    const result = await openCodePrompt({ prompt: 'judge' }).pipe(
+      Effect.provide(
+        commands(command => {
+          const model = modelArgument(command);
+          attemptedModels.push(model);
+          return nodeCommand(
+            command,
+            `process.stdout.write(${JSON.stringify(stdout)}); process.stderr.write(${JSON.stringify(stderr)}); process.exitCode = ${code};`
+          );
+        })
+      ),
+      Effect.provide(ConfigProvider.layer(config())),
+      Effect.result,
+      Effect.runPromise
+    );
+
+    assert.equal(result._tag, expectedTag === 'Right' ? 'Success' : 'Failure');
+    assert.deepEqual(attemptedModels, ['opencode/first']);
+  });
+}
+
+test('stops at an unrelated failure after a retryable model error', async () => {
+  const attemptedModels: string[] = [];
+  const result = await openCodePrompt({ prompt: 'judge' }).pipe(
+    Effect.provide(
+      commands(command => {
+        const model = modelArgument(command);
+        attemptedModels.push(model);
+        return nodeCommand(
+          command,
+          `process.stderr.write(${JSON.stringify(model === 'opencode/first' ? 'HTTP 429' : 'Invalid API key')}); process.exitCode = 1;`
+        );
+      })
+    ),
+    Effect.provide(ConfigProvider.layer(config('["opencode/first","opencode/second","opencode/third"]'))),
+    Effect.result,
+    Effect.runPromise
+  );
+
+  assert.ok(Result.isFailure(result));
+  assert.equal(result.failure.message, 'OpenCode exited 1');
+  assert.deepEqual(attemptedModels, ['opencode/first', 'opencode/second']);
 });
 
 for (const models of ['', '[]', 'not json', '["auto"]', '["opencode/first", 3]']) {

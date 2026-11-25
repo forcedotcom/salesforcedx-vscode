@@ -27,7 +27,7 @@ export const commands = (replace: (command: ChildProcess.StandardCommand) => Chi
           : Effect.die(new Error('Unexpected pipeline'))
       );
     })
-  ).pipe(Layer.provide(NodeServices.layer));
+  ).pipe(Layer.provideMerge(NodeServices.layer));
 
 export const nodeCommand = (command: ChildProcess.StandardCommand, code: string) =>
   ChildProcess.make(process.execPath, ['-e', code, '--', ...command.args], {

@@ -9,7 +9,17 @@ import type * as NodeFsModule from 'node:fs';
 import type * as NodeOsModule from 'node:os';
 import type * as SalesforceCoreModule from '@salesforce/core';
 import type * as SalesforceCoreFsModule from '@salesforce/core/fs';
+import type * as CliTelemetryModule from '../../src/observability/cliTelemetry';
 import type * as IndexedDbStorageModule from '../../src/virtualFsProvider/indexedDbStorage';
+
+vi.mock('../../src/observability/cliTelemetry', async () => {
+  const actual = await vi.importActual<typeof CliTelemetryModule>('../../src/observability/cliTelemetry');
+  const E = await import('effect');
+  return {
+    ...actual,
+    getCliId: () => E.Effect.succeed(E.Option.none())
+  };
+});
 
 // Mock os module before any other imports
 vi.mock('node:os', async () => ({

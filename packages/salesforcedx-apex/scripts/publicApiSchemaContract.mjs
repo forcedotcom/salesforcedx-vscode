@@ -69,6 +69,6 @@ export const publicApiSchemaHash = schema =>
 // Effect V4 validation tightens Salesforce IDs and coverage counts from the develop contract.
 assert.equal(
   publicApiSchemaHash(JSON.parse(readFileSync(new URL('../schemas/public-api.schema.json', import.meta.url), 'utf8'))),
-  '939315e0b44a219b73ccf40b37cd563a46b339a9aed478965047940c1089d34e',
-  'Apex public JSON validation changed from the reviewed Effect V4 contract'
+  '7578776b1a4c4e33f2b6a3b9c3c0328660bb2256a7df4f6f0cffe2b9f8a7c380',
+  'Apex public JSON validation changed from the reviewed Effect V4 + Apex log contract'
 );

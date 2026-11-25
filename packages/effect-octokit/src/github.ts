@@ -229,8 +229,7 @@ const run = <A>(method: string, path: string, request: () => Promise<A>) => {
   );
 };
 
-const makeGitHub = Effect.gen(function* () {
-  const token = yield* Config.Redacted('IDEE_GH_TOKEN').pipe(Config.orElse(() => Config.Redacted('GITHUB_TOKEN')));
+const makeGitHub = (token: Redacted.Redacted<string>) => {
   const octokit = new PaginatedOctokit({
     auth: Redacted.value(token),
     userAgent: 'salesforcedx-vscode',
@@ -283,6 +282,73 @@ const makeGitHub = Effect.gen(function* () {
         pull_number: pullNumber,
         per_page: 100
       })
+    );
+  });
+
+  /** Read one comment page, preserving the issue actions' listComments behavior. */
+  const issueComments = Effect.fn('GitHub.issueComments')(function* (owner: string, repo: string, issueNumber: number) {
+    return yield* run('GET', `/repos/${owner}/${repo}/issues/${issueNumber}/comments`, () =>
+      octokit
+        .request('GET /repos/{owner}/{repo}/issues/{issue_number}/comments', {
+          owner,
+          repo,
+          issue_number: issueNumber
+        })
+        .then(response => response.data)
+    );
+  });
+
+  const createIssueComment = Effect.fn('GitHub.createIssueComment')(function* (
+    owner: string,
+    repo: string,
+    issueNumber: number,
+    body: string
+  ) {
+    return yield* run('POST', `/repos/${owner}/${repo}/issues/${issueNumber}/comments`, () =>
+      octokit
+        .request('POST /repos/{owner}/{repo}/issues/{issue_number}/comments', {
+          owner,
+          repo,
+          issue_number: issueNumber,
+          body
+        })
+        .then(response => response.data)
+    );
+  });
+
+  const addIssueLabels = Effect.fn('GitHub.addIssueLabels')(function* (
+    owner: string,
+    repo: string,
+    issueNumber: number,
+    labels: readonly string[]
+  ) {
+    yield* run('POST', `/repos/${owner}/${repo}/issues/${issueNumber}/labels`, () =>
+      octokit
+        .request('POST /repos/{owner}/{repo}/issues/{issue_number}/labels', {
+          owner,
+          repo,
+          issue_number: issueNumber,
+          labels: [...labels]
+        })
+        .then(() => undefined)
+    );
+  });
+
+  const removeIssueLabel = Effect.fn('GitHub.removeIssueLabel')(function* (
+    owner: string,
+    repo: string,
+    issueNumber: number,
+    label: string
+  ) {
+    yield* run('DELETE', `/repos/${owner}/${repo}/issues/${issueNumber}/labels/${label}`, () =>
+      octokit
+        .request('DELETE /repos/{owner}/{repo}/issues/{issue_number}/labels/{name}', {
+          owner,
+          repo,
+          issue_number: issueNumber,
+          name: label
+        })
+        .then(() => undefined)
     );
   });
 
@@ -509,6 +575,10 @@ const makeGitHub = Effect.gen(function* () {
     paginate,
     teamMembership,
     pullFiles,
+    issueComments,
+    createIssueComment,
+    addIssueLabels,
+    removeIssueLabel,
     pullReviews,
     checkRuns,
     workflowRunJobs,
@@ -524,8 +594,19 @@ const makeGitHub = Effect.gen(function* () {
     updatePullBody,
     pullRequest
   };
-});
+};
 
-export class GitHub extends Context.Service<GitHub, Effect.Success<typeof makeGitHub>>()('GitHub') {}
+export class GitHub extends Context.Service<GitHub, ReturnType<typeof makeGitHub>>()('GitHub') {}
 
-export const GitHubLayer = Layer.effect(GitHub, makeGitHub);
+export const GitHubLayer = Layer.effect(
+  GitHub,
+  Config.Redacted('IDEE_GH_TOKEN').pipe(
+    Config.orElse(() => Config.Redacted('GITHUB_TOKEN')),
+    Effect.map(token => GitHub.of(makeGitHub(token)))
+  )
+);
+
+/** Build the GitHub service using only the supplied token, never runner environment credentials. */
+export const githubFromToken = Effect.fn('GitHub.fromToken')((token: string) =>
+  Redacted.make(token).pipe(Effect.succeed, Effect.map(makeGitHub))
+);

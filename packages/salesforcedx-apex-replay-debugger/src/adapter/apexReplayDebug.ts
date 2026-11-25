@@ -100,7 +100,7 @@ export class ApexReplayDebug extends LoggingDebugSession {
     this.log(TRACE_CATEGORY_LAUNCH, `launchRequest: args=${JSON.stringify(args)}`);
     this.sendEvent(
       new Event(SEND_METRIC_GENERAL_EVENT, {
-        subject: `launchRequest: args=${JSON.stringify(args)}`,
+        subject: 'launchRequest',
         type: 'launchApexReplayDebugger'
       })
     );

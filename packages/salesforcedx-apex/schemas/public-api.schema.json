@@ -698,33 +698,33 @@
       "type": "object",
       "properties": {
         "Id": { "$ref": "#/$defs/ApexLogId" },
-        "Application": { "type": "string" },
-        "DurationMilliseconds": { "type": "number" },
-        "Location": { "type": "string" },
-        "LogLength": { "type": "number" },
+        "Application": { "anyOf": [{ "type": "string" }, { "type": "null" }] },
+        "DurationMilliseconds": {
+          "anyOf": [
+            { "type": "number" },
+            { "type": "string", "enum": ["Infinity", "-Infinity", "NaN"] },
+            { "type": "null" }
+          ]
+        },
+        "Location": { "anyOf": [{ "type": "string" }, { "type": "null" }] },
+        "LogLength": {
+          "anyOf": [{ "type": "number" }, { "type": "string", "enum": ["Infinity", "-Infinity", "NaN"] }]
+        },
+        "LogUserId": { "anyOf": [{ "type": "string" }, { "type": "null" }] },
         "LogUser": {
           "type": "object",
-          "properties": { "attributes": { "type": "object" }, "Name": { "type": "string" } },
-          "required": ["attributes", "Name"],
+          "properties": {
+            "attributes": { "type": "object", "additionalProperties": { "type": "string" } },
+            "Name": { "anyOf": [{ "type": "string" }, { "type": "null" }] }
+          },
           "additionalProperties": false
         },
-        "Operation": { "type": "string" },
-        "Request": { "type": "string" },
+        "Operation": { "anyOf": [{ "type": "string" }, { "type": "null" }] },
+        "Request": { "anyOf": [{ "type": "string" }, { "type": "null" }] },
         "StartTime": { "type": "string" },
         "Status": { "type": "string" }
       },
-      "required": [
-        "Id",
-        "Application",
-        "DurationMilliseconds",
-        "Location",
-        "LogLength",
-        "LogUser",
-        "Operation",
-        "Request",
-        "StartTime",
-        "Status"
-      ],
+      "required": ["Id", "LogLength", "StartTime", "Status"],
       "additionalProperties": false
     },
     "LogResult": {
