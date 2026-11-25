@@ -26,6 +26,8 @@ type RetrieveRequest = {
   readonly expectedRemoteLastModifiedDate?: string;
 };
 
+type NonEmptyRetrieveRequests = readonly [RetrieveRequest, ...RetrieveRequest[]];
+
 const uniqueHashableUris = (uris: readonly URI[]): readonly HashableUri[] => Arr.dedupe(uris.map(HashableUri.fromUri));
 
 const sourceComponentFilePaths = (sourceComponent?: {
@@ -295,11 +297,10 @@ export class OrgCatalogRemoteRetrieve extends Effect.Service<OrgCatalogRemoteRet
 
     const materializeRetrievedComponents = Effect.fn('OrgCatalogRemoteRetrieve.materializeComponents')(function* (
       orgId: string,
-      requests: readonly RetrieveRequest[]
+      requests: NonEmptyRetrieveRequests
     ) {
-      if (requests.length === 0) return [];
       if (requests.length > 1) return yield* materializeBatch(orgId, requests);
-      const request = requests[0]!;
+      const [request] = requests;
       return [{ reference: request.reference, artifact: yield* materializeOne(orgId, request) }];
     });
 

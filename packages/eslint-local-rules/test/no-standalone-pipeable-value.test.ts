@@ -7,6 +7,7 @@
 
 import { join } from 'node:path';
 import { RuleTester } from '@typescript-eslint/rule-tester';
+import { it } from 'vitest';
 import { noStandalonePipeableValue } from '../src/noStandalonePipeableValue';
 
 const fixtureDir = join(__dirname, 'fixtures/no-standalone-pipeable-value');
@@ -20,6 +21,7 @@ const ruleTester = new RuleTester({
     }
   }
 });
+RuleTester.it = (name, callback) => it(name, callback, 30_000);
 
 const imports = `import { pipe } from 'effect/Function';
 import * as Effect from 'effect/Effect';

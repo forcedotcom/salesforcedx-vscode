@@ -4,20 +4,28 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { expect } from '@playwright/test';
 import {
   closeWelcomeTabs,
   ensureSecondarySideBarHidden,
-  EDITOR_WITH_URI,
   setupConsoleMonitoring,
+  setupNetworkMonitoring,
   validateNoCriticalErrors,
   waitForVSCodeWorkbench
 } from '@salesforce/playwright-vscode-ext';
-import { test } from '../fixtures';
-import { createLwc, openLwcFile, openSfdxCustomComponentsJson, waitForLwcLspReady } from '../utils/lwcUtils';
+import { isContainer, sharedTest as test } from '../fixtures';
+import {
+  assertOpenEditorContainsText,
+  createLwc,
+  openLwcFile,
+  openSfdxCustomComponentsJson,
+  waitForLwcLspReady
+} from '../utils/lwcUtils';
 
 test.beforeEach(async ({ page }) => {
-  await waitForVSCodeWorkbench(page);
+  // The containerTest fixture already awaited workbench readiness before handing over `page`.
+  if (!isContainer) {
+    await waitForVSCodeWorkbench(page);
+  }
   await closeWelcomeTabs(page);
   await ensureSecondarySideBarHidden(page);
 });
@@ -26,7 +34,10 @@ test('New LWC bundle updates .sfdx/indexes/lwc/custom-components.json without re
   test.setTimeout(3 * 60 * 1000);
 
   const consoleErrors = setupConsoleMonitoring(page);
-  const bundleCamel = 'idxCmp';
+  const networkErrors = setupNetworkMonitoring(page);
+  // Unique per-run name: the container's shared workbench would otherwise collide with a bundle another
+  // spec (or an earlier run) already created. Harmless where each test gets a fresh workspace.
+  const bundleCamel = `idxCmp${Date.now()}`;
 
   await test.step('create a bundle and wait for LWC language server indexing', async () => {
     await createLwc(page, bundleCamel);
@@ -35,15 +46,16 @@ test('New LWC bundle updates .sfdx/indexes/lwc/custom-components.json without re
   });
 
   await test.step('custom-components.json lists the new module path', async () => {
-    await openSfdxCustomComponentsJson(page);
-    const editor = page.locator(`${EDITOR_WITH_URI}[data-uri*="custom-components.json"]`);
-    const posix = `lwc/${bundleCamel}/${bundleCamel}.js`;
-    const winish = `lwc\\${bundleCamel}\\${bundleCamel}.js`;
-    await expect(async () => {
-      const text = (await editor.locator('.view-lines').textContent()) ?? '';
-      expect(text.includes(posix) || text.includes(winish)).toBe(true);
-    }).toPass({ timeout: 90_000 });
+    // Search via the Find widget rather than `.view-lines`: the container's shared workspace grows this index
+    // large enough that Monaco virtualizes the new entry off-screen. Reopen on each attempt because the LSP
+    // rewrites the file asynchronously after bundle creation. Separators match `/` or a (JSON-escaped)
+    // backslash, since Windows stores backslash paths.
+    await assertOpenEditorContainsText(
+      page,
+      new RegExp(`lwc[\\\\/]+${bundleCamel}[\\\\/]+${bundleCamel}\\.js`),
+      openSfdxCustomComponentsJson
+    );
   });
 
-  await validateNoCriticalErrors(test, consoleErrors);
+  await validateNoCriticalErrors(test, consoleErrors, networkErrors);
 });
