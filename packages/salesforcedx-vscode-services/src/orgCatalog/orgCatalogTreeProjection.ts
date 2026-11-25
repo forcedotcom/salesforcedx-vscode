@@ -80,10 +80,10 @@ export const makeOrgCatalogTreeProjection = Effect.gen(function* () {
       metadataDescribeService.describeCustomObject(objectApiName, orgId)
     ).pipe(
       Effect.flatMap(transmogrifier.toMinimalSObject),
-      Effect.map(sobject => ({
+      Effect.zipWith(DateTime.now, (sobject, now) => ({
         ...sobject,
         orgId,
-        observedAt: new Date().toISOString(),
+        observedAt: DateTime.formatIso(now),
         provenance: 'rest-api' as const
       }))
     );
@@ -96,10 +96,10 @@ export const makeOrgCatalogTreeProjection = Effect.gen(function* () {
         ? yield* metadataDescribeService.invalidateSObjectDescribe(objectApiName, orgId).pipe(
             Effect.andThen(metadataDescribeService.describeCustomObject(objectApiName, orgId)),
             Effect.flatMap(transmogrifier.toMinimalSObject),
-            Effect.map(sobject => ({
+            Effect.zipWith(DateTime.now, (sobject, now) => ({
               ...sobject,
               orgId,
-              observedAt: new Date().toISOString(),
+              observedAt: DateTime.formatIso(now),
               provenance: 'rest-api' as const
             })),
             Effect.catchAll(error =>
@@ -210,9 +210,9 @@ export const makeOrgCatalogTreeProjection = Effect.gen(function* () {
       xmlName =>
         documentUri({ orgId, xmlName, fullName: '__type__' }).pipe(
           Effect.provideService(MetadataRegistryService, registry),
-          Effect.map(uri => ({
+          Effect.zipWith(DateTime.now, (uri, now) => ({
             orgId,
-            observedAt: new Date().toISOString(),
+            observedAt: DateTime.formatIso(now),
             provenance:
               orgTypes.has(xmlName) && workspaceTypes.has(xmlName)
                 ? ('metadata-api+workspace' as const)

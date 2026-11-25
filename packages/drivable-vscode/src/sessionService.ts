@@ -517,10 +517,11 @@ export class SessionService extends Effect.Service<SessionService>()('DrivableVs
             )
           )
         );
+        const consoleClock = yield* Effect.clock;
         const recordConsole = (message: ConsoleMessage) => {
           const entry = Schema.decodeUnknownSync(DrivableVscodeRendererConsoleEntry)(
             redactValue({
-              capturedAt: new Date().toISOString(),
+              capturedAt: DateTime.unsafeMake(consoleClock.unsafeCurrentTimeMillis()).pipe(DateTime.formatIso),
               type: message.type(),
               text: message.text(),
               location: message.location()
@@ -638,10 +639,27 @@ export class SessionService extends Effect.Service<SessionService>()('DrivableVs
           yield* artifacts.appendAction({ kind: 'action-started', ...record });
           yield* executeAction(page, action).pipe(
             Effect.tap(() =>
-              artifacts.appendAction({ kind: 'action-succeeded', ...record, completedAt: new Date().toISOString() })
+              DateTime.now.pipe(
+                Effect.flatMap(completedAt =>
+                  artifacts.appendAction({
+                    kind: 'action-succeeded',
+                    ...record,
+                    completedAt: DateTime.formatIso(completedAt)
+                  })
+                )
+              )
             ),
             Effect.tapError(error =>
-              artifacts.appendAction({ kind: 'action-failed', ...record, completedAt: new Date().toISOString(), error })
+              DateTime.now.pipe(
+                Effect.flatMap(completedAt =>
+                  artifacts.appendAction({
+                    kind: 'action-failed',
+                    ...record,
+                    completedAt: DateTime.formatIso(completedAt),
+                    error
+                  })
+                )
+              )
             )
           );
         });

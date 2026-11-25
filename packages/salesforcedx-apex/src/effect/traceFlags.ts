@@ -123,9 +123,11 @@ export const traceFlagExpirationDate = (
   expirationDate?: string,
   duration: Duration.DurationInput = Duration.minutes(30)
 ): Date => {
-  const minimum = Date.now() + Duration.toMillis(duration);
-  const existing = isNotUndefined(expirationDate) ? new Date(expirationDate).getTime() : 0;
-  return new Date(existing > minimum ? existing : minimum);
+  const minimum = DateTime.unsafeNow().pipe(DateTime.addDuration(duration));
+  const existing = isNotUndefined(expirationDate) ? Date.parse(expirationDate) : 0;
+  return (existing > DateTime.toEpochMillis(minimum) ? DateTime.unsafeMake(existing) : minimum).pipe(
+    DateTime.toDateUtc
+  );
 };
 
 export const createTraceFlag = Effect.fn('Apex.createTraceFlag')(function* (
@@ -156,21 +158,24 @@ export type UpdateTraceFlagOptions = {
   readonly expirationDate?: Date;
 };
 
-export const updateTraceFlag = Effect.fn('Apex.updateTraceFlag')(
-  (connection: Connection, traceFlagId: TraceFlagId, options?: UpdateTraceFlagOptions) =>
-    updateRecord({
-      connection,
-      operation: 'updateTraceFlag',
-      type: 'TraceFlag',
-      recordId: traceFlagId,
-      fields: {
-        StartDate: new Date().toISOString(),
-        ...(isNotUndefined(options?.expirationDate) ? { ExpirationDate: options.expirationDate.toISOString() } : {}),
-        ...(isNotUndefined(options?.debugLevelId) ? { DebugLevelId: options.debugLevelId } : {})
-      },
-      idSchema: TraceFlagId
-    })
-);
+export const updateTraceFlag = Effect.fn('Apex.updateTraceFlag')(function* (
+  connection: Connection,
+  traceFlagId: TraceFlagId,
+  options?: UpdateTraceFlagOptions
+) {
+  return yield* updateRecord({
+    connection,
+    operation: 'updateTraceFlag',
+    type: 'TraceFlag',
+    recordId: traceFlagId,
+    fields: {
+      StartDate: DateTime.formatIso(yield* DateTime.now),
+      ...(isNotUndefined(options?.expirationDate) ? { ExpirationDate: options.expirationDate.toISOString() } : {}),
+      ...(isNotUndefined(options?.debugLevelId) ? { DebugLevelId: options.debugLevelId } : {})
+    },
+    idSchema: TraceFlagId
+  });
+});
 
 export const deleteTraceFlag = Effect.fn('Apex.deleteTraceFlag')((connection: Connection, traceFlagId: TraceFlagId) =>
   deleteRecord({

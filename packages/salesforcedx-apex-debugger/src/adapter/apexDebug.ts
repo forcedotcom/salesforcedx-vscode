@@ -29,6 +29,7 @@ import {
 } from '@vscode/debugadapter';
 import { type DebugProtocol } from '@vscode/debugprotocol';
 import * as Arr from 'effect/Array';
+import * as DateTime from 'effect/DateTime';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
 import * as Fiber from 'effect/Fiber';
@@ -1378,7 +1379,7 @@ export class ApexDebug extends LoggingDebugSession {
   public logEvent(message: DebuggerMessage): void {
     let eventDescriptionSourceFile: Source | undefined;
     let eventDescriptionSourceLine: number | undefined;
-    let logMessage = message.event.createdDate ?? new Date().toUTCString();
+    let logMessage = message.event.createdDate ?? DateTime.unsafeNow().pipe(DateTime.toDateUtc).toUTCString();
     logMessage += ` | ${message.sobject.Type}`;
     if (message.sobject.RequestId) {
       logMessage += ` | Request: ${message.sobject.RequestId}`;

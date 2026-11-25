@@ -8,6 +8,7 @@
 import type { Connection } from '@salesforce/core';
 import { getErrorMessage } from '@salesforce/salesforcedx-utils';
 import * as Chunk from 'effect/Chunk';
+import * as DateTime from 'effect/DateTime';
 import * as Effect from 'effect/Effect';
 import { pipe } from 'effect/Function';
 import * as Option from 'effect/Option';
@@ -34,7 +35,7 @@ import { ApexLogRecordSchema, type ApexLogRecord } from './schema/wire/logs';
 const operationError = (operation: string, cause: unknown, message = getErrorMessage(cause)) =>
   new ApexOperationError({ operation, message, cause: getErrorMessage(cause) });
 
-const toSoqlTimestamp = (value: string) => new Date(value).toISOString();
+const toSoqlTimestamp = (value: string) => DateTime.unsafeMake(Date.parse(value)).pipe(DateTime.formatIso);
 
 const buildListLogsQuery = (options?: DecodedListLogsOptions): string => {
   const userIds = options?.userIds ?? [];

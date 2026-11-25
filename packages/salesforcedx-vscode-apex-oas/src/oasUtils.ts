@@ -7,6 +7,7 @@
 /* eslint-disable @typescript-eslint/consistent-type-assertions */
 
 import { ExtensionProviderService, getJsonCandidate, identifyJsonTypeInString } from '@salesforce/effect-ext-utils';
+import * as DateTime from 'effect/DateTime';
 import * as Effect from 'effect/Effect';
 import { isNotUndefined } from 'effect/Predicate';
 import * as path from 'node:path';
@@ -156,7 +157,7 @@ export const summarizeDiagnostics = (diagnostics: vscode.Diagnostic[]): number[]
   );
 
 export const getCurrentTimestamp = (): string => {
-  const now = new Date();
+  const now = DateTime.unsafeNow().pipe(DateTime.toDateUtc);
   const month = String(now.getMonth() + 1).padStart(2, '0');
   const day = String(now.getDate()).padStart(2, '0');
   const year = now.getFullYear();

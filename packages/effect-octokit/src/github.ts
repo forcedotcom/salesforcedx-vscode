@@ -13,6 +13,7 @@ import { type Endpoints } from '@octokit/types';
 import { getErrorMessage } from '@salesforce/salesforcedx-utils';
 import * as Config from 'effect/Config';
 import * as ConfigProvider from 'effect/ConfigProvider';
+import * as DateTime from 'effect/DateTime';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
 import { isError, isNullable } from 'effect/Predicate';
@@ -199,7 +200,7 @@ const retryAfterMillis = (cause: unknown) => {
     retryAfter !== undefined
       ? Number(retryAfter) * 1000
       : reset !== undefined
-        ? Math.max(0, Number(reset) * 1000 - Date.now())
+        ? Math.max(0, Number(reset) * 1000 - DateTime.unsafeNow().pipe(DateTime.toEpochMillis))
         : 1000;
   return Number.isFinite(millis) ? Math.min(millis, maxRateLimitWait) : 1000;
 };

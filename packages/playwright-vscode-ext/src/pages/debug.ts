@@ -6,6 +6,7 @@
  */
 
 import { expect, type Locator, type Page } from '@playwright/test';
+import * as DateTime from 'effect/DateTime';
 import { escapeRegExp } from '../utils/helpers';
 import { EDITOR_WITH_URI, WORKBENCH } from '../utils/locators';
 import { executeCommandWithCommandPalette } from './commands';
@@ -72,9 +73,9 @@ export const openVariablesView = async (page: Page, timeout = 30_000): Promise<L
  * scope exactly once. Clicking a twistie mutates the live list, so re-query after each click.
  */
 export const expandAllVariableScopes = async (variablesView: Locator, timeout = 30_000): Promise<void> => {
-  const deadline = Date.now() + timeout;
+  const deadline = DateTime.unsafeNow().pipe(DateTime.toEpochMillis) + timeout;
   const attempted = new Set<string>();
-  while (Date.now() < deadline) {
+  while (DateTime.unsafeNow().pipe(DateTime.toEpochMillis) < deadline) {
     const collapsed = variablesView.locator('.monaco-list-row[aria-level="1"][aria-expanded="false"]');
     const count = await collapsed.count();
     let clickedOne = false;

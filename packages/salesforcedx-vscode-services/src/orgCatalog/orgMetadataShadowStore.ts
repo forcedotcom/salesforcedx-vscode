@@ -7,6 +7,8 @@
 
 import type { OrgMetadataComponentReference } from './orgMetadataReference';
 import * as Arr from 'effect/Array';
+import * as Clock from 'effect/Clock';
+import * as DateTime from 'effect/DateTime';
 import * as Effect from 'effect/Effect';
 import * as Encoding from 'effect/Encoding';
 import * as Equal from 'effect/Equal';
@@ -68,8 +70,9 @@ export class OrgMetadataShadowStore extends Effect.Service<OrgMetadataShadowStor
   effect: Effect.gen(function* () {
     const [fsService, workspaceService] = yield* Effect.all([FsService, WorkspaceService]);
     const lastMaterializedAtMs = yield* Ref.make(0);
-    const nextMaterializedAt = Ref.updateAndGet(lastMaterializedAtMs, last => Math.max(Date.now(), last + 1)).pipe(
-      Effect.map(value => new Date(value).toISOString())
+    const nextMaterializedAt = Clock.currentTimeMillis.pipe(
+      Effect.flatMap(now => Ref.updateAndGet(lastMaterializedAtMs, last => Math.max(now, last + 1))),
+      Effect.map(value => DateTime.unsafeMake(value).pipe(DateTime.formatIso))
     );
 
     const getRootUri = Effect.fn('OrgMetadataShadowStore.getRootUri')(function* (

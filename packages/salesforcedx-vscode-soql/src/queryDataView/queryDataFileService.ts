@@ -8,6 +8,7 @@
 import type { JsonObject } from '../json';
 import type { QueryResult } from '../types';
 import { getServicesApi, parseErrorToValidationMessage } from '@salesforce/effect-ext-utils';
+import * as DateTime from 'effect/DateTime';
 import * as Effect from 'effect/Effect';
 import * as Schema from 'effect/Schema';
 import * as vscode from 'vscode';
@@ -54,7 +55,7 @@ const getExportFileStemFromDocument = (document: vscode.TextDocument, fileExtens
   if (stem.length > 0) {
     return stem;
   }
-  const timestamp = new Date().toISOString().replaceAll(/[:.]/g, '-');
+  const timestamp = DateTime.unsafeNow().pipe(DateTime.formatIso).replaceAll(/[:.]/g, '-');
   return `soql-query-results-${timestamp}`;
 };
 

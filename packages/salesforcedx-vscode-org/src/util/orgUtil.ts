@@ -46,10 +46,12 @@ type OrgAuthFields = Effect.Effect.Success<ReturnType<typeof getAuthFieldsFor>>;
 
 const orgExpiresSoon = (authFields: OrgAuthFields) =>
   isString(authFields.expirationDate) &&
-  new Date(authFields.expirationDate) <= new Date(Date.now() + DAYS_BEFORE_EXPIRE * 24 * 60 * 60 * 1000);
+  Date.parse(authFields.expirationDate) <=
+    DateTime.unsafeNow().pipe(DateTime.toEpochMillis) + DAYS_BEFORE_EXPIRE * 24 * 60 * 60 * 1000;
 
 const orgIsExpired = (authFields: OrgAuthFields) =>
-  isString(authFields.expirationDate) && new Date(authFields.expirationDate) < new Date();
+  isString(authFields.expirationDate) &&
+  Date.parse(authFields.expirationDate) < DateTime.unsafeNow().pipe(DateTime.toEpochMillis);
 
 /** One time notification about orgs that expire soon */
 export const checkForSoonToBeExpiredOrgs = Effect.fn('OrgUtil.checkForSoonToBeExpiredOrgs')(function* () {
@@ -228,7 +230,7 @@ const classifyOrgForRemoval = Effect.fn('OrgUtil.classifyOrgForRemoval')(functio
   return yield* getAuthFieldsFor(orgAuth.username).pipe(
     Effect.map((authFields): RemovableOrg | undefined =>
       // Scratch org whose expiration date has passed
-      authFields.expirationDate && new Date(authFields.expirationDate) < new Date()
+      authFields.expirationDate && orgIsExpired(authFields)
         ? {
             username: orgAuth.username,
             logLine: nls.localize('org_list_clean_removing_expired_org', orgAuth.username, authFields.expirationDate)

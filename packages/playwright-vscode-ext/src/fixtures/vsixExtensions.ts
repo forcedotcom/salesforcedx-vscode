@@ -7,6 +7,7 @@
 
 // This is Node.js test infrastructure, not extension code
 import { resolveCliPathFromVSCodeExecutablePath } from '@vscode/test-electron';
+import * as DateTime from 'effect/DateTime';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
 import { spawnSync } from 'node:child_process';
@@ -257,7 +258,7 @@ const isProcessAlive = (pid: number): boolean => {
 };
 
 const isCacheLockStale = async (lockDir: string): Promise<boolean> => {
-  const lockAge = Date.now() - (await fs.stat(lockDir)).mtimeMs;
+  const lockAge = DateTime.unsafeNow().pipe(DateTime.toEpochMillis) - (await fs.stat(lockDir)).mtimeMs;
   try {
     const owner = JSON.parse(await fs.readFile(path.join(lockDir, LOCK_OWNER_FILE), 'utf8')) as Partial<CacheLockOwner>;
     return typeof owner.pid !== 'number' || typeof owner.createdAt !== 'number' ||
@@ -281,7 +282,11 @@ const removeStaleCacheLock = async (lockDir: string): Promise<void> => {
 
 const acquireCacheLock = async (lockDir: string): Promise<() => Promise<void>> => {
   await fs.mkdir(path.dirname(lockDir), { recursive: true });
-  const owner: CacheLockOwner = { pid: process.pid, createdAt: Date.now(), token: crypto.randomUUID() };
+  const owner: CacheLockOwner = {
+    pid: process.pid,
+    createdAt: DateTime.unsafeNow().pipe(DateTime.toEpochMillis),
+    token: crypto.randomUUID()
+  };
   while (true) {
     try {
       await fs.mkdir(lockDir);

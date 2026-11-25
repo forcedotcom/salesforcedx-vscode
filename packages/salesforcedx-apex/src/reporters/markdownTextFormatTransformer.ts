@@ -6,6 +6,7 @@
  */
 
 import { Logger } from '@salesforce/core';
+import * as DateTime from 'effect/DateTime';
 import { Readable, type ReadableOptions } from 'node:stream';
 import { type TestResult } from '../tests/types';
 import { formatMarkdownText } from './markdownFormatting';
@@ -25,7 +26,7 @@ export class MarkdownTextFormatTransformer extends Readable {
   ) {
     super(options);
     this.logger = Logger.childFromRoot('MarkdownTextFormatTransformer');
-    this.options = { ...options, timestamp: options?.timestamp ?? new Date() };
+    this.options = { ...options, timestamp: options?.timestamp ?? DateTime.unsafeNow().pipe(DateTime.toDateUtc) };
   }
 
   _read(): void {

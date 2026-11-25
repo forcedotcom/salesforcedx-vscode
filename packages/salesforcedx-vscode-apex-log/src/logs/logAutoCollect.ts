@@ -51,7 +51,7 @@ const isAfterTraceFlagStart =
     const uid = log.LogUserId;
     if (!uid) return true;
     const userStart = startDateByUser.get(uid);
-    return isUndefined(userStart) || new Date(log.StartTime) >= userStart;
+    return isUndefined(userStart) || Date.parse(log.StartTime) >= userStart.getTime();
   };
 
 const getPollInterval = Effect.fn('ApexLog.getPollInterval')(function* () {

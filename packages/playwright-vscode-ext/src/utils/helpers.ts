@@ -6,6 +6,7 @@
  */
 
 import { expect, type Page } from '@playwright/test';
+import * as DateTime from 'effect/DateTime';
 import {
   QUICK_INPUT_LIST_ROW,
   QUICK_INPUT_WIDGET,
@@ -177,9 +178,9 @@ export const selectFirstQuickInputOption = async (
     if (!committed) {
       // Poll until timeout before falling back to Enter — the predicate may take a moment
       // to become true (e.g. next prompt animating in).
-      const deadline = Date.now() + commitTimeout;
+      const deadline = DateTime.unsafeNow().pipe(DateTime.toEpochMillis) + commitTimeout;
       let done = false;
-      while (Date.now() < deadline) {
+      while (DateTime.unsafeNow().pipe(DateTime.toEpochMillis) < deadline) {
         if (await options.confirmCommitted().catch(() => false)) {
           done = true;
           break;

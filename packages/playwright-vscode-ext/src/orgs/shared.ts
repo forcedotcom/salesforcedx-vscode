@@ -7,6 +7,7 @@
 
 import type { OrgAuthResult, OrgDisplayResult, OrgDisplayUserResult } from './types';
 import { AuthInfo } from '@salesforce/core';
+import * as DateTime from 'effect/DateTime';
 import * as Schema from 'effect/Schema';
 import { exec } from 'node:child_process';
 import * as fs from 'node:fs/promises';
@@ -34,7 +35,7 @@ export const runScratchOrgCreate = async (command: string, cwd: string): Promise
     const { stdout = '', stderr = '' } = err as { stdout?: string; stderr?: string };
     const body = `command: ${command}\n\n--- stdout ---\n${stdout}\n\n--- stderr ---\n${stderr}`;
     const dir = path.join(os.homedir(), '.sf', 'vscode-spans');
-    const file = path.join(dir, `org-create-failure-${Date.now()}.txt`);
+    const file = path.join(dir, `org-create-failure-${DateTime.unsafeNow().pipe(DateTime.toEpochMillis)}.txt`);
     await fs.mkdir(dir, { recursive: true }).catch(() => undefined);
     await fs.writeFile(file, body).catch(() => undefined);
     throw new Error(`Scratch org creation failed (${command}). CLI output:\n${body}`);
@@ -101,7 +102,7 @@ const isOrgAlive = (result: OrgDisplayResult['result']): boolean => {
   }
   if (result.expirationDate !== undefined) {
     const expiresAt = Date.parse(result.expirationDate);
-    if (Number.isFinite(expiresAt) && expiresAt <= Date.now()) {
+    if (Number.isFinite(expiresAt) && expiresAt <= DateTime.unsafeNow().pipe(DateTime.toEpochMillis)) {
       return false;
     }
   }

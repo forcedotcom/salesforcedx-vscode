@@ -7,6 +7,7 @@
 
 import { AuthInfo, Connection, Logger, LoggerLevel } from '@salesforce/core';
 import { Duration } from '@salesforce/kit';
+import * as DateTime from 'effect/DateTime';
 import * as EffectDuration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
 import * as Option from 'effect/Option';
@@ -405,7 +406,7 @@ export class AsyncTests {
             testRunSummary: {
               AsyncApexJobId: testRunId as string,
               Status: 'Aborted',
-              StartTime: new Date().toISOString(),
+              StartTime: DateTime.unsafeNow().pipe(DateTime.formatIso),
               TestTime: 0,
               UserId: ''
             } as ApexTestRunResult
