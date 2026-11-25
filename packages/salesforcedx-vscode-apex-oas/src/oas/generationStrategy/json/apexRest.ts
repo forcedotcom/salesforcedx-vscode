@@ -10,7 +10,9 @@ import * as Chunk from 'effect/Chunk';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
 import { identity } from 'effect/Function';
+import * as Match from 'effect/Match';
 import * as Option from 'effect/Option';
+import { isTagged, not } from 'effect/Predicate';
 import * as Schedule from 'effect/Schedule';
 import * as Stream from 'effect/Stream';
 import type {
@@ -193,13 +195,14 @@ export const callLLMWithRetry = Effect.fn('ApexOas.ApexRest.callLLMWithRetry')(f
     // other failure (including a connection error, which is often a transient network blip) stays in the
     // retry loop and, only if all attempts fail, becomes LLMRetriesExhausted so the per-method handler can
     // degrade it to empty content — its reason is preserved in the exhaustion message.
-    Effect.retry({ schedule: LLM_RETRY_SCHEDULE, while: error => error._tag !== 'LLMRateLimited' }),
+    Effect.retry({ schedule: LLM_RETRY_SCHEDULE, while: not(isTagged('LLMRateLimited')) }),
     Effect.mapError(cause =>
-      cause._tag === 'LLMRateLimited'
-        ? cause
-        : // Carry the underlying error's own message (e.g. the actionable LLMConnectionFailed guidance) rather
-          // than its tag-prefixed stringification, so the surfaced reason reads as one clean sentence.
-          new LLMRetriesExhausted({ message: cause.message })
+      Match.value(cause).pipe(
+        Match.tag('LLMRateLimited', error => error),
+        // Carry the underlying error's own message (e.g. the actionable LLMConnectionFailed guidance) rather
+        // than its tag-prefixed stringification, so the surfaced reason reads as one clean sentence.
+        Match.orElse(error => new LLMRetriesExhausted({ message: error.message }))
+      )
     )
   );
 });

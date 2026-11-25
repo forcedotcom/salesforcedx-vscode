@@ -6,15 +6,14 @@
  */
 import * as Effect from 'effect/Effect';
 import * as Option from 'effect/Option';
-import type { AnySpan, Span } from 'effect/Tracer';
-
-const isEffectSpan = (s: AnySpan): s is Span => s._tag === 'Span';
+import { isTagged } from 'effect/Predicate';
+import type { Span } from 'effect/Tracer';
 
 const findRoot = (current: Span): Option.Option<Span> => {
   const parent = current.parent;
   if (Option.isNone(parent)) return Option.some(current);
   const p = parent.value;
-  return isEffectSpan(p) ? findRoot(p) : Option.none();
+  return isTagged('Span')(p) ? findRoot(p) : Option.none();
 };
 
 /**
