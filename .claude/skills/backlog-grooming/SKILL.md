@@ -2,7 +2,6 @@
 name: backlog-grooming
 description: Triage the team's open GUS backlog — propose closing done-but-open work items (with code/test citations), flag under-specified items for grilling, catch wrong-epic / orphan / unpointed / dead-link items, and close completed epics. User-invoked.
 review: never
-review-complexity: medium
 disable-model-invocation: true
 ---
 

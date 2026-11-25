@@ -2,7 +2,6 @@
 name: typescript
 description: TypeScript coding standards — apply when writing, reviewing, or refactoring .ts/.tsx, or naming/renaming .ts files (camelCase casing).
 review: never
-review-complexity: medium
 ---
 
 - no barrel files

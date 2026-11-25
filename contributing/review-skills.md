@@ -16,6 +16,6 @@ Minimum recommended model capability for applying the skill, not reduced review 
 
 Choose the highest level of reasoning the skill requires.
 
-Independent of `review` eligibility and invocation controls; preserve those fields. Covers `review: always`, skills selected by the legacy `review-diff` / `adopt-pr` workflows, and other PR-review skills, including flat Markdown skills. Some legacy selections have `review: never`; complexity metadata does not change that policy.
+Use on PR-review skills, including flat Markdown skills. Omit `review-complexity` for `review: never`, even if a legacy workflow selects the skill. Preserve `review` and invocation controls.
 
 Keep concrete model names out of skills. Model routing is outside this metadata's scope.

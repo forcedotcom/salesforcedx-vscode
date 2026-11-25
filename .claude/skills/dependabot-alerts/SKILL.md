@@ -2,7 +2,6 @@
 name: dependabot-alerts
 description: Triage GitHub Dependabot security alerts into one-point GUS work items that bump the outermost consumer. User-invoked only.
 review: never
-review-complexity: high
 ---
 
 # Dependabot Alerts

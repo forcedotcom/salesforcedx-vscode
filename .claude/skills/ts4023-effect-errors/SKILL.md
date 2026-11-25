@@ -2,7 +2,6 @@
 name: ts4023-effect-errors
 description: Fix TS4023 when an exported Effect's error channel names a TaggedError from another module. Use when tsc reports "has or is using name 'X' from external module but cannot be named".
 review: never
-review-complexity: high
 ---
 
 # TS4023 with Effect Error Types

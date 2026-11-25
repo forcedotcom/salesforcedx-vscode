@@ -2,7 +2,6 @@
 name: patch-release
 description: Run emergency patch releases for critical hotfixes. Use when user explicitly requests patch release workflow.
 review: never
-review-complexity: high
 ---
 
 # Patch Release

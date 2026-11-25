@@ -2,7 +2,6 @@
 name: lit-components
 description: Create or edit Lit components in this repository, including reactive properties and internal state.
 review: never
-review-complexity: low
 ---
 
 # Lit components

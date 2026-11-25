@@ -2,7 +2,6 @@
 name: snyk
 description: Use when a Snyk finding blocks a change or PR, or when asked to diagnose Snyk results. Run the Snyk CLI scan and explain findings by severity.
 review: never
-review-complexity: medium
 ---
 
 # Snyk

@@ -2,7 +2,6 @@
 name: lit-webview-testing
 description: Write or review browser component tests for Lit webviews and VSCode Elements. Use for Playwright component harnesses, fake Effect services, accessibility locators, shadow DOM boundaries, lifecycle tests, and deciding what belongs in component tests versus VS Code E2E.
 review: never
-review-complexity: high
 ---
 
 # Lit webview browser testing

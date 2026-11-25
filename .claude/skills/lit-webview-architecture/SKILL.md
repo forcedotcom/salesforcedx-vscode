@@ -2,7 +2,6 @@
 name: lit-webview-architecture
 description: Design or refactor a Lit webview's package boundary, Effect service contract, host adapter, lifecycle, registration, or browser bundle. Use for VS Code webviews that separate browser-safe UI from extension-host APIs and message protocols.
 review: never
-review-complexity: high
 ---
 
 # Lit webview architecture
