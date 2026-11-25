@@ -16,11 +16,7 @@ import { URI, Utils } from 'vscode-uri';
 import { nls } from '../messages';
 
 type ProjectTemplate = SfTemplates.ProjectTemplate;
-
 const NonEmptyTrimmedString = Schema.String.check(Schema.isPattern(/\S/));
-const isNonEmptyTrimmedString = (value: string | undefined): value is string =>
-  isNotUndefined(value) && Schema.is(NonEmptyTrimmedString)(value.trim());
-
 type ProjectGenerateArgs = {
   readonly projectTemplate?: ProjectTemplate;
   readonly projectName?: string;
@@ -127,7 +123,7 @@ const promptForProjectName = Effect.fn('projectGenerate.promptForProjectName')(f
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const promptService = yield* api.v2.services.PromptService;
   return yield* (
-    isNonEmptyTrimmedString(initialProjectName)
+    isNotUndefined(initialProjectName) && Schema.is(NonEmptyTrimmedString)(initialProjectName.trim())
       ? Effect.succeed(initialProjectName)
       : Effect.promise(() =>
           vscode.window.showInputBox({
@@ -142,7 +138,7 @@ const promptForParentFolder = Effect.fn('projectGenerate.promptForParentFolder')
 ) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const promptService = yield* api.v2.services.PromptService;
-  return yield* isNonEmptyTrimmedString(initialProjectUri)
+  return yield* isNotUndefined(initialProjectUri) && Schema.is(NonEmptyTrimmedString)(initialProjectUri.trim())
     ? Effect.succeed(URI.file(initialProjectUri))
     : Effect.promise(() =>
         vscode.window.showOpenDialog({

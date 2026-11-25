@@ -73,8 +73,6 @@ const InvalidSObjectQueryError = Schema.Struct({
   errorCode: Schema.Literal('INVALID_TYPE')
 });
 
-const isPackage2UnavailableError = Schema.is(InvalidSObjectQueryError);
-
 /** Normalize Salesforce Id to 15-char form so 15-char (e.g. discovery) and 18-char (e.g. Tooling query) match. */
 const normalizeId = (id: string): string => (id.length >= 15 ? id.substring(0, 15) : id);
 
@@ -138,7 +136,7 @@ const queryDecoded = <A, I>(schema: Schema.Codec<A, I>, soql: string) =>
     return yield* Stream.runCollect(query.records);
   }).pipe(
     Effect.mapError(error =>
-      isPackage2UnavailableError(error)
+      Schema.is(InvalidSObjectQueryError)(error)
         ? new Package2UnavailableError({ message: getMessageFromError(error) })
         : new Package2QueryError({ message: getMessageFromError(error) })
     )

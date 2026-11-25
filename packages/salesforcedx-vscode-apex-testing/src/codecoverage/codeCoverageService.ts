@@ -91,9 +91,6 @@ const getApexMemberName = (document: TextDocument): string => {
   return Utils.basename(document.uri).replace(IS_CLS_OR_TRIGGER, '');
 };
 
-/** CoverageItem carries a per-line map; CodeCoverageResult carries covered/uncovered arrays. */
-const isCodeCoverageItem = Schema.is(CoverageItem);
-
 const getLineRange = Effect.fn('CodeCoverageService.getLineRange')(function* (
   document: TextDocument,
   lineNumber: number
@@ -225,7 +222,8 @@ const makeCodeCoverageService = Effect.gen(function* () {
       });
     }
 
-    if (isCodeCoverageItem(codeCovItem)) {
+    // CoverageItem carries a per-line map; CodeCoverageResult carries covered/uncovered arrays.
+    if (Schema.is(CoverageItem)(codeCovItem)) {
       const [covered, uncovered] = Record.partition(codeCovItem.lines, value =>
         value === 1 ? Result.succeed(value) : Result.fail(value)
       );

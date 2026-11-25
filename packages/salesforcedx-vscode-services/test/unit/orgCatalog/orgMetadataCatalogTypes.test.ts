@@ -12,8 +12,6 @@ import {
   OrgMetadataCatalogEntrySchema
 } from '@salesforce/vscode-services/v2';
 
-const isCatalogEntry = Schema.is(OrgMetadataCatalogEntrySchema);
-
 describe('OrgMetadataCatalogEntrySchema', () => {
   const baseEntry = {
     orgId: '00D000000000001',
@@ -27,7 +25,7 @@ describe('OrgMetadataCatalogEntrySchema', () => {
 
   it('accepts a component with a conventional type reference', () => {
     expect(
-      isCatalogEntry({
+      Schema.is(OrgMetadataCatalogEntrySchema)({
         ...baseEntry,
         kind: 'component',
         reference: { type: 'ApexClass', fullName: 'Example' }
@@ -37,7 +35,7 @@ describe('OrgMetadataCatalogEntrySchema', () => {
 
   it('accepts a component observed through the standard data query API', () => {
     expect(
-      isCatalogEntry({
+      Schema.is(OrgMetadataCatalogEntrySchema)({
         ...baseEntry,
         provenance: 'data-api',
         kind: 'component',
@@ -48,7 +46,7 @@ describe('OrgMetadataCatalogEntrySchema', () => {
 
   it('rejects a component without a full name', () => {
     expect(
-      isCatalogEntry({
+      Schema.is(OrgMetadataCatalogEntrySchema)({
         ...baseEntry,
         kind: 'component',
         reference: { type: 'ApexClass' }

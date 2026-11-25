@@ -28,6 +28,8 @@ export const OrgMetadataDocumentLocation = Schema.Struct({
   orgId: PathSafeOrgId
 });
 export type OrgMetadataDocumentLocation = typeof OrgMetadataDocumentLocation.Type;
+// Preserve the V2 compatibility export for downstream extensions.
+// eslint-disable-next-line local/no-schema-is-wrapper -- Removing this public helper would be a breaking V2 API change.
 export const isOrgMetadataComponentReference = Schema.is(OrgMetadataComponentReference);
 
 const extensionForSuffix = (suffix: string | undefined) => (suffix ? `.${suffix}` : undefined);

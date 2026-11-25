@@ -58,9 +58,11 @@ type TrackingEntry = TrackingIdentity & {
   readonly releaseCaches: () => void;
   readonly leases: Ref.Ref<readonly Deferred.Deferred<void>[]>;
 };
-const isResolvedChange = Schema.is(Schema.Struct({ name: Schema.String, type: Schema.String }));
+const ResolvedChangeResultSchema = Schema.Struct({ name: Schema.String, type: Schema.String });
 const resolvedChanges = (changes: readonly ChangeResult[]) =>
-  changes.filter((change): change is ChangeResult & { name: string; type: string } => isResolvedChange(change));
+  changes.filter((change): change is ChangeResult & Schema.Schema.Type<typeof ResolvedChangeResultSchema> =>
+    Schema.is(ResolvedChangeResultSchema)(change)
+  );
 
 /** Operation services pass their original identity, not a newly captured default org after network work. */
 export class SourceTrackingResultUpdates extends Context.Service<

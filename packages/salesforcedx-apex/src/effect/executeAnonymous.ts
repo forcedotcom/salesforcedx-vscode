@@ -18,7 +18,7 @@ import { ApexCompileError, ApexRuntimeError } from './errors.js';
 import { ApexOperationError, ApexRequestError, ApexResponseDecodeError, InvalidSessionError } from './schema/errors.js';
 import {
   executionResultSchema,
-  isInvalidSessionError,
+  invalidSessionErrorSchema,
   soapBody,
   soapEnv,
   soapHeader,
@@ -109,7 +109,7 @@ const sendRequest = (connection: Connection, code: string) =>
   Effect.tryPromise({
     try: () => connection.request<unknown>(buildRequest(connection, code)),
     catch: cause =>
-      isInvalidSessionError(cause)
+      Schema.is(invalidSessionErrorSchema)(cause)
         ? new InvalidSessionError({ message: getErrorMessage(cause) })
         : new ApexRequestError({ message: getErrorMessage(cause) })
   });

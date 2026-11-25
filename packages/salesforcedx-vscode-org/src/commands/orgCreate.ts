@@ -18,7 +18,7 @@ import { Utils } from 'vscode-uri';
 import { ORG_LOGIN_WEB_DEV_HUB } from '../constants';
 import { nls } from '../messages';
 import { decodeTaggedCliResponse } from '../util/cliJson';
-import { isValidOrgAlias } from '../util/orgAlias';
+import { OrgAlias, validateRequiredAliasInput } from '../util/orgAlias';
 import { updateConfigAndStateAggregators } from '../util/orgUtil';
 import { type ProgressAndSuccessCommandKey } from '../utils/notificationMode';
 
@@ -113,12 +113,12 @@ const gatherOrgCreateInputs = Effect.fn('orgCreateCommand.gatherInputs')(functio
   // clears it (validation then rejects it); Esc → undefined → considerUndefinedAsCancellation.
   const { uri } = yield* api.v2.services.WorkspaceService.use(service => service.getWorkspaceInfo());
   const folderName = Utils.basename(uri).replaceAll(/\W/g, '');
-  const defaultAlias = isValidOrgAlias(folderName) ? folderName : DEFAULT_ALIAS;
+  const defaultAlias = Schema.is(OrgAlias)(folderName) ? folderName : DEFAULT_ALIAS;
   const alias = yield* Effect.promise(() =>
     vscode.window.showInputBox({
       prompt: nls.localize('parameter_gatherer_enter_alias_name'),
       value: defaultAlias,
-      validateInput: value => (isValidOrgAlias(value) ? undefined : nls.localize('error_invalid_org_alias'))
+      validateInput: validateRequiredAliasInput
     })
   ).pipe(Effect.flatMap(promptService.considerUndefinedAsCancellation));
 

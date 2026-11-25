@@ -34,10 +34,8 @@ const makeSessionLayer = (serviceLayer: Layer.Layer<SoqlBuilderService, SoqlBuil
 type SessionLayer = ReturnType<typeof makeSessionLayer>;
 type SessionRuntime = ManagedRuntime.ManagedRuntime<Layer.Success<SessionLayer>, Layer.Error<SessionLayer>>;
 
-const isSoqlBuilderAction = Schema.is(SoqlBuilderActionSchema);
-
 const isSoqlBuilderActionEvent = (event: Event): event is Event & { readonly detail: SoqlBuilderAction } =>
-  event.type === SOQL_BUILDER_ACTION_EVENT && 'detail' in event && isSoqlBuilderAction(event.detail);
+  event.type === SOQL_BUILDER_ACTION_EVENT && 'detail' in event && Schema.is(SoqlBuilderActionSchema)(event.detail);
 
 export class SoqlBuilderApplication {
   private sessionFiber: Fiber.Fiber<unknown, unknown> | undefined;

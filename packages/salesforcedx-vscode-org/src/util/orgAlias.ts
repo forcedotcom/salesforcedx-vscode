@@ -8,14 +8,15 @@
 import * as Schema from 'effect/Schema';
 import { nls } from '../messages';
 
-const OrgAlias = Schema.String.check(Schema.isPattern(/^[\w-]+( *[\w-]*)*$/));
-
 /**
  * Org alias validator: underscores, hyphens, spaces, and alphanumerics only. Hyphens are common in org
  * aliases (issues/7794); other metacharacters stay rejected.
  */
-export const isValidOrgAlias = Schema.is(OrgAlias);
+export const OrgAlias = Schema.String.check(Schema.isPattern(/^[\w-]+( *[\w-]*)*$/));
 
 /** showInputBox validateInput for an org alias: empty = use default. */
+export const validateRequiredAliasInput = (value: string): string | undefined =>
+  Schema.is(OrgAlias)(value) ? undefined : nls.localize('error_invalid_org_alias');
+
 export const validateAliasInput = (value: string): string | undefined =>
-  isValidOrgAlias(value) || value === '' ? undefined : nls.localize('error_invalid_org_alias');
+  value === '' ? undefined : validateRequiredAliasInput(value);
