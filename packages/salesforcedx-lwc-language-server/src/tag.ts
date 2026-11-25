@@ -14,6 +14,7 @@ import {
 import { getErrorMessage } from '@salesforce/salesforcedx-utils';
 import { camelCase, paramCase } from 'change-case';
 import * as DateTime from 'effect/DateTime';
+import * as Option from 'effect/Option';
 
 import * as path from 'node:path';
 import { Location, Position, Range } from 'vscode-languageserver';
@@ -75,7 +76,13 @@ export const createTag = async (attributes: TagAttrs, fileSystemAccessor?: LspFi
   let updatedAt: Date;
 
   if (attributes.updatedAt) {
-    updatedAt = DateTime.unsafeMake(attributes.updatedAt).pipe(DateTime.toDateUtc);
+    const suppliedUpdatedAt = attributes.updatedAt;
+    updatedAt = DateTime.make(suppliedUpdatedAt).pipe(
+      Option.match({
+        onNone: () => suppliedUpdatedAt,
+        onSome: DateTime.toDateUtc
+      })
+    );
   } else if (file && fileSystemAccessor) {
     try {
       // file is already normalized, and getFileStat normalizes internally

@@ -156,17 +156,16 @@ export const summarizeDiagnostics = (diagnostics: vscode.Diagnostic[]): number[]
     [0, 0, 0, 0, 0]
   );
 
-export const getCurrentTimestamp = (): string => {
-  const now = DateTime.unsafeNow().pipe(DateTime.toDateUtc);
+export const getCurrentTimestamp = Effect.fn('getCurrentTimestamp')(function* () {
+  const now = yield* DateTime.now.pipe(Effect.map(DateTime.toDateUtc));
   const month = String(now.getMonth() + 1).padStart(2, '0');
   const day = String(now.getDate()).padStart(2, '0');
   const year = now.getFullYear();
   const hours = String(now.getHours()).padStart(2, '0');
   const minutes = String(now.getMinutes()).padStart(2, '0');
   const seconds = String(now.getSeconds()).padStart(2, '0');
-  const formattedDate = `${month}${day}${year}_${hours}${minutes}${seconds}`;
-  return formattedDate;
-};
+  return `${month}${day}${year}_${hours}${minutes}${seconds}`;
+});
 
 /**
  * Checks if a class has RestResource annotation.

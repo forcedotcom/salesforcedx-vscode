@@ -15,6 +15,7 @@ import {
 
 import { ICONS, type OrgAuthorizationSummary } from '@salesforce/vscode-services';
 import * as Chunk from 'effect/Chunk';
+import * as Clock from 'effect/Clock';
 import * as DateTime from 'effect/DateTime';
 import * as Effect from 'effect/Effect';
 import { identity } from 'effect/Function';
@@ -44,19 +45,19 @@ class RemoveAuthError extends Schema.TaggedError<RemoveAuthError>()('RemoveAuthE
 
 type OrgAuthFields = Effect.Effect.Success<ReturnType<typeof getAuthFieldsFor>>;
 
-const orgExpiresSoon = (authFields: OrgAuthFields) =>
+const orgExpiresSoon = (nowMillis: number) => (authFields: OrgAuthFields) =>
   isString(authFields.expirationDate) &&
-  Date.parse(authFields.expirationDate) <=
-    DateTime.unsafeNow().pipe(DateTime.toEpochMillis) + DAYS_BEFORE_EXPIRE * 24 * 60 * 60 * 1000;
+  Date.parse(authFields.expirationDate) <= nowMillis + DAYS_BEFORE_EXPIRE * 24 * 60 * 60 * 1000;
 
-const orgIsExpired = (authFields: OrgAuthFields) =>
-  isString(authFields.expirationDate) &&
-  Date.parse(authFields.expirationDate) < DateTime.unsafeNow().pipe(DateTime.toEpochMillis);
+const orgIsExpired = (nowMillis: number) => (authFields: OrgAuthFields) =>
+  isString(authFields.expirationDate) && Date.parse(authFields.expirationDate) < nowMillis;
 
 /** One time notification about orgs that expire soon */
 export const checkForSoonToBeExpiredOrgs = Effect.fn('OrgUtil.checkForSoonToBeExpiredOrgs')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const channel = yield* api.services.ChannelService;
+  const nowMillis = yield* Clock.currentTimeMillis;
+  const isExpired = orgIsExpired(nowMillis);
 
   const defaultOrgRef = yield* SubscriptionRef.get(yield* api.services.TargetOrgRef());
   const results = yield* Stream.fromIterableEffect(
@@ -78,13 +79,13 @@ export const checkForSoonToBeExpiredOrgs = Effect.fn('OrgUtil.checkForSoonToBeEx
     Stream.filterMap(o => o),
     Stream.tap(o =>
       // special warning about when default orgs expire
-      defaultOrgRef.username && o.username === defaultOrgRef.username && orgIsExpired(o)
+      defaultOrgRef.username && o.username === defaultOrgRef.username && isExpired(o)
         ? Effect.sync(() => void vscode.window.showWarningMessage(nls.localize('default_org_expired')))
         : Effect.void
     ),
     // Filter out the expired orgs.
-    Stream.filter(not(orgIsExpired)),
-    Stream.filter(orgExpiresSoon),
+    Stream.filter(not(isExpired)),
+    Stream.filter(orgExpiresSoon(nowMillis)),
     // TODO: type guards or some Schema based check instead of !
     Stream.map(o => {
       const displayName = o.alias ? `${o.alias} - ${o.username!}` : o.username!;
@@ -227,10 +228,12 @@ const classifyOrgForRemoval = Effect.fn('OrgUtil.classifyOrgForRemoval')(functio
     return undefined;
   }
 
+  const nowMillis = yield* Clock.currentTimeMillis;
+
   return yield* getAuthFieldsFor(orgAuth.username).pipe(
     Effect.map((authFields): RemovableOrg | undefined =>
       // Scratch org whose expiration date has passed
-      authFields.expirationDate && orgIsExpired(authFields)
+      authFields.expirationDate && orgIsExpired(nowMillis)(authFields)
         ? {
             username: orgAuth.username,
             logLine: nls.localize('org_list_clean_removing_expired_org', orgAuth.username, authFields.expirationDate)

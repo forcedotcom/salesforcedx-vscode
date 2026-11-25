@@ -670,8 +670,8 @@ describe('summarizeDiagnostics', () => {
 });
 
 describe('getCurrentTimestamp', () => {
-  it('should return timestamp in correct format', () => {
-    const timestamp = getCurrentTimestamp();
+  it('should return timestamp in correct format', async () => {
+    const timestamp = await Effect.runPromise(getCurrentTimestamp());
     expect(timestamp).toMatch(/^\d{8}_\d{6}$/);
   });
 });
