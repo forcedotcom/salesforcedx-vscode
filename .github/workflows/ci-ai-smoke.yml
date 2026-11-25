@@ -46,9 +46,9 @@ jobs:
         run: |
           export OPENCODE_CONFIG_CONTENT='{"providers":{"opencode":{"settings":{"apiKey":"{env:OPENCODE_API_KEY}"}}}}'
           mkdir -p "$RUNNER_TEMP/jev-opencode"
-          (cd "$RUNNER_TEMP/jev-opencode" && opencode --standalone serve --hostname 127.0.0.1 --port 4096) > "$RUNNER_TEMP/jev-server.log" 2>&1 &
+          (cd "$RUNNER_TEMP/jev-opencode" && opencode serve --hostname 127.0.0.1 --port 4096) > "$RUNNER_TEMP/jev-server.log" 2>&1 &
           server_pid=$!
-          trap 'kill "$server_pid"' EXIT
+          trap 'cat "$RUNNER_TEMP/jev-server.log"; kill "$server_pid" 2>/dev/null || true' EXIT
           node --input-type=module -e 'for (let i = 0; i < 60; i++) { try { const r = await fetch("http://127.0.0.1:4096/api/info"); if (r.ok) process.exit(0); } catch {} await new Promise(resolve => setTimeout(resolve, 1000)); } process.exit(1);'
           node --input-type=module -e '
             import { readFileSync } from "node:fs";
