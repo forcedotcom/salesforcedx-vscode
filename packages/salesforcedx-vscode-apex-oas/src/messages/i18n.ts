@@ -39,7 +39,6 @@ export const messages = {
   openapi_doc_created: 'OpenAPI Document created for %s: %s.',
   openapi_doc_created_merge:
     'A new OpenAPI Document %s %s is created for %s. Manually merge the two files using the diff editor.',
-  operation_cancelled: 'Operation canceled',
   overwrite: 'Overwrite',
   registry_access_failed: 'Failed to retrieve ESR directory name from the registry.',
   rest_oas_gen_retired: 'OpenAPI document generation for Apex REST (@RestResource) classes is no longer supported.',

@@ -11,7 +11,8 @@ import { EditorService } from 'salesforcedx-vscode-services/src/vscode/editorSer
 import { FsService } from 'salesforcedx-vscode-services/src/vscode/fsService';
 import { ProjectService } from 'salesforcedx-vscode-services/src/core/projectService';
 import { URI } from 'vscode-uri';
-import { ContextGatheringFailed, analyzeMetadata } from '../../../src/commands/metadataOrchestrator';
+import { analyzeMetadata } from '../../../src/commands/metadataOrchestrator';
+import { ContextGatheringFailed } from '../../../src/errors';
 import { ApexMetadataService } from '../../../src/services/apexMetadataService';
 
 describe('analyzeMetadata', () => {

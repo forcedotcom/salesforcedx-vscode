@@ -12,20 +12,25 @@ import * as ManagedRuntime from 'effect/ManagedRuntime';
 import type { ExtensionContext } from 'vscode';
 import { EXTENSION_NAME } from '../constants';
 import { ApexMetadataService } from './apexMetadataService';
+import { OasDiagnosticsService } from './oasDiagnosticsService';
+import { OasUiService } from './oasUiService';
 
 export const buildAllServicesLayer = (context: ExtensionContext, fallbackDisplayName: string) =>
   Layer.unwrapEffect(
-    Effect.map(getServicesApi, api =>
-      Layer.mergeAll(
-        buildBaseServicesLayer(context, fallbackDisplayName),
+    Effect.map(getServicesApi, api => {
+      const baseServicesLayer = buildBaseServicesLayer(context, fallbackDisplayName);
+      return Layer.mergeAll(
+        baseServicesLayer,
         ApexMetadataService.Default,
+        OasDiagnosticsService.Default,
+        OasUiService.Default.pipe(Layer.provide(baseServicesLayer)),
         api.services.NotificationModeService.Default(
           EXTENSION_NAME,
           'sf-apex-oas-notifications',
           'Salesforce: Apex OAS Notifications'
         )
-      )
-    )
+      );
+    })
   );
 
 // eslint-disable-next-line functional/no-let -- Module-level mutable for setAllServicesLayer (tests/debug)
