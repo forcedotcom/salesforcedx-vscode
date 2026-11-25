@@ -8,13 +8,14 @@
 import type { OrgMetadataCatalogInternalEntry } from './orgMetadataCatalogTypes';
 import * as HashMap from 'effect/HashMap';
 import * as Option from 'effect/Option';
+import * as Schema from 'effect/Schema';
 import {
   artifactIdentitiesEqual,
   artifactIdentityKey,
   type ArtifactNamespace,
   type MetadataComponentArtifactIdentity
 } from '../core/artifactIdentity';
-import { isOrgMetadataComponentReference, type OrgMetadataComponentReference } from './orgMetadataReference';
+import { OrgMetadataComponentReference } from './orgMetadataReference';
 
 const metadataComponentArtifactIdentity = (
   reference: OrgMetadataComponentReference,
@@ -47,7 +48,7 @@ export const findInventoryComponent = (
   if (Option.isSome(globalMatch)) return globalMatch.value;
   return [...HashMap.values(components)].find(
     entry =>
-      isOrgMetadataComponentReference(entry.reference) &&
+      Schema.is(OrgMetadataComponentReference)(entry.reference) &&
       artifactIdentitiesEqual(
         metadataComponentArtifactIdentity(entry.reference),
         metadataComponentArtifactIdentity(reference)

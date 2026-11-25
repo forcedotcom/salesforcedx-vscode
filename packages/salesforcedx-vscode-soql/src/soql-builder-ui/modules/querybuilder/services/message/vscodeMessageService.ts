@@ -22,16 +22,13 @@ export type VscodeMessageService = IMessageService & {
   readonly dispose: () => void;
 };
 
-const isHostToUiSoqlEditorEvent = Schema.is(HostToUiSoqlEditorEventSchema);
-const isUiToHostSoqlEditorEvent = Schema.is(UiToHostSoqlEditorEventSchema);
-
 export const makeVscodeMessageService = (): VscodeMessageService => {
   const vscode = getVscode();
   const listeners: ((event: HostToUiSoqlEditorEvent) => void)[] = [];
 
   const handleWindowMessage = (e: MessageEvent): void => {
     const data: unknown = e.data;
-    if (isHostToUiSoqlEditorEvent(data)) {
+    if (Schema.is(HostToUiSoqlEditorEventSchema)(data)) {
       listeners.forEach(listener => listener(data));
     }
   };
@@ -48,7 +45,7 @@ export const makeVscodeMessageService = (): VscodeMessageService => {
   };
 
   const sendMessage = (event: UiToHostSoqlEditorEvent): void => {
-    if (isUiToHostSoqlEditorEvent(event)) vscode.postMessage(event);
+    if (Schema.is(UiToHostSoqlEditorEventSchema)(event)) vscode.postMessage(event);
   };
 
   const setState = (state: unknown): void => {
