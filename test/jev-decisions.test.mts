@@ -44,8 +44,9 @@ for (const status of [200, 404, 410, 429, 503, 400, 401, 500]) {
       Effect.runPromise
     );
     assert.deepEqual(models, [404, 410, 429, 503].includes(status) ? ['jev-1.13-free', 'jev-1.14'] : ['jev-1.13-free']);
-    assert.equal(result._tag, [400, 401, 500].includes(status) ? 'Left' : 'Right');
-    if (result._tag === 'Right') assert.deepEqual(result.right, Option.some(['tests-only']));
+    assert.equal(result._tag, 'Right');
+    if (result._tag === 'Right')
+      assert.deepEqual(result.right, [400, 401, 500].includes(status) ? Option.none() : Option.some(['tests-only']));
   });
 }
 
@@ -57,6 +58,19 @@ const invalidBodies: readonly (Parameters<typeof decisionResponse>[0] | string)[
   { answers: { 'hunk-0': { type: 'error' } } },
   'invalid'
 ];
+test('duplicate answer names reject the diff without fallback', async () => {
+  let calls = 0;
+  const result = await classifyWithJev({ policy, diff, hasCoveredHunks: false }).pipe(
+    Effect.provideService(FetchHttpClient.Fetch, async () => {
+      calls += 1;
+      const response = await decisionResponse(answer()).json();
+      return Response.json({ data: { answers: [...response.data.answers, ...response.data.answers] } });
+    }),
+    Effect.runPromise
+  );
+  assert.equal(calls, 1);
+  assert.deepEqual(result, Option.none());
+});
 for (const body of invalidBodies) {
   test(`rejects uncovered, missing, or invalid answers without paid fallback: ${JSON.stringify(body)}`, async () => {
     let calls = 0;

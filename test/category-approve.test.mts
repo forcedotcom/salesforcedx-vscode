@@ -353,7 +353,7 @@ for (const [choice, expected] of [
       { 'README.md': 'new prose\n', [testPath]: 'assert.equal(2, 2);\n' }
     );
     let calls = 0;
-    let prompt = '';
+    let requestBody: string | undefined;
     const result = await classify({
       policy,
       files: [file('README.md'), file(testPath)],
@@ -365,7 +365,7 @@ for (const [choice, expected] of [
       ),
       Effect.provideService(FetchHttpClient.Fetch, async (_url, init) => {
         calls += 1;
-        prompt = await new Response(init?.body).text();
+        requestBody = await new Response(init?.body).text();
         return decisionResponse({
           answers: { 'hunk-0': { type: 'choice', choice, confidence: 1, probabilities: { [choice]: 1 } } }
         });
@@ -375,9 +375,10 @@ for (const [choice, expected] of [
     );
     assert.equal(calls, 1);
     assert.deepEqual(result, expected);
-    assert.match(prompt, /already covered: true/);
-    assert.match(prompt, /assert.equal\(2, 2\)/);
-    assert.doesNotMatch(prompt, /README\.md|new prose|old prose/);
+    assert.ok(requestBody);
+    assert.match(requestBody, /already covered: true/);
+    assert.match(requestBody, /assert.equal\(2, 2\)/);
+    assert.doesNotMatch(requestBody, /README\.md|new prose|old prose/);
   });
 }
 
@@ -391,7 +392,7 @@ test('uncovered production hunks reject the union, including renamed source file
       'packages/foo/src/other.ts': 'export const enabled = true;\n'
     }
   );
-  let prompt = '';
+  let requestBody: string | undefined;
   const result = await classify({
     policy,
     baseRef: 'base',
@@ -405,8 +406,8 @@ test('uncovered production hunks reject the union, including renamed source file
       commands(command => command.pipe(Command.workingDirectory(cwd))).pipe(Layer.provideMerge(NodeContext.layer))
     ),
     Effect.provideService(FetchHttpClient.Fetch, async (_url, init) => {
-      prompt = await new Response(init?.body).text();
-      const request = JSON.parse(prompt);
+      requestBody = await new Response(init?.body).text();
+      const request = JSON.parse(requestBody);
       return decisionResponse({
         answers: Object.fromEntries(
           Object.keys(request.questions).map(name => [
@@ -421,9 +422,10 @@ test('uncovered production hunks reject the union, including renamed source file
   );
   assert.deepEqual(result, []);
   assert.equal(decideCategoryApprove({ ...base, categories: result })._tag, 'Skip');
-  assert.match(prompt, /deleted file mode/);
-  assert.match(prompt, /export const enabled = true/);
-  assert.doesNotMatch(prompt, /README\.md|rename from|rename to/);
+  assert.ok(requestBody);
+  assert.match(requestBody, /deleted file mode/);
+  assert.match(requestBody, /export const enabled = true/);
+  assert.doesNotMatch(requestBody, /README\.md|rename from|rename to/);
 });
 
 test('keeps covered version hunks when path-only hunks are omitted; version-only diffs still skip', async t => {

@@ -6,7 +6,7 @@
  */
 import * as FetchHttpClient from '@effect/platform/FetchHttpClient';
 import { decisions } from '@salesforce/opencode-decisions';
-import { Config, Effect, Option, Schema } from 'effect';
+import { Effect, Option, Schema } from 'effect';
 
 class JevRequestFailed extends Schema.TaggedError<JevRequestFailed>()('JevRequestFailed', {
   message: Schema.String
@@ -21,9 +21,8 @@ export const jevDecisions = Effect.fn('jev.decisions')(function* (input: {
     >
   >;
 }) {
-  const baseUrl = yield* Config.string('OPENCODE_SERVER_URL').pipe(Config.withDefault('http://127.0.0.1:4096'));
   const fetch = yield* Effect.serviceOption(FetchHttpClient.Fetch);
-  return yield* Effect.tryPromise({
+  const result = yield* Effect.tryPromise({
     try: signal =>
       decisions(
         {
@@ -35,8 +34,27 @@ export const jevDecisions = Effect.fn('jev.decisions')(function* (input: {
             choices: Object.entries(question.criteria).map(([value, description]) => ({ value, description }))
           }))
         },
-        { baseUrl, signal, fetch: Option.getOrElse(fetch, () => globalThis.fetch) }
+        { baseUrl: 'http://127.0.0.1:4096', signal, fetch: Option.getOrElse(fetch, () => globalThis.fetch) }
       ),
     catch: error => new JevRequestFailed({ message: String(error) })
-  }).pipe(Effect.map(result => Object.fromEntries(result.answers.map(answer => [answer.name, answer]))));
+  });
+  const expectedNames = Object.keys(input.questions);
+  if (
+    result.answers.length !== expectedNames.length ||
+    new Set(result.answers.map(answer => answer.name)).size !== expectedNames.length
+  ) {
+    return yield* new JevRequestFailed({ message: 'Jev returned missing or duplicate answers' });
+  }
+  return yield* Effect.forEach(expectedNames, name => {
+    const question = input.questions[name];
+    const Choice = Schema.Struct({
+      type: Schema.Literal('choice'),
+      name: Schema.Literal(name),
+      choice: Schema.String.pipe(Schema.filter(choice => Object.hasOwn(question.criteria, choice)))
+    });
+    return Schema.decodeUnknown(Choice)(result.answers.find(answer => answer.name === name)).pipe(
+      Effect.map(answer => answer.choice),
+      Effect.mapError(() => new JevRequestFailed({ message: `Invalid Jev answer for ${name}` }))
+    );
+  });
 });
