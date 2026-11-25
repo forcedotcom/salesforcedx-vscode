@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import { execFile, execFileSync } from 'node:child_process';
+import { createHash } from 'node:crypto';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
@@ -11,13 +12,49 @@ const windowsNpmCli = path.join(path.dirname(process.execPath), 'node_modules/np
 const directWindowsNpm = process.platform === 'win32' && fs.existsSync(windowsNpmCli);
 const npm = directWindowsNpm ? process.execPath : process.platform === 'win32' ? 'npm.cmd' : 'npm';
 const npmArgs = directWindowsNpm ? [windowsNpmCli] : [];
+const pnpm = process.platform === 'win32' ? 'pnpm.cmd' : 'pnpm';
 const npmOptions = {
   cwd: root,
   encoding: 'utf8',
   shell: process.platform === 'win32' && !directWindowsNpm,
   timeout: 180000
 };
+const pnpmOptions = { ...npmOptions, shell: process.platform === 'win32' };
 const execFileAsync = promisify(execFile);
+const workspacePackageVersions = new Map(
+  fs
+    .readdirSync(path.join(root, 'packages'), { withFileTypes: true })
+    .filter(entry => entry.isDirectory() && fs.existsSync(path.join(root, 'packages', entry.name, 'package.json')))
+    .map(entry => {
+      const manifest = JSON.parse(fs.readFileSync(path.join(root, 'packages', entry.name, 'package.json'), 'utf8'));
+      return [manifest.name, manifest.version];
+    })
+);
+
+const readPublishedPackage = packageDirectory => {
+  const manifest = JSON.parse(fs.readFileSync(path.join(packageDirectory, 'package.json'), 'utf8'));
+  const publishedDependencyRange = (name, range) => {
+    if (!range.startsWith('workspace:')) return range;
+    const workspaceRange = range.slice('workspace:'.length);
+    const version = workspacePackageVersions.get(name);
+    assert.ok(version, `${name}: missing workspace package version`);
+    if (workspaceRange === '*') return version;
+    if (workspaceRange === '^') return `^${version}`;
+    if (workspaceRange === '~') return `~${version}`;
+    return workspaceRange;
+  };
+  const normalizedDependencies = Object.fromEntries(
+    ['dependencies', 'optionalDependencies', 'peerDependencies', 'devDependencies']
+      .filter(field => manifest[field])
+      .map(field => [
+        field,
+        Object.fromEntries(
+          Object.entries(manifest[field]).map(([name, range]) => [name, publishedDependencyRange(name, range)])
+        )
+      ])
+  );
+  return { ...manifest, ...normalizedDependencies };
+};
 
 export const createPackedFixturesDirectory = prefix => {
   // GitHub's runner temp is working storage; Windows os.tmpdir() is on the slow system volume.
@@ -53,12 +90,16 @@ const finishAll = async (promises, phase) => {
 
 export const packServicesPackage = (packageDirectory, directory, archiveName) => {
   fs.mkdirSync(directory, { recursive: true });
-  const [packed] = JSON.parse(
-    execFileSync(npm, [...npmArgs, 'pack', packageDirectory, '--pack-destination', directory, '--json'], npmOptions)
+  const pnpmPacked = JSON.parse(
+    execFileSync(pnpm, ['--dir', packageDirectory, 'pack', '--pack-destination', directory, '--json'], pnpmOptions)
   );
   const archive = path.join(directory, archiveName);
-  fs.renameSync(path.join(directory, packed.filename), archive);
-  const publishedPackage = JSON.parse(fs.readFileSync(path.join(packageDirectory, 'package.json'), 'utf8'));
+  fs.renameSync(pnpmPacked.filename, archive);
+  const packed = {
+    ...pnpmPacked,
+    integrity: `sha512-${createHash('sha512').update(fs.readFileSync(archive)).digest('base64')}`
+  };
+  const publishedPackage = readPublishedPackage(packageDirectory);
   return { name: publishedPackage.name, directory, archive, packed, publishedPackage };
 };
 
@@ -66,7 +107,7 @@ export const packServicesPackage = (packageDirectory, directory, archiveName) =>
 export const packServicesExtension = (packageDirectory, directory, archiveName) => {
   const staging = fs.mkdtempSync(path.join(path.dirname(directory), 'services-extension-pack-'));
   try {
-    const publishedPackage = JSON.parse(fs.readFileSync(path.join(packageDirectory, 'package.json'), 'utf8'));
+    const publishedPackage = readPublishedPackage(packageDirectory);
     delete publishedPackage.scripts?.preinstall;
     fs.writeFileSync(path.join(staging, 'package.json'), JSON.stringify(publishedPackage));
     fs.cpSync(path.join(packageDirectory, 'out/src'), path.join(staging, 'out/src'), { recursive: true });
