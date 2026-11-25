@@ -15,9 +15,9 @@ import {
   openFileByName,
   openFileFromExplorerTree,
   saveFile,
-  saveScreenshot,
   setupConsoleMonitoring,
   setupNetworkMonitoring,
+  startVideoRecording,
   validateNoCriticalErrors,
   waitForVSCodeWorkbench,
   waitForWorkspaceReady
@@ -34,7 +34,7 @@ const AURA1_DIR = ['force-app', 'main', 'default', 'aura', 'aura1'];
 // shared, persistent workbench), so the Aura LS re-indexes the pre-seeded aura1 bundle here. Types
 // `<aura:appl` at L2 C1 (the blank tab line in the seeded `aura1.cmp`), selects the
 // `aura:application` completion, and asserts it was inserted.
-test('Aura LSP: autocompletion', async ({ page }) => {
+test('Aura LSP: autocompletion', async ({ page }, testInfo) => {
   if (isContainer) {
     test.setTimeout(3 * 60 * 1000);
   }
@@ -65,31 +65,38 @@ test('Aura LSP: autocompletion', async ({ page }) => {
       await openFileByName(page, 'aura1.cmp');
     }
     await waitForAuraLspReady(page);
-    await saveScreenshot(page, 'auraLspAutocompletion.indexing-complete.png');
   });
 
-  await test.step('type <aura:appl and select the aura:application completion', async () => {
-    // L2 is the blank tab line per the seeded layout (fixtures/desktopFixtures.ts) — load-bearing
-    // typing target.
-    await goToLineCol(page, 2, 1);
-    await page.keyboard.type('<aura:appl');
+  const videoName = [testInfo.project.name, ...testInfo.titlePath, 'autocompletion', `retry-${testInfo.retry}`]
+    .join('-')
+    .replaceAll(/[^a-zA-Z0-9._-]+/g, '-')
+    .replaceAll(/^-+|-+$/g, '');
+  const stopRecording = await startVideoRecording(page, testInfo, videoName);
+  try {
+    await test.step('type <aura:appl and select the aura:application completion', async () => {
+      // L2 is the blank tab line per the seeded layout (fixtures/desktopFixtures.ts) — load-bearing
+      // typing target.
+      await goToLineCol(page, 2, 1);
+      await page.keyboard.type('<aura:appl');
 
-    const firstRow = completionRows.first();
-    await expect(firstRow).toBeVisible({ timeout: 30_000 });
-    await expect(firstRow).toHaveAttribute('aria-label', /aura:application/, { timeout: 30_000 });
-    await firstRow.click();
+      const firstRow = completionRows.first();
+      await expect(firstRow).toBeVisible({ timeout: 30_000 });
+      await expect(firstRow).toHaveAttribute('aria-label', /aura:application/, { timeout: 30_000 });
+      await firstRow.click();
 
-    // Close the tag and save.
-    await page.keyboard.type('>');
-    await saveFile(page);
-  });
+      // Close the tag and save.
+      await page.keyboard.type('>');
+      await saveFile(page);
+    });
 
-  await test.step('verify aura:application was inserted on L2', async () => {
-    const editor = page.locator(`${EDITOR_WITH_URI}[data-uri$="aura1.cmp"]`).first();
-    const lineTwo = editor.locator('.view-line').nth(1);
-    await expect(lineTwo).toContainText('aura:application', { timeout: 15_000 });
-    await saveScreenshot(page, 'auraLspAutocompletion.inserted.png');
-  });
+    await test.step('verify aura:application was inserted on L2', async () => {
+      const editor = page.locator(`${EDITOR_WITH_URI}[data-uri$="aura1.cmp"]`).first();
+      const lineTwo = editor.locator('.view-line').nth(1);
+      await expect(lineTwo).toContainText('aura:application', { timeout: 15_000 });
+    });
 
-  await validateNoCriticalErrors(test, consoleErrors, networkErrors);
+    await validateNoCriticalErrors(test, consoleErrors, networkErrors);
+  } finally {
+    await stopRecording();
+  }
 });

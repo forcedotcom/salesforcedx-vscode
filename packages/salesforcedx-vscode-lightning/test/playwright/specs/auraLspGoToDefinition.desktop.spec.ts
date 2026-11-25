@@ -15,9 +15,9 @@ import {
   goToLineCol,
   openFileByName,
   openFileFromExplorerTree,
-  saveScreenshot,
   setupConsoleMonitoring,
   setupNetworkMonitoring,
+  startVideoRecording,
   validateNoCriticalErrors,
   waitForVSCodeWorkbench,
   waitForWorkspaceReady,
@@ -42,7 +42,7 @@ const AURA1_DIR = ['force-app', 'main', 'default', 'aura', 'aura1'];
 // binding — returning "No definition found" (cursor ends at `Ln 10, Col 18`). The packaged server
 // resolves the L8 binding correctly when the request fires at 8:15. `preserveSelection` skips that
 // focus-click (and the selection-clearing Escape), keeping the cursor where the test placed it.
-test('Aura LSP: go to definition', async ({ page }) => {
+test('Aura LSP: go to definition', async ({ page }, testInfo) => {
   if (isContainer) {
     test.setTimeout(3 * 60 * 1000);
   }
@@ -69,45 +69,51 @@ test('Aura LSP: go to definition', async ({ page }) => {
       await openFileByName(page, 'aura1.cmp');
     }
     await waitForAuraLspReady(page);
-    await saveScreenshot(page, 'auraLspGoToDefinition.indexing-complete.png');
   });
 
-  const positionItem = page.locator(WORKBENCH).getByRole('button', { name: /Ln \d+, Col \d+/ });
+  const videoName = [testInfo.project.name, ...testInfo.titlePath, 'go-to-definition', `retry-${testInfo.retry}`]
+    .join('-')
+    .replaceAll(/[^a-zA-Z0-9._-]+/g, '-')
+    .replaceAll(/^-+|-+$/g, '');
+  const stopRecording = await startVideoRecording(page, testInfo, videoName);
+  try {
+    const positionItem = page.locator(WORKBENCH).getByRole('button', { name: /Ln \d+, Col \d+/ });
 
-  await test.step('position cursor on the simpleNewContact reference (L8)', async () => {
-    // Place the cursor inside `simpleNewContact` on the ref line (8:15). Click the editor first so
-    // it owns focus before the command-palette cursor placement (mirrors lwcLspGoToDefinitionHtml
-    // precedent); without focus, the subsequent Go to Definition runs against a stale/unfocused
-    // editor and resolves nothing.
-    await page.locator(`${EDITOR_WITH_URI}[data-uri$="aura1.cmp"]`).first().click();
-    await goToLineCol(page, 8, 15);
-    await expect(positionItem).toContainText(/Ln 8, Col 15/, { timeout: 10_000 });
-    await saveScreenshot(page, 'auraLspGoToDefinition.cursor-placed.png');
-  });
+    await test.step('position cursor on the simpleNewContact reference (L8)', async () => {
+      // Place the cursor inside `simpleNewContact` on the ref line (8:15). Click the editor first so
+      // it owns focus before the command-palette cursor placement (mirrors lwcLspGoToDefinitionHtml
+      // precedent); without focus, the subsequent Go to Definition runs against a stale/unfocused
+      // editor and resolves nothing.
+      await page.locator(`${EDITOR_WITH_URI}[data-uri$="aura1.cmp"]`).first().click();
+      await goToLineCol(page, 8, 15);
+      await expect(positionItem).toContainText(/Ln 8, Col 15/, { timeout: 10_000 });
+    });
 
-  await test.step('Go to Definition lands on the attribute definition (L3)', async () => {
-    // Within-file nav (no new tab), so no Ctrl+Click (apex used Ctrl+Click only for its
-    // cross-file nav). LSP readiness already synced by `waitForAuraLspReady`. Use the command
-    // palette (lwcLspGoToDefinitionHtml precedent)
-    // rather than F12, which is more host/environment-sensitive (can be intercepted as a global
-    // shortcut). `preserveSelection` keeps the 8:15 cursor placed above — otherwise the palette's
-    // workbench focus-click re-parks the cursor at end-of-document (below the last line of this
-    // 10-line file) and Go to Definition resolves nothing.
-    await goToDefinition(page, { preserveSelection: true });
+    await test.step('Go to Definition lands on the attribute definition (L3)', async () => {
+      // Within-file nav (no new tab), so no Ctrl+Click (apex used Ctrl+Click only for its
+      // cross-file nav). LSP readiness already synced by `waitForAuraLspReady`. Use the command
+      // palette (lwcLspGoToDefinitionHtml precedent)
+      // rather than F12, which is more host/environment-sensitive (can be intercepted as a global
+      // shortcut). `preserveSelection` keeps the 8:15 cursor placed above — otherwise the palette's
+      // workbench focus-click re-parks the cursor at end-of-document (below the last line of this
+      // 10-line file) and Go to Definition resolves nothing.
+      await goToDefinition(page, { preserveSelection: true });
 
-    // PRIMARY: the VS Code status-bar selection item reports the cursor position. The Aura LS
-    // resolves the def to the `simpleNewContact` name-attribute value range on L3
-    // (`getAuraBindingTemplateDeclaration`); Go to Definition selects that range and places the
-    // cursor at its END. Local run 2026-06-12 (test:desktop, VS Code 1.124.2): status bar read
-    // exactly `Ln 3, Col 27`, so the assertion is locked to the exact value.
-    await expect(positionItem).toContainText(/Ln 3, Col 27/, { timeout: 15_000 });
+      // PRIMARY: the VS Code status-bar selection item reports the cursor position. The Aura LS
+      // resolves the def to the `simpleNewContact` name-attribute value range on L3
+      // (`getAuraBindingTemplateDeclaration`); Go to Definition selects that range and places the
+      // cursor at its END. Local run 2026-06-12 (test:desktop, VS Code 1.124.2): status bar read
+      // exactly `Ln 3, Col 27`, so the assertion is locked to the exact value.
+      await expect(positionItem).toContainText(/Ln 3, Col 27/, { timeout: 15_000 });
 
-    // SECONDARY (defense): aura1.cmp is still the active tab — confirms within-file nav (no spurious
-    // new tab / peek editor).
-    const auraTab = page.getByRole('tab', { name: /aura1\.cmp/ }).first();
-    await expect(auraTab).toHaveAttribute('aria-selected', 'true', { timeout: 10_000 });
-    await saveScreenshot(page, 'auraLspGoToDefinition.go-to-definition.png');
-  });
+      // SECONDARY (defense): aura1.cmp is still the active tab — confirms within-file nav (no spurious
+      // new tab / peek editor).
+      const auraTab = page.getByRole('tab', { name: /aura1\.cmp/ }).first();
+      await expect(auraTab).toHaveAttribute('aria-selected', 'true', { timeout: 10_000 });
+    });
 
-  await validateNoCriticalErrors(test, consoleErrors, networkErrors);
+    await validateNoCriticalErrors(test, consoleErrors, networkErrors);
+  } finally {
+    await stopRecording();
+  }
 });

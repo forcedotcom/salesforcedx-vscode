@@ -45,7 +45,11 @@ export const workspaceTelemetryTest = baseTest.extend({
     await closeWelcomeTabs(page);
     await ensureSecondarySideBarHidden(page);
     await waitForWorkspaceReady(page);
-    const stopRecording = await startVideoRecording(page, testInfo);
+    const videoName = [testInfo.project.name, ...testInfo.titlePath, 'workspace-telemetry', `retry-${testInfo.retry}`]
+      .join('-')
+      .replaceAll(/[^a-zA-Z0-9._-]+/g, '-')
+      .replaceAll(/^-+|-+$/g, '');
+    const stopRecording = await startVideoRecording(page, testInfo, videoName);
     try {
       await use(page);
     } finally {
