@@ -226,6 +226,8 @@ If the plan determines the WI is unimplementable (can't name files or definition
 
 **Review.** Three parallel reads:
 
+Skill capability metadata: [review-complexity field and classification criteria](../../contributing/review-skills.md).
+
 - Per-skill detection: for diffs `< 20` lines, only the always-applicable skills (`typescript`, `concise`, `paths`) run. Larger diffs check every skill except those in `REVIEW_SKILL_DENYLIST` (operational/setup skills not relevant to diff review).
 - Thermonuclear code-quality review (file:line evidence required)
 - Effect-advocate diff review

@@ -1,6 +1,7 @@
 ---
 name: vscode-extension-launch
 description: Maintain this repository's VS Code extension launch configs when adding or removing extension packages, changing launch groups, or adding subset debug configurations.
+review-complexity: medium
 ---
 
 # VS Code extension launches

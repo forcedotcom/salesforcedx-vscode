@@ -72,11 +72,12 @@ Skills:
 
 - Always: `typescript, concise, paths`
 - Diff > 20 lines: add `ls .claude/skills/` minus denylist `changelog feature-branch grill-me gus-cli merge-conflicts pr-draft release shipped-issues query-app-insights span-file-export web-console-local-traces`
+- Resolve `<skill-file>`: `.md` entry → `.claude/skills/<entry>`; directory → `.claude/skills/<entry>/SKILL.md`.
 
 Parallel `Agent` calls — one per skill + thermo + effect-advocate. Single message.
 
 Per-skill prompt:
-> Skill `<name>` apply to diff in `<path>`? Read `.claude/skills/<name>/SKILL.md`. Examine `git diff origin/develop...HEAD` from `<path>`. Return JSON `{applies: bool, findings: [{severity: critical|high|medium|low, file, line, suggestion}]}`. Apply but no findings → `findings: []`.
+> Skill `<name>` apply to diff in `<path>`? Read `<skill-file>` from `<path>`. Examine `git diff origin/develop...HEAD` from `<path>`. Return JSON `{applies: bool, findings: [{severity: critical|high|medium|low, file, line, suggestion}]}`. Apply but no findings → `findings: []`.
 
 Thermo: invoke [thermonuclear-code-quality-review](.claude/skills/thermonuclear-code-quality-review/SKILL.md) skill. Same JSON shape.
 
