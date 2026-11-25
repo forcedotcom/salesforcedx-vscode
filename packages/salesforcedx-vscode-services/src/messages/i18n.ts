@@ -51,6 +51,7 @@ export const messages = {
   org_metadata_catalog_workspace_presence_missing_content:
     'Could not check workspace presence for %s: %s has no matching content file %s. Fix or remove the sidecar, then refresh Org Browser.',
   org_metadata_catalog_workspace_presence_scan_failed: 'Could not check workspace presence for %s: %s.',
+  org_metadata_catalog_document_open_failed: 'Could not load org metadata source: %s',
   org_metadata_catalog_state_missing:
     'No persisted OrgMetadataCatalog state exists yet. Use Org Browser, Apex Tests, SOQL, or Refresh SObject Definitions first.',
   org_metadata_catalog_state_open_failed: 'Failed to open persisted OrgMetadataCatalog state: %s',

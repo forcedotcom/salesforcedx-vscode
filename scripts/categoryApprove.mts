@@ -7,8 +7,6 @@
  */
 
 import * as Command from '@effect/platform/Command';
-import * as FileSystem from '@effect/platform/FileSystem';
-import * as Path from '@effect/platform/Path';
 import * as NodeContext from '@effect/platform-node/NodeContext';
 import {
   actionsEnvironment,
@@ -18,8 +16,8 @@ import {
   type CheckEvent,
   withoutWorkflowRun
 } from '@salesforce/effect-octokit';
+import * as Arr from 'effect/Array';
 import * as Cause from 'effect/Cause';
-import * as Config from 'effect/Config';
 import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
 import * as Match from 'effect/Match';
@@ -29,28 +27,21 @@ import * as Stream from 'effect/Stream';
 import {
   BASE_BRANCH,
   BOT_LOGIN,
-  MODEL,
   TEAM_ORG,
   TEAM_SLUG,
   type Decision,
   type Facts,
   buildPrompt,
+  categoryForPath,
   categoryIdsFromPolicy,
   classifyGit2GusConfig,
   decideCategoryApprove,
-  parseAgentResult
+  parseAgentResult,
+  pathsForFile,
+  rejectedPath
 } from './shared/categoryDecision.mts';
-import { AgentError, GitError } from './shared/scriptErrors.mts';
-
-// Command.env merges over process.env (NodeCommandExecutor). Blank inherited values so the agent only sees its allowlist.
-const agentEnvironment = (home: string, pathEnv: string, apiKey: string) => ({
-  ...Object.fromEntries(
-    Object.entries(process.env).flatMap(([key, value]) => (value === undefined ? [] : [[key, '']]))
-  ),
-  PATH: `${home}/.local/bin:${pathEnv}`,
-  HOME: home,
-  CURSOR_API_KEY: apiKey
-});
+import { openCodePrompt } from './shared/openCode.mts';
+import { GitError } from './shared/scriptErrors.mts';
 
 const commandOutput = Effect.fn('categoryApprove.commandOutput')(function* (command: Command.Command) {
   const handle = yield* Command.start(command);
@@ -89,38 +80,48 @@ const listChecks = Effect.fn('categoryApprove.listChecks')(function* (
   return { statuses: status.statuses, checkRuns: withoutWorkflowRun(runs, runId) };
 });
 
-const classify = Effect.fn('categoryApprove.classify')(function* (policy: string, diffPath: string) {
-  return yield* Effect.all([Config.string('CURSOR_API_KEY'), Config.string('PATH'), Config.string('HOME')], {
-    concurrency: 'unbounded'
-  }).pipe(
-    Effect.flatMap(([apiKey, pathEnv, home]) =>
-      commandOutput(
-        Command.make(
-          'agent',
-          '--trust',
-          '-p',
-          '--model',
-          MODEL,
-          '--output-format',
-          'json',
-          buildPrompt(policy, diffPath)
-        ).pipe(Command.env(agentEnvironment(home, pathEnv, apiKey)), Command.stdin(Stream.empty))
-      ).pipe(Effect.scoped)
+export const classify = Effect.fn('categoryApprove.classify')(function* (input: {
+  readonly policy: string;
+  readonly files: Facts['files'];
+  readonly baseRef: string;
+  readonly headSha: string;
+}) {
+  const { policy, files, baseRef, headSha } = input;
+  // GitHub caps pull-request files at 3,000; a list at that limit may omit uncovered files.
+  if (files.length >= 3000) return [];
+  if (files.length === 1 && files[0]?.filename === '.git2gus/config.json' && files[0].status === 'modified') {
+    return yield* Effect.all([
+      gitText(['show', `${baseRef}:.git2gus/config.json`]),
+      gitText(['show', `${headSha}:.git2gus/config.json`])
+    ]).pipe(Effect.map(([before, after]) => classifyGit2GusConfig(files, before, after)));
+  }
+  const paths = Arr.dedupe(files.flatMap(pathsForFile));
+  if (paths.some(rejectedPath)) return [];
+  const categories = Arr.dedupe(Arr.filterMap(paths, categoryForPath));
+  const remainingPaths = paths.filter(filename => Option.isNone(categoryForPath(filename)));
+  if (remainingPaths.length === 0) return categories;
+  // Literal pathspecs and --no-renames keep covered files out, including either side of a rename.
+  return yield* gitText([
+    'diff',
+    '--no-renames',
+    `${baseRef}...${headSha}`,
+    '--',
+    ...remainingPaths.map(filename => `:(top,literal)${filename}`)
+  ]).pipe(
+    Effect.flatMap(diff =>
+      diff.trim().length === 0
+        ? Effect.succeed(Option.none<readonly string[]>())
+        : openCodePrompt({ prompt: buildPrompt(policy, diff, categories.length > 0) }).pipe(
+            Effect.map(parseAgentResult)
+          )
     ),
-    Effect.filterOrFail(
-      ([, , code]) => code === 0,
-      ([, stderr, code]) => new AgentError({ message: `agent exited ${code}: ${stderr}` })
-    ),
-    Effect.map(([stdout]) => parseAgentResult(stdout))
+    Effect.map(
+      Option.match({
+        onNone: () => [],
+        onSome: classified => Arr.dedupe([...categories, ...classified])
+      })
+    )
   );
-});
-
-const writeDiff = Effect.fn('categoryApprove.writeDiff')(function* (policy: string, diff: string) {
-  const fs = yield* FileSystem.FileSystem;
-  const dir = yield* fs.makeTempDirectoryScoped({ prefix: 'category-approve-' });
-  const diffPath = yield* Path.Path.pipe(Effect.map(path => path.join(dir, 'pr.diff')));
-  yield* fs.writeFileString(diffPath, diff);
-  return yield* classify(policy, diffPath);
 });
 
 const approve = Effect.fn('categoryApprove.approve')(function* (
@@ -225,31 +226,7 @@ const onePull = Effect.fn('categoryApprove.onePull')(function* (
   const baseRef = pull.baseRefName;
   yield* gitText(['fetch', 'origin', baseRef]);
   const policy = yield* gitText(['show', `origin/${baseRef}:APPROVAL_POLICY.md`]);
-  yield* Match.value(files).pipe(
-    Match.when(
-      changedFiles =>
-        changedFiles.length === 1 &&
-        changedFiles[0]?.filename === '.git2gus/config.json' &&
-        changedFiles[0].status === 'modified',
-      () =>
-        Effect.all([
-          gitText(['show', `origin/${baseRef}:.git2gus/config.json`]),
-          gitText(['show', `${headSha}:.git2gus/config.json`])
-        ]).pipe(Effect.map(([before, after]) => classifyGit2GusConfig(files, before, after)))
-    ),
-    Match.when(
-      changedFiles =>
-        changedFiles.some(
-          file => file.filename === '.git2gus/config.json' || file.previous_filename === '.git2gus/config.json'
-        ),
-      () => Effect.succeed([])
-    ),
-    Match.orElse(() =>
-      gitText(['diff', `origin/${baseRef}...${headSha}`]).pipe(
-        Effect.flatMap(diff => writeDiff(policy, diff)),
-        Effect.scoped
-      )
-    ),
+  yield* classify({ policy, files, baseRef: `origin/${baseRef}`, headSha }).pipe(
     Effect.flatMap(categories =>
       listChecks(owner, repo, headSha, runId).pipe(
         Effect.map(freshChecks =>
@@ -309,9 +286,10 @@ const categoryApprove = Effect.fn('categoryApprove')(function* () {
   });
 });
 
-const program = categoryApprove().pipe(Effect.provide(Layer.mergeAll(GitHub.Default, NodeContext.layer)));
-
-await program.pipe(
-  Effect.tapErrorCause(cause => Effect.logError(Cause.pretty(cause))),
-  Effect.runPromise
-);
+if (import.meta.main) {
+  await categoryApprove().pipe(
+    Effect.provide(Layer.mergeAll(GitHub.Default, NodeContext.layer)),
+    Effect.tapErrorCause(cause => Effect.logError(Cause.pretty(cause))),
+    Effect.runPromise
+  );
+}

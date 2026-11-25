@@ -10,7 +10,7 @@ import { mkdir, readdir, readFile, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import * as Effect from 'effect/Effect';
-import { NodeFileOutputLayer } from '../../../src/effect/nodeFileOutput';
+import { NodeFileOutputLayer } from '../../../src/effect/nodeFileOutputLayer';
 import { writeResultFiles } from '../../../src/effect/writeResultFiles';
 import { parityFileInfos, parityFormats, parityResults, parityScenarios } from './fixtures';
 
@@ -37,35 +37,40 @@ describe('writeResultFiles - upstream apex-node 9.1.13 parity', () => {
     await rm(tempDir, { recursive: true, force: true });
   });
 
-  it.each(parityScenarios)('$name', async ({ name, result, codeCoverage }) => {
-    const dirPath = join(tempDir, name);
-    await Effect.runPromise(
-      writeResultFiles(
-        parityResults[result],
-        {
-          dirPath,
-          resultFormats: parityFormats,
-          fileInfos: parityFileInfos
-        },
-        { codeCoverage }
-      ).pipe(Effect.provide(NodeFileOutputLayer))
-    );
+  // The full-output parity case takes over Vitest's default timeout on Windows CI.
+  it.each(parityScenarios)(
+    '$name',
+    async ({ name, result, codeCoverage }) => {
+      const dirPath = join(tempDir, name);
+      await Effect.runPromise(
+        writeResultFiles(
+          parityResults[result],
+          {
+            dirPath,
+            resultFormats: parityFormats,
+            fileInfos: parityFileInfos
+          },
+          { codeCoverage }
+        ).pipe(Effect.provide(NodeFileOutputLayer))
+      );
 
-    const files = (await readdir(dirPath)).sort();
-    expect(files).toMatchSnapshot('file names');
+      const files = (await readdir(dirPath)).sort();
+      expect(files).toMatchSnapshot('file names');
 
-    for (const file of files) {
-      const content = await readFile(join(dirPath, file), 'utf8');
-      if (result === 'large' && file.startsWith('test-result-')) {
-        expect({
-          bytes: Buffer.byteLength(normalizeTimestamps(content)),
-          sha256: createHash('sha256').update(normalizeTimestamps(content)).digest('hex')
-        }).toMatchSnapshot(file);
-      } else {
-        expect(normalizeTimestamps(content)).toMatchSnapshot(file);
+      for (const file of files) {
+        const content = await readFile(join(dirPath, file), 'utf8');
+        if (result === 'large' && file.startsWith('test-result-')) {
+          expect({
+            bytes: Buffer.byteLength(normalizeTimestamps(content)),
+            sha256: createHash('sha256').update(normalizeTimestamps(content)).digest('hex')
+          }).toMatchSnapshot(file);
+        } else {
+          expect(normalizeTimestamps(content)).toMatchSnapshot(file);
+        }
       }
-    }
-  });
+    },
+    15_000
+  );
 
   it('writes only test-run-id.txt for a run id result', async () => {
     const dirPath = join(tempDir, 'runid-only');

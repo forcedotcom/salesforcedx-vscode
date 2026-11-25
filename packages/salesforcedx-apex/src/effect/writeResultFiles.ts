@@ -5,8 +5,13 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import type { ApexReportError } from './errors';
 import type { MarkdownTextReporterOptions } from '../reporters/markdownTextReporter';
+import * as Arr from 'effect/Array';
 import * as Effect from 'effect/Effect';
+import * as Match from 'effect/Match';
+import { isNotUndefined } from 'effect/Predicate';
+import * as Ref from 'effect/Ref';
 import * as Schema from 'effect/Schema';
 import * as Stream from 'effect/Stream';
 import { nls } from '../i18n';
@@ -15,12 +20,13 @@ import { formatTapChunks } from '../reporters/formatTap';
 import { stringifyTestResultChunks } from '../streaming/testResultStringify';
 import {
   type OutputDirConfig,
+  type ResultFileFormat,
   ResultFileFormatsSchema,
   ResultFormatsSchema,
   type TestResult,
   type TestRunIdResult
 } from '../tests/types';
-import { FileOutput, FileOutputError } from './fileOutput';
+import { FileOutput, FileOutputError, PartialResultFilesError } from './fileOutput';
 import { formatMarkdownTextReportStream } from './reporters';
 
 export interface WriteResultFilesOptions extends MarkdownTextReporterOptions {
@@ -31,12 +37,12 @@ export interface WriteResultFilesOptions extends MarkdownTextReporterOptions {
   codeCoverage?: boolean;
 }
 
-const assertResultFormats: Schema.Schema.ToAsserts<typeof ResultFormatsSchema> = Schema.asserts(
+const decodeResultFormats = Schema.decodeUnknownSync(
   ResultFormatsSchema.pipe(
     Schema.annotations({ message: () => ({ message: nls.localize('resultFormatErr'), override: true }) })
   )
 );
-const assertResultFileFormats: Schema.Schema.ToAsserts<typeof ResultFileFormatsSchema> = Schema.asserts(
+const decodeResultFileFormats = Schema.decodeUnknownSync(
   ResultFileFormatsSchema.pipe(
     Schema.annotations({ message: () => ({ message: nls.localize('resultFileFormatErr'), override: true }) })
   )
@@ -51,7 +57,7 @@ const stringifyJsonArrayChunks = function* <A>(values: readonly A[]): Generator<
   yield ']';
 };
 
-const fileNameForResultFormat = (format: string, fileId: string): string | undefined => {
+const fileNameForResultFormat = (format: ResultFileFormat, fileId: string): string => {
   switch (format) {
     case 'json':
       return `test-result-${fileId}.json`;
@@ -63,59 +69,51 @@ const fileNameForResultFormat = (format: string, fileId: string): string | undef
       return `test-result-${fileId}.md`;
     case 'text':
       return `test-result-${fileId}.txt`;
-    default:
-      return undefined;
   }
 };
 
-/** Writes requested test result files through the caller's file output implementation. */
-export const writeResultFiles = Effect.fn('Apex.writeResultFiles')(function* (
+const writeFiles = Effect.fn('Apex.writeResultFiles.writeFiles')(function* (
   result: TestResult | TestRunIdResult,
   outputDirConfig: OutputDirConfig,
   options: WriteResultFilesOptions = {}
 ) {
   const fileOutput = yield* FileOutput;
-  const { dirPath, resultFormats, fileInfos } = outputDirConfig;
-  assertResultFormats(resultFormats);
+  const { dirPath, fileInfos } = outputDirConfig;
+  const resultFormats = decodeResultFormats(outputDirConfig.resultFormats);
+  const testResult = 'summary' in result ? result : undefined;
+  const fileFormats = resultFormats && testResult ? decodeResultFileFormats(resultFormats) : [];
   yield* fileOutput.createDirectory(dirPath);
 
-  const testResult = 'summary' in result ? result : undefined;
   const testRunId = 'summary' in result ? result.summary.testRunId : result.testRunId;
   const fileId = testRunId || 'default';
   const testRunIdFiles =
     options.writeTestRunId !== false && isNotUndefined(testRunId)
-      ? yield* fileOutput.writeFile(dirPath, 'test-run-id.txt', Stream.make(testRunId)).pipe(
-          Effect.map(path => [path]),
-          Effect.catchAll(error => Effect.logError('Error writing file', { error }).pipe(Effect.as([])))
-        )
+      ? yield* fileOutput.writeFile(dirPath, 'test-run-id.txt', Stream.make(testRunId)).pipe(Effect.map(path => [path]))
       : [];
 
-  if (resultFormats && testResult) assertResultFileFormats(resultFormats);
   const resultFiles = yield* Effect.forEach(
-    resultFormats && testResult ? resultFormats.map(format => ({ format, testResult })) : [],
+    testResult ? fileFormats.map(format => ({ format, testResult })) : [],
     Effect.fn('Apex.writeResultFiles.writeReport')(function* ({ format, testResult }) {
       const fileName = fileNameForResultFormat(format, fileId);
-      if (fileName === undefined) return yield* Effect.die(new Error(nls.localize('resultFormatErr')));
-
-      if (format === 'json') {
-        return yield* fileOutput.writeFile(
-          dirPath,
-          fileName,
-          Stream.fromIterable(stringifyTestResultChunks(testResult, { includeSetup: options.includeSetup }))
-        );
-      }
-      if (format === 'tap') return yield* fileOutput.writeFile(dirPath, fileName, formatTapChunks(testResult));
-      if (format === 'junit') return yield* fileOutput.writeFile(dirPath, fileName, formatJUnitChunks(testResult));
-
-      if (format === 'markdown' || format === 'text') {
-        const chunks = yield* formatMarkdownTextReportStream(testResult, {
-          ...options,
-          format,
-          codeCoverage: options.codeCoverage
-        });
-        return yield* fileOutput.writeFile(dirPath, fileName, chunks);
-      }
-      return yield* Effect.die(new Error(nls.localize('resultFormatErr')));
+      return yield* Match.value(format).pipe(
+        Match.when('json', () =>
+          fileOutput.writeFile(
+            dirPath,
+            fileName,
+            Stream.fromIterable(stringifyTestResultChunks(testResult, { includeSetup: options.includeSetup }))
+          )
+        ),
+        Match.when('tap', () => fileOutput.writeFile(dirPath, fileName, formatTapChunks(testResult))),
+        Match.when('junit', () => fileOutput.writeFile(dirPath, fileName, formatJUnitChunks(testResult))),
+        Match.whenOr('markdown', 'text', format =>
+          formatMarkdownTextReportStream(testResult, {
+            ...options,
+            format,
+            codeCoverage: options.codeCoverage
+          }).pipe(Effect.flatMap(chunks => fileOutput.writeFile(dirPath, fileName, chunks)))
+        ),
+        Match.exhaustive
+      );
     }),
     { concurrency: 1 }
   );
@@ -130,7 +128,7 @@ export const writeResultFiles = Effect.fn('Apex.writeResultFiles')(function* (
               stringifyJsonArrayChunks(
                 testResult.tests
                   .map(test => test.perClassCoverage)
-                  .filter(coverage => coverage !== undefined && coverage.length > 0)
+                  .filter(coverage => isNotUndefined(coverage) && coverage.length > 0)
               )
             )
           )
@@ -162,4 +160,30 @@ export const writeResultFiles = Effect.fn('Apex.writeResultFiles')(function* (
   return [...testRunIdFiles, ...resultFiles, ...coverageFiles, ...infoFiles];
 });
 
-const isNotUndefined = <A>(value: A | undefined): value is A => value !== undefined;
+/** Writes results in order, preserving complete output and reporting committed paths on failure. */
+export const writeResultFiles = Effect.fn('Apex.writeResultFiles')(function* (
+  result: TestResult | TestRunIdResult,
+  outputDirConfig: OutputDirConfig,
+  options: WriteResultFilesOptions = {}
+) {
+  const fileOutput = yield* FileOutput;
+  const writtenFiles = yield* Ref.make<readonly string[]>([]);
+  const onFailure = (cause: FileOutputError | ApexReportError) =>
+    Ref.get(writtenFiles).pipe(
+      Effect.flatMap(paths =>
+        Effect.fail(
+          Arr.isNonEmptyReadonlyArray(paths)
+            ? new PartialResultFilesError({ writtenFiles: paths, message: cause.message, cause })
+            : cause
+        )
+      )
+    );
+  return yield* writeFiles(result, outputDirConfig, options).pipe(
+    Effect.provideService(FileOutput, {
+      ...fileOutput,
+      writeFile: (...args) =>
+        fileOutput.writeFile(...args).pipe(Effect.tap(path => Ref.update(writtenFiles, paths => [...paths, path])))
+    }),
+    Effect.catchTags({ FileOutputError: onFailure, ApexReportError: onFailure })
+  );
+});

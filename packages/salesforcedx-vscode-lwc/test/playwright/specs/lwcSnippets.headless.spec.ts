@@ -28,19 +28,19 @@ import {
   waitForWorkspaceReady
 } from '@salesforce/playwright-vscode-ext';
 
-import { test } from '../fixtures';
+import { isContainer, sharedTest as test } from '../fixtures';
 import { createLwcViaSfdxCommand } from '../utils/lwcUtils';
 import { disableDeployOnSaveWeb } from '../utils/lwcWebScratchAuth';
 
 /**
- * Desktop: Quick Open works against the real filesystem; the desktop fixture seeds `snippetsE2E`.
- * Web: `@vscode/test-web`'s file system provider does not implement `provideFileSearch`, so
- * Quick Open returns "No matching results" for files that have not been opened. Navigate the
- * Files Explorer tree instead.
+ * Desktop: Quick Open works against the real filesystem.
+ * Web and Code Builder container: the file system provider (`@vscode/test-web`-style, or the container's
+ * browser-flavored Page) does not implement `provideFileSearch`, so Quick Open returns "No matching
+ * results" for files that have not been opened. Navigate the Files Explorer tree instead.
  */
 const openLwcBundleFile = async (page: Page, bundleName: string, ext: 'html' | 'js'): Promise<void> => {
   const fileName = ext === 'html' ? `${bundleName}.html` : `${bundleName}.js`;
-  if (isDesktop()) {
+  if (!isContainer && isDesktop()) {
     await openFileByName(page, fileName);
     return;
   }
@@ -68,17 +68,24 @@ const dismissEditorOverlays = async (page: Page): Promise<void> => {
     .catch(() => {});
 };
 
-test('LWC snippets: Insert Snippet applies lwc-button in HTML', async ({ page }, testInfo) => {
+test('LWC snippets: Insert Snippet applies lwc-button in HTML', async ({ page }) => {
   test.setTimeout(120_000);
   const consoleErrors = setupConsoleMonitoring(page);
   const networkErrors = setupNetworkMonitoring(page);
-  const bundleName = isDesktop() ? 'snippetsE2E' : `snippetsHtml${testInfo.workerIndex}${Date.now()}`;
+  // Unique per-run name: the container's shared workbench would otherwise collide with a bundle another
+  // spec (or an earlier run) already created. Harmless where each test gets a fresh workspace.
+  const bundleName = `snippetsHtml${Date.now()}`;
 
   await test.step('wait for Salesforce project workspace', async () => {
-    await waitForVSCodeWorkbench(page);
+    // The containerTest fixture already awaited workbench readiness before handing over `page`.
+    if (!isContainer) {
+      await waitForVSCodeWorkbench(page);
+    }
     await closeWelcomeTabs(page);
     await ensureSecondarySideBarHidden(page);
-    await waitForWorkspaceReady(page);
+    if (!isContainer) {
+      await waitForWorkspaceReady(page);
+    }
     // salesforcedx-vscode-services creates a memfs:/dx-project workspace folder during activation.
     // Wait until no extension shows "Activating" so file search / indexing is ready before Quick Open runs.
     await waitForExtensionsActivated(page);
@@ -87,11 +94,9 @@ test('LWC snippets: Insert Snippet applies lwc-button in HTML', async ({ page },
     await saveScreenshot(page, 'lwc-snippets-html.workspace-ready.png');
   });
 
-  await test.step('ensure LWC bundle exists (web: create via palette)', async () => {
-    if (!isDesktop()) {
-      await createLwcViaSfdxCommand(page, bundleName);
-      await saveScreenshot(page, 'lwc-snippets-html.after-create-lwc.png');
-    }
+  await test.step('create LWC bundle via palette', async () => {
+    await createLwcViaSfdxCommand(page, bundleName);
+    await saveScreenshot(page, 'lwc-snippets-html.after-create-lwc.png');
   });
 
   await test.step('open component HTML', async () => {
@@ -102,7 +107,7 @@ test('LWC snippets: Insert Snippet applies lwc-button in HTML', async ({ page },
   });
 
   await test.step('insert lwc-button snippet', async () => {
-    // Snippets are scoped to the active editor language; ensure HTML editor has focus (web CI can leave focus elsewhere after palette use).
+    // Snippets are scoped to the active editor language; ensure HTML editor has focus (web/container CI can leave focus elsewhere after palette use).
     const editor = page.locator(EDITOR_WITH_URI).first();
     await editor.click();
     await insertSnippet(page);
@@ -131,28 +136,32 @@ test('LWC snippets: Insert Snippet applies lwc-button in HTML', async ({ page },
   await validateNoCriticalErrors(test, consoleErrors, networkErrors);
 });
 
-test('LWC snippets: JS completion inserts lwc-event body', async ({ page }, testInfo) => {
+test('LWC snippets: JS completion inserts lwc-event body', async ({ page }) => {
   test.setTimeout(180_000);
   const consoleErrors = setupConsoleMonitoring(page);
   const networkErrors = setupNetworkMonitoring(page);
-  const bundleName = isDesktop() ? 'snippetsE2E' : `snippetsJs${testInfo.workerIndex}${Date.now()}`;
+  // Unique per-run name (see HTML test above).
+  const bundleName = `snippetsJs${Date.now()}`;
 
   await test.step('wait for Salesforce project workspace', async () => {
-    await waitForVSCodeWorkbench(page);
+    // The containerTest fixture already awaited workbench readiness before handing over `page`.
+    if (!isContainer) {
+      await waitForVSCodeWorkbench(page);
+    }
     await closeWelcomeTabs(page);
     await ensureSecondarySideBarHidden(page);
-    await waitForWorkspaceReady(page);
+    if (!isContainer) {
+      await waitForWorkspaceReady(page);
+    }
     await waitForExtensionsActivated(page);
     // Disable deploy-on-save AFTER the workspace folder is added so the setting persists to the correct workspace context.
     await disableDeployOnSaveWeb(page);
     await saveScreenshot(page, 'lwc-snippets-js.workspace-ready.png');
   });
 
-  await test.step('ensure LWC bundle exists (web: create via palette)', async () => {
-    if (!isDesktop()) {
-      await createLwcViaSfdxCommand(page, bundleName);
-      await saveScreenshot(page, 'lwc-snippets-js.after-create-lwc.png');
-    }
+  await test.step('create LWC bundle via palette', async () => {
+    await createLwcViaSfdxCommand(page, bundleName);
+    await saveScreenshot(page, 'lwc-snippets-js.after-create-lwc.png');
   });
 
   await test.step('open component JS', async () => {

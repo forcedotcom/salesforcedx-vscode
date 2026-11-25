@@ -57,6 +57,10 @@ import { OrgCatalogState } from './orgCatalog/orgCatalogState';
 import { OrgMetadataCatalog } from './orgCatalog/orgMetadataCatalog';
 import { OrgMetadataCatalogChangePubSub } from './orgCatalog/orgMetadataCatalogChangePubSub';
 import { OrgMetadataCatalogStore } from './orgCatalog/orgMetadataCatalogStore';
+import {
+  OrgMetadataCatalogFindQuerySchema,
+  OrgMetadataCatalogFindResultSchema
+} from './orgCatalog/orgMetadataCatalogTypes';
 import { runOrgMetadataDocumentProvider } from './orgCatalog/orgMetadataDocumentProvider';
 import { ORG_METADATA_SCHEME } from './orgCatalog/orgMetadataReference';
 import { globalLayers } from './servicesLayers';
@@ -156,6 +160,10 @@ export type SalesforceVSCodeServicesApi = {
     MetadataChangeNotificationService: typeof MetadataChangeNotificationService;
     MetadataDeleteService: typeof MetadataDeleteService;
     OrgMetadataCatalog: typeof OrgMetadataCatalog;
+    OrgMetadataCatalogFindSchemas: {
+      OrgMetadataCatalogFindQuery: typeof OrgMetadataCatalogFindQuerySchema;
+      OrgMetadataCatalogFindResult: typeof OrgMetadataCatalogFindResultSchema;
+    };
     OrgMetadataCatalogChangePubSub: typeof OrgMetadataCatalogChangePubSub;
     ORG_METADATA_SCHEME: typeof ORG_METADATA_SCHEME;
     MetadataDeployService: typeof MetadataDeployService;
@@ -299,12 +307,19 @@ export type {
   OrgMetadataCatalogComponentEntry,
   OrgMetadataCatalogComponentReference,
   OrgMetadataCatalogEntry,
+  OrgMetadataCatalogFindQuery,
+  OrgMetadataCatalogFindResult,
   OrgMetadataCatalogFieldEntry,
   OrgMetadataCatalogFolderEntry,
+  OrgSObjectDescription,
   OrgMetadataCatalogReference,
   OrgMetadataConsistency,
   OrgMetadataFieldDetails,
   OrgMetadataHierarchyConsistency
+} from './orgCatalog/orgMetadataCatalogTypes';
+export {
+  OrgMetadataCatalogFindQuerySchema,
+  OrgMetadataCatalogFindResultSchema
 } from './orgCatalog/orgMetadataCatalogTypes';
 export type { OrgMetadataComponentReference } from './orgCatalog/orgMetadataReference';
 export type { MetadataDeleteError } from './core/metadataDeleteService';
@@ -577,6 +592,10 @@ export const activate = async (context: vscode.ExtensionContext): Promise<Salesf
         MetadataChangeNotificationService,
         MetadataDeleteService,
         OrgMetadataCatalog,
+        OrgMetadataCatalogFindSchemas: {
+          OrgMetadataCatalogFindQuery: OrgMetadataCatalogFindQuerySchema,
+          OrgMetadataCatalogFindResult: OrgMetadataCatalogFindResultSchema
+        },
         OrgMetadataCatalogChangePubSub,
         ORG_METADATA_SCHEME,
         MetadataDescribeService,

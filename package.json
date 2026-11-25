@@ -13,7 +13,7 @@
     "@salesforce/effect-ext-utils": "workspace:*",
     "@salesforce/o11y-reporter": "^1.8.5",
     "@salesforce/salesforcedx-utils": "workspace:*",
-    "jsforce": "^3.10.24",
+    "jsforce": "^3.13.1",
     "memfs": "^4.32.0",
     "semver": "^7.5.4",
     "url": "0.11.4"
@@ -24,11 +24,10 @@
     "@actions/github": "^8.0.1",
     "@commitlint/cli": "^19.8.1",
     "@commitlint/config-conventional": "^19.8.1",
-    "@cursor/sdk": "1.0.35",
     "@effect/eslint-plugin": "0.3.2",
     "@effect/language-service": "^0.87.2",
-    "@effect/platform": "0.96.1",
-    "@effect/platform-node": "0.106.0",
+    "@effect/platform": "0.97.3",
+    "@effect/platform-node": "0.108.4",
     "@eslint/json": "^0.14.0",
     "@html-eslint/eslint-plugin": "0.59.0",
     "@html-eslint/parser": "0.59.0",
@@ -43,6 +42,7 @@
     "@salesforce/dev-config": "^4.3.2",
     "@salesforce/effect-octokit": "workspace:*",
     "@salesforce/playwright-vscode-ext": "workspace:*",
+    "@salesforce/salesforcedx-utils": "workspace:*",
     "@secretlint/node": "11.7.1",
     "@stylistic/eslint-plugin-ts": "2.13.0",
     "@tony.ganchev/eslint-plugin-header": "3.4.4",
@@ -52,6 +52,7 @@
     "@types/semver": "7.5.8",
     "@types/vscode": "1.90.0",
     "@types/xml2js": "0.4.14",
+    "@types/yauzl": "3.4.0",
     "@typescript-eslint/eslint-plugin": "^8.72.0",
     "@typescript-eslint/parser": "^8.72.0",
     "@vitest/coverage-v8": "5.0.1",
@@ -68,7 +69,7 @@
     "css-tree": "3.2.1",
     "cz-conventional-changelog": "3.3.0",
     "dpdm": "^3.14.0",
-    "effect": "^3.21.2",
+    "effect": "^3.22.4",
     "esbuild": "^0.28.1",
     "esbuild-plugin-copy": "2.1.1",
     "esbuild-plugin-polyfill-node": "0.3.0",
@@ -120,7 +121,8 @@
     "vitest": "5.0.1",
     "wireit": "0.15.0",
     "xml2js": "0.6.2",
-    "yaml": "^2.9.0"
+    "yaml": "^2.9.0",
+    "yauzl": "3.4.0"
   },
   "scripts": {
     "build": "pnpm compile",
@@ -138,6 +140,7 @@
     "test": "wireit",
     "test:ai-safeguards": "wireit",
     "test:manual-test-plan": "wireit",
+    "test:ci-ai": "wireit",
     "test:scripts": "wireit",
     "test-vsix": "wireit",
     "test:container:local": "wireit",
@@ -255,7 +258,7 @@
       "output": []
     },
     "lint:scripts": {
-      "command": "eslint --color \"scripts/*.mts\" --ignore-pattern scripts/categoryApprove.mts \"packages/{salesforcedx-lightning-lsp-common,salesforcedx-aura-language-server,salesforcedx-lwc-language-server}/scripts/*.mts\"",
+      "command": "eslint --color \"scripts/*.mts\" --ignore-pattern scripts/categoryApprove.mts \".github/actions/validate-issue/src/*.ts\" \"packages/{salesforcedx-lightning-lsp-common,salesforcedx-aura-language-server,salesforcedx-lwc-language-server}/scripts/*.mts\"",
       "dependencies": [
         "./packages/eslint-local-rules:compile"
       ],
@@ -264,6 +267,8 @@
         "scripts/shared/**/*.mts",
         "scripts/tsconfig.json",
         "scripts/tsconfig.native.json",
+        ".github/actions/validate-issue/src/**/*.ts",
+        ".github/actions/validate-issue/tsconfig.json",
         "tsconfig.json",
         "tsconfig.common.json",
         "packages/{salesforcedx-lightning-lsp-common,salesforcedx-aura-language-server,salesforcedx-lwc-language-server}/scripts/**/*.{mts,ts,json}",
@@ -277,6 +282,7 @@
         "check:extension-launch",
         "test:ai-safeguards",
         "test:manual-test-plan",
+        "test:ci-ai",
         "test:scripts",
         "./packages/eslint-local-rules:test",
         "./packages/salesforcedx-utils:test",
@@ -333,6 +339,7 @@
         "scripts/shared/categoryGates.cjs",
         "scripts/shared/categoryGates.d.cts",
         "scripts/shared/categoryDecision.mts",
+        "scripts/shared/openCode.mts",
         "scripts/shared/scriptErrors.mts",
         ".github/workflows/categoryApprove.yml",
         "APPROVAL_POLICY.md",
@@ -344,20 +351,42 @@
       "output": []
     },
     "test:manual-test-plan": {
-      "command": "node --test scripts/manualTestPlan/test/unit/manualTestPlan.test.mts",
+      "command": "node --test scripts/manualTestPlan/test/unit/*.test.mts",
       "dependencies": [
-        "./packages/effect-octokit:compile"
+        "./packages/effect-octokit:compile",
+        "./packages/salesforcedx-utils:compile"
       ],
       "files": [
         "scripts/manualTestPlan/**/*.mts",
+        "scripts/shared/openCode.mts",
+        ".opencode/skills/manual-test-plan-judgment/SKILL.md",
         "scripts/manualTestPlan/tsconfig.json",
-        ".github/workflows/manual-test-plan.yml"
+        "scripts/shared/validateWorkflow.mts",
+        ".github/workflows/manual-test-plan*.yml",
+        ".github/workflows/*E2E.yml",
+        ".github/workflows/aiAutoApprove.yml"
+      ],
+      "output": []
+    },
+    "test:ci-ai": {
+      "command": "node --test test/ci-ai.test.mts",
+      "files": [
+        "scripts/shared/openCode.mts",
+        "scripts/shared/categoryDecision.mts",
+        "scripts/changelogBody/**/*.mts",
+        "scripts/manualTestPlan/**/*.mts",
+        ".opencode/skills/{changelog-judgment,manual-test-plan-judgment}/SKILL.md",
+        ".github/actions/setup-opencode/action.yml",
+        ".github/workflows/{changelog-body,categoryApprove,manual-test-plan,ci-ai-smoke}.yml",
+        "test/ci-ai*.mts",
+        "test/ciAiFixtures.mts"
       ],
       "output": []
     },
     "test:scripts": {
       "command": "vitest run --config vitest.config.mts",
       "dependencies": [
+        "compile:github-actions",
         "./packages/effect-octokit:compile",
         "./packages/playwright-vscode-ext:compile"
       ],
@@ -365,6 +394,10 @@
         "package.json",
         "vitest.config.mts",
         "scripts/**/*.{ts,mts,cts}",
+        ".github/actions/*/lib/**/*.js",
+        ".github/actions/*/messages/*.md",
+        ".github/workflows/validateNewIssues.yml",
+        ".github/workflows/validateUpdatedIssues.yml",
         "packages/{salesforcedx-lightning-lsp-common,salesforcedx-aura-language-server,salesforcedx-lwc-language-server}/scripts/**/*.mts",
         "packages/salesforcedx-lwc-language-server/src/build-time-resources/lwc-standard.json",
         "scripts/bundling/process-global.js",
@@ -495,7 +528,10 @@
       "files": []
     },
     "compile:github-actions": {
-      "command": "tsc -p .github/actions/new-issue/tsconfig.json && tsc -p .github/actions/validate-issue/tsconfig.json && tsc -p .github/actions/check-feature-request/tsconfig.json",
+      "command": "tsc -p .github/actions/validate-issue/tsconfig.json",
+      "dependencies": [
+        "./packages/effect-octokit:compile"
+      ],
       "files": [
         ".github/actions/*/src/**/*.ts",
         ".github/actions/*/tsconfig.json",
@@ -531,6 +567,7 @@
       "files": [
         "scripts/validateActions.mts",
         "scripts/shared/validateAction.mts",
+        "scripts/shared/validateWorkflow.mts",
         ".github/workflows/*.{yml,yaml}",
         ".github/actions/*/action.{yml,yaml}"
       ],
@@ -542,6 +579,7 @@
         "./packages/salesforcedx-apex:compile",
         "./packages/salesforcedx-vscode-apex-log:compile",
         "./packages/effect-octokit:compile",
+        "./packages/salesforcedx-utils:compile",
         "./packages/playwright-vscode-ext:compile"
       ],
       "files": [
@@ -588,6 +626,9 @@
     },
     "check:effect-diagnostics": {
       "dependencies": [
+        "check:effect-diagnostics:scripts",
+        "check:effect-diagnostics:github-actions",
+        "./packages/eslint-local-rules:test",
         "./packages/soql-builder-ui:check:effect-diagnostics",
         "./packages/salesforcedx-apex:check:effect-diagnostics",
         "./packages/salesforcedx-apex-debugger:check:effect-diagnostics",
@@ -616,6 +657,34 @@
         "./packages/salesforcedx-aura-language-server:check:effect-diagnostics",
         "./packages/salesforcedx-lwc-language-server:check:effect-diagnostics"
       ]
+    },
+    "check:effect-diagnostics:scripts": {
+      "command": "node scripts/effect-diagnostics.mjs scripts/manualTestPlan",
+      "dependencies": [
+        "./packages/effect-octokit:compile",
+        "./packages/salesforcedx-utils:compile"
+      ],
+      "files": [
+        "config/effect-diagnostics.json",
+        "scripts/effect-diagnostics.mjs",
+        "scripts/tsconfig.native.json",
+        "scripts/manualTestPlan/tsconfig.json",
+        "scripts/manualTestPlan/**/*.mts"
+      ],
+      "output": []
+    },
+    "check:effect-diagnostics:github-actions": {
+      "command": "node scripts/effect-diagnostics.mjs .github/actions/validate-issue",
+      "dependencies": [
+        "compile:github-actions"
+      ],
+      "files": [
+        "config/effect-diagnostics.json",
+        "scripts/effect-diagnostics.mjs",
+        ".github/actions/validate-issue/tsconfig.json",
+        ".github/actions/validate-issue/src/**/*.ts"
+      ],
+      "output": []
     },
     "check:format:staged": {
       "command": "pretty-quick --staged"

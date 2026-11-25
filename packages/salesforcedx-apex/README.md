@@ -92,7 +92,9 @@ The Effect API returns a success-only outcome. Compilation and runtime failures 
 
 ### Logs
 
-`listLogs(connection, options?)` retrieves every matching Tooling API log page in descending start-time order. Options filter by `userIds`, operation substring, and inclusive start time. `getLogBody(connection, logId)` retrieves the body using a validated `ApexLogId`.
+`listLogs(connection, options?)` retrieves every matching Tooling API log page in descending start-time order. Options filter by `userId` or `userIds`, operation substring, inclusive start time, and cursor. Both it and `getLogRecords(connection, numberOfLogs?)` return `ApexLogRecord`; `getLogRecords` preserves the CLI's positive-count validation and 25-record cap. `LogService.getLogRecords` returns the same records (`LogRecord` aliases `ApexLogRecord`), without filling missing fields with defaults. Optional nullable Tooling API fields decode to optional fields; callers must handle absent values. `getLogBody(connection, logId)` retrieves a body using a validated `ApexLogId`.
+
+`getLogs(connection, options, writeLog?)` retrieves bodies selected by `options.logId` or `options.numberOfLogs`. When supplied, `writeLog(fileName, body)` is the host-provided Effect operation used to write each body; no filesystem implementation is built into the Effect API.
 
 `streamLogs(connection, options)` collects immediately and then on the supplied Effect schedule. `pollOptions(index)` returns `Option.none()` to skip a poll or `Option.some(filters)` to query; `filterLogs` selects records before body retrieval. The stream emits `Log`, `QueryError`, and `BodyError` events, continuing after request failures. Consumers own window gating, trace flags, org changes, deduplication, storage, and interruption.
 
@@ -179,6 +181,14 @@ await Effect.runPromise(
 ```
 
 The Effect entry point has no Node file/stream dependencies. Existing class and Node stream reporters remain available.
+
+### Result-file output
+
+`writeResultFiles(result, outputDirConfig, options?)` uses the caller's `FileOutput`. The existing `TestService.writeResultFiles` Promise adapter defaults to the Node implementation. As specified by [ADR 0003](docs/adr/0003-node-filesystem-with-web-polyfill.md), that implementation uses Node filesystem APIs; consuming web bundles substitute the `@salesforce/core/fs` memfs facade, not a second writer implementation.
+
+Each result file streams through Effect Platform `FileSystem.sink` into a scoped temporary file on the destination's filesystem. Only a completed stream is renamed into place; a started rename finishes before interruption is reported. Failures or interruption before commit preserve the previous destination and clean up staged output. Cleanup failures remain in the error's cause text or interruption cause. The platform scopes the temporary file and file handle. `FileOutputLayer` requires caller-provided `FileSystem` and `Path` services; `NodeFileOutputLayer` supplies the Node defaults and can be replaced with platform layers by Effect consumers. The existing Promise/class API continues to default to Node filesystem behavior. Filenames, contents, and output order are unchanged.
+
+Filesystem and serialization failures use `FileOutputError` with operation, destination path, message, and optional cause text. Failures after earlier files succeeded use `PartialResultFilesError`, carrying the nonempty `writtenFiles` list and the typed `FileOutputError` or `ApexReportError` cause. Earlier files remain committed; no later files start. Run-ID sidecar failures are no longer logged and ignored. Custom `FileOutput` implementations own their filesystem's commit and cleanup behavior.
 
 ## Getting Started
 

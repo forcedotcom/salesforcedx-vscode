@@ -8,32 +8,50 @@
 import {
   closeWelcomeTabs,
   createMinimalOrg,
+  ensureOutputPanelOpen,
   ensureSecondarySideBarHidden,
   executeCommandWithCommandPalette,
+  resetContainerWorkbench,
+  saveScreenshot,
   selectOutputChannel,
+  setupConsoleMonitoring,
+  setupNetworkMonitoring,
   upsertScratchOrgAuthFieldsToSettings,
+  validateNoCriticalErrors,
   verifyCommandExists,
   waitForOutputChannelText,
   waitForVSCodeWorkbench
 } from '@salesforce/playwright-vscode-ext';
 import packageNls from '../../../package.nls.json';
-import { orgDesktopMinimalDefaultTest as test } from '../fixtures/desktopFixtures';
+import { isContainer, sharedMinimalDefaultTest as test } from '../fixtures';
 
-// e2e-COVERED: SFDX: Open Default Org against a real scratch default org.
-// A real SF project on disk exercises the precondition pass-through AND the --target-org/cwd
-// resolution against a live default org — the two adversary concerns jest mocks can't prove.
-// openExternal opens a real browser in e2e; we assert via the output channel only (per the WI).
-// The access message text appearing proves stdout parsed cleanly end-to-end against the real sf
-// CLI — direct coverage of the SF_JSON_TO_STDOUT concern.
+const ORG_CHANNEL = 'Salesforce Org Management';
+
+// e2e-COVERED: SFDX: Open Default Org against a live default org. A real SF project on disk exercises
+// the precondition pass-through AND the --target-org/cwd resolution against a live default org — the
+// two adversary concerns jest mocks can't prove. In container mode the external browser is suppressed
+// and org_open_container_mode_message_text ('Access org %s as user %s with the following URL: %s')
+// is surfaced instead; asserting the stable 'with the following URL:' fragment proves the `sf` JSON
+// stdout parsed cleanly end-to-end on either side (openExternal opens a real browser on desktop; we
+// still assert via the output channel only, per the WI).
 test('org extension: SFDX: Open Default Org logs the access message to the output channel', async ({ page }) => {
   test.setTimeout(120_000);
+  const consoleErrors = setupConsoleMonitoring(page);
+  const networkErrors = setupNetworkMonitoring(page);
 
-  await test.step('setup scratch default org', async () => {
-    const createResult = await createMinimalOrg();
-    await waitForVSCodeWorkbench(page);
+  await test.step('setup', async () => {
+    if (isContainer) {
+      // Shared, persistent workbench: reset editor + notification state rather than assuming a clean
+      // slate. No org creation — the container's boot org is the shared tracking scratch org.
+      await resetContainerWorkbench(page);
+    } else {
+      const createResult = await createMinimalOrg();
+      await waitForVSCodeWorkbench(page);
+      await upsertScratchOrgAuthFieldsToSettings(page, createResult);
+    }
     await closeWelcomeTabs(page);
     await ensureSecondarySideBarHidden(page);
-    await upsertScratchOrgAuthFieldsToSettings(page, createResult);
+    await saveScreenshot(page, 'orgOpen.01-ready.png');
   });
 
   // Gate on an always-present activation command so we don't get a false negative on slow startup.
@@ -46,9 +64,13 @@ test('org extension: SFDX: Open Default Org logs the access message to the outpu
   });
 
   await test.step('assert access message in output channel', async () => {
-    await selectOutputChannel(page, 'Salesforce Org Management');
+    await ensureOutputPanelOpen(page);
+    await selectOutputChannel(page, ORG_CHANNEL, 30_000);
     // stable fragment of org_open_container_mode_message_text ('Access org %s as user %s with the
     // following URL: %s') — its presence proves the JSON stdout parsed cleanly end-to-end.
     await waitForOutputChannelText(page, { expectedText: 'with the following URL:', timeout: 60_000 });
+    await saveScreenshot(page, 'orgOpen.02-output-verified.png');
   });
+
+  await validateNoCriticalErrors(test, consoleErrors, networkErrors);
 });

@@ -22,7 +22,17 @@ export type OrgAuthResult = Required<Pick<AuthFields, 'instanceUrl' | 'accessTok
   >;
 };
 
-type OrgDisplayFields = { instanceUrl: string; apiVersion: string; username: string; status?: string };
+type OrgDisplayFields = {
+  instanceUrl: string;
+  apiVersion: string;
+  username: string;
+  // Liveness signals from `sf org display --json`. Optional because non-scratch orgs / older CLIs may
+  // omit them; a dead scratch org (Deleted/expired) still returns a stale cached token, so these are
+  // what let `tryUseExistingOrg` tell a reusable org from a dead one.
+  status?: string;
+  connectedStatus?: string;
+  expirationDate?: string;
+};
 export type OrgDisplayResult = { result: OrgDisplayFields };
 
 export type OrgDisplayUserResult = { result: { id: string; orgId: string } };
