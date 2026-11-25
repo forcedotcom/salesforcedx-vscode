@@ -163,7 +163,6 @@ settings:
   excludeLinksFromLockfile: false
 
 overrides:
-  '@salesforce/core': 9.6.0
   '@azure/monitor-opentelemetry-exporter': 1.0.0-beta.47
   '@jsforce/jsforce-node': 3.13.1
   '@vscode/test-web>playwright': ^1.64.1
@@ -258,7 +257,7 @@ importers:
         specifier: ^2.0.3
         version: 2.0.3
       '@salesforce/core':
-        specifier: 9.6.0
+        specifier: ^9.6.0
         version: 9.6.0
       '@salesforce/dev-config':
         specifier: ^4.3.2
@@ -629,7 +628,7 @@ importers:
         specifier: ^1.64.1
         version: 1.64.1
       '@salesforce/core':
-        specifier: 9.6.0
+        specifier: ^9.6.0
         version: 9.6.0
       '@salesforce/salesforcedx-utils':
         specifier: '*'
@@ -656,7 +655,7 @@ importers:
         specifier: 0.108.4
         version: 0.108.4(@effect/cluster@0.60.5(@effect/platform@0.97.4(effect@3.22.5))(@effect/rpc@0.76.4(@effect/platform@0.97.4(effect@3.22.5))(effect@3.22.5))(@effect/sql@0.52.2(@effect/experimental@0.61.3(@effect/platform@0.97.4(effect@3.22.5))(effect@3.22.5))(@effect/platform@0.97.4(effect@3.22.5))(effect@3.22.5))(@effect/workflow@0.19.1(@effect/experimental@0.61.3(@effect/platform@0.97.4(effect@3.22.5))(effect@3.22.5))(@effect/platform@0.97.4(effect@3.22.5))(@effect/rpc@0.76.4(@effect/platform@0.97.4(effect@3.22.5))(effect@3.22.5))(effect@3.22.5))(effect@3.22.5))(@effect/platform@0.97.4(effect@3.22.5))(@effect/rpc@0.76.4(@effect/platform@0.97.4(effect@3.22.5))(effect@3.22.5))(@effect/sql@0.52.2(@effect/experimental@0.61.3(@effect/platform@0.97.4(effect@3.22.5))(effect@3.22.5))(@effect/platform@0.97.4(effect@3.22.5))(effect@3.22.5))(effect@3.22.5)
       '@salesforce/core':
-        specifier: 9.6.0
+        specifier: ^9.6.0
         version: 9.6.0
       '@salesforce/kit':
         specifier: ^4.0.0
@@ -711,7 +710,7 @@ importers:
   packages/salesforcedx-apex-debugger:
     dependencies:
       '@salesforce/core':
-        specifier: 9.6.0
+        specifier: ^9.6.0
         version: 9.6.0
       '@salesforce/salesforcedx-utils':
         specifier: workspace:*
@@ -1024,7 +1023,7 @@ importers:
         version: 3.2.0
     devDependencies:
       '@salesforce/core':
-        specifier: 9.6.0
+        specifier: ^9.6.0
         version: 9.6.0
       '@salesforce/playwright-vscode-ext':
         specifier: workspace:*
@@ -1036,7 +1035,7 @@ importers:
   packages/salesforcedx-vscode-apex-debugger:
     dependencies:
       '@salesforce/core':
-        specifier: 9.6.0
+        specifier: ^9.6.0
         version: 9.6.0
       '@salesforce/effect-ext-utils':
         specifier: workspace:*
@@ -1089,7 +1088,7 @@ importers:
         version: 3.2.0
     devDependencies:
       '@salesforce/core':
-        specifier: 9.6.0
+        specifier: ^9.6.0
         version: 9.6.0
       '@salesforce/playwright-vscode-ext':
         specifier: workspace:*
@@ -1193,7 +1192,7 @@ importers:
         specifier: ^1.64.1
         version: 1.64.1
       '@salesforce/core':
-        specifier: 9.6.0
+        specifier: ^9.6.0
         version: 9.6.0
       '@salesforce/playwright-vscode-ext':
         specifier: workspace:*
@@ -1236,7 +1235,7 @@ importers:
         version: 3.2.0
     devDependencies:
       '@salesforce/core':
-        specifier: 9.6.0
+        specifier: ^9.6.0
         version: 9.6.0
       '@salesforce/playwright-vscode-ext':
         specifier: workspace:*
@@ -1251,7 +1250,7 @@ importers:
   packages/salesforcedx-vscode-core:
     dependencies:
       '@salesforce/core':
-        specifier: 9.6.0
+        specifier: ^9.6.0
         version: 9.6.0
       '@salesforce/effect-ext-utils':
         specifier: workspace:*
@@ -1370,7 +1369,7 @@ importers:
         version: 1.3.1
     devDependencies:
       '@salesforce/core':
-        specifier: 9.6.0
+        specifier: ^9.6.0
         version: 9.6.0
       '@salesforce/playwright-vscode-ext':
         specifier: workspace:*
@@ -1441,7 +1440,7 @@ importers:
         specifier: 0.64.0
         version: 0.64.0(@effect/platform@0.97.4(effect@3.22.5))(@opentelemetry/api@1.9.1)(@opentelemetry/resources@2.12.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-logs@0.221.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-metrics@2.12.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-base@2.10.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-node@2.8.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-web@2.8.0(@opentelemetry/api@1.9.1))(@opentelemetry/semantic-conventions@1.43.0)(effect@3.22.5)
       '@salesforce/core':
-        specifier: 9.6.0
+        specifier: ^9.6.0
         version: 9.6.0
       '@salesforce/playwright-vscode-ext':
         specifier: workspace:*
@@ -1466,7 +1465,7 @@ importers:
         version: 3.2.0
     devDependencies:
       '@salesforce/core':
-        specifier: 9.6.0
+        specifier: ^9.6.0
         version: 9.6.0
       '@salesforce/playwright-vscode-ext':
         specifier: workspace:*
@@ -1526,7 +1525,7 @@ importers:
         specifier: workspace:*
         version: link:../salesforcedx-apex
       '@salesforce/core':
-        specifier: 9.6.0
+        specifier: ^9.6.0
         version: 9.6.0
       '@salesforce/o11y-reporter':
         specifier: ^1.8.5
@@ -1614,7 +1613,7 @@ importers:
         specifier: 2.8.0
         version: 2.8.0(@opentelemetry/api@1.9.1)
       '@salesforce/core':
-        specifier: 9.6.0
+        specifier: ^9.6.0
         version: 9.6.0
       '@salesforce/source-deploy-retrieve':
         specifier: ^13.14.1
@@ -1721,7 +1720,7 @@ importers:
         specifier: ^1.0.0
         version: 1.0.0(rollup@4.63.1)
       '@salesforce/core':
-        specifier: 9.6.0
+        specifier: ^9.6.0
         version: 9.6.0
       '@salesforce/eslint-config-lwc':
         specifier: ^4.1.2
@@ -3148,10 +3147,6 @@ packages:
 
   '@jsforce/jsforce-node@3.13.1':
     resolution: {integrity: sha512-vpHhwc+Wcufk9vARzL4oxYSzg8ndNButSn88D6pMImjns7/NTkwPZ9qQwD2F/P4c+A0lwTyDl4Alry0BMgFsTg==}
-    engines: {node: '>=22'}
-
-  '@jsforce/jsforce-node@3.13.4':
-    resolution: {integrity: sha512-qAaK03OwByrCfSNj4Rz/1kLOZtHFaLujqvlEMCG+I+8ypT3FcBKX/1xNnYCp399ThrmSIyKk+LRwwpCJSXNe1Q==}
     engines: {node: '>=22'}
 
   '@jsonjoy.com/base64@1.1.2':
@@ -13583,19 +13578,6 @@ snapshots:
       jsep: 1.4.0
 
   '@jsforce/jsforce-node@3.13.1':
-    dependencies:
-      '@sindresorhus/is': 4.6.0
-      base64url: 3.0.1
-      cross-spawn: 7.0.6
-      csv-parse: 7.0.3
-      csv-stringify: 6.8.3
-      faye: 1.4.3
-      form-data: 4.0.6
-      multistream: 3.1.0
-      undici: 8.12.1
-      xml2js: 0.6.2
-
-  '@jsforce/jsforce-node@3.13.4':
     dependencies:
       '@sindresorhus/is': 4.6.0
       base64url: 3.0.1
