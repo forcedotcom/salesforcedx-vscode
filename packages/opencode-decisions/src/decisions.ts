@@ -7,6 +7,8 @@
 import { Model, OpenCode, Provider } from '@opencode/client/effect';
 import { Effect } from 'effect';
 import * as FetchHttpClient from 'effect/http/FetchHttpClient';
+import * as HttpClient from 'effect/http/HttpClient';
+import * as HttpClientRequest from 'effect/http/HttpClientRequest';
 
 type Client = Effect.Success<ReturnType<typeof OpenCode.make>>;
 type Request = Parameters<Client['experimental']['generate']['decisions']>[0];
@@ -17,12 +19,19 @@ export const decisions = (
   input: Omit<Request, 'model'>,
   options: {
     readonly baseUrl: string;
+    readonly headers?: Record<string, string>;
     readonly signal?: AbortSignal;
     readonly fetch?: typeof globalThis.fetch;
   }
 ): Promise<Result> =>
   Effect.gen(function* () {
-    const client = yield* OpenCode.make({ baseUrl: options.baseUrl });
+    const httpClient = yield* HttpClient.HttpClient;
+    const client = yield* OpenCode.make({ baseUrl: options.baseUrl }).pipe(
+      Effect.provideService(
+        HttpClient.HttpClient,
+        httpClient.pipe(HttpClient.mapRequest(HttpClientRequest.setHeaders(options.headers ?? {})))
+      )
+    );
     const request = (id: string) =>
       client.experimental.generate.decisions({
         ...input,

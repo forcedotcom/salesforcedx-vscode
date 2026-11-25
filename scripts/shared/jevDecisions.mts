@@ -6,7 +6,7 @@
  */
 import * as FetchHttpClient from '@effect/platform/FetchHttpClient';
 import { decisions } from '@salesforce/opencode-decisions';
-import { Effect, Option, Schema } from 'effect';
+import { Config, Effect, Option, Redacted, Schema } from 'effect';
 
 class JevRequestFailed extends Schema.TaggedError<JevRequestFailed>()('JevRequestFailed', {
   message: Schema.String
@@ -22,6 +22,7 @@ export const jevDecisions = Effect.fn('jev.decisions')(function* (input: {
   >;
 }) {
   const fetch = yield* Effect.serviceOption(FetchHttpClient.Fetch);
+  const password = yield* Config.option(Config.redacted('OPENCODE_PASSWORD'));
   const result = yield* Effect.tryPromise({
     try: signal =>
       decisions(
@@ -34,7 +35,17 @@ export const jevDecisions = Effect.fn('jev.decisions')(function* (input: {
             choices: Object.entries(question.criteria).map(([value, description]) => ({ value, description }))
           }))
         },
-        { baseUrl: 'http://127.0.0.1:4096', signal, fetch: Option.getOrElse(fetch, () => globalThis.fetch) }
+        {
+          baseUrl: 'http://127.0.0.1:4096',
+          headers: Option.match(password, {
+            onNone: () => ({}),
+            onSome: value => ({
+              authorization: `Basic ${Buffer.from(`opencode:${Redacted.value(value)}`).toString('base64')}`
+            })
+          }),
+          signal,
+          fetch: Option.getOrElse(fetch, () => globalThis.fetch)
+        }
       ),
     catch: error => new JevRequestFailed({ message: String(error) })
   });
