@@ -22,8 +22,8 @@ const lens = (command: string, arguments_: unknown[] = ['ExampleTest']) =>
   ({ range, command: { command, title: 'Run Test', arguments: arguments_ } }) as vscode.CodeLens;
 
 describe('testRunCodeLensProducer', () => {
-  it('accepts a default org before its org ID is resolved', async () => {
-    const targetOrgRef = await Effect.runPromise(SubscriptionRef.make({ username: 'user@example.com' }));
+  it('accepts a default org with a resolved org ID', async () => {
+    const targetOrgRef = await Effect.runPromise(SubscriptionRef.make({ orgId: '00D000000000001' }));
     const extensionProviderLayer = Layer.succeed(ExtensionProviderService, {
       getServicesApi: Effect.succeed({
         services: { TargetOrgRef: () => Effect.succeed(targetOrgRef) }
