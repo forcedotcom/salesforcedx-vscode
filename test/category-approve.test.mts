@@ -136,28 +136,8 @@ const base = {
   botLogin: BOT_LOGIN
 };
 
-test('policy category ids match the headings', () => {
-  assert.deepEqual(allowed, [
-    'claude',
-    'cursor',
-    'eslint',
-    'vscode',
-    'metadata-types',
-    'effect-diagnostics',
-    'git2gus-config',
-    'changelog-constants',
-    'plans',
-    'prose',
-    'lockfile',
-    'sha256',
-    'dependabot',
-    'services-types',
-    'tests-only',
-    'dep-bump',
-    'dep-move',
-    'messages',
-    'format-or-comments'
-  ]);
+test('policy defines only content-review categories', () => {
+  assert.deepEqual(allowed, ['tests-only', 'dep-bump', 'dep-move', 'messages', 'format-or-comments']);
 });
 
 test('prompt contains only the policy and diff, not a pull request body', () => {
@@ -227,7 +207,7 @@ const pathCases = {
     '.github/ISSUE_TEMPLATE/bug.yml',
     '.github/PULL_REQUEST_TEMPLATE.md'
   ],
-  lockfile: ['package-lock.json'],
+  lockfile: ['pnpm-lock.yaml'],
   sha256: ['SHA256.md'],
   dependabot: ['.github/dependabot.yml'],
   'services-types': [
@@ -249,6 +229,7 @@ for (const [category, paths] of Object.entries(pathCases)) {
       Effect.runPromise
     );
     assert.deepEqual(result, [category]);
+    assert.equal(decideCategoryApprove({ ...base, files: paths.map(file), categories: result })._tag, 'Approve');
   });
 }
 
@@ -266,7 +247,8 @@ test('does not match neighboring paths or content-reviewed categories by path', 
     'plans/W-1.mdx',
     'docs/script.ts',
     'packages/foo/CONTEXT.md',
-    'packages/foo/package-lock.json',
+    'package-lock.json',
+    'packages/foo/pnpm-lock.yaml',
     'other/SHA256.md',
     '.github/dependabot.yaml',
     'packages/salesforcedx-vscode-services/src/index.ts',

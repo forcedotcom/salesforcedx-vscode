@@ -61,7 +61,7 @@ const pathCategories = {
     '.github/ISSUE_TEMPLATE/**',
     '.github/PULL_REQUEST_TEMPLATE.md'
   ],
-  lockfile: ['package-lock.json'],
+  lockfile: ['pnpm-lock.yaml'],
   sha256: ['SHA256.md'],
   dependabot: ['.github/dependabot.yml'],
   'services-types': ['packages/salesforcedx-vscode-services-types/**']
@@ -129,7 +129,7 @@ export const decideCategoryApprove = (input: Facts): Decision => {
   const gated = preClassifyDecision(input);
   if (gated._tag !== 'Classify') return gated;
   if (!isGated(input)) return gated;
-  const allowed = new Set(input.allowedCategories);
+  const allowed = new Set([...Object.keys(pathCategories), 'git2gus-config', ...input.allowedCategories]);
   if (input.categories.length === 0) return Skip.make({ reason: 'no covering categories' });
   if (
     input.categories.includes('git2gus-config') &&
