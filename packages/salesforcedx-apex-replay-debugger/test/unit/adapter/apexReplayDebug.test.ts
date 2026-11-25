@@ -31,7 +31,7 @@ import { ApexReplayDebug } from '../../../src/adapter/apexReplayDebug';
 import { type LaunchRequestArguments } from '../../../src/adapter/types';
 import { BreakpointUtil } from '../../../src/breakpoints/breakpointUtil';
 import { breakpointUtil } from '../../../src/breakpoints';
-import { SEND_METRIC_ERROR_EVENT, SEND_METRIC_LAUNCH_EVENT } from '../../../src/constants';
+import { SEND_METRIC_ERROR_EVENT, SEND_METRIC_GENERAL_EVENT, SEND_METRIC_LAUNCH_EVENT } from '../../../src/constants';
 import { LogContext } from '../../../src/core/logContext';
 import { HeapDumpService } from '../../../src/core/heapDumpService';
 import * as logContextUtil from '../../../src/core/logContextUtil';
@@ -204,6 +204,11 @@ describe('Replay debugger adapter - unit', () => {
       expect(printToDebugConsoleStub).toHaveBeenCalledTimes(1);
       const consoleMessage = printToDebugConsoleStub.mock.calls[0][0];
       expect(consoleMessage).toBe(nls.localize('session_started_text', logFileName));
+      expect(sendEventSpy.mock.calls[0][0].event).toBe(SEND_METRIC_GENERAL_EVENT);
+      expect(sendEventSpy.mock.calls[0][0].body).toEqual({
+        subject: 'launchRequest',
+        type: 'launchApexReplayDebugger'
+      });
       expect(sendResponseSpy).toHaveBeenCalledTimes(1);
       const actualResponse: DebugProtocol.LaunchResponse = sendResponseSpy.mock.calls[0][0];
       expect(actualResponse.success).toBe(true);

@@ -6,6 +6,7 @@
  */
 
 import {
+  clearAllNotifications,
   closeWelcomeTabs,
   ensureOutputPanelOpen,
   ensureSecondarySideBarHidden,
@@ -20,7 +21,7 @@ import {
   waitForVSCodeWorkbench,
   waitForWorkspaceReady
 } from '@salesforce/playwright-vscode-ext';
-import { desktopTest as test } from '../fixtures/desktopFixtures';
+import { isContainer, test } from '../fixtures';
 import packageNls from '../../../package.nls.json';
 import { messages } from '../../../src/messages/i18n';
 
@@ -33,10 +34,16 @@ test('Config List: lists config variables in output channel', async ({ page }) =
   const networkErrors = setupNetworkMonitoring(page);
 
   await test.step('wait for workbench', async () => {
+    // No-op once ready (container's fixture already awaited it); the real wait on desktop.
     await waitForVSCodeWorkbench(page);
     await closeWelcomeTabs(page);
     await ensureSecondarySideBarHidden(page);
-    await waitForWorkspaceReady(page);
+    if (isContainer) {
+      // First container boot stacks telemetry/what's-new toasts that can cover the output toolbar.
+      await clearAllNotifications(page);
+    } else {
+      await waitForWorkspaceReady(page);
+    }
     await saveScreenshot(page, 'configList.01-ready.png');
   });
 
@@ -45,12 +52,22 @@ test('Config List: lists config variables in output channel', async ({ page }) =
     await executeCommandWithCommandPalette(page, packageNls.config_list_text);
   });
 
-  await test.step('verify output channel shows config table with target-org', async () => {
+  await test.step('verify output channel shows config table', async () => {
     await ensureOutputPanelOpen(page);
-    await selectOutputChannel(page, CORE_CHANNEL, 10_000);
-    // desktopTest fixture writes target-org to .sf/config.json before VS Code launches
-    await waitForOutputChannelText(page, { expectedText: 'target-org', timeout: 5000 });
-    await waitForOutputChannelText(page, { expectedText: messages.config_list_column_location, timeout: 5000 });
+    await selectOutputChannel(page, CORE_CHANNEL, isContainer ? 30_000 : 10_000);
+    if (!isContainer) {
+      // desktopTest fixture writes target-org to .sf/config.json before VS Code launches. The
+      // container's org comes from the CLI default (SF_ACCESS_TOKEN auth at container start), not a
+      // workspace .sf/config.json, so it only asserts the config table header below.
+      await waitForOutputChannelText(page, { expectedText: 'target-org', timeout: 5000 });
+    }
+    // First CLI shell-out in a cold container pays sf startup + telemetry init, so the channel can
+    // stay empty for several seconds after the command fires — match the CLI-command budget other
+    // shell-out specs use (30s) rather than the 5s that fits an already-warm desktop CLI.
+    await waitForOutputChannelText(page, {
+      expectedText: messages.config_list_column_location,
+      timeout: isContainer ? 30_000 : 5000
+    });
     await saveScreenshot(page, 'configList.02-output-verified.png');
   });
 
