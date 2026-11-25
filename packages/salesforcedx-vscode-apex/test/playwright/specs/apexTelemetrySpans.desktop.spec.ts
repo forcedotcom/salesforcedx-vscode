@@ -17,7 +17,7 @@ import {
   type SpanRow
 } from '@salesforce/playwright-vscode-ext';
 
-import { test } from '../fixtures';
+import { desktopTest as test } from '../fixtures/desktopFixtures';
 import { triggerLspRestart, waitForApexLspReady } from '../utils/apexLspUtils';
 
 // Spans are written as JSONL to ~/.sf/vscode-spans (enableFileTraces is on by default in desktop e2e).

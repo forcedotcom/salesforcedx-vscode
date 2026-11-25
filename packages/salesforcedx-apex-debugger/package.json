@@ -13,14 +13,14 @@
     "Debuggers"
   ],
   "dependencies": {
-    "@salesforce/core": "^9.3.0",
+    "@salesforce/core": "^9.4.1",
     "@salesforce/salesforcedx-utils": "workspace:*",
     "@salesforce/vscode-i18n": "workspace:*",
     "@vscode/debugadapter": "1.68.0",
     "@vscode/debugprotocol": "1.68.0",
     "async-lock": "1.4.1",
     "cross-spawn": "7.0.6",
-    "effect": "^3.21.2",
+    "effect": "^3.22.4",
     "faye": "1.4.1",
     "request-light": "^0.8.0",
     "rxjs": "^7.8.2",
@@ -32,7 +32,6 @@
     "@vscode/debugadapter-testsupport": "1.68.0"
   },
   "scripts": {
-    "bundle:debugger": "wireit",
     "compile": "wireit",
     "lint": "wireit",
     "check:circular-deps": "wireit",
@@ -70,25 +69,6 @@
       ],
       "output": []
     },
-    "bundle:debugger": {
-      "env": {
-        "DEBUG_BUNDLE": {
-          "external": true
-        }
-      },
-      "command": "node ../../scripts/bundling/bundle-debugger.mjs",
-      "dependencies": [
-        "compile"
-      ],
-      "files": [
-        "out/**",
-        "../../scripts/bundling/bundle-debugger.mjs"
-      ],
-      "output": [
-        "dist/apexDebug.js",
-        "dist/apexDebug.js.map"
-      ]
-    },
     "test": {
       "command": "vitest run",
       "dependencies": [
@@ -124,7 +104,7 @@
       "output": []
     },
     "check:circular-deps": {
-      "command": "dpdm --no-warning --no-tree --exit-code circular:1 --output .circular-deps.json src/index.ts",
+      "command": "dpdm --no-warning --no-tree --exit-code circular:1 --output .circular-deps.json 'src/**/*.ts'",
       "dependencies": [
         "compile"
       ],

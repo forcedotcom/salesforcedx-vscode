@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { getErrorMessage } from '@salesforce/salesforcedx-utils';
 import * as Effect from 'effect/Effect';
 import * as Option from 'effect/Option';
 import { isNotUndefined } from 'effect/Predicate';
@@ -114,7 +115,7 @@ export class SettingsService extends Effect.Service<SettingsService>()('Settings
             cause,
             section,
             key,
-            message: `Failed to get setting ${section}.${key}: ${cause.message ?? String(cause)}`
+            message: `Failed to get setting ${section}.${key}: ${getErrorMessage(cause)}`
           });
         }
       });
@@ -148,7 +149,7 @@ export class SettingsService extends Effect.Service<SettingsService>()('Settings
             cause,
             section,
             key,
-            message: `Failed to set setting ${section}.${key}: ${cause.message ?? String(cause)}`
+            message: `Failed to set setting ${section}.${key}: ${getErrorMessage(cause)}`
           });
         }
       });
@@ -163,7 +164,7 @@ export class SettingsService extends Effect.Service<SettingsService>()('Settings
             cause,
             key: INSTANCE_URL_KEY,
             section: CODE_BUILDER_WEB_SECTION,
-            message: `Failed to get instance URL: ${cause.message ?? String(cause)}`
+            message: `Failed to get instance URL: ${getErrorMessage(cause)}`
           });
         }
       }).pipe(Effect.flatMap(isNonEmptyString(INSTANCE_URL_KEY)));
@@ -178,7 +179,7 @@ export class SettingsService extends Effect.Service<SettingsService>()('Settings
             cause,
             key: ACCESS_TOKEN_KEY,
             section: CODE_BUILDER_WEB_SECTION,
-            message: `Failed to get access token: ${cause.message ?? String(cause)}`
+            message: `Failed to get access token: ${getErrorMessage(cause)}`
           });
         }
       }).pipe(Effect.flatMap(isNonEmptyString(ACCESS_TOKEN_KEY)), Effect.map(Redacted.make));
@@ -197,7 +198,7 @@ export class SettingsService extends Effect.Service<SettingsService>()('Settings
             cause,
             key: API_VERSION_KEY,
             section: CODE_BUILDER_WEB_SECTION,
-            message: `Failed to get API version: ${cause.message ?? String(cause)}`
+            message: `Failed to get API version: ${getErrorMessage(cause)}`
           });
         }
       });
@@ -220,7 +221,7 @@ export class SettingsService extends Effect.Service<SettingsService>()('Settings
             cause,
             key: INSTANCE_URL_KEY,
             section: CODE_BUILDER_WEB_SECTION,
-            message: `Failed to set instance URL: ${cause.message ?? String(cause)}`
+            message: `Failed to set instance URL: ${getErrorMessage(cause)}`
           });
         }
       });
@@ -238,7 +239,7 @@ export class SettingsService extends Effect.Service<SettingsService>()('Settings
             cause,
             key: ACCESS_TOKEN_KEY,
             section: CODE_BUILDER_WEB_SECTION,
-            message: `Failed to set access token: ${cause.message ?? String(cause)}`
+            message: `Failed to set access token: ${getErrorMessage(cause)}`
           });
         }
       });
@@ -256,7 +257,7 @@ export class SettingsService extends Effect.Service<SettingsService>()('Settings
             cause,
             key: API_VERSION_KEY,
             section: CODE_BUILDER_WEB_SECTION,
-            message: `Failed to set API version: ${cause.message ?? String(cause)}`
+            message: `Failed to set API version: ${getErrorMessage(cause)}`
           });
         }
       });
@@ -274,7 +275,7 @@ export class SettingsService extends Effect.Service<SettingsService>()('Settings
             cause,
             key: RETRIEVE_ON_LOAD_KEY,
             section: CODE_BUILDER_WEB_SECTION,
-            message: `Failed to get retrieve on load setting: ${cause.message ?? String(cause)}`
+            message: `Failed to get retrieve on load setting: ${getErrorMessage(cause)}`
           });
         }
       });

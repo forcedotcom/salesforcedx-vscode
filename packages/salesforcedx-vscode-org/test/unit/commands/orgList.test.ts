@@ -35,12 +35,14 @@ let showChannelMock: VitestMock;
 
 // Mock the dependencies
 vi.mock('@salesforce/effect-ext-utils', async () => {
-  const actual = await vi.importActual<{ ExtensionProviderService: typeof ExtensionProviderService }>(
-    '@salesforce/effect-ext-utils'
-  );
+  const actual = await vi.importActual<{
+    ExtensionProviderService: typeof ExtensionProviderService;
+    getMessageFromError: (error: unknown) => string;
+  }>('@salesforce/effect-ext-utils');
   return {
     createTable: vi.fn(),
-    ExtensionProviderService: actual.ExtensionProviderService
+    ExtensionProviderService: actual.ExtensionProviderService,
+    getMessageFromError: actual.getMessageFromError
   };
 });
 

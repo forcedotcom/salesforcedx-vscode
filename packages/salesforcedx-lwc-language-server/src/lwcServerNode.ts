@@ -13,6 +13,3 @@ export default class Server extends BaseServer {
     return createConnection();
   }
 }
-
-// Re-export for tests
-export { findDynamicContent } from './baseServer';

@@ -7,7 +7,7 @@
 
 import type { MockInstance as VitestMockInstance } from 'vitest';
 import { Client as FayeClient } from 'faye';
-import { StreamingClient, StreamingClientInfoBuilder } from '../../../src/core';
+import { StreamingClient, StreamingClientInfoBuilder } from '../../../src/core/streamingClient';
 import { RequestService } from '../../../src/requestService/requestService';
 
 describe('Debugger streaming client', () => {

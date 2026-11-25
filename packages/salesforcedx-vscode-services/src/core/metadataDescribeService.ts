@@ -6,6 +6,7 @@
  */
 
 import type { Connection } from '@salesforce/core';
+import { getErrorMessage } from '@salesforce/salesforcedx-utils';
 import { standardValueSet } from '@salesforce/source-deploy-retrieve';
 import * as Arr from 'effect/Array';
 import * as Cache from 'effect/Cache';
@@ -14,6 +15,7 @@ import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
 import * as Exit from 'effect/Exit';
 import * as Option from 'effect/Option';
+import * as Predicate from 'effect/Predicate';
 import * as S from 'effect/Schema';
 import * as Stream from 'effect/Stream';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
@@ -58,6 +60,7 @@ export class MetadataDescribeError extends S.TaggedError<MetadataDescribeError>(
   cause: S.Unknown,
   function: S.String,
   objectName: S.optional(S.String),
+  notFound: S.optional(S.Boolean),
   message: S.String
 }) {}
 
@@ -126,7 +129,7 @@ export class MetadataDescribeService extends Effect.Service<MetadataDescribeServ
           return new MetadataDescribeError({
             cause,
             function: 'describe',
-            message: `Failed to describe metadata: ${cause.message ?? String(cause)}`
+            message: `Failed to describe metadata: ${getErrorMessage(cause)}`
           });
         }
       }).pipe(
@@ -152,7 +155,7 @@ export class MetadataDescribeService extends Effect.Service<MetadataDescribeServ
           return new MetadataDescribeError({
             cause,
             function: 'listSObjects',
-            message: `Failed to list sobjects: ${cause.message ?? String(cause)}`
+            message: `Failed to list sobjects: ${getErrorMessage(cause)}`
           });
         }
       }).pipe(
@@ -189,7 +192,8 @@ export class MetadataDescribeService extends Effect.Service<MetadataDescribeServ
             cause,
             function: 'describeCustomObject',
             objectName,
-            message: `Failed to describe sobject ${objectName}: ${cause.message ?? String(cause)}`
+            notFound: isSObjectNotFound(cause),
+            message: `Failed to describe sobject ${objectName}: ${getErrorMessage(cause)}`
           });
         }
       }).pipe(Effect.withSpan('describeCustomObject (API call)', { attributes: { objectName } }));
@@ -223,11 +227,11 @@ export class MetadataDescribeService extends Effect.Service<MetadataDescribeServ
             cause,
             metadataType: type,
             folder,
-            message: `Failed to list metadata type ${type}${folder ? ` in folder ${folder}` : ''}: ${cause.message ?? String(cause)}`
+            message: `Failed to list metadata type ${type}${folder ? ` in folder ${folder}` : ''}: ${getErrorMessage(cause)}`
           });
         }
       }).pipe(
-        Effect.map(ensureArray),
+        Effect.map(Arr.ensure),
         Effect.tap(items => Effect.annotateCurrentSpan({ resultCount: items.length })),
         Effect.withSpan('listMetadata (API call)'),
         Effect.flatMap(arr => S.decodeUnknown(S.Array(FilePropertiesSchema))(arr)),
@@ -239,7 +243,7 @@ export class MetadataDescribeService extends Effect.Service<MetadataDescribeServ
             cause,
             metadataType: type,
             folder,
-            message: `Failed to decode list metadata result for type ${type}${folder ? ` in folder ${folder}` : ''}: ${cause.message ?? String(cause)}`
+            message: `Failed to decode list metadata result for type ${type}${folder ? ` in folder ${folder}` : ''}: ${getErrorMessage(cause)}`
           });
         })
       );
@@ -269,7 +273,7 @@ export class MetadataDescribeService extends Effect.Service<MetadataDescribeServ
           return new MetadataDescribeError({
             cause,
             function: 'describeCustomObjects',
-            message: `Failed to batch describe sobjects: ${cause.message ?? String(cause)}`
+            message: `Failed to batch describe sobjects: ${getErrorMessage(cause)}`
           });
         }
       }).pipe(Effect.map(res => res?.results));
@@ -533,6 +537,19 @@ export class MetadataDescribeService extends Effect.Service<MetadataDescribeServ
         .pipe(Effect.tap(result => recorder.recordMetadataListing(orgId, type, folder, result)));
     });
 
+    /** Lists folders containing a metadata type, combining Classic and Lightning email folders. */
+    const listMetadataFolders = Effect.fn('MetadataDescribeService.listMetadataFolders')(function* (
+      type: string,
+      expectedOrgId?: string
+    ) {
+      const orgId = yield* resolveOrgId(expectedOrgId);
+      return yield* Effect.forEach(
+        type === 'EmailTemplate' ? ['EmailFolder', 'EmailTemplateFolder'] : [`${type}Folder`],
+        folderType => listMetadata(folderType, undefined, orgId),
+        { concurrency: 'unbounded' }
+      ).pipe(Effect.map(Arr.flatten), Effect.map(Arr.dedupeWith(FilePropertiesByFullName)));
+    });
+
     const listMetadataCached = Effect.fn('MetadataDescribeService.listMetadataCached')(function* (
       type: string,
       folder?: string,
@@ -568,6 +585,8 @@ export class MetadataDescribeService extends Effect.Service<MetadataDescribeServ
        * Results are cached per-org by type+folder key (TTL 5 min).
        */
       listMetadata,
+      /** Lists and deduplicates folders for a foldered metadata type using the per-type listMetadata caches. */
+      listMetadataFolders,
       /**
        * Peeks at the cached listMetadata result for a given type and optional folder
        * without triggering a fetch. Returns Option.none() if not in cache.
@@ -593,5 +612,5 @@ export class MetadataDescribeService extends Effect.Service<MetadataDescribeServ
     };
   })
 }) {}
-
-const ensureArray = <T>(value: T | T[]): T[] => (Array.isArray(value) ? value : [value]);
+const isSObjectNotFound = (cause: unknown): boolean =>
+  Predicate.isError(cause) && /does not exist|not found|invalid type|resource.*not.*found/i.test(cause.message);

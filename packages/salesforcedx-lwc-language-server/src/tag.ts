@@ -11,6 +11,7 @@ import {
   normalizePath,
   Logger
 } from '@salesforce/salesforcedx-lightning-lsp-common';
+import { getErrorMessage } from '@salesforce/salesforcedx-utils';
 import { camelCase, paramCase } from 'change-case';
 
 import * as path from 'node:path';
@@ -121,10 +122,7 @@ export const getTagUri = (tag: Tag, fileSystemAccessor?: LspFileSystemAccessor):
     try {
       return fileSystemAccessor.getFileUriForPath(normalizedPath);
     } catch (error) {
-      Logger.error(
-        `[getTagUri] Error in getFileUriForPath: ${error instanceof Error ? error.message : String(error)}`,
-        error
-      );
+      Logger.error(`[getTagUri] Error in getFileUriForPath: ${getErrorMessage(error)}`, error);
       throw error;
     }
   }
@@ -134,10 +132,7 @@ export const getTagUri = (tag: Tag, fileSystemAccessor?: LspFileSystemAccessor):
     const uri = URI.file(resolvedPath).toString();
     return uri;
   } catch (error) {
-    Logger.error(
-      `[getTagUri] Error creating URI.file: ${error instanceof Error ? error.message : String(error)}`,
-      error
-    );
+    Logger.error(`[getTagUri] Error creating URI.file: ${getErrorMessage(error)}`, error);
     throw error;
   }
 };
@@ -211,10 +206,7 @@ export const getAllLocations = async (tag: Tag, fileSystemAccessor: LspFileSyste
       const location = Location.create(uri, range);
       return location;
     } catch (error) {
-      Logger.error(
-        `[getAllLocations] Error converting file to location: ${file} - ${error instanceof Error ? error.message : String(error)}`,
-        error
-      );
+      Logger.error(`[getAllLocations] Error converting file to location: ${file} - ${getErrorMessage(error)}`, error);
       throw error;
     }
   };
@@ -228,10 +220,7 @@ export const getAllLocations = async (tag: Tag, fileSystemAccessor: LspFileSyste
     const tagLocation = getTagLocation(tag, fileSystemAccessor);
     locations.unshift(tagLocation);
   } catch (error) {
-    Logger.error(
-      `[getAllLocations] Error getting tag location: ${error instanceof Error ? error.message : String(error)}`,
-      error
-    );
+    Logger.error(`[getAllLocations] Error getting tag location: ${getErrorMessage(error)}`, error);
     throw error;
   }
 
@@ -269,10 +258,7 @@ export const getClassMemberLocation = (
     const location = Location.create(tagUri, range);
     return location;
   } catch (error) {
-    Logger.error(
-      `[getClassMemberLocation] Error creating location: ${error instanceof Error ? error.message : String(error)}`,
-      error
-    );
+    Logger.error(`[getClassMemberLocation] Error creating location: ${getErrorMessage(error)}`, error);
     throw error;
   }
 };
@@ -369,13 +355,13 @@ export const createTagFromFile = async (
     const tag = await createTag({ file, metadata, updatedAt });
     return tag;
   } catch (e) {
-    const errorMessage = e instanceof Error ? e.message : String(e);
+    const errorMessage = getErrorMessage(e);
     const errorStack = e instanceof Error ? e.stack : 'No stack trace available';
     Logger.error(`[createTagFromFile] Error creating tag from file ${file}:`);
     Logger.error(`[createTagFromFile] Error message: ${errorMessage}`);
     Logger.error(`[createTagFromFile] Error stack: ${errorStack}`);
     if (e instanceof Error && e.cause) {
-      const causeMessage = e.cause instanceof Error ? e.cause.message : String(e.cause);
+      const causeMessage = getErrorMessage(e.cause);
       Logger.error(`[createTagFromFile] Error cause: ${causeMessage}`);
     }
     return null;

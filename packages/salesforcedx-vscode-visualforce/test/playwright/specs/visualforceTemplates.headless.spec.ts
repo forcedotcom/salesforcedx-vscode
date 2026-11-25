@@ -10,17 +10,12 @@ import { expect, type Page } from '@playwright/test';
 import {
   setupConsoleMonitoring,
   setupNetworkMonitoring,
-  waitForVSCodeWorkbench,
-  waitForWorkspaceReady,
   verifyCommandExists,
-  closeWelcomeTabs,
   closeAllEditors,
   executeCommandWithCommandPalette,
   validateNoCriticalErrors,
-  saveScreenshot,
   activeQuickInputWidget,
   EDITOR_WITH_URI,
-  ensureSecondarySideBarHidden,
   waitForQuickInputFirstOption
 } from '@salesforce/playwright-vscode-ext';
 import packageNls from '../../../package.nls.json';
@@ -30,15 +25,6 @@ import packageNls from '../../../package.nls.json';
 // the `../fixtures` index resolves `test` to the desktop or web fixture by VSCODE_DESKTOP.
 
 test.describe('Visualforce Templates', () => {
-  test.beforeEach(async ({ page }) => {
-    setupConsoleMonitoring(page);
-    setupNetworkMonitoring(page);
-    await waitForVSCodeWorkbench(page);
-    await closeWelcomeTabs(page);
-    await ensureSecondarySideBarHidden(page);
-    await waitForWorkspaceReady(page);
-  });
-
   // Generate a VF template via command palette → name → output-dir, then assert the generated file
   // opens in an editor (opening `.page`/`.component` triggers `onLanguage:visualforce` activation)
   // and both files land in the explorer. Shared memfs workspace across web tests → close editors first.
@@ -67,7 +53,6 @@ test.describe('Visualforce Templates', () => {
           return expect(explorerFile, `${file} should be visible in explorer`).toBeVisible({ timeout: 15_000 });
         })
       );
-      await saveScreenshot(page, `vf-${name}-created.png`);
     });
   };
 

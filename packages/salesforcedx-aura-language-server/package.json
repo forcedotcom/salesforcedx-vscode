@@ -30,15 +30,17 @@
   },
   "wireit": {
     "compile": {
-      "command": "tsc -p . && node scripts/build.js",
+      "command": "tsc -p . && node scripts/build.mts",
       "clean": "if-file-deleted",
       "dependencies": [
+        "../salesforcedx-utils:compile",
         "../salesforcedx-lightning-lsp-common:compile",
         "../salesforcedx-vscode-i18n:compile"
       ],
       "files": [
         "src/**/*.ts",
-        "scripts/**/*.js",
+        "scripts/**/*.{js,mts}",
+        "scripts/tsconfig.json",
         "tsconfig.json",
         "../../tsconfig.common.json"
       ],
@@ -55,6 +57,9 @@
       "files": [
         "src/**/*.ts",
         "test/**/*.ts",
+        "scripts/**/*.mts",
+        "scripts/tsconfig.json",
+        "../../scripts/tsconfig.native.json",
         "../../eslint.config.mjs"
       ],
       "output": []
@@ -89,14 +94,15 @@
     }
   },
   "dependencies": {
+    "@salesforce/salesforcedx-utils": "*",
     "@salesforce/salesforcedx-lightning-lsp-common": "workspace:*",
     "@salesforce/vscode-i18n": "workspace:*",
     "acorn": "^6.0.0",
     "acorn-loose": "^6.0.0",
     "acorn-walk": "^6.0.0",
-    "effect": "^3.21.2",
+    "effect": "^3.22.4",
     "line-column": "^1.0.2",
-    "minimatch": "^10.2.6",
+    "minimatch": "^11.0.1",
     "vscode-html-languageservice": "^5.0.0",
     "vscode-languageserver": "^9.0.1",
     "vscode-languageserver-textdocument": "^1.0.12",

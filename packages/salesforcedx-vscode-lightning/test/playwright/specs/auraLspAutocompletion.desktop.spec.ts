@@ -7,11 +7,13 @@
 
 import { expect } from '@playwright/test';
 import {
+  clearAllNotifications,
   closeWelcomeTabs,
   EDITOR_WITH_URI,
   ensureSecondarySideBarHidden,
   goToLineCol,
   openFileByName,
+  openFileFromExplorerTree,
   saveFile,
   saveScreenshot,
   setupConsoleMonitoring,
@@ -21,13 +23,21 @@ import {
   waitForWorkspaceReady
 } from '@salesforce/playwright-vscode-ext';
 
-import { test } from '../fixtures';
+import { isContainer, test } from '../fixtures';
 import { waitForAuraLspReady } from '../utils/auraLspUtils';
 
-// Specs are independent (separate VS Code session per spec), so the Aura LS re-indexes the
-// pre-seeded aura1 bundle here. Types `<aura:appl` at L2 C1 (the blank tab line in the seeded
-// `aura1.cmp`), selects the `aura:application` completion, and asserts it was inserted.
+// force-app/main/default/aura/aura1 on desktop (fixtures/desktopFixtures.ts seeds it there); the
+// container's bind-mounted fixture project uses the same layout, so the path is shared.
+const AURA1_DIR = ['force-app', 'main', 'default', 'aura', 'aura1'];
+
+// Specs are independent (separate VS Code session per spec on desktop; the container reuses one
+// shared, persistent workbench), so the Aura LS re-indexes the pre-seeded aura1 bundle here. Types
+// `<aura:appl` at L2 C1 (the blank tab line in the seeded `aura1.cmp`), selects the
+// `aura:application` completion, and asserts it was inserted.
 test('Aura LSP: autocompletion', async ({ page }) => {
+  if (isContainer) {
+    test.setTimeout(3 * 60 * 1000);
+  }
   const consoleErrors = setupConsoleMonitoring(page);
   const networkErrors = setupNetworkMonitoring(page);
 
@@ -36,14 +46,24 @@ test('Aura LSP: autocompletion', async ({ page }) => {
   const completionRows = page.locator('.editor-widget.suggest-widget .monaco-list-row.show-file-icons');
 
   await test.step('setup', async () => {
+    // No-op once ready (container's fixture already awaited it); the real wait on desktop.
     await waitForVSCodeWorkbench(page);
     await closeWelcomeTabs(page);
     await ensureSecondarySideBarHidden(page);
-    await waitForWorkspaceReady(page);
+    if (isContainer) {
+      // First container boot stacks telemetry/what's-new toasts that can cover the editor.
+      await clearAllNotifications(page);
+    } else {
+      await waitForWorkspaceReady(page);
+    }
   });
 
   await test.step('open aura1.cmp and wait for indexing complete', async () => {
-    await openFileByName(page, 'aura1.cmp');
+    if (isContainer) {
+      await openFileFromExplorerTree(page, 'aura1.cmp', AURA1_DIR);
+    } else {
+      await openFileByName(page, 'aura1.cmp');
+    }
     await waitForAuraLspReady(page);
     await saveScreenshot(page, 'auraLspAutocompletion.indexing-complete.png');
   });

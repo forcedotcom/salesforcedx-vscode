@@ -6,10 +6,10 @@
  */
 
 import { OrgConfigProperties } from '@salesforce/core';
+import { getErrorMessage } from '@salesforce/salesforcedx-utils';
 import * as SfTemplates from '@salesforce/templates';
 import * as Effect from 'effect/Effect';
 import * as Option from 'effect/Option';
-import { isError } from 'effect/Predicate';
 import * as Ref from 'effect/Ref';
 import * as Schema from 'effect/Schema';
 import * as Stream from 'effect/Stream';
@@ -24,9 +24,6 @@ import { uriToPath } from '../vscode/paths';
 import { ConfigService } from './configService';
 import { ConnectionService } from './connectionService';
 import { ProjectService } from './projectService';
-
-/** Re-export for consumers that don't depend on @salesforce/templates */
-export { TemplateType, type CreateOutput } from '@salesforce/templates';
 
 /**
  * Project options where `ns` and `loginurl` may be omitted by callers; the
@@ -178,7 +175,7 @@ const ensureTemplatesInFs = Effect.fn('TemplateService.ensureTemplatesInFs')(fun
     try: () => vscode.workspace.fs.readFile(Utils.joinPath(rootUri, 'manifest.json')),
     catch: e =>
       new TemplatesManifestLoadError({
-        message: nls.localize('template_service_manifest_load_failed', isError(e) ? e.message : String(e)),
+        message: nls.localize('template_service_manifest_load_failed', getErrorMessage(e)),
         cause: e
       })
   });
@@ -203,11 +200,7 @@ const ensureTemplatesInFs = Effect.fn('TemplateService.ensureTemplatesInFs')(fun
           },
           catch: e =>
             new TemplatesManifestLoadError({
-              message: nls.localize(
-                'template_service_file_copy_failed',
-                relativePath,
-                isError(e) ? e.message : String(e)
-              ),
+              message: nls.localize('template_service_file_copy_failed', relativePath, getErrorMessage(e)),
               cause: e
             })
         }).pipe(
@@ -279,9 +272,9 @@ const readDirectoryOrEmpty = (uri: URI) =>
         cause instanceof vscode.FileSystemError && (cause.code === 'FileNotFound' || cause.code === 'ENOENT');
       return isNotFound
         ? Effect.succeed<[string, vscode.FileType][]>([])
-        : Effect.logWarning(
-            `Failed to read custom templates from ${uri.fsPath}: ${isError(cause) ? cause.message : String(cause)}`
-          ).pipe(Effect.as<[string, vscode.FileType][]>([]));
+        : Effect.logWarning(`Failed to read custom templates from ${uri.fsPath}: ${getErrorMessage(cause)}`).pipe(
+            Effect.as<[string, vscode.FileType][]>([])
+          );
     })
   );
 
@@ -405,6 +398,10 @@ export class TemplateService extends Effect.Service<TemplateService>()('Template
       return dirNames.filter((_, i) => matches[i]);
     });
 
+    const getProjectTemplateNames = Effect.fn('TemplateService.getProjectTemplateNames')(() =>
+      Effect.succeed<readonly SfTemplates.ProjectTemplate[]>(SfTemplates.PROJECT_TEMPLATES)
+    );
+
     const create = Effect.fn('TemplateService.create')(function* (params: CreateParams<SfTemplates.TemplateType>) {
       const { templatesRootPath } = yield* getTemplatesRootCached;
       yield* ensureTemplatesInFsOnce;
@@ -430,7 +427,8 @@ export class TemplateService extends Effect.Service<TemplateService>()('Template
       getBuiltInTemplateNames,
       getCustomTemplateNames,
       getBuiltInTemplateSubdirNames,
-      getCustomTemplateSubdirNames
+      getCustomTemplateSubdirNames,
+      getProjectTemplateNames
     };
   })
 }) {}

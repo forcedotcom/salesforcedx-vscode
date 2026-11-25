@@ -7,9 +7,10 @@
 
 import { execFileSync } from 'node:child_process';
 import assert from 'node:assert/strict';
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { webcrypto } from 'node:crypto';
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import { runInNewContext } from 'node:vm';
 import { build } from 'esbuild';
 import { commonConfigBrowser } from '../../../scripts/bundling/web.mjs';
@@ -40,20 +41,16 @@ try {
   const effectEntry = join(consumerRoot, 'effect-consumer.mjs');
   writeFileSync(
     effectEntry,
-    `import {
-      executeAnonymous, ApexOperationError, buildSyncPayload, buildAsyncPayload, retrieveAllSuites, getTestsInSuite,
-      buildSuite, runTestSynchronous, runTestAsynchronous, transformTestResult, SyncTestResultSchema, TestResultSchema,
-      getOrgWideCoverage, getPerClassCodeCoverage, getAggregateCodeCoverage, CodeCoverageResultSchema
-    } from '@salesforce/apex-node/effect';
+    `import * as apexEffectApi from '@salesforce/apex-node/effect';
     import * as Effect from 'effect/Effect';
     import * as Schema from 'effect/Schema';
     globalThis.apexEffectApi = {
-      executeAnonymous, ApexOperationError, buildSyncPayload, buildAsyncPayload, retrieveAllSuites, getTestsInSuite,
-      buildSuite, runTestAsynchronous, getOrgWideCoverage, getPerClassCodeCoverage, getAggregateCodeCoverage,
-      CodeCoverageResultSchema, transformTestResult,
-      run: (connection, options) => runTestSynchronous(connection, options).pipe(Effect.either, Effect.runPromise),
-      decodeSyncResult: Schema.decodeUnknownSync(SyncTestResultSchema, { onExcessProperty: 'error' }),
-      decodeResult: Schema.decodeUnknownSync(TestResultSchema)
+      ...apexEffectApi,
+      run: (connection, options) => apexEffectApi.runTestSynchronous(connection, options).pipe(Effect.either, Effect.runPromise),
+      runTooling: (operation, ...args) => apexEffectApi[operation](...args).pipe(Effect.either, Effect.runPromise),
+      notify: callback => Effect.sync(callback),
+      decodeSyncResult: Schema.decodeUnknownSync(apexEffectApi.SyncTestResultSchema, { onExcessProperty: 'error' }),
+      decodeResult: Schema.decodeUnknownSync(apexEffectApi.TestResultSchema)
     };
     `
   );
@@ -164,19 +161,242 @@ try {
   const invalidOptions = await api.run(connection, { tests: [{ className: 123 }] });
   assert.equal(invalidOptions.left._tag, 'ApexOperationError');
 
+  // The trace-flag API must work in the same browser without host caches, services, or PubSub.
+  const writes = [];
+  let flags = [];
+  let levels = [];
+  const toolingConnection = {
+    tooling: {
+      query: async soql => {
+        const records = soql.includes('FROM TraceFlag') ? flags : levels;
+        return { done: true, totalSize: records.length, records };
+      },
+      create: async (type, payload) => {
+        writes.push(['create', type, payload]);
+        return { success: true, id: type === 'DebugLevel' ? '7dl000000000001' : '7tf000000000001', errors: [] };
+      },
+      update: async (type, payload) => {
+        writes.push(['update', type, payload]);
+        return { success: true, id: payload.Id, errors: [] };
+      },
+      delete: async (type, id) => {
+        writes.push(['delete', type, id]);
+        return { success: true, id, errors: [] };
+      }
+    }
+  };
+  const runTooling = async (operation, ...args) => {
+    const result = await api.runTooling(operation, toolingConnection, ...args);
+    assert.equal(result._tag, 'Right', result.left?.message);
+    return result.right;
+  };
+  const payload = { DeveloperName: 'CallerLevel', MasterLabel: 'Caller Level', ApexCode: 'DEBUG' };
+  assert.equal(await runTooling('getOrCreateDebugLevel', payload), '7dl000000000001');
+  assert.deepEqual(JSON.parse(JSON.stringify(writes.pop())), ['create', 'DebugLevel', payload]);
+  levels = [{ Id: '7dl000000000002' }];
+  assert.equal(await runTooling('getOrCreateDebugLevel', payload), '7dl000000000002');
+  assert.equal(writes.length, 0);
+
+  let queriedSoql;
+  const query = toolingConnection.tooling.query;
+  toolingConnection.tooling.query = async soql => {
+    queriedSoql = soql;
+    return query(soql);
+  };
+  await runTooling('findDebugLevel', "a'\\b");
+  assert.ok(queriedSoql.includes("DeveloperName = 'a\\'\\\\b'"));
+  await runTooling('getTraceFlagForEntity', '005000000000001', 'USER_DEBUG', 'CreatedDate');
+  assert.ok(queriedSoql.includes("LogType='USER_DEBUG'"));
+  assert.ok(queriedSoql.includes('ORDER BY CreatedDate DESC LIMIT 1'));
+
+  const created = await runTooling('ensureTraceFlag', '005000000000001', '7dl000000000003', {
+    duration: '30 minutes',
+    logType: 'USER_DEBUG'
+  });
+  assert.equal(created.created, true);
+  assert.equal(created.traceFlagId, '7tf000000000001');
+  assert.equal(writes.length, 1);
+  assert.equal(writes[0][2].DebugLevelId, '7dl000000000003');
+  assert.equal(writes[0][2].LogType, 'USER_DEBUG');
+  writes.length = 0;
+
+  const later = new Date(Date.now() + 2 * 60 * 60 * 1000).toISOString();
+  let notifications = 0;
+  const onMutation = () =>
+    api.notify(() => {
+      notifications += 1;
+    });
+  flags = [{ Id: '7tf000000000002', DebugLevelId: '7dl000000000003', ExpirationDate: later }];
+  const unchanged = await runTooling('ensureTraceFlag', '005000000000001', '7dl000000000003', { onMutation });
+  assert.equal(unchanged.created, false);
+  assert.equal(writes.length, 0);
+  assert.equal(notifications, 0);
+  await runTooling('ensureTraceFlag', '005000000000001', '7dl000000000004');
+  assert.deepEqual(JSON.parse(JSON.stringify(writes.pop())), [
+    'update',
+    'TraceFlag',
+    { Id: '7tf000000000002', DebugLevelId: '7dl000000000004' }
+  ]);
+  await runTooling('extendTraceFlag', flags[0]);
+  assert.equal(writes.pop()[2].ExpirationDate, later);
+
+  flags = [{ ...flags[0], ExpirationDate: new Date(Date.now() + 60_000).toISOString() }];
+  await runTooling('ensureTraceFlag', '005000000000001', '7dl000000000003', { onMutation });
+  const extended = writes.pop()[2];
+  assert.ok(new Date(extended.ExpirationDate).getTime() > Date.now() + 29 * 60_000);
+  flags = [{ ...flags[0], ExpirationDate: new Date(Date.now() - 60_000).toISOString() }];
+  await runTooling('ensureTraceFlag', '005000000000001', '7dl000000000003', { onMutation });
+  assert.deepEqual(
+    writes.map(([operation]) => operation),
+    ['delete', 'create']
+  );
+  assert.equal(notifications, 3);
+  writes.length = 0;
+  const create = toolingConnection.tooling.create;
+  toolingConnection.tooling.create = async () => ({ success: false, errors: [{ message: 'create failed' }] });
+  const failedEnsure = await api.runTooling(
+    'ensureTraceFlag',
+    toolingConnection,
+    '005000000000001',
+    '7dl000000000003',
+    {
+      onMutation
+    }
+  );
+  assert.equal(failedEnsure.left._tag, 'ApexToolingMutationError');
+  assert.equal(notifications, 4); // The successful delete still notified before the failed create.
+  toolingConnection.tooling.create = create;
+  writes.length = 0;
+  // CLI's renewal helper intentionally updates an expired flag in place.
+  await runTooling('extendTraceFlag', flags[0]);
+  assert.deepEqual(
+    writes.map(([operation]) => operation),
+    ['update']
+  );
+  writes.length = 0;
+
+  const toolingRecord = { Id: '7tf000000000002', LogType: 'USER_DEBUG', ExpirationDate: later };
+  toolingConnection.tooling.query = async () => ({
+    records: [toolingRecord],
+    totalSize: 2,
+    done: false,
+    nextRecordsUrl: '/next'
+  });
+  toolingConnection.tooling.queryMore = async url => {
+    assert.equal(url, '/next');
+    return { records: [{ ...toolingRecord, Id: '7tf000000000003' }], totalSize: 2, done: true };
+  };
+  assert.equal((await runTooling('getTraceFlags')).length, 2);
+  toolingConnection.tooling.query = async () => ({
+    totalSize: 1,
+    records: [{ Id: '7dl000000000005', DeveloperName: 'Level', MasterLabel: 'Level', Language: null, ApexCode: null }]
+  });
+  assert.equal((await runTooling('getDebugLevels'))[0].ApexCode, 'NONE');
+
+  for (const [operation, method, args] of [
+    ['createDebugLevel', 'create', [payload]],
+    ['updateDebugLevel', 'update', ['7dl000000000005', { ApexCode: 'FINEST' }]],
+    ['deleteDebugLevel', 'delete', ['7dl000000000005']],
+    ['createTraceFlag', 'create', ['005000000000001', '7dl000000000005']],
+    ['updateTraceFlag', 'update', ['7tf000000000002']],
+    ['deleteTraceFlag', 'delete', ['7tf000000000002']],
+    ['changeTraceFlagDebugLevel', 'update', ['7tf000000000002', '7dl000000000005']]
+  ]) {
+    const original = toolingConnection.tooling[method];
+    toolingConnection.tooling[method] = async () => ({ success: false, errors: ['denied'] });
+    assert.equal((await api.runTooling(operation, toolingConnection, ...args)).left._tag, 'ApexToolingMutationError');
+    toolingConnection.tooling[method] = async () => ({ success: true, errors: [] });
+    if (method === 'create') {
+      assert.equal((await api.runTooling(operation, toolingConnection, ...args)).left._tag, 'ApexResponseDecodeError');
+    }
+    toolingConnection.tooling[method] = async () => ({ unexpected: true });
+    assert.equal((await api.runTooling(operation, toolingConnection, ...args)).left._tag, 'ApexResponseDecodeError');
+    toolingConnection.tooling[method] = async () => {
+      throw new Error('denied');
+    };
+    assert.equal((await api.runTooling(operation, toolingConnection, ...args)).left._tag, 'ApexOperationError');
+    toolingConnection.tooling[method] = original;
+  }
+
   const fullEntry = join(consumerRoot, 'full-consumer.mjs');
   writeFileSync(
     fullEntry,
     "import { TestService } from '@salesforce/apex-node';\n" +
+      "import { fs } from '@salesforce/core/fs';\n" +
       "import { executeAnonymous, runTestSynchronous } from '@salesforce/apex-node/effect';\n" +
-      'globalThis.apexNodeApi = { TestService, executeAnonymous, runTestSynchronous };\n'
+      'const service = new TestService({});\n' +
+      'globalThis.apexNodeApi = { TestService, executeAnonymous, runTestSynchronous,\n' +
+      'writeResults: (...args) => service.writeResultFiles(...args),\n' +
+      "read: path => fs.promises.readFile(path, 'utf8'),\n" +
+      'list: path => fs.promises.readdir(path),\n' +
+      'mkdir: path => fs.promises.mkdir(path, { recursive: true }) };\n'
   );
-  await build({
+  const fullBundle = await build({
     ...commonConfigBrowser,
     entryPoints: [fullEntry],
+    format: 'iife',
     sourcemap: false,
     write: false
   });
+  const fullBrowser = { ...browser, AbortSignal, console, crypto: webcrypto, performance, setInterval, clearInterval };
+  fullBrowser.self = fullBrowser;
+  runInNewContext(fullBundle.outputFiles[0].text, fullBrowser, { displayErrors: false });
+  const nodeApi = fullBrowser.apexNodeApi;
+  const reportConfig = {
+    resultFormats: ['json', 'junit', 'tap', 'markdown', 'text'],
+    fileInfos: [{ filename: 'extra.txt', content: 'résultats 🦊\r\n' }]
+  };
+  const reportOptions = { timestamp: new Date('2026-01-01T00:00:00.000Z') };
+  const reportPaths = await nodeApi.writeResults(result, { ...reportConfig, dirPath: '/reports' }, true, reportOptions);
+  assert.deepEqual(Array.from(reportPaths), [
+    '/reports/test-result-default.json',
+    '/reports/test-result-default-junit.xml',
+    '/reports/test-result-default-tap.txt',
+    '/reports/test-result-default.md',
+    '/reports/test-result-default.txt',
+    '/reports/test-result-default-codecoverage.json',
+    '/reports/extra.txt'
+  ]);
+  assert.equal(
+    await nodeApi.read('/reports/test-result-default.json'),
+    JSON.stringify({ summary: result.summary, tests: result.tests })
+  );
+  assert.equal(await nodeApi.read('/reports/extra.txt'), 'résultats 🦊\r\n');
+  assert.deepEqual(
+    Array.from(await nodeApi.list('/reports')).sort(),
+    Array.from(reportPaths, path => path.split('/').pop()).sort()
+  );
+
+  // Compare every format byte-for-byte with the same packed package on the real Node filesystem.
+  const { TestService } = await import(pathToFileURL(join(installedPackage, 'out/src/index.js')).href);
+  const nodePaths = await new TestService({}).writeResultFiles(
+    result,
+    { ...reportConfig, dirPath: join(consumerRoot, 'node-reports') },
+    true,
+    reportOptions
+  );
+  assert.equal(nodePaths.length, reportPaths.length);
+  for (const [index, nodePath] of nodePaths.entries()) {
+    assert.equal(await nodeApi.read(reportPaths[index]), readFileSync(nodePath, 'utf8'));
+  }
+
+  // The packed Promise adapter preserves typed errors and already committed files in the web filesystem.
+  await nodeApi.mkdir('/partial');
+  await assert.rejects(
+    nodeApi.writeResults(
+      { testRunId: '707000000000002AAA' },
+      {
+        dirPath: '/partial',
+        fileInfos: [{ filename: 'missing/extra.txt', content: 'missing parent directory' }]
+      }
+    ),
+    error =>
+      error._tag === 'PartialResultFilesError' &&
+      error.cause._tag === 'FileOutputError' &&
+      error.cause.operation === 'writeFile' &&
+      JSON.stringify(error.writtenFiles) === JSON.stringify(['/partial/test-run-id.txt'])
+  );
+  assert.deepEqual(Array.from(await nodeApi.list('/partial')), ['test-run-id.txt']);
 } finally {
   rmSync(consumerRoot, { recursive: true, force: true });
 }

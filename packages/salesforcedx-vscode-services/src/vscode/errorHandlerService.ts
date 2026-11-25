@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { getErrorMessage as getRawErrorMessage } from '@salesforce/salesforcedx-utils';
 import * as Cause from 'effect/Cause';
 import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
@@ -48,13 +49,13 @@ const isRecoverableOrgChangeInterruption = (error: unknown): boolean =>
 const getBaseMessage = (error: unknown): string => {
   if (isError(error)) {
     const innerCause = hasCause(error) ? error.cause : undefined;
-    return isError(innerCause) ? getBaseMessage(innerCause) : error.message;
+    return isError(innerCause) ? getBaseMessage(innerCause) : getRawErrorMessage(error);
   }
   if (isRecord(error) && 'message' in error) {
     const msg = Reflect.get(error, 'message');
     if (isString(msg)) return msg;
   }
-  return String(error);
+  return getRawErrorMessage(error);
 };
 
 /**

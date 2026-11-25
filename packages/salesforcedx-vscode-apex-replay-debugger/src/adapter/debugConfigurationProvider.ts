@@ -16,6 +16,7 @@ import type { ApexVSCodeApi } from 'salesforcedx-vscode-apex';
 import * as vscode from 'vscode';
 import { getDialogStartingPath, updateLastOpened } from '../activation/getDialogStartingPath';
 import { DEBUGGER_LAUNCH_TYPE, DEBUGGER_TYPE } from '../debuggerConstants';
+import { waitForLanguageClientReady } from '../languageClientReady';
 import { nls } from '../messages';
 import { fetchHeapDumpOverlayResults } from '../services/heapDumpOverlayFetch';
 import { resolveReplaySourceUris } from '../services/replaySourceUris';
@@ -48,6 +49,7 @@ const selectLogFile = Effect.fn('ApexReplayDebugger.selectLogFile')(function* (
   if ((config.logFile ?? LOG_FILE_PROMPT) !== LOG_FILE_PROMPT) return undefined;
 
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const promptService = yield* api.services.PromptService;
   const defaultUri = yield* getDialogStartingPath(extensionContext);
   const fileUris = yield* Effect.promise(() =>
     vscode.window.showOpenDialog({
@@ -56,8 +58,7 @@ const selectLogFile = Effect.fn('ApexReplayDebugger.selectLogFile')(function* (
       canSelectMany: false,
       defaultUri
     })
-  );
-  if (fileUris?.length !== 1) return yield* new api.services.UserCancellationError();
+  ).pipe(Effect.flatMap(promptService.considerEmptySelectionAsCancellation));
 
   const filePath = fileUris[0].fsPath;
   yield* Effect.sync(() => updateLastOpened(extensionContext, fileUris[0]));
@@ -193,22 +194,10 @@ export class DebugConfigurationProvider implements vscode.DebugConfigurationProv
   private async isLanguageClientReady(apexApi: {
     languageClientManager: Pick<ApexVSCodeApi['languageClientManager'], 'getStatus'>;
   }): Promise<void> {
-    let expired = false;
-    let i = 0;
-    while (!apexApi.languageClientManager.getStatus().isReady() && !expired) {
-      if (apexApi.languageClientManager.getStatus().failedToInitialize()) {
-        throw Error(apexApi.languageClientManager.getStatus().getStatusMessage());
-      }
-
-      await new Promise(resolve => setTimeout(resolve, 100));
-      if (i >= 30) {
-        expired = true;
-      }
-      i++;
-    }
-    if (expired) {
-      throw new Error(nls.localize('language_client_not_ready'));
-    }
+    const ready = await getRuntime().runPromise(
+      waitForLanguageClientReady(() => apexApi.languageClientManager.getStatus())
+    );
+    if (!ready) throw new Error(nls.localize('language_client_not_ready'));
   }
 }
 
@@ -296,7 +285,7 @@ const findMatchingSourceFile = async (source: string): Promise<SourceMatch | und
       const sourceLines = source.trimEnd().split(/\r?\n/);
       for (const candidate of candidates) {
         const result = yield* Effect.option(api.services.FsService.readFile(candidate.fsPath));
-        if (result._tag !== 'Some') {
+        if (Option.isNone(result)) {
           continue;
         }
         // Exact match (whole file is the source, e.g. a .apex file)

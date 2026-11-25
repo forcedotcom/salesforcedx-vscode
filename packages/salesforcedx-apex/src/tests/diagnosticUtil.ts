@@ -5,9 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { getDiagnostic as getTestDiagnostic } from '../effect/diagnostics';
+import { getDiagnostic as getTestDiagnostic, type ApexDiagnostic } from '../effect/diagnostics';
 import { nls } from '../i18n';
-import { type ApexDiagnostic } from '../utils';
 import { type ApexTestResultRecord, type SyncTestFailure } from './types';
 
 export function formatTestErrors(error: Error): Error {

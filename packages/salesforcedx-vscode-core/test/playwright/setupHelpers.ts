@@ -6,7 +6,6 @@
  */
 
 import type { Page } from '@playwright/test';
-import type { AuthFields } from '@salesforce/core';
 import {
   createMinimalOrg,
   waitForVSCodeWorkbench,
@@ -20,14 +19,12 @@ import {
 } from '@salesforce/playwright-vscode-ext';
 import { OUTPUT_CHANNEL } from './constants';
 
-type OrgAuthResult = Required<Pick<AuthFields, 'instanceUrl' | 'accessToken' | 'instanceApiVersion'>>;
-
 /**
  * Shared setup: create org, workbench, auth, core commands, output channel.
  * Used by deployAndRetrieve, pushAndPull, metadataDeployRetrieve, manifestBuilder, delete, deployOnSave.
  */
 export const setupWorkbenchSettingsAndOutputChannel = async (page: Page): Promise<void> => {
-  const createResult: OrgAuthResult = await createMinimalOrg();
+  const createResult = await createMinimalOrg();
   await waitForVSCodeWorkbench(page);
   await closeWelcomeTabs(page);
   await ensureSecondarySideBarHidden(page);

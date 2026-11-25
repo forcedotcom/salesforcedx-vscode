@@ -17,3 +17,10 @@ const nodeBuild = await build({
 });
 
 await writeFile('dist/node-metafile.json', JSON.stringify(nodeBuild.metafile, null, 2));
+
+await build({
+  ...nodeConfig,
+  external: ['vscode'],
+  entryPoints: ['../salesforcedx-apex-debugger/out/src/adapter/apexDebug.js'],
+  outfile: 'dist/apexDebug.js'
+});

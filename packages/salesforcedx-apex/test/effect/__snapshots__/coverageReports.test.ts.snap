@@ -1,0 +1,12 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`Effect coverage reports > defaults to text-summary, nested summarization, and the existing watermarks 1`] = `
+"
+=============================== Coverage summary ===============================
+Statements   : 50% ( 1/2 )
+Branches     : 100% ( 0/0 )
+Functions    : 100% ( 0/0 )
+Lines        : 50% ( 1/2 )
+================================================================================
+"
+`;

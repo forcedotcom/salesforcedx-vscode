@@ -13,6 +13,12 @@ const ruleTester = new RuleTester();
 ruleTester.run('no-vscode-progress-title-literals', noVscodeProgressTitleLiterals, {
   valid: [
     {
+      code: `promptService.withProgressReporting({ command: 'SFDX: Retrieve', title: nls.localize('fetching_metadata'), cancellable: true })(work);`
+    },
+    {
+      code: `promptService.withProgress({ command: 'SFDX: Retrieve', title: nls.localize('fetching_metadata'), cancellable: false })(fetchMetadata);`
+    },
+    {
       code: `vscode.window.withProgress(
         { location: vscode.ProgressLocation.Notification, title: nls.localize('checking_conflicts'), cancellable: false },
         () => tracking.reReadLocalTrackingCache()
@@ -38,15 +44,19 @@ ruleTester.run('no-vscode-progress-title-literals', noVscodeProgressTitleLiteral
       options: []
     },
     {
-      code: `fetchMetadata().pipe(promptService.withProgress(nls.localize('fetching_metadata')));`,
-      options: []
-    },
-    {
-      code: `const title = nls.localize('fetching_metadata'); fetchMetadata().pipe(promptService.withProgress(title));`,
+      code: `const title = nls.localize('fetching_metadata'); promptService.withProgress({ title, location, cancellable: false })(fetchMetadata);`,
       options: []
     }
   ],
   invalid: [
+    ...['withProgress', 'withProgressReporting'].map(method => ({
+      code: `promptService.${method}({ command, title: 'Fetching metadata', cancellable: true })(work);`,
+      errors: [{ messageId: 'noLiteral' as const }]
+    })),
+    {
+      code: `promptService.withProgress({ command, title: 'Fetching metadata', cancellable: false })(fetchMetadata);`,
+      errors: [{ messageId: 'noLiteral' }]
+    },
     {
       code: `vscode.window.withProgress(
         { location: vscode.ProgressLocation.Notification, title: 'Checking for conflicts', cancellable: false },
@@ -63,11 +73,7 @@ ruleTester.run('no-vscode-progress-title-literals', noVscodeProgressTitleLiteral
       errors: [{ messageId: 'noLiteral' }]
     },
     {
-      code: `fetchMetadata().pipe(promptService.withProgress('Fetching metadata…'));`,
-      errors: [{ messageId: 'noLiteral' }]
-    },
-    {
-      code: `const t = 'Fetching metadata…'; fetchMetadata().pipe(promptService.withProgress(t));`,
+      code: `const t = 'Fetching metadata…'; promptService.withProgress({ title: t, location, cancellable: false })(fetchMetadata);`,
       errors: [{ messageId: 'noLiteral' }]
     }
   ]

@@ -14,8 +14,8 @@ const hrtime = time => {
   return [Math.floor(now / 1000), Math.floor((now % 1000) * 1000000)];
 };
 
-// Current working directory - return empty string for browser
-const cwd = () => '';
+// Use the memfs root so path resolution is absolute and ancestor searches terminate at '/'.
+const cwd = () => '/';
 
 // Platform detection - return 'browser' for browser environment
 const platform = 'browser';

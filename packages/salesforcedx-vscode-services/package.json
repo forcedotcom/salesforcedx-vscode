@@ -15,7 +15,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "68.9.5",
+  "version": "68.15.7",
   "publisher": "salesforce",
   "o11yUploadEndpoint": "https://794testsite.my.site.com/byolwr/webruntime/log/metrics",
   "enableO11y": "true",
@@ -29,10 +29,10 @@
   ],
   "dependencies": {
     "@azure/monitor-opentelemetry-exporter": "^1.0.0-beta.43",
-    "@effect/opentelemetry": "0.63.0",
-    "@effect/platform": "^0.96.1",
-    "@effect/platform-node-shared": "0.59.0",
-    "@jsforce/jsforce-node": "^3.10.24",
+    "@effect/opentelemetry": "0.64.0",
+    "@effect/platform": "^0.97.3",
+    "@effect/platform-node-shared": "0.61.2",
+    "@jsforce/jsforce-node": "^3.13.1",
     "@opentelemetry/api": "1.9.1",
     "@opentelemetry/core": "2.8.0",
     "@opentelemetry/exporter-trace-otlp-http": "0.219.0",
@@ -43,17 +43,17 @@
     "@opentelemetry/sdk-trace-node": "2.8.0",
     "@opentelemetry/sdk-trace-web": "2.8.0",
     "@salesforce/apex-node": "workspace:*",
-    "@salesforce/core": "^9.3.6",
+    "@salesforce/core": "^9.6.0",
     "@salesforce/o11y-reporter": "^1.8.5",
     "@salesforce/salesforcedx-utils": "workspace:*",
-    "@salesforce/source-deploy-retrieve": "^13.5.0",
-    "@salesforce/source-tracking": "^8.1.7",
-    "@salesforce/templates": "^66.17.4",
+    "@salesforce/source-deploy-retrieve": "^13.14.1",
+    "@salesforce/source-tracking": "^8.1.16",
+    "@salesforce/templates": "^66.19.0",
     "@salesforce/vscode-i18n": "workspace:*",
     "@vscode/extension-telemetry": "^1.0.0",
     "cross-spawn": "7.0.6",
-    "effect": "^3.21.2",
-    "jsforce": "^3.10.24",
+    "effect": "^3.22.4",
+    "jsforce": "^3.13.1",
     "o11y_schema": "^264.89.0",
     "vscode-uri": "^3.1.0"
   },
@@ -69,14 +69,15 @@
     "build:icons": "wireit",
     "vscode:bundle": "wireit",
     "vscode:package": "wireit",
-    "vscode:sha256": "node ../../scripts/generate-sha256.js >> ../../SHA256",
-    "vscode:publish": "node ../../scripts/publish-vsix.js",
+    "vscode:sha256": "node ../../scripts/generateSha256.mts >> ../../SHA256",
+    "vscode:publish": "node ../../scripts/publishVsix.mts",
     "compile": "wireit",
     "generate-types": "wireit",
     "lint": "wireit",
     "clean": "shx rm -rf node_modules out dist coverage .nyc_output .wireit .eslintcache *.vsix .circular-deps.json resources",
     "test": "wireit",
     "run:web": "wireit",
+    "test:container": "wireit",
     "test:web": "wireit",
     "test:web:ui": "DEBUG_MODE=1 pnpm --dir ../.. --filter ./packages/salesforcedx-vscode-services test:web --headed",
     "test:web:debug": "pnpm --dir ../.. --filter ./packages/salesforcedx-vscode-services test:web --debug",
@@ -100,7 +101,7 @@
       ]
     },
     "compile": {
-      "command": "tsc --pretty",
+      "command": "tsc --pretty && tsc -p scripts/tsconfig.json",
       "clean": "if-file-deleted",
       "dependencies": [
         "build:icons",
@@ -111,6 +112,9 @@
       ],
       "files": [
         "src/**/*.ts",
+        "scripts/**/*.mts",
+        "scripts/tsconfig.json",
+        "../../scripts/tsconfig.native.json",
         "tsconfig.json",
         "../../tsconfig.common.json",
         "package.json",
@@ -121,10 +125,10 @@
       ]
     },
     "generate-types": {
-      "command": "ts-node ../salesforcedx-vscode-services-types/scripts/generateEntry.ts && ts-node ../salesforcedx-vscode-services-types/scripts/syncDeps.ts",
+      "command": "node ../salesforcedx-vscode-services-types/scripts/generateEntry.mts && node ../salesforcedx-vscode-services-types/scripts/syncDeps.mts",
       "files": [
         "src/**/*.ts",
-        "../salesforcedx-vscode-services-types/scripts/*.ts"
+        "../salesforcedx-vscode-services-types/scripts/*.mts"
       ],
       "output": []
     },
@@ -142,6 +146,7 @@
         "esbuild.config.mjs",
         "../../scripts/bundling/node.mjs",
         "../../scripts/bundling/web.mjs",
+        "../../scripts/bundling/process-polyfill.js",
         "../../scripts/bundling/fs-polyfill.js",
         "out/**",
         "node_modules/@salesforce/templates/lib/**",
@@ -166,6 +171,7 @@
         "esbuild.config.mjs",
         "../../scripts/bundling/node.mjs",
         "../../scripts/bundling/web.mjs",
+        "../../scripts/bundling/process-polyfill.js",
         "../../scripts/bundling/fs-polyfill.js",
         "out/**",
         "../../.esbuild-web-extra-settings.json",
@@ -215,7 +221,10 @@
       ],
       "files": [
         "src/**/*.ts",
-        "test/**/*.ts",
+        "scripts/**/*.mts",
+        "scripts/tsconfig.json",
+        "../../scripts/tsconfig.native.json",
+        "test/**/*.{ts,mts}",
         "../../eslint.config.mjs",
         ".vscodeignore",
         "package.json",
@@ -241,6 +250,28 @@
         "*.vsix"
       ]
     },
+    "test:container": {
+      "command": "playwright test --config=test/playwright/playwright.config.container.ts",
+      "env": {
+        "CODE_BUILDER_URL": {
+          "external": true
+        },
+        "CB_GREP": {
+          "external": true
+        },
+        "CB_UNDER_TEST": {
+          "external": true
+        }
+      },
+      "dependencies": [
+        "../playwright-vscode-ext:compile"
+      ],
+      "files": [
+        "test/playwright/**",
+        "package*.json"
+      ],
+      "output": []
+    },
     "test:web": {
       "command": "playwright test --config=test/playwright/playwright.config.web.ts",
       "env": {
@@ -254,7 +285,7 @@
         "spans:server"
       ],
       "files": [
-        "test/playwright/**/*.ts",
+        "test/playwright/**/*.{ts,mts}",
         "package*.json",
         "../../.github/**"
       ],
@@ -276,19 +307,17 @@
       ]
     },
     "o11y:debug": {
-      "command": "ts-node --project tsconfig.scripts.json scripts/o11yDebugServer.ts",
+      "command": "node scripts/o11yDebugServer.mts",
       "service": true,
       "files": [
-        "scripts/o11yDebugServer.ts",
-        "tsconfig.scripts.json"
+        "scripts/o11yDebugServer.mts"
       ]
     },
     "spans:server": {
-      "command": "ts-node --project tsconfig.scripts.json scripts/spanFileServer.ts",
+      "command": "node scripts/spanFileServer.mts",
       "service": true,
       "files": [
-        "scripts/spanFileServer.ts",
-        "tsconfig.scripts.json"
+        "scripts/spanFileServer.mts"
       ]
     },
     "test:compile": {
@@ -298,7 +327,7 @@
         "../playwright-vscode-ext:compile"
       ],
       "files": [
-        "test/**/*.ts",
+        "test/**/*.{ts,mts}",
         "test/tsconfig.json"
       ],
       "output": []

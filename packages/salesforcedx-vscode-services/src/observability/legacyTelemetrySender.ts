@@ -22,7 +22,8 @@ import { setSpanCreationIdentity } from './spanTransformProcessor';
 import { UNAUTHENTICATED_USER } from './webUserId';
 
 // legacy install-stats key fallback, not services span default
-export const LEGACY_DEFAULT_AI_CONNECTION_STRING = 'InstrumentationKey=ec3632a4-df47-47a4-98dc-8134cacbaf7e';
+export const LEGACY_DEFAULT_AI_CONNECTION_STRING =
+  'InstrumentationKey=ec3632a4-df47-47a4-98dc-8134cacbaf7e;IngestionEndpoint=https://eastus-1.in.applicationinsights.azure.com/;LiveEndpoint=https://eastus.livediagnostics.monitor.azure.com/;ApplicationId=979a1e0f-0487-4941-85f5-85ef1ebb7919';
 
 // marker attributing spans to the legacy TelemetryService path; doubles as queryable dimension
 export const LEGACY_TELEMETRY_SOURCE_ATTR = 'telemetrySource';

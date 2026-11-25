@@ -45,6 +45,7 @@ import {
   ExtensionProviderService,
   type ExtensionProviderService as ExtensionProviderServiceType
 } from '@salesforce/effect-ext-utils';
+import { type ComponentSetService, type SalesforceVSCodeServicesApi } from 'salesforcedx-vscode-services';
 import { NotificationModeService } from 'salesforcedx-vscode-services/src/vscode/notificationModeService';
 import * as vscode from 'vscode';
 import { Effect, Layer } from 'effect';
@@ -53,7 +54,6 @@ import * as Option from 'effect/Option';
 import * as Redacted from 'effect/Redacted';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
 import { activateEffect, deactivateEffect } from '../../src/index';
-import { type ComponentSetService } from 'salesforcedx-vscode-services/src/core/componentSetService';
 import { ConnectionService } from 'salesforcedx-vscode-services/src/core/connectionService';
 import { ProjectService } from 'salesforcedx-vscode-services/src/core/projectService';
 import { type MetadataDeleteService } from 'salesforcedx-vscode-services/src/core/metadataDeleteService';
@@ -73,12 +73,13 @@ import { OrgMetadataCatalog } from 'salesforcedx-vscode-services/src/orgCatalog/
 import { ChannelService } from 'salesforcedx-vscode-services/src/vscode/channelService';
 import { ErrorHandlerService } from 'salesforcedx-vscode-services/src/vscode/errorHandlerService';
 import { ExtensionContextService } from 'salesforcedx-vscode-services/src/vscode/extensionContextService';
-import type { SalesforceVSCodeServicesApi } from 'salesforcedx-vscode-services';
-import { createMockOutputChannel } from 'salesforcedx-vscode-services/test/unit/testUtils';
 import { OrgBrowserRetrieveService } from '../../src/services/orgBrowserMetadataRetrieveService';
 import type { Connection } from '@salesforce/core';
 import type { ConfigAggregator } from '@salesforce/core/configAggregator';
 import { URI } from 'vscode-uri';
+
+const createMockOutputChannel = (): vscode.OutputChannel =>
+  ({ appendLine: vi.fn(), show: vi.fn() }) as unknown as vscode.OutputChannel;
 
 // 1. Full OutputChannel mock
 const mockAppendLine = vi.fn();

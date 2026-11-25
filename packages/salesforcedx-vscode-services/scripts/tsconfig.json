@@ -1,8 +1,4 @@
 {
-  "extends": "../tsconfig.json",
-  "compilerOptions": {
-    "noEmit": true,
-    "composite": false
-  },
-  "include": ["**/*.ts"]
+  "extends": "../../../scripts/tsconfig.native.json",
+  "include": ["**/*.mts"]
 }

@@ -39,6 +39,31 @@ See the [package source](https://github.com/forcedotcom/salesforcedx-vscode/tree
 
 > Note: the desktop test factory (`createDesktopTest`) currently assumes a monorepo layout where extension VSIX paths are resolved relative to a repo root containing `packages/`. It is primarily intended for use inside the `salesforcedx-vscode` monorepo; external consumers should use the web/headless and helper exports.
 
+### Recording after setup
+
+Shared configs disable runner and trace screenshots; explicit `saveScreenshot` calls still work.
+
+For fixture-controlled video, set `use.video: 'off'` in web/container configs and pass `recordVideo: false` to `createDesktopTest`. Shared trace configs already disable screenshots, avoiding a competing screencast. Start recording after setup, then finalize and attach the video before teardown, including on test failure:
+
+```typescript
+import { startVideoRecording } from '@salesforce/playwright-vscode-ext';
+
+const test = platformTest.extend<{ recording: void }>({
+  recording: [
+    async ({ page }, use, testInfo) => {
+      await setup(page);
+      const stopRecording = await startVideoRecording(page, testInfo);
+      try {
+        await use();
+      } finally {
+        await stopRecording();
+      }
+    },
+    { auto: true }
+  ]
+});
+```
+
 ## Repository
 
 This package is developed in the [salesforcedx-vscode](https://github.com/forcedotcom/salesforcedx-vscode) monorepo. File issues and feature requests at <https://github.com/forcedotcom/salesforcedx-vscode/issues>.

@@ -6,6 +6,7 @@
  */
 
 import { expect, type Page } from '@playwright/test';
+import { getErrorMessage } from '@salesforce/salesforcedx-utils';
 import { saveScreenshot } from '../shared/screenshotUtils';
 import { isDesktop } from '../utils/helpers';
 import { EDITOR, CONTEXT_MENU, EDITOR_WITH_URI, TAB, QUICK_INPUT_LIST_ROW } from '../utils/locators';
@@ -97,17 +98,12 @@ const restoreOutputPanel = async (page: Page): Promise<void> => {
   }
 };
 
-/**
- * Desktop workaround: filter does not reliably work on Electron for streamed content.
- * Fast path: check visible content immediately (works when channel is clear and output is short).
- * Bounded sweep top→bottom then bottom→top; exit as soon as the text or a failure marker is in view.
- * Panel should be maximized before calling this so more lines are visible per step.
- */
-const waitForOutputChannelTextDesktopWorkaround = async (
+/** Bounded sweep of virtualized output; maximize the panel before calling. */
+const sweepOutputChannel = async (
   page: Page,
-  expectedText: string,
+  matches: () => Promise<boolean>,
   timeout: number,
-  checkChannelFailure: (text: string) => boolean
+  failureMessage: () => string | Promise<string>
 ): Promise<void> => {
   const codeArea = outputPanelCodeArea(page);
   // Output actions toolbar overlays the code area. Focus it directly before keyboard paging.
@@ -115,32 +111,45 @@ const waitForOutputChannelTextDesktopWorkaround = async (
 
   // Fewer steps needed when panel is maximized; 30 each direction covers very long output
   const PAGE_STEPS = 30;
-  const settle = (text: string): boolean => checkChannelFailure(text) || text.includes(expectedText);
-
   await expect(async () => {
     // Fast path: text may already be in the visible viewport
-    if (settle(await getAllOutputText(page))) return;
+    if (await matches()) return;
 
     // Sweep top → bottom
     await page.keyboard.press('Control+Home');
     for (let i = 0; i < PAGE_STEPS; i++) {
-      if (settle(await getAllOutputText(page))) return;
+      if (await matches()) return;
       await page.keyboard.press('PageDown');
     }
 
     // Sweep bottom → top
     await page.keyboard.press('Control+End');
     for (let i = 0; i < PAGE_STEPS; i++) {
-      if (settle(await getAllOutputText(page))) return;
+      if (await matches()) return;
       await page.keyboard.press('PageUp');
     }
 
-    // Diagnostic: include a sample of what was visible at the end of the sweep
-    const lastText = await getAllOutputText(page);
-    if (settle(lastText)) return;
-    const sample = channelSample(lastText);
-    throw new Error(`Expected "${expectedText}" in output. Last visible content: ${sample || '(empty)'}`);
+    if (await matches()) return;
+    throw new Error(await failureMessage());
   }).toPass({ timeout });
+};
+
+/** Evaluate a browser-only predicate while paging output; failure messages never include output text. */
+export const waitForOutputChannelPredicate = async (
+  page: Page,
+  opts: { predicate: (lines: Element[]) => boolean; message: string; timeout?: number }
+): Promise<void> => {
+  await maximizeOutputPanel(page);
+  try {
+    await sweepOutputChannel(
+      page,
+      () => outputPanelCodeArea(page).locator('.view-line').evaluateAll(opts.predicate),
+      opts.timeout ?? 30_000,
+      () => opts.message
+    );
+  } finally {
+    await restoreOutputPanel(page);
+  }
 };
 
 /** wait for output channel to contain text. Throws if not found. Assumes output has content. */
@@ -148,8 +157,12 @@ const waitForOutputChannelTextCommon = async (
   page: Page,
   expectedText: string,
   timeout: number,
-  failIfChannelIncludes?: readonly string[]
+  failIfChannelIncludes?: readonly string[],
+  expectedPattern?: RegExp
 ): Promise<void> => {
+  const matches = (text: string): boolean =>
+    text.includes(expectedText) && (expectedPattern === undefined || expectedPattern.test(text));
+  const expectedDescription = expectedPattern === undefined ? `"${expectedText}"` : `${expectedPattern}`;
   const channelFailure: { sample?: string } = {};
   // Return from `toPass` on a marker hit; throwing inside its callback would retry until timeout.
   const checkChannelFailure = (text: string): boolean => {
@@ -160,7 +173,16 @@ const waitForOutputChannelTextCommon = async (
   };
 
   if (isDesktop()) {
-    await waitForOutputChannelTextDesktopWorkaround(page, expectedText, timeout, checkChannelFailure);
+    await sweepOutputChannel(
+      page,
+      async () => {
+        const text = await getAllOutputText(page);
+        return checkChannelFailure(text) || matches(text);
+      },
+      timeout,
+      async () =>
+        `Expected ${expectedDescription} in output. Last visible content: ${channelSample(await getAllOutputText(page)) || '(empty)'}`
+    );
   } else {
     // Web: use filter input (works reliably on web)
     const input = await ensureOutputFilterReady(page, Math.min(timeout, 15_000));
@@ -177,8 +199,8 @@ const waitForOutputChannelTextCommon = async (
         const combinedText = await getAllOutputText(page);
         const sample = channelSample(combinedText);
         expect(
-          combinedText.includes(expectedText),
-          `Expected "${expectedText}" in output. Last visible content: ${sample || '(empty)'}`
+          matches(combinedText),
+          `Expected ${expectedDescription} in output. Last visible content: ${sample || '(empty)'}`
         ).toBe(true);
       }).toPass({ timeout });
     } finally {
@@ -296,13 +318,10 @@ export const outputChannelContains = async (
   const shouldRestorePanel = isDesktop();
   if (shouldRestorePanel) await maximizeOutputPanel(page);
 
-  const safeName = searchText.replaceAll(/[^a-zA-Z0-9]/g, '_');
   try {
     await waitForOutputChannelTextCommon(page, searchText, timeout);
-    await page.screenshot({ path: `test-results/filter-${safeName}.png` });
     return true;
   } catch {
-    await page.screenshot({ path: `test-results/filter-${safeName}.png` });
     return false;
   } finally {
     if (shouldRestorePanel) await restoreOutputPanel(page);
@@ -326,14 +345,18 @@ export const clearOutputChannel = async (page: Page): Promise<void> => {
   }).toPass({ timeout: 2000 });
 };
 
-/** Wait for output channel text, checking failure markers before expected text in each visible sample. */
+/**
+ * Wait for output channel text, checking failure markers before expected text in each visible sample.
+ * `expectedPattern`, when set, must also match: `expectedText` stays the plain substring the web filter
+ * narrows by, while the pattern can assert what a filter string can't (e.g. a variable column gap).
+ */
 export const waitForOutputChannelText = async (
   page: Page,
-  opts: { expectedText: string; timeout?: number; failIfChannelIncludes?: readonly string[] }
+  opts: { expectedText: string; expectedPattern?: RegExp; timeout?: number; failIfChannelIncludes?: readonly string[] }
 ): Promise<void> => {
-  const { expectedText, timeout = 30_000, failIfChannelIncludes } = opts;
+  const { expectedText, expectedPattern, timeout = 30_000, failIfChannelIncludes } = opts;
 
-  if (!(await waitForOutputContent(page, Math.min(timeout, 30_000)))) {
+  if (!(await waitForOutputContent(page, Math.min(timeout, 60_000)))) {
     throw new Error(`Output channel did not have content within ${timeout}ms`);
   }
 
@@ -341,7 +364,7 @@ export const waitForOutputChannelText = async (
   const shouldRestorePanel = isDesktop();
   if (shouldRestorePanel) await maximizeOutputPanel(page);
   try {
-    await waitForOutputChannelTextCommon(page, expectedText, timeout, failIfChannelIncludes);
+    await waitForOutputChannelTextCommon(page, expectedText, timeout, failIfChannelIncludes, expectedPattern);
   } finally {
     if (shouldRestorePanel) await restoreOutputPanel(page);
   }
@@ -392,9 +415,7 @@ export const captureOutputChannelDetails = async (
   } catch (error) {
     // Fallback: if opening in editor fails (e.g., "More Actions" button not available in web),
     // just screenshot the output panel directly
-    console.log(
-      `Failed to open output in editor (${error instanceof Error ? error.message : String(error)}), falling back to output panel screenshot`
-    );
+    console.log(`Failed to open output in editor (${getErrorMessage(error)}), falling back to output panel screenshot`);
     await saveScreenshot(page, `test-results/${screenshotFileName}`, true);
   }
 };

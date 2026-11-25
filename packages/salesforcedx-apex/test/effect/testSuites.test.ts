@@ -41,11 +41,10 @@ describe('Effect suite discovery', () => {
       records: [{ TestSuiteName: 'MySuite' }]
     });
 
-    expect(await Effect.runPromise(retrieveAllSuites(connection).pipe(Effect.flip))).toMatchObject({
-      _tag: 'ApexResponseDecodeError',
-      operation: 'retrieveAllSuites',
-      message: 'Invalid query response'
-    });
+    const error = await Effect.runPromise(retrieveAllSuites(connection).pipe(Effect.flip));
+    expect(error._tag).toBe('ApexResponseDecodeError');
+    expect(error.operation).toBe('retrieveAllSuites');
+    expect(error.message).toContain('Id');
   });
 
   it('rejects a suite record with a non-suite ID', async () => {
@@ -55,11 +54,10 @@ describe('Effect suite discovery', () => {
       records: [{ Id: '01p000000000001', TestSuiteName: 'MySuite' }]
     });
 
-    expect(await Effect.runPromise(retrieveAllSuites(connection).pipe(Effect.flip))).toMatchObject({
-      _tag: 'ApexResponseDecodeError',
-      operation: 'retrieveAllSuites',
-      message: 'Invalid query response'
-    });
+    const error = await Effect.runPromise(retrieveAllSuites(connection).pipe(Effect.flip));
+    expect(error._tag).toBe('ApexResponseDecodeError');
+    expect(error.operation).toBe('retrieveAllSuites');
+    expect(error.message).toContain('Id');
   });
 
   it('rejects an ApexClass query result with a non-class ID', async () => {
@@ -69,11 +67,10 @@ describe('Effect suite discovery', () => {
       records: [{ Id: '05F000000000001' }]
     });
 
-    expect(await Effect.runPromise(getApexClassIds(connection, ['MyClass']).pipe(Effect.flip))).toMatchObject({
-      _tag: 'ApexResponseDecodeError',
-      operation: 'buildSuite',
-      message: 'Invalid query response'
-    });
+    const error = await Effect.runPromise(getApexClassIds(connection, ['MyClass']).pipe(Effect.flip));
+    expect(error._tag).toBe('ApexResponseDecodeError');
+    expect(error.operation).toBe('buildSuite');
+    expect(error.message).toContain('Id');
   });
 
   it('rejects a suite membership with a non-class ID', async () => {
@@ -84,10 +81,9 @@ describe('Effect suite discovery', () => {
     });
 
     const suiteId = Schema.decodeUnknownSync(ApexTestSuiteId)('05F000000000002');
-    expect(await Effect.runPromise(getTestsInSuite(connection, suiteId).pipe(Effect.flip))).toMatchObject({
-      _tag: 'ApexResponseDecodeError',
-      operation: 'getTestsInSuite',
-      message: 'Invalid query response'
-    });
+    const error = await Effect.runPromise(getTestsInSuite(connection, suiteId).pipe(Effect.flip));
+    expect(error._tag).toBe('ApexResponseDecodeError');
+    expect(error.operation).toBe('getTestsInSuite');
+    expect(error.message).toContain('ApexClassId');
   });
 });

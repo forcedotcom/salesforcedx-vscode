@@ -7,11 +7,12 @@
 import {
   type ApexTestProgressValue,
   type AsyncTestConfiguration,
-  HumanReporter,
+  formatHuman,
   type TestResult,
   TestService
 } from '@salesforce/apex-node';
-import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import { ExtensionProviderService, getMessageFromError } from '@salesforce/effect-ext-utils';
+
 import * as Effect from 'effect/Effect';
 import { isError } from 'effect/Predicate';
 import * as Schema from 'effect/Schema';
@@ -20,6 +21,7 @@ import { CancellationTokenSource, type Progress } from 'vscode';
 import { type URI } from 'vscode-uri';
 import { APEX_TESTING_SECTION } from '../constants';
 import { nls } from '../messages';
+import { fileOutputFromFsService } from '../services/fsServiceFileOutput';
 import { writeAndOpenTestReport } from '../utils/testReportGenerator';
 import { writeTestResultJsonFile } from '../utils/testUtils';
 
@@ -107,7 +109,7 @@ const appendTestOutput = Effect.fn('runApexTests.appendTestOutput')(function* (
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const svc = yield* api.services.ChannelService;
   yield* Stream.fromIterable(
-    new HumanReporter().format(result, codeCoverage, concise)?.split(/\r?\n/) ?? [
+    formatHuman(result, codeCoverage, concise)?.split(/\r?\n/) ?? [
       `Test execution completed. Tests ran: ${result.summary.testsRan ?? 0}, Passed: ${result.summary.passing ?? 0}, Failed: ${result.summary.failing ?? 0}`
     ]
   ).pipe(
@@ -126,11 +128,11 @@ export class ApexTestRunError extends Schema.TaggedError<ApexTestRunError>()('Ap
 const rejectionMessages = (error: unknown): readonly string[] =>
   isError(error)
     ? [
-        error.message,
+        getMessageFromError(error),
         ...(isError(error.cause) ? rejectionMessages(error.cause) : []),
         ...(error instanceof AggregateError ? error.errors.flatMap((nested: unknown) => rejectionMessages(nested)) : [])
       ]
-    : [String(error)];
+    : [getMessageFromError(error)];
 
 /** Runs Apex tests and writes results. Returns the completed (or soft-failed) test result plus the
  * generated report's location/format for callers to wire into a success toast's "Open Report" action.
@@ -142,11 +144,15 @@ export const runApexTests = Effect.fn('runApexTests')(function* (options: ApexTe
 
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const connection = yield* api.services.ConnectionService.getConnection();
-  const testService = new TestService(connection);
+  const fsService = process.env.ESBUILD_PLATFORM === 'web' ? yield* api.services.FsService : undefined;
+  const testService =
+    fsService === undefined
+      ? new TestService(connection)
+      : new TestService(connection, fileOutputFromFsService(fsService));
 
   // Bridge the fiber's interruption (e.g. user clicks Cancel on the progress notification) to a
   // vscode CancellationToken so apex-node stops polling the org server-side, not just the UI.
-  // The interrupt itself raises UserCancellationError via promptService.withCancellableProgress;
+  // The interrupt itself raises UserCancellationError via promptService.withProgress;
   // apex-node never throws on cancel (it returns null once the token is set), so there is no
   // cancellation result to catch here.
   const tokenSource = new CancellationTokenSource();

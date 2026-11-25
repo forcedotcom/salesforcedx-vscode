@@ -9,11 +9,11 @@ import { type ExtensionContext } from 'vscode';
 import { registerLwcTestCodeLensProvider } from './codeLens/lwcTestCodeLensProvider';
 import { registerCommands } from './commands';
 import { registerLwcTestController } from './testExplorer/lwcTestController';
-import { lwcTestIndexer } from './testIndexer';
+import { lwcTestIndexer } from './testIndexer/lwcTestIndexer';
 import { taskService } from './testRunner/taskService';
 import { testResultsWatcher } from './testRunner/testResultsWatcher';
 import { startWatchingEditorFocusChange } from './utils/context';
-import { workspaceService } from './workspace';
+import { workspaceService } from './workspace/workspaceService';
 
 /**
  * Activate LWC Test support for supported workspace types

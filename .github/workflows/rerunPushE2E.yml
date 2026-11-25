@@ -35,6 +35,7 @@ jobs:
     timeout-minutes: 5
     env:
       GH_TOKEN: ${{ secrets.IDEE_GH_TOKEN }}
+      IDEE_GH_TOKEN: ${{ secrets.IDEE_GH_TOKEN }}
       EVENT: ${{ github.event.workflow_run.event }}
       ACTOR: ${{ github.event.workflow_run.actor.login }}
       CONCLUSION: ${{ github.event.workflow_run.conclusion }}
@@ -49,5 +50,15 @@ jobs:
         with:
           ref: ${{ github.event.repository.default_branch }}
           persist-credentials: false
+      # The TypeScript gate uses effect-octokit, so install and compile dependencies
+      # from this trusted checkout rather than retaining the old zero-install setup.
+      - uses: ./.github/actions/setup-pnpm
+        with:
+          node-version: 24
+          install: 'false'
+      - name: Install gate dependencies
+        uses: ./.github/actions/pnpmInstallWithRetries
+      - name: Compile effect-octokit
+        run: pnpm --filter @salesforce/effect-octokit compile
       - name: Rerun failed jobs
-        run: bash scripts/rerunPushE2EGate.sh
+        run: node scripts/rerunPushE2EGate.mts

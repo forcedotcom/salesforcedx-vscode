@@ -57,6 +57,10 @@ export const goToLineColumn = (page: Page, options?: OpenCommandPaletteOptions):
 export const selectAll = (page: Page, options?: OpenCommandPaletteOptions): Promise<void> =>
   executeCommandWithCommandPalette(page, 'Select All', undefined, options);
 
+/** Select the enclosing brackets and their contents. */
+export const selectToBracket = (page: Page, options?: OpenCommandPaletteOptions): Promise<void> =>
+  executeCommandWithCommandPalette(page, 'Select to Bracket', undefined, options);
+
 /** `Paste` */
 export const paste = (page: Page, options?: OpenCommandPaletteOptions): Promise<void> =>
   executeCommandWithCommandPalette(page, 'Paste', undefined, options);

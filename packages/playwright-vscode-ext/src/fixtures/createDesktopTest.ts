@@ -8,8 +8,11 @@
 // This is Node.js test infrastructure, not extension code
 import type { WorkerFixtures, TestFixtures } from './desktopFixtureTypes';
 import { test as base, _electron as electron, type ElectronApplication, type Page } from '@playwright/test';
+import { getErrorMessage } from '@salesforce/salesforcedx-utils';
 import { downloadAndUnzipVSCode, resolveCliPathFromVSCodeExecutablePath } from '@vscode/test-electron';
 import * as Data from 'effect/Data';
+import * as Duration from 'effect/Duration';
+import * as Effect from 'effect/Effect';
 import { isNotNull, isNull } from 'effect/Predicate';
 import { spawnSync, type ChildProcess } from 'node:child_process';
 import * as fs from 'node:fs/promises';
@@ -42,7 +45,7 @@ class WindowsDesktopLaunchInstabilityError extends Data.TaggedError('WindowsDesk
 }> {}
 
 const isWindowClosedError = (error: unknown): boolean => {
-  const message = error instanceof Error ? error.message : String(error);
+  const message = getErrorMessage(error);
   return message.includes('has been closed') || message.includes('Target page');
 };
 
@@ -107,14 +110,15 @@ const forceKillProcessGroup = (proc: ChildProcess): void => {
 
 /** Resolve once `proc` exits (via the given event) or after `timeoutMs`, whichever comes first. */
 const awaitProcExit = (proc: ChildProcess, { event, timeoutMs }: { event: 'close' | 'exit'; timeoutMs: number }): Promise<void> =>
-  new Promise<void>(resolve => {
+  Effect.async<void>(resume => {
     if (isNotNull(proc.exitCode)) {
-      resolve();
+      resume(Effect.void);
       return;
     }
-    proc.on(event, () => resolve());
-    setTimeout(resolve, timeoutMs);
-  });
+    const onExit = () => resume(Effect.void);
+    proc.once(event, onExit);
+    return Effect.sync(() => proc.off(event, onExit));
+  }).pipe(Effect.timeoutOption(Duration.millis(timeoutMs)), Effect.asVoid, Effect.runPromise);
 
 type CreateDesktopTestOptions = {
   /** __dirname from the calling extension's fixture file (e.g., '<pkg>/test/playwright/fixtures') */
@@ -146,6 +150,8 @@ type CreateDesktopTestOptions = {
    * Defaults to false; set E2E_FROM_VSIX=1 to enable without code changes.
    */
   useVsix?: boolean;
+  /** Set false when the calling fixture starts recording after setup with page.screencast. Default true. */
+  recordVideo?: boolean;
 };
 
 /**
@@ -187,7 +193,8 @@ export const createDesktopTest = (options: CreateDesktopTestOptions) => {
     skipCurrentPackage = false,
     disableOtherExtensions = true,
     userSettings,
-    beforeLaunch
+    beforeLaunch,
+    recordVideo = true
   } = options;
 
   const useVsix = options.useVsix ?? process.env.E2E_FROM_VSIX === '1';
@@ -280,7 +287,9 @@ export const createDesktopTest = (options: CreateDesktopTestOptions) => {
         extensionPath => `--extensionDevelopmentPath=${path.resolve(packageRoot, extensionPath)}`
       );
       const videosDir = path.join(packageRoot, 'test-results', 'videos');
-      await fs.mkdir(videosDir, { recursive: true });
+      if (recordVideo) {
+        await fs.mkdir(videosDir, { recursive: true });
+      }
 
       // Explicitly disable built-in GitHub/Microsoft/Copilot/Chat extensions that can trigger
       // sign-in modals or the GitHub OAuth browser tab on startup. `--disable-extensions` only
@@ -354,10 +363,9 @@ export const createDesktopTest = (options: CreateDesktopTestOptions) => {
             VSCODE_DESKTOP: '1'
           } as Record<string, string>,
           timeout: 60_000,
-          recordVideo: {
-            dir: videosDir,
-            size: { width: 1920, height: 1080 }
-          }
+          recordVideo: recordVideo
+            ? { dir: videosDir, size: { width: 1920, height: 1080 } }
+            : undefined
         });
 
       // Best-effort kill of one app instance so a relaunch (or teardown) does not leak processes.
@@ -377,10 +385,10 @@ export const createDesktopTest = (options: CreateDesktopTestOptions) => {
           console.log(`[teardown] exitCode=${proc?.exitCode} killed=${proc?.killed}`);
         } else {
           try {
-            await Promise.race([
-              app.close(),
-              new Promise<false>(resolve => setTimeout(() => resolve(false), CLOSE_TIMEOUT_MS))
-            ]);
+            await Effect.promise(() => app.close()).pipe(
+              Effect.timeoutOption(Duration.millis(CLOSE_TIMEOUT_MS)),
+              Effect.runPromise
+            );
           } catch {}
           // Force-kill if close didn't work (Windows timeout fallback)
           if (isNull(proc?.exitCode) && process.platform === 'win32') {
@@ -483,14 +491,9 @@ export const createDesktopTest = (options: CreateDesktopTestOptions) => {
       await page.pause();
     }
 
-    // Rename video with test name for easy identification
-    const video = page.video();
-    if (video) {
-      const videoPath = await video.path();
-      const safeName = testInfo.titlePath.join('-').replaceAll(/[^a-zA-Z0-9-]/g, '_');
-      const newPath = path.join(path.dirname(videoPath), `${safeName}.webm`);
-      await fs.rename(videoPath, newPath).catch(() => {});
-    }
+    // Do not rename page.video().path() here: Playwright still owns the temporary file until
+    // the browser context closes, and renaming it in afterEach prevents Playwright from saving
+    // the video artifact. The native video.webm attachment is finalized during fixture teardown.
   });
   return test;
 };

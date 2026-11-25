@@ -41,9 +41,6 @@ import { nls } from './messages';
 import { buildAllServicesLayer, setAllServicesLayer } from './services/extensionProvider';
 import { disposeRuntime, getRuntime } from './services/runtime';
 
-export { retrieveLineBreakpointInfo } from './apexExtension';
-export { writeToDebuggerOutputWindow } from './channels';
-
 const launchFromLogFileCommand = Effect.fn('ApexReplayDebugger.launchFromLogFileCommand')(function* (
   extensionContext: vscode.ExtensionContext,
   editorUri?: URI

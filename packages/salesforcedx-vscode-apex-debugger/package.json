@@ -15,7 +15,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "68.9.5",
+  "version": "68.15.7",
   "publisher": "salesforce",
   "o11yUploadEndpoint": "https://794testsite.my.site.com/byolwr/webruntime/log/metrics",
   "enableO11y": "true",
@@ -28,11 +28,11 @@
     "Debuggers"
   ],
   "dependencies": {
-    "@salesforce/core": "^9.3.0",
+    "@salesforce/core": "^9.4.1",
     "@salesforce/effect-ext-utils": "workspace:*",
     "@salesforce/salesforcedx-apex-debugger": "workspace:*",
     "@salesforce/vscode-i18n": "workspace:*",
-    "effect": "^3.21.2",
+    "effect": "^3.22.4",
     "sanitize-filename": "^1.6.1",
     "vscode-uri": "^3.1.0"
   },
@@ -48,17 +48,17 @@
   "scripts": {
     "preinstall": "node ../../scripts/require-root-install.js",
     "vscode:bundle": "wireit",
-    "vscode:bundle:build": "wireit",
     "vscode:package": "wireit",
     "vscode:package:prerelease": "wireit",
-    "vscode:sha256": "node ../../scripts/generate-sha256.js >> ../../SHA256",
-    "vscode:publish": "node ../../scripts/publish-vsix.js",
+    "vscode:sha256": "node ../../scripts/generateSha256.mts >> ../../SHA256",
+    "vscode:publish": "node ../../scripts/publishVsix.mts",
     "compile": "wireit",
     "lint": "wireit",
     "check:circular-deps": "wireit",
     "clean": "shx rm -rf node_modules out dist coverage .nyc_output .wireit .eslintcache .circular-deps.json *.vsix",
     "test": "wireit",
     "test:compile": "wireit",
+    "test:container": "wireit",
     "test:desktop": "wireit",
     "test:desktop:debug": "pnpm --dir ../.. --filter ./packages/salesforcedx-vscode-apex-debugger test:desktop --debug",
     "test:e2e": "wireit",
@@ -97,6 +97,29 @@
       ],
       "output": []
     },
+    "test:container": {
+      "command": "playwright test --config=test/playwright/playwright.config.container.ts",
+      "env": {
+        "VSCODE_CONTAINER": "1",
+        "CODE_BUILDER_URL": {
+          "external": true
+        },
+        "CB_GREP": {
+          "external": true
+        },
+        "CB_UNDER_TEST": {
+          "external": true
+        }
+      },
+      "dependencies": [
+        "../playwright-vscode-ext:compile"
+      ],
+      "files": [
+        "test/playwright/**",
+        "package*.json"
+      ],
+      "output": []
+    },
     "test:desktop": {
       "command": "playwright test --config=test/playwright/playwright.config.desktop.ts",
       "env": {
@@ -126,7 +149,7 @@
         "test:desktop"
       ]
     },
-    "vscode:bundle:build": {
+    "vscode:bundle": {
       "env": {
         "DEBUG_BUNDLE": {
           "external": true
@@ -146,20 +169,9 @@
       "output": [
         "dist/index.js",
         "dist/index.js.map",
-        "dist/node-metafile.json"
-      ]
-    },
-    "vscode:bundle": {
-      "command": "cp ../salesforcedx-apex-debugger/dist/apexDebug.js ./dist/",
-      "dependencies": [
-        "vscode:bundle:build",
-        "../salesforcedx-apex-debugger:bundle:debugger"
-      ],
-      "files": [
-        "../salesforcedx-apex-debugger/dist/apexDebug.js"
-      ],
-      "output": [
-        "dist/apexDebug.js"
+        "dist/node-metafile.json",
+        "dist/apexDebug.js",
+        "dist/apexDebug.js.map"
       ]
     },
     "test": {

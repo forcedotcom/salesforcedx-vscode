@@ -5,11 +5,29 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { URI } from 'vscode-uri';
-import { code2ProtocolConverter, extractJson } from '../../src/utils';
+import { code2ProtocolConverter, extractJson, getMessageFromError } from '../../src/utils';
 
 const setPlatform = (platform: NodeJS.Platform) => Object.defineProperty(process, 'platform', { value: platform });
 
 describe('utils tests', () => {
+  describe('getMessageFromError', () => {
+    it.each([
+      [new Error('failed'), 'failed'],
+      [new Error(), ''],
+      ['failed', 'failed'],
+      ['', ''],
+      [undefined, 'Unknown error'],
+      [null, 'Unknown error'],
+      [false, 'Unknown error'],
+      [0, 'Unknown error'],
+      [42, 'Unexpected error: 42'],
+      [{ message: 'object message' }, 'Unexpected error: {"message":"object message"}'],
+      [{ error: new Error('nested') }, 'Unexpected error: {"error":{}}']
+    ])('preserves diagnostic formatting for %s', (error, expected) => {
+      expect(getMessageFromError(error)).toBe(expected);
+    });
+  });
+
   describe('code2ProtocolConverter', () => {
     const originalPlatform = process.platform;
 

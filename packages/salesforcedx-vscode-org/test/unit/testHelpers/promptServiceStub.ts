@@ -10,8 +10,6 @@ import { isString } from 'effect/Predicate';
 // Real tagged error so `new UserCancellationError({})` is yieldable in Effect and `Effect.catchTag` matches.
 import { UserCancellationError } from 'salesforcedx-vscode-services/src/vscode/prompts/promptService';
 
-export { UserCancellationError } from 'salesforcedx-vscode-services/src/vscode/prompts/promptService';
-
 /** Stub of `PromptService.considerUndefinedAsCancellation`. Uses `isString` to match the production
  * predicate (promptService.ts) and avoid silent drift. */
 export const considerUndefinedAsCancellation = <T>(value: T | undefined): Effect.Effect<T, UserCancellationError> =>

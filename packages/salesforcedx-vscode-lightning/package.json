@@ -15,7 +15,7 @@
   "repository": {
     "url": "https://github.com/forcedotcom/salesforcedx-vscode"
   },
-  "version": "68.9.5",
+  "version": "68.15.7",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -38,7 +38,7 @@
     "acorn-loose": "^6.0.0",
     "acorn-walk": "^6.0.0",
     "applicationinsights": "1.8.10",
-    "effect": "^3.21.2",
+    "effect": "^3.22.4",
     "vscode-html-languageservice": "^5.5.1",
     "vscode-languageclient": "^9.0.1",
     "vscode-uri": "^3.1.0"
@@ -55,14 +55,15 @@
     "check:circular-deps": "wireit",
     "test": "wireit",
     "test:compile": "wireit",
+    "test:container": "wireit",
     "test:desktop": "wireit",
     "test:desktop:debug": "pnpm --dir ../.. --filter ./packages/salesforcedx-vscode-lightning test:desktop --debug",
     "test:desktop:ui": "VSCODE_DESKTOP=1 pnpm --dir ../.. --filter ./packages/salesforcedx-vscode-lightning test:desktop --headed",
     "vscode:bundle": "wireit",
     "vscode:package:legacy": "wireit",
     "vscode:prepublish": "npm prune --production",
-    "vscode:publish": "node ../../scripts/publish-vsix.js",
-    "vscode:sha256": "node ../../scripts/generate-sha256.js >> ../../SHA256",
+    "vscode:publish": "node ../../scripts/publishVsix.mts",
+    "vscode:sha256": "node ../../scripts/generateSha256.mts >> ../../SHA256",
     "vscode:package:legacy:prerelease": "wireit",
     "check:effect-diagnostics": "wireit"
   },
@@ -181,6 +182,29 @@
         "coverage"
       ]
     },
+    "test:container": {
+      "command": "playwright test --config=test/playwright/playwright.config.container.ts",
+      "env": {
+        "VSCODE_CONTAINER": "1",
+        "CODE_BUILDER_URL": {
+          "external": true
+        },
+        "CB_GREP": {
+          "external": true
+        },
+        "CB_UNDER_TEST": {
+          "external": true
+        }
+      },
+      "dependencies": [
+        "../playwright-vscode-ext:compile"
+      ],
+      "files": [
+        "test/playwright/**",
+        "package*.json"
+      ],
+      "output": []
+    },
     "test:desktop": {
       "command": "playwright test --config=test/playwright/playwright.config.desktop.ts",
       "env": {
@@ -228,15 +252,37 @@
       ]
     },
     "vscode:package:legacy": {
-      "command": "ts-node ../../scripts/vsce-bundled-extension.ts",
+      "command": "node ../../scripts/vsceBundledExtension.mts",
       "dependencies": [
         "vscode:bundle"
+      ],
+      "files": [
+        "../../scripts/vsceBundledExtension.mts",
+        "package.json",
+        "package.nls*.json",
+        "LICENSE.txt",
+        "README.md",
+        ".vscodeignore",
+        "OSSREADME.json",
+        "images/**",
+        "syntaxes/**"
       ]
     },
     "vscode:package:legacy:prerelease": {
-      "command": "ts-node ../../scripts/vsce-bundled-extension.ts",
+      "command": "node ../../scripts/vsceBundledExtension.mts",
       "dependencies": [
         "vscode:bundle"
+      ],
+      "files": [
+        "../../scripts/vsceBundledExtension.mts",
+        "package.json",
+        "package.nls*.json",
+        "LICENSE.txt",
+        "README.md",
+        ".vscodeignore",
+        "OSSREADME.json",
+        "images/**",
+        "syntaxes/**"
       ],
       "env": {
         "VSCE_PRE_RELEASE": "true"

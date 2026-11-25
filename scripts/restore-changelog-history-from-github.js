@@ -8,7 +8,7 @@
  * the complete history to the root CHANGELOG.md.
  *
  * Note: With the new changelog strategy, root CHANGELOG.md contains full history
- * and is automatically updated via prepend-release-changelog.js. This script is
+ * and is automatically updated via prependReleaseChangelog.mts. This script is
  * preserved for reference and historical restoration if needed.
  *
  * Prerequisites:

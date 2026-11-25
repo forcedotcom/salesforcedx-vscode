@@ -67,7 +67,9 @@ runs:
     - name: Compile shared Playwright utilities
       if: inputs.compile-playwright-utils == 'true'
       shell: bash
-      run: pnpm --filter @salesforce/playwright-vscode-ext exec tsc --pretty
+      run: |
+        pnpm --filter @salesforce/playwright-vscode-ext compile
+        pnpm --filter @salesforce/playwright-vscode-ext exec tsc --pretty
 
     # Wireit cache hits exit zero without requiring CLI, scratch orgs, or Chromium.
     - name: Try E2E tests
@@ -130,12 +132,23 @@ runs:
         command: bash -c 'echo "$SFDX_AUTH_URL" | sf org login sfdx-url --set-default-dev-hub --alias hub --sfdx-url-stdin'
         retry_wait_seconds: 30
 
-    - name: Install Playwright browsers and OS deps
+    - name: Install Playwright browsers
       if: steps.try-run.outcome == 'failure'
       uses: salesforcecli/github-workflows/.github/actions/retry@main
       with:
         max_attempts: 3
-        command: pnpm exec playwright install chromium --with-deps
+        command: pnpm exec playwright install chromium
+        retry_wait_seconds: 60
+
+    # Check Chromium before invoking apt: Ubuntu mirror outages must not block runners that can already launch it.
+    - name: Install missing Playwright OS deps
+      if: steps.try-run.outcome == 'failure' && runner.os == 'Linux'
+      uses: salesforcecli/github-workflows/.github/actions/retry@main
+      with:
+        max_attempts: 3
+        command: >-
+          node -e "require('playwright').chromium.launch().then(browser => browser.close())" ||
+          pnpm exec playwright install-deps chromium
         retry_wait_seconds: 60
 
     - name: Clone dreamhouse

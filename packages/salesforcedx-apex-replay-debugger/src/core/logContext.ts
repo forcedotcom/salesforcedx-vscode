@@ -30,18 +30,16 @@ import {
   EXEC_ANON_SIGNATURE
 } from '../constants';
 import { nls } from '../messages';
-import {
-  type DebugLogState,
-  FrameEntryState,
-  FrameExitState,
-  FrameStateUtil,
-  LogEntryState,
-  NoOpState,
-  StatementExecuteState,
-  UserDebugState,
-  VariableAssignmentState,
-  VariableBeginState
-} from '../states';
+import { type DebugLogState } from '../states/debugLogState';
+import { FrameEntryState } from '../states/frameEntryState';
+import { FrameExitState } from '../states/frameExitState';
+import { FrameStateUtil } from '../states/frameStateUtil';
+import { LogEntryState } from '../states/logEntryState';
+import { NoOpState } from '../states/noOpState';
+import { StatementExecuteState } from '../states/statementExecuteState';
+import { UserDebugState } from '../states/userDebugState';
+import { VariableAssignmentState } from '../states/variableAssignmentState';
+import { VariableBeginState } from '../states/variableBeginState';
 import { extractHeapDumpIdsFromLog } from './extractHeapDumpIds';
 import { Handles } from './handles';
 import { ApexHeapDump } from './heapDump';

@@ -28,15 +28,15 @@ vi.mock(
 );
 
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
-import { ChannelService } from 'salesforcedx-vscode-services/out/src/vscode/channelService';
-import { ConnectionService } from 'salesforcedx-vscode-services/out/src/core/connectionService';
-import { QueryService } from 'salesforcedx-vscode-services/out/src/core/queryService';
-import { FsService } from 'salesforcedx-vscode-services/out/src/vscode/fsService';
-import { PromptService } from 'salesforcedx-vscode-services/out/src/vscode/prompts/promptService';
-import { SettingsService } from 'salesforcedx-vscode-services/out/src/vscode/settingsService';
-import { WorkspaceService } from 'salesforcedx-vscode-services/out/src/vscode/workspaceService';
-import type { SalesforceVSCodeServicesApi } from 'salesforcedx-vscode-services';
+import { ChannelService } from 'salesforcedx-vscode-services/src/vscode/channelService';
+import { ConnectionService } from 'salesforcedx-vscode-services/src/core/connectionService';
+import { QueryService } from 'salesforcedx-vscode-services/src/core/queryService';
+import { FsService } from 'salesforcedx-vscode-services/src/vscode/fsService';
+import { PromptService } from 'salesforcedx-vscode-services/src/vscode/prompts/promptService';
+import { SettingsService } from 'salesforcedx-vscode-services/src/vscode/settingsService';
+import { WorkspaceService } from 'salesforcedx-vscode-services/src/vscode/workspaceService';
 import { NotificationModeService } from 'salesforcedx-vscode-services/src/vscode/notificationModeService';
+import type { SalesforceVSCodeServicesApi } from 'salesforcedx-vscode-services';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import {
@@ -745,8 +745,8 @@ describe('DataQuery Pure Functions', () => {
       const mockPromptService = {
         withProgress:
           () =>
-          <A, E, R>(self: Effect.Effect<A, E, R>) =>
-            self
+          <A, E, R>(work: Effect.Effect<A, E, R>) =>
+            work
       } as unknown as PromptService;
       const provider = {
         getServicesApi: Effect.succeed({
@@ -1023,14 +1023,15 @@ describe('DataQuery Pure Functions', () => {
   describe('executeDataQuery', () => {
     beforeEach(() => {
       (vscode.window.showInformationMessage as VitestMock).mockResolvedValue(undefined);
+      withProgress.mockClear();
     });
 
-    const noopPromptService = {
-      withProgress:
-        () =>
-        <A, E, R>(self: Effect.Effect<A, E, R>) =>
-          self
-    } as unknown as PromptService;
+    const withProgress = vi.fn(
+      () =>
+        <A, E, R>(work: Effect.Effect<A, E, R>) =>
+          work
+    );
+    const noopPromptService = { withProgress } as unknown as PromptService;
 
     const makeProvider = (query: VitestMock) => {
       const show = vi.fn();
@@ -1084,6 +1085,7 @@ describe('DataQuery Pure Functions', () => {
       const { show, appendToChannel } = await run(query);
       expect(appendToChannel).toHaveBeenCalledWith(nls.localize('data_query_error_message', 'boom'));
       expect(show).toHaveBeenCalledTimes(1);
+      expect(withProgress).toHaveBeenCalledTimes(1);
     });
 
     it('appends completion message and shows channel once on success', async () => {
@@ -1091,6 +1093,7 @@ describe('DataQuery Pure Functions', () => {
       const { show, appendToChannel } = await run(query);
       expect(appendToChannel).toHaveBeenCalledWith(nls.localize('data_query_complete', 1));
       expect(show).toHaveBeenCalledTimes(1);
+      expect(withProgress).toHaveBeenCalledTimes(1);
     });
   });
 });

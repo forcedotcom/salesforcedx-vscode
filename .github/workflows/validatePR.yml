@@ -4,6 +4,10 @@ on:
     types: [opened, reopened, edited, synchronize]
     branches: [develop]
 
+concurrency:
+  group: validate-pr-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
 jobs:
   pr-validation:
     uses: salesforcecli/github-workflows/.github/workflows/validatePR.yml@main

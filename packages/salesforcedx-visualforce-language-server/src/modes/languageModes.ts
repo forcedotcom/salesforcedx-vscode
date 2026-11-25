@@ -151,5 +151,3 @@ export const getLanguageModes = async (supportedLanguages: {
     }
   };
 };
-
-export { ColorInformation } from 'vscode-languageserver-protocol';

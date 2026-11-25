@@ -15,12 +15,14 @@ import { isError, isString } from 'effect/Predicate';
 import * as os from 'node:os';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
-import { configListCommand, initSObjectDefinitions } from './commands';
 import { ChannelService } from './commands/channelService';
+import { configListCommand } from './commands/configList';
+import { initSObjectDefinitions } from './commands/refreshSObjects';
 
 import { CommandEventDispatcher } from './commands/util/commandEventDispatcher';
 import { ENABLE_SOBJECT_REFRESH_ON_STARTUP, SFDX_CORE_EXTENSION_NAME } from './constants';
-import { WorkspaceContext, workspaceContextUtils } from './context';
+import { workspaceContextUtils } from './context';
+import { WorkspaceContext } from './context/workspaceContext';
 import { nls } from './messages';
 import { MetadataHoverProvider } from './metadataSupport/metadataHoverProvider';
 import { initializeMetadataSupport } from './metadataSupport/metadataXmlSupport';
@@ -31,8 +33,6 @@ import { registerGetTelemetryServiceCommand } from './services/telemetry/telemet
 import { getEnableAllExceptionCatcher } from './settings/salesforceCoreSettings';
 import { showTelemetryMessage, telemetryService } from './telemetry';
 import { ensureCurrentWorkingDirIsProjectPath } from './util/workingDirectory';
-
-export type { OrgShape } from './context/workspaceOrgShape';
 
 /** Customer-facing commands */
 const registerCommands = (_extensionContext: vscode.ExtensionContext): vscode.Disposable =>

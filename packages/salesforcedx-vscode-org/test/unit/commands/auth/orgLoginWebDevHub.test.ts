@@ -19,15 +19,6 @@ vi.mock('../../../../src/util/orgUtil', () => ({
   updateConfigAndStateAggregators: vi.fn()
 }));
 
-// withCancellableProgress forks the effect and reports via vscode.window.withProgress; the Vitest
-// vscode mock needs a withProgress that runs the task and returns its result so the fiber resolves.
-const stubWithProgress = () => {
-  (vscode.window as unknown as { withProgress: VitestMock }).withProgress = vi.fn(
-    (_opts: unknown, task: (progress: unknown, token: { onCancellationRequested: VitestMock }) => unknown) =>
-      task({ report: vi.fn() }, { onCancellationRequested: vi.fn() })
-  );
-};
-
 const buildServices = (opts: {
   isProject: boolean;
   simpleExec: VitestMock;
@@ -41,9 +32,12 @@ const buildServices = (opts: {
       opts.isProject ? Effect.succeed({}) : Effect.fail({ _tag: 'FailedToResolveSfProjectError' as const })
   },
   TerminalService: Effect.succeed({ simpleExec: opts.simpleExec }),
-  // withCancellableProgress is a pipeable operator; the stub is identity so the exec effect runs unchanged.
+  // Run the wrapped Effect directly.
   PromptService: Effect.succeed({
-    withCancellableProgress: () => identity
+    withProgress:
+      () =>
+      <A, E, R>(work: Effect.Effect<A, E, R>) =>
+        work
   }),
   ChannelService: Effect.succeed({
     appendToChannel: (msg: string) =>
@@ -88,7 +82,6 @@ describe('orgLoginWebDevHubCommand', () => {
     appendToChannel = vi.fn();
     showChannel = vi.fn();
     showErrorMessage = vi.fn();
-    stubWithProgress();
     (vscode.window as unknown as { showErrorMessage: VitestMock }).showErrorMessage = showErrorMessage;
   });
 

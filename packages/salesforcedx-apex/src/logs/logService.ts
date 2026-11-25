@@ -4,16 +4,33 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import type { EffectApexLogGetOptions } from '../effect/schema/logs';
 import type { JsonObject } from '../json';
 import { type Connection, Logger, type Org, type StatusResult, StreamingClient } from '@salesforce/core';
 import { Duration } from '@salesforce/kit';
+import * as Effect from 'effect/Effect';
+import * as Either from 'effect/Either';
+import { isUndefined } from 'effect/Predicate';
+import * as Schema from 'effect/Schema';
 import * as path from 'node:path';
+import { FileOutput } from '../effect/fileOutput';
+import { getLogBody, getLogRecords as getEffectLogRecords, getLogs as getEffectLogs } from '../effect/logs';
+import { NodeFileOutput } from '../effect/nodeFileOutputLayer';
 import { nls } from '../i18n';
+import { ApexLogId } from '../schemas/salesforceId';
 import { elapsedTime } from '../utils/elapsedTime';
 import { createFile } from '../utils/fileSystemHandler';
-import { TraceFlags } from '../utils/traceFlags';
-import { LISTENER_ABORTED_ERROR_NAME, LOG_TIMER_LENGTH_MINUTES, MAX_NUM_LOGS, STREAMING_LOG_TOPIC } from './constants';
+import { ensureTraceFlags } from '../utils/traceFlags';
+import { LISTENER_ABORTED_ERROR_NAME, LOG_TIMER_LENGTH_MINUTES, STREAMING_LOG_TOPIC } from './constants';
 import { type ApexLogGetOptions, type LogRecord, type LogResult } from './types';
+
+const runLogOperation = async <A, E extends { message: string }>(operation: Effect.Effect<A, E>): Promise<A> =>
+  Either.match(await operation.pipe(Effect.either, Effect.runPromise), {
+    onLeft: error => {
+      throw new Error(error.message);
+    },
+    onRight: result => result
+  });
 
 type StreamingLogMessage = {
   errorName?: string;
@@ -22,74 +39,53 @@ type StreamingLogMessage = {
 
 export class LogService {
   private readonly connection: Connection;
+  private readonly fileOutput: typeof FileOutput.Service;
   private logger!: Logger;
   private logTailer?: (log: string) => void;
 
-  constructor(connection: Connection) {
+  constructor(connection: Connection, fileOutput: typeof FileOutput.Service = NodeFileOutput) {
     this.connection = connection;
+    this.fileOutput = fileOutput;
   }
 
-  @elapsedTime()
-  private async getLogIds(options: ApexLogGetOptions): Promise<string[]> {
-    if (!(typeof options.logId === 'string' || typeof options.numberOfLogs === 'number')) {
-      throw new Error(nls.localize('missingInfoLogError'));
-    }
-
-    if (typeof options.numberOfLogs === 'number') {
-      const logIdRecordList = await this.getLogRecords(options.numberOfLogs);
-      return logIdRecordList.map(logRecord => logRecord.Id);
-    }
-    return options.logId ? [options.logId] : [];
-  }
-
-  // TODO: readableStream cannot be used until updates are made in jsforce and sfdx-core
   @elapsedTime()
   public async getLogs(options: ApexLogGetOptions): Promise<LogResult[]> {
-    const logs = (
-      await Promise.all(
-        (await this.getLogIds(options)).map(async id => ({
-          ...(await this.getLogById(id)),
-          logId: id
-        }))
-      )
-    ).map(({ log, logId }) => {
-      if (options.outputDir) {
-        const logPath = path.join(options.outputDir, `${logId}.log`);
-        createFile(logPath, log);
-        return { log, logPath };
-      }
-      return { log };
-    });
+    const effectOptions: EffectApexLogGetOptions | undefined = isUndefined(options.logId)
+      ? isUndefined(options.numberOfLogs)
+        ? undefined
+        : { numberOfLogs: options.numberOfLogs }
+      : isUndefined(options.numberOfLogs)
+        ? { logId: options.logId }
+        : { logId: options.logId, numberOfLogs: options.numberOfLogs };
+    if (isUndefined(effectOptions)) throw new Error(nls.localize('missingInfoLogError'));
 
-    return logs;
+    const outputDir = options.outputDir;
+    if (outputDir) {
+      const writeLog = (fileName: string, body: string) =>
+        createFile(path.join(outputDir, fileName), body).pipe(Effect.provideService(FileOutput, this.fileOutput));
+      return runLogOperation(getEffectLogs(this.connection, effectOptions, writeLog)).then(logs =>
+        logs.map(({ log, logPath }) => (isUndefined(logPath) ? { log } : { log, logPath }))
+      );
+    }
+    return runLogOperation(getEffectLogs(this.connection, effectOptions)).then(logs =>
+      logs.map(({ log }) => ({ log }))
+    );
   }
 
   @elapsedTime()
   private async getLogById(logId: string): Promise<LogResult> {
-    const baseUrl = this.connection.tooling._baseUrl();
-    const url = `${baseUrl}/sobjects/ApexLog/${logId}/Body`;
-    const response = await this.toolingRequest(url);
-    return { log: typeof response === 'string' ? response : String(response ?? '') };
+    return {
+      log: await runLogOperation(
+        Schema.decodeUnknown(ApexLogId)(logId).pipe(
+          Effect.flatMap(decodedLogId => getLogBody(this.connection, decodedLogId))
+        )
+      )
+    };
   }
 
   @elapsedTime()
-  public async getLogRecords(numberOfLogs?: number): Promise<LogRecord[]> {
-    let apexLogQuery = `
-        SELECT Id, Application, DurationMilliseconds, Location, LogLength, LogUser.Name,
-          Operation, Request, StartTime, Status
-        FROM ApexLog
-        ORDER BY StartTime DESC
-      `;
-
-    if (typeof numberOfLogs === 'number') {
-      if (numberOfLogs <= 0) {
-        throw new Error(nls.localize('numLogsError'));
-      }
-      numberOfLogs = Math.min(numberOfLogs, MAX_NUM_LOGS);
-      apexLogQuery += ` LIMIT ${numberOfLogs}`;
-    }
-
-    return (await this.connection.tooling.query<LogRecord>(apexLogQuery)).records;
+  public async getLogRecords(numberOfLogs?: number): Promise<readonly LogRecord[]> {
+    return runLogOperation(getEffectLogRecords(this.connection, numberOfLogs));
   }
 
   @elapsedTime()
@@ -138,13 +134,8 @@ export class LogService {
     return { completed: false };
   }
 
-  public async prepareTraceFlag(requestedDebugLevel: string): Promise<void> {
-    const flags = new TraceFlags(this.connection);
-    await flags.ensureTraceFlags(requestedDebugLevel);
-  }
-
   @elapsedTime()
-  private async toolingRequest(url: string): Promise<unknown> {
-    return this.connection.tooling.request(url);
+  public async prepareTraceFlag(requestedDebugLevel: string): Promise<void> {
+    await ensureTraceFlags(this.connection, requestedDebugLevel);
   }
 }

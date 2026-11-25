@@ -14,6 +14,9 @@ import {
   AURA_SERVER_READY_NOTIFICATION,
   LspFileSystemAccessor
 } from '@salesforce/salesforcedx-lightning-lsp-common';
+import { getErrorMessage } from '@salesforce/salesforcedx-utils';
+import * as Duration from 'effect/Duration';
+import * as Effect from 'effect/Effect';
 import * as path from 'node:path';
 
 import { getLanguageService, type LanguageService, type CompletionList } from 'vscode-html-languageservice';
@@ -118,14 +121,18 @@ export default class Server {
 
       // Defer performDelayedInitialization to next tick (like LWC) so the client has time to attach
       // workspace/readFile and workspace/stat handlers before we send any requests.
-      setTimeout(() => {
-        void this.performDelayedInitialization().catch((err: unknown) => {
-          Logger.error(
-            `Aura delayed initialization failed: ${err instanceof Error ? err.message : String(err)}`,
-            err instanceof Error ? err : undefined
-          );
-        });
-      }, 0);
+      Effect.tryPromise({ try: () => this.performDelayedInitialization(), catch: err => ({ err }) }).pipe(
+        Effect.catchAll(({ err }) =>
+          Effect.sync(() => {
+            Logger.error(
+              `Aura delayed initialization failed: ${getErrorMessage(err)}`,
+              err instanceof Error ? err : undefined
+            );
+          })
+        ),
+        Effect.delay(Duration.zero),
+        Effect.runFork
+      );
 
       this.htmlLS = getLanguageService();
       this.htmlLS.setDataProviders(true, [getAuraTagProvider()]);
@@ -158,7 +165,7 @@ export default class Server {
         capabilities
       };
     } catch (e: unknown) {
-      const errorMessage = e instanceof Error ? e.message : String(e);
+      const errorMessage = getErrorMessage(e);
       throw new Error(nls.localize('initialization_unsuccessful_message', errorMessage));
     }
   }
@@ -178,13 +185,11 @@ export default class Server {
   }
 
   private startIndexing(): void {
-    setTimeout(() => {
-      void (async () => {
-        void this.connection.sendNotification('salesforce/indexingStarted');
-        await this.auraIndexer.configureAndIndex();
-        void this.connection.sendNotification('salesforce/indexingEnded');
-      })();
-    }, 0);
+    Effect.promise(async () => {
+      void this.connection.sendNotification('salesforce/indexingStarted');
+      await this.auraIndexer.configureAndIndex();
+      void this.connection.sendNotification('salesforce/indexingEnded');
+    }).pipe(Effect.delay(Duration.zero), Effect.runFork);
   }
 
   public async onCompletion(completionParams: CompletionParams): Promise<CompletionList> {
@@ -257,7 +262,7 @@ export default class Server {
 
       return null;
     } catch (error: unknown) {
-      Logger.error(`Error in onHover: ${error instanceof Error ? error.message : String(error)}`);
+      Logger.error(`Error in onHover: ${getErrorMessage(error)}`);
       return null;
     }
   }
@@ -401,7 +406,7 @@ export default class Server {
     } catch (e) {
       void this.connection.sendNotification(ShowMessageNotification.type, {
         type: MessageType.Error,
-        message: `Error re-indexing workspace: ${e instanceof Error ? e.message : String(e)}`
+        message: `Error re-indexing workspace: ${getErrorMessage(e)}`
       });
     }
   }
@@ -446,9 +451,7 @@ export default class Server {
 
       this.isIndexerInitialized = true;
     } catch (error: unknown) {
-      throw new Error(
-        nls.localize('indexer_initialization_error_message', error instanceof Error ? error.message : String(error))
-      );
+      throw new Error(nls.localize('indexer_initialization_error_message', getErrorMessage(error)));
     }
   }
 
@@ -496,9 +499,7 @@ export default class Server {
 
       this.isDelayedInitializationComplete = true;
     } catch (error: unknown) {
-      throw new Error(
-        nls.localize('delayed_initialization_error_message', error instanceof Error ? error.message : String(error))
-      );
+      throw new Error(nls.localize('delayed_initialization_error_message', getErrorMessage(error)));
     }
 
     // send notification that delayed initialization is complete

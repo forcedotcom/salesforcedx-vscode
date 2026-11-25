@@ -152,8 +152,8 @@ import {
 } from 'vscode-languageserver';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { URI } from 'vscode-uri';
-import { type BaseServer } from '../src/baseServer';
-import Server, { findDynamicContent } from '../src/lwcServerNode';
+import { type BaseServer, findDynamicContent } from '../src/baseServer';
+import Server from '../src/lwcServerNode';
 
 // File paths and URIs
 const filename = path.join(SFDX_WORKSPACE_ROOT, 'force-app', 'main', 'default', 'lwc', 'todo', 'todo.html');

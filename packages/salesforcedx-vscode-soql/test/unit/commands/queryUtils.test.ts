@@ -7,8 +7,8 @@
 
 import type { Mock as VitestMock } from 'vitest';
 import * as Effect from 'effect/Effect';
-import { EditorService } from 'salesforcedx-vscode-services/out/src/vscode/editorService';
-import { PromptService } from 'salesforcedx-vscode-services/out/src/vscode/prompts/promptService';
+import { EditorService } from 'salesforcedx-vscode-services/src/vscode/editorService';
+import { PromptService } from 'salesforcedx-vscode-services/src/vscode/prompts/promptService';
 import * as vscode from 'vscode';
 import {
   getDocumentQueryAndApiInputs,

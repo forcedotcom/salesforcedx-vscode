@@ -48,7 +48,8 @@ After passing, clean up while keeping tests passing:
 
 - Don't run `debug` mode unless instructed (pauses for human)
 - Use @https://playwright.dev/docs/api/class-locator#locator-inner-html on known-good locator to get accurate inner locators
-- Take screenshots (`read_file` tool) - review in `test-results` folder
+- Inspect the test's attached flow video in the Playwright report; local files live under the package's `test-results/`. For GHA artifacts, follow `analyze-e2e.md` → "Inspect attached videos".
+- Extract frames only when useful for a specific UI state or transition; see `analyze-e2e.md` → "Optional frame extraction". Automatic test/trace screenshots are not expected; preserve intentional diagnostic/product captures.
 - Capture HTML parent levels up from problem area to verify correct locators
 - Use emojis infrequently
 

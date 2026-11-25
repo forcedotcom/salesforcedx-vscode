@@ -11,7 +11,7 @@ on:
       extensions:
         description: |
           Comma-separated extension names (e.g., "salesforcedx-vscode-apex,salesforcedx-vscode-core")
-          Leave empty to publish all extensions (dynamically discovered via scripts/list-vscode-extensions.js)
+          Leave empty to publish all extensions (dynamically discovered via scripts/listVscodeExtensions.mts)
         required: false
         default: ''
         type: string
@@ -90,7 +90,7 @@ jobs:
           # For scheduled runs or empty input, publish all extensions
           if [ "$EVENT_NAME" = "schedule" ] || [ -z "$INPUT_EXTENSIONS" ]; then
             # Dynamically discover all publishable VS Code extensions
-            EXTENSIONS=$(node scripts/list-vscode-extensions.js)
+            EXTENSIONS=$(node scripts/listVscodeExtensions.mts)
             EXTENSION_COUNT=$(echo "$EXTENSIONS" | tr ',' '\n' | wc -l)
             echo "Publishing all $EXTENSION_COUNT extensions: $EXTENSIONS"
           else
@@ -142,4 +142,26 @@ jobs:
       dry-run: ${{ github.event.inputs.dry-run || false }}
       git-user-name: ${{ needs.get-git-identity.outputs.username }}
       git-user-email: ${{ needs.get-git-identity.outputs.email }}
+    secrets: inherit
+
+  # e2e.yml needs a "VS Code Extensions"-named artifact at this run's own ID (hardcoded in
+  # scripts/codeBuilderLocalE2E.ts's ARTIFACT_NAME, consumed by playwright-code-builder). The
+  # nightly-release job above does package VSIXs, but inside an external, @main-pinned reusable
+  # workflow (vscode-publish-extensions.yml) under a differently-named, dynamically-computed
+  # artifact — not depended on here, since nightly-release is one atomic job from this workflow's
+  # graph: waiting on it would mean e2e only runs after the nightly VSIX has already published.
+  # Build fresh instead, independent of (and parallel to) nightly-release, purely for e2e coverage.
+  build-all:
+    uses: ./.github/workflows/buildAll.yml
+    with:
+      branch: ${{ github.event.inputs.branch || 'develop' }}
+
+  # Parallel to nightly-release, not gating it (or gated by it) — advisory, matching
+  # codeBuilderE2E.yml's own "a red here is a signal to investigate, not an automatic release
+  # stop" philosophy. A regression here doesn't hold back tonight's publish; a human reviews it.
+  e2e-tests:
+    needs: build-all
+    uses: ./.github/workflows/e2e.yml
+    with:
+      runId: ${{ github.run_id }}
     secrets: inherit

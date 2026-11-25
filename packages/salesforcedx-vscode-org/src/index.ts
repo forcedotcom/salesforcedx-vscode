@@ -9,13 +9,15 @@ import { closeExtensionScope, ExtensionProviderService, getExtensionScope } from
 import * as Effect from 'effect/Effect';
 import * as Scope from 'effect/Scope';
 import type * as vscode from 'vscode';
-import { orgListCleanCommand, orgLoginWebCommand, orgLogoutAllCommand, orgLogoutDefaultCommand } from './commands';
 import { aliasListCommand } from './commands/aliasList';
 import { orgLoginAccessTokenCommand } from './commands/auth/orgLoginAccessToken';
+import { orgLoginWebCommand } from './commands/auth/orgLoginWeb';
 import { orgLoginWebDevHubCommand } from './commands/auth/orgLoginWebDevHub';
+import { orgLogoutAllCommand, orgLogoutDefaultCommand } from './commands/auth/orgLogout';
 import { orgCreateCommand } from './commands/orgCreate';
 import { orgDeleteDefaultCommand, orgDeleteUsernameCommand } from './commands/orgDelete';
 import { orgDisplayDefaultCommand, orgDisplayUsernameCommand } from './commands/orgDisplay';
+import { orgListCleanCommand } from './commands/orgList';
 import { orgOpenCommand } from './commands/orgOpen';
 import {
   ORG_DISPLAY_DEFAULT_COMMAND,
@@ -77,5 +79,3 @@ export const deactivate = async (): Promise<void> => {
   await disposeOrgRuntime();
   console.log('Salesforce Org Management extension deactivated');
 };
-
-export type { OrgListCleanError } from './commands/orgList';

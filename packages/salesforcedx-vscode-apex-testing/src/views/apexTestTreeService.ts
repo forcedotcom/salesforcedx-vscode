@@ -6,10 +6,13 @@
  */
 
 import type { ToolingTestClass } from '../testDiscovery/schemas';
-import { type TestResult, TestService } from '@salesforce/apex-node';
+import { TestService } from '@salesforce/apex-node';
+import { TestResultSchema } from '@salesforce/apex-node/effect';
 import { ExtensionProviderService, getMessageFromError } from '@salesforce/effect-ext-utils';
 import * as Arr from 'effect/Array';
 import * as Chunk from 'effect/Chunk';
+import * as Clock from 'effect/Clock';
+import * as DateTime from 'effect/DateTime';
 import * as Deferred from 'effect/Deferred';
 import * as Effect from 'effect/Effect';
 import * as Either from 'effect/Either';
@@ -39,7 +42,7 @@ import {
   isMethod,
   isSuite
 } from '../utils/testItemUtils';
-import { getFullClassName, isFlowTest } from '../utils/toolingTestClassHelpers';
+import { getCatalogFullClassName, getFullClassName, isFlowTest } from '../utils/toolingTestClassHelpers';
 import {
   buildClassIdToNamespace,
   buildNamespacePackageStructure,
@@ -373,12 +376,10 @@ export class ApexTestTreeService extends Effect.Service<ApexTestTreeService>()('
       if (resultText === undefined) {
         return new Set<string>();
       }
-      // Recover a corrupt/truncated file to "no ids" (matches the doc + legacy try/catch) so a bad file
-      // never becomes an uncaught defect that aborts the restore path.
-      const resultContent = yield* Effect.try(
-        // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-        () => JSON.parse(resultText) as TestResult
-      ).pipe(Effect.orElseSucceed(() => undefined));
+      // Recover corrupt or invalid JSON to "no ids" so a bad file never aborts the restore path.
+      const resultContent = yield* Schema.decodeUnknown(Schema.parseJson(TestResultSchema))(resultText).pipe(
+        Effect.orElseSucceed(() => undefined)
+      );
       return new Set(
         (resultContent?.tests ?? []).flatMap(test =>
           test.apexClass?.fullName && test.methodName ? [`${test.apexClass.fullName}.${test.methodName}`] : []
@@ -467,7 +468,7 @@ export class ApexTestTreeService extends Effect.Service<ApexTestTreeService>()('
       const catalog = yield* api.services.OrgMetadataCatalog;
       const classNames = classes.map(getFullClassName);
       const resolutions = yield* catalog.resolveComponents(
-        classNames.map(fullName => ({ type: 'ApexClass', fullName }))
+        classes.map(cls => ({ type: 'ApexClass', fullName: getCatalogFullClassName(cls) }))
       );
       return new Map(
         resolutions.map((resolution, index) => [
@@ -578,7 +579,7 @@ export class ApexTestTreeService extends Effect.Service<ApexTestTreeService>()('
       // Filter to files within the age threshold and track which methods are pre-session. Per-file
       // (Effect.forEach) so a single unreadable file fails with its own RestoreResultsError context
       // rather than aborting the whole scan.
-      const now = Date.now();
+      const now = yield* Clock.currentTimeMillis;
       const staleMethodIds = new Set<string>();
       const sessionMethodIds = new Set<string>();
       const scanned = yield* Effect.forEach(resultUris, uri =>
@@ -660,7 +661,7 @@ export class ApexTestTreeService extends Effect.Service<ApexTestTreeService>()('
       });
 
       // Most recent result's mtime (notification only); reuse the scan's mtime, no extra FsService.stat.
-      const runDate = new Date(sortedRecent.at(-1)!.mtime).toLocaleString();
+      const runDate = DateTime.unsafeMake(sortedRecent.at(-1)!.mtime).pipe(DateTime.toDate).toLocaleString();
       const disableAction = nls.localize('apex_test_results_restored_disable_action');
       const selection = yield* Effect.promise(() =>
         vscode.window.showInformationMessage(

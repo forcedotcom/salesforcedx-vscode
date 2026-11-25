@@ -13,7 +13,7 @@ import * as Option from 'effect/Option';
 import { isNotUndefined, isString } from 'effect/Predicate';
 import * as Stream from 'effect/Stream';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
-import type { HashableUri, NonEmptyComponentSet } from 'salesforcedx-vscode-services';
+import type { NonEmptyComponentSet, HashableUri } from 'salesforcedx-vscode-services';
 import { URI, Utils } from 'vscode-uri';
 import { nls } from '../../messages';
 import { type ProgressOnlyCommandKey } from '../../utils/notificationMode';
@@ -80,12 +80,12 @@ export const materializeRemoteComponents = Effect.fn('materializeRemoteComponent
   });
 
   if (projectComponents.length === 0) return HashSet.empty<DiffFilePair>();
-  const remoteComponentSet = yield* api.services.MetadataRetrieveService.buildComponentSet(
+  const retrieved = yield* api.services.MetadataRetrieveService.buildComponentSet(
     projectComponents.map(component => ({ type: component.type.name, fullName: component.fullName }))
+  ).pipe(
+    Effect.flatMap(api.services.ComponentSetService.ensureNonEmptyComponentSet),
+    Effect.flatMap(retrieveToCacheDirectory)
   );
-  const nonEmptyRemoteComponentSet =
-    yield* api.services.ComponentSetService.ensureNonEmptyComponentSet(remoteComponentSet);
-  const retrieved = yield* retrieveToCacheDirectory(nonEmptyRemoteComponentSet);
 
   return yield* matchUrisToComponents(projectComponentSet, retrieved.components, localUriFilter, componentFilter);
 });

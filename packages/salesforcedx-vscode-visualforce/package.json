@@ -15,7 +15,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "68.9.5",
+  "version": "68.15.7",
   "publisher": "salesforce",
   "o11yUploadEndpoint": "https://794testsite.my.site.com/byolwr/webruntime/log/metrics",
   "enableO11y": "true",
@@ -30,7 +30,7 @@
   "dependencies": {
     "@salesforce/effect-ext-utils": "workspace:*",
     "@salesforce/vscode-i18n": "workspace:*",
-    "effect": "^3.21.2",
+    "effect": "^3.22.4",
     "vscode-css-languageservice": "^6.3.7",
     "vscode-languageclient": "^9.0.1",
     "vscode-languageserver-protocol": "^3.17.5",
@@ -53,14 +53,15 @@
     "check:circular-deps": "wireit",
     "test": "wireit",
     "test:compile": "wireit",
+    "test:container": "wireit",
     "test:desktop": "wireit",
     "test:desktop:debug": "pnpm --dir ../.. --filter ./packages/salesforcedx-vscode-visualforce test:desktop --debug",
     "test:web": "wireit",
     "test:web:ui": "DEBUG_MODE=1 pnpm --dir ../.. --filter ./packages/salesforcedx-vscode-visualforce test:web --headed",
     "run:web": "wireit",
     "vscode:package": "wireit",
-    "vscode:publish": "node ../../scripts/publish-vsix.js",
-    "vscode:sha256": "node ../../scripts/generate-sha256.js >> ../../SHA256",
+    "vscode:publish": "node ../../scripts/publishVsix.mts",
+    "vscode:sha256": "node ../../scripts/generateSha256.mts >> ../../SHA256",
     "vscode:package:prerelease": "wireit",
     "check:effect-diagnostics": "wireit"
   },
@@ -100,6 +101,7 @@
         "esbuild.config.mjs",
         "../../scripts/bundling/node.mjs",
         "../../scripts/bundling/web.mjs",
+        "../../scripts/bundling/process-polyfill.js",
         "../../scripts/bundling/fs-polyfill.js",
         "../../scripts/bundling/assert-web-safe.mjs",
         "out/**"
@@ -118,6 +120,7 @@
         "esbuild.config.mjs",
         "../../scripts/bundling/node.mjs",
         "../../scripts/bundling/web.mjs",
+        "../../scripts/bundling/process-polyfill.js",
         "../../scripts/bundling/fs-polyfill.js",
         "../../scripts/bundling/assert-web-safe.mjs",
         "out/**"
@@ -166,10 +169,33 @@
       ],
       "files": [
         "src/**/*.ts",
-        "test/**/*.ts",
+        "test/**/*.{ts,mts}",
         "../../eslint.config.mjs",
         "package.json",
         "package.nls.json"
+      ],
+      "output": []
+    },
+    "test:container": {
+      "command": "playwright test --config=test/playwright/playwright.config.container.ts",
+      "env": {
+        "VSCODE_CONTAINER": "1",
+        "CODE_BUILDER_URL": {
+          "external": true
+        },
+        "CB_GREP": {
+          "external": true
+        },
+        "CB_UNDER_TEST": {
+          "external": true
+        }
+      },
+      "dependencies": [
+        "../playwright-vscode-ext:compile"
+      ],
+      "files": [
+        "test/playwright/**",
+        "package*.json"
       ],
       "output": []
     },
@@ -211,7 +237,7 @@
         "../playwright-vscode-ext:compile"
       ],
       "files": [
-        "test/playwright/**/*.ts",
+        "test/playwright/**/*.{ts,mts}",
         "package*.json",
         "../../.github/**"
       ],
@@ -233,7 +259,7 @@
         "../playwright-vscode-ext:compile"
       ],
       "files": [
-        "test/**/*.ts",
+        "test/**/*.{ts,mts}",
         "test/tsconfig.json"
       ],
       "output": []

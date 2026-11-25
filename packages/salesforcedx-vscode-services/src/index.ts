@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { Tracer as OtelTracer, type Resource } from '@effect/opentelemetry';
+import { TemplateType } from '@salesforce/templates';
 import * as Cause from 'effect/Cause';
 import * as Context from 'effect/Context';
 import * as Effect from 'effect/Effect';
@@ -42,7 +43,7 @@ import { TraceFlagItemStruct } from './core/schemas/traceFlagSchemas';
 import { watchSfProjectFile } from './core/sfProjectFileWatcher';
 import { SourceTrackingService } from './core/sourceTrackingService';
 import { preventOrgChanges } from './core/targetOrgGuard';
-import { TemplateService, TemplateType } from './core/templateService';
+import { TemplateService } from './core/templateService';
 import { TraceFlagService } from './core/traceFlagService';
 import { TransmogrifierService } from './core/transmogrifierService';
 import { nls } from './messages';
@@ -56,6 +57,10 @@ import { OrgCatalogState } from './orgCatalog/orgCatalogState';
 import { OrgMetadataCatalog } from './orgCatalog/orgMetadataCatalog';
 import { OrgMetadataCatalogChangePubSub } from './orgCatalog/orgMetadataCatalogChangePubSub';
 import { OrgMetadataCatalogStore } from './orgCatalog/orgMetadataCatalogStore';
+import {
+  OrgMetadataCatalogFindQuerySchema,
+  OrgMetadataCatalogFindResultSchema
+} from './orgCatalog/orgMetadataCatalogTypes';
 import { runOrgMetadataDocumentProvider } from './orgCatalog/orgMetadataDocumentProvider';
 import { ORG_METADATA_SCHEME } from './orgCatalog/orgMetadataReference';
 import { globalLayers } from './servicesLayers';
@@ -155,6 +160,10 @@ export type SalesforceVSCodeServicesApi = {
     MetadataChangeNotificationService: typeof MetadataChangeNotificationService;
     MetadataDeleteService: typeof MetadataDeleteService;
     OrgMetadataCatalog: typeof OrgMetadataCatalog;
+    OrgMetadataCatalogFindSchemas: {
+      OrgMetadataCatalogFindQuery: typeof OrgMetadataCatalogFindQuerySchema;
+      OrgMetadataCatalogFindResult: typeof OrgMetadataCatalogFindResultSchema;
+    };
     OrgMetadataCatalogChangePubSub: typeof OrgMetadataCatalogChangePubSub;
     ORG_METADATA_SCHEME: typeof ORG_METADATA_SCHEME;
     MetadataDeployService: typeof MetadataDeployService;
@@ -255,11 +264,10 @@ export {
   type LightningInterfaceCreateOptions,
   type VisualforceComponentCreateOptions,
   type VisualforcePageCreateOptions,
-  type CreateOutput,
   type CreateParams,
-  type TemplateOptionsFor,
-  type TemplateType
+  type TemplateOptionsFor
 } from './core/templateService';
+export { TemplateType, type CreateOutput } from '@salesforce/templates';
 export type { TemplatesManifestLoadError, TemplatesRootPathNotAvailableError } from './core/templateService';
 export type {
   NonEmptyComponentSet,
@@ -299,12 +307,19 @@ export type {
   OrgMetadataCatalogComponentEntry,
   OrgMetadataCatalogComponentReference,
   OrgMetadataCatalogEntry,
+  OrgMetadataCatalogFindQuery,
+  OrgMetadataCatalogFindResult,
   OrgMetadataCatalogFieldEntry,
   OrgMetadataCatalogFolderEntry,
+  OrgSObjectDescription,
   OrgMetadataCatalogReference,
   OrgMetadataConsistency,
   OrgMetadataFieldDetails,
   OrgMetadataHierarchyConsistency
+} from './orgCatalog/orgMetadataCatalogTypes';
+export {
+  OrgMetadataCatalogFindQuerySchema,
+  OrgMetadataCatalogFindResultSchema
 } from './orgCatalog/orgMetadataCatalogTypes';
 export type { OrgMetadataComponentReference } from './orgCatalog/orgMetadataReference';
 export type { MetadataDeleteError } from './core/metadataDeleteService';
@@ -577,6 +592,10 @@ export const activate = async (context: vscode.ExtensionContext): Promise<Salesf
         MetadataChangeNotificationService,
         MetadataDeleteService,
         OrgMetadataCatalog,
+        OrgMetadataCatalogFindSchemas: {
+          OrgMetadataCatalogFindQuery: OrgMetadataCatalogFindQuerySchema,
+          OrgMetadataCatalogFindResult: OrgMetadataCatalogFindResultSchema
+        },
         OrgMetadataCatalogChangePubSub,
         ORG_METADATA_SCHEME,
         MetadataDescribeService,
@@ -652,7 +671,8 @@ export {
   MetadataDeleteService,
   type MetadataDeleteService as MetadataDeleteServiceType
 } from './core/metadataDeleteService';
-export { type ApexLogListItem, type ApexLogService, type ListLogsOptions } from './core/apexLogService';
+export type { ApexLogService } from './core/apexLogService';
+export type { ApexLogListItem, ListLogsOptions } from '@salesforce/apex-node/effect';
 export { type MetadataDescribeService } from './core/metadataDescribeService';
 export {
   dedupeMetadataChanges,

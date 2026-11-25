@@ -26,6 +26,8 @@ type RetrieveRequest = {
   readonly expectedRemoteLastModifiedDate?: string;
 };
 
+type NonEmptyRetrieveRequests = readonly [RetrieveRequest, ...RetrieveRequest[]];
+
 const uniqueHashableUris = (uris: readonly URI[]): readonly HashableUri[] => Arr.dedupe(uris.map(HashableUri.fromUri));
 
 const sourceComponentFilePaths = (sourceComponent?: {
@@ -152,9 +154,7 @@ export class OrgCatalogRemoteRetrieve extends Effect.Service<OrgCatalogRemoteRet
                 { concurrency: 'unbounded' }
               );
               const artifactFileUris = Arr.dedupe([...fileUris, ...sourceComponentUris.map(HashableUri.fromUri)]);
-              const fileProperties = Array.isArray(result.response.fileProperties)
-                ? result.response.fileProperties
-                : [result.response.fileProperties];
+              const fileProperties = Arr.ensure(result.response.fileProperties);
               const remoteLastModifiedDate = fileProperties.find(
                 property => property?.type === reference.xmlName && property.fullName === reference.fullName
               )?.lastModifiedDate;
@@ -194,9 +194,7 @@ export class OrgCatalogRemoteRetrieve extends Effect.Service<OrgCatalogRemoteRet
               const sourceComponents = [...result.components.getSourceComponents()];
               const responses = result.getFileResponses();
               const stagedFiles = yield* listStagedFiles(stagingUri);
-              const fileProperties = Array.isArray(result.response.fileProperties)
-                ? result.response.fileProperties
-                : [result.response.fileProperties];
+              const fileProperties = Arr.ensure(result.response.fileProperties);
               return yield* Effect.forEach(
                 requests,
                 request =>
@@ -299,11 +297,10 @@ export class OrgCatalogRemoteRetrieve extends Effect.Service<OrgCatalogRemoteRet
 
     const materializeRetrievedComponents = Effect.fn('OrgCatalogRemoteRetrieve.materializeComponents')(function* (
       orgId: string,
-      requests: readonly RetrieveRequest[]
+      requests: NonEmptyRetrieveRequests
     ) {
-      if (requests.length === 0) return [];
       if (requests.length > 1) return yield* materializeBatch(orgId, requests);
-      const request = requests[0]!;
+      const [request] = requests;
       return [{ reference: request.reference, artifact: yield* materializeOne(orgId, request) }];
     });
 

@@ -173,6 +173,16 @@ describe('TemplateService', () => {
     );
   });
 
+  describe('getProjectTemplateNames', () => {
+    it('returns the project templates exported by @salesforce/templates', async () => {
+      const layer = createTestLayer(createMockConfigService(undefined));
+
+      const result = await Effect.runPromise(TemplateService.getProjectTemplateNames().pipe(Effect.provide(layer)));
+
+      expect(result).toBe(SfTemplates.PROJECT_TEMPLATES);
+    });
+  });
+
   describe('getBuiltInTemplateSubdirNames', () => {
     it('delegates to CreateUtil.getCommandTemplatesInSubdirs', async () => {
       vi.mocked(SfTemplates.CreateUtil.getCommandTemplatesInSubdirs).mockReturnValue(['default', 'typeScript']);

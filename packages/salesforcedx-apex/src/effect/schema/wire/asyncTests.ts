@@ -6,8 +6,8 @@
  */
 
 import * as Schema from 'effect/Schema';
-import { ApexTestQueueItemId } from '../../../schemas/salesforceId';
-import { ApexClassId, ApexClassIdsSchema, ApexTestSuiteIdsSchema } from '../salesforceId';
+import { ApexClassId, ApexTestQueueItemId } from '../../../schemas/salesforceId';
+import { ApexClassIdsSchema, ApexTestSuiteIdsSchema } from '../salesforceId';
 
 const testLevelSchema = Schema.Literal('RunLocalTests', 'RunAllTestsInOrg', 'RunSpecifiedTests');
 const testCategorySchema = Schema.Literal('Apex', 'Flow');
@@ -52,15 +52,29 @@ export const ApexTestRunSummarySchema = Schema.Struct({
 }).annotations({ identifier: 'ApexTestRunSummary' });
 export const summariesSchema = Schema.Struct({ records: Schema.Tuple(ApexTestRunSummarySchema) });
 
-const queueRecordsSchema = Schema.Array(
-  Schema.Struct({
-    Id: ApexTestQueueItemId,
-    Status: Schema.Literal('Queued', 'Holding', 'Preparing', 'Processing', 'Aborted', 'Completed', 'Failed')
-  })
-);
-export const queueSchema = Schema.Union(
-  Schema.Struct({ done: Schema.Literal(true), records: queueRecordsSchema }),
-  Schema.Struct({ done: Schema.Literal(false), records: queueRecordsSchema, nextRecordsUrl: Schema.String })
-);
+export const ApexTestQueueItemStatusSchema = Schema.Literal(
+  'Holding',
+  'Queued',
+  'Preparing',
+  'Processing',
+  'Aborted',
+  'Completed',
+  'Failed'
+).annotations({ identifier: 'ApexTestQueueItemStatus' });
+
+const queueRecordFields = {
+  Id: ApexTestQueueItemId,
+  Status: ApexTestQueueItemStatusSchema
+};
+
+export const ApexTestQueueItemRecordSchema = Schema.Struct({
+  ...queueRecordFields,
+  ApexClassId: Schema.NullOr(ApexClassId),
+  TestRunResultId: Schema.String
+})
+  .pipe(Schema.mutable)
+  .annotations({ identifier: 'ApexTestQueueItemRecord' });
+
+export const queueRecordSchema = Schema.Struct(queueRecordFields);
 
 export const updateResultsSchema = Schema.Array(Schema.Struct({ success: Schema.Boolean }));

@@ -9,8 +9,10 @@ import * as FileSystem from '@effect/platform/FileSystem';
 import * as Path from '@effect/platform/Path';
 import { _electron as electron, type ConsoleMessage, type ElectronApplication, type Page } from '@playwright/test';
 import { redactValue } from '@salesforce/playwright-vscode-ext';
+import { getErrorMessage } from '@salesforce/salesforcedx-utils';
 import { downloadAndUnzipVSCode, SilentReporter } from '@vscode/test-electron';
 import * as Cause from 'effect/Cause';
+import * as DateTime from 'effect/DateTime';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
 import * as ExecutionStrategy from 'effect/ExecutionStrategy';
@@ -29,7 +31,6 @@ import { ArtifactService } from './artifactService';
 import { consumeConsoleWrites, drainConsoleWrites, type ConsoleWrite } from './consoleWriteQueue';
 import { QUICK_INPUT_WIDGET, WORKBENCH } from './constants';
 import {
-  causeMessage,
   DrivableVscodeActionError,
   type DrivableVscodeArtifactError,
   DrivableVscodeLaunchError,
@@ -222,7 +223,7 @@ const launchEnvironment = (): Record<string, string> => {
 };
 
 const teardownFailure = (message: string, cause: unknown) =>
-  new DrivableVscodeTeardownError({ message, cause: causeMessage(cause) });
+  new DrivableVscodeTeardownError({ message, cause: getErrorMessage(cause) });
 const finalizer = <E>(effect: Effect.Effect<unknown, E>) => effect.pipe(Effect.uninterruptible, Effect.orDie);
 const closeSessionScope = (scope: Scope.CloseableScope, exit: Exit.Exit<unknown, unknown>) =>
   Scope.close(scope, exit).pipe(
@@ -244,7 +245,10 @@ const closeElectron = Effect.fn('SessionService.closeElectron')(function* (app: 
       ? Effect.try({
           try: () => process.kill(process.platform === 'win32' ? child.pid! : -child.pid!, 'SIGKILL'),
           catch: cause =>
-            new DrivableVscodeTeardownError({ message: 'Failed to kill VS Code process', cause: causeMessage(cause) })
+            new DrivableVscodeTeardownError({
+              message: 'Failed to kill VS Code process',
+              cause: getErrorMessage(cause)
+            })
         }).pipe(
           Effect.catchTag('DrivableVscodeTeardownError', error =>
             error.cause?.includes('ESRCH') ? Effect.void : Effect.fail(error)
@@ -254,7 +258,7 @@ const closeElectron = Effect.fn('SessionService.closeElectron')(function* (app: 
   );
   const close = Effect.tryPromise({
     try: () => app.close(),
-    catch: cause => new DrivableVscodeTeardownError({ message: 'VS Code close failed', cause: causeMessage(cause) })
+    catch: cause => new DrivableVscodeTeardownError({ message: 'VS Code close failed', cause: getErrorMessage(cause) })
   });
   yield* Effect.uninterruptibleMask(restore =>
     Effect.exit(restore(close).pipe(Effect.timeoutOption(CLOSE_TIMEOUT))).pipe(
@@ -308,7 +312,10 @@ const executeAction = (page: Page, action: DrivableVscodeAction) =>
         Match.exhaustive
       ),
     catch: cause =>
-      new DrivableVscodeActionError({ message: `Failed to execute ${action.kind} action`, cause: causeMessage(cause) })
+      new DrivableVscodeActionError({
+        message: `Failed to execute ${action.kind} action`,
+        cause: getErrorMessage(cause)
+      })
   });
 
 export class SessionService extends Effect.Service<SessionService>()('DrivableVscode/SessionService', {
@@ -329,7 +336,7 @@ export class SessionService extends Effect.Service<SessionService>()('DrivableVs
     const launch = Effect.fn('SessionService.launch')(function* (options: DrivableVscodeLaunchOptions = {}) {
       const repoRoot = options.repoRoot ?? process.cwd();
       const extensionMode = options.extensionMode ?? 'vsix';
-      const runId = `${new Date().toISOString().replaceAll(/[:.]/g, '-')}-${randomUUID().slice(0, 8)}`;
+      const runId = `${DateTime.formatIso(yield* DateTime.now).replaceAll(/[:.]/g, '-')}-${randomUUID().slice(0, 8)}`;
       const artifactRoot = options.artifactRoot ?? path.join(repoRoot, '.e2e-artifacts', 'drivable-vscode');
       const artifacts = yield* artifactService.create(artifactRoot, runId);
       const sessionScope = yield* Scope.make(ExecutionStrategy.sequential);
@@ -368,7 +375,7 @@ export class SessionService extends Effect.Service<SessionService>()('DrivableVs
           .pipe(
             Effect.mapError(
               cause =>
-                new DrivableVscodeTeardownError({ message: `Failed to remove ${label}`, cause: causeMessage(cause) })
+                new DrivableVscodeTeardownError({ message: `Failed to remove ${label}`, cause: getErrorMessage(cause) })
             )
           );
       const acquireSession = Effect.fn('SessionService.acquireSession')(function* () {
@@ -384,7 +391,7 @@ export class SessionService extends Effect.Service<SessionService>()('DrivableVs
                 cause =>
                   new DrivableVscodeLaunchError({
                     message: 'Failed to create VS Code user data directory',
-                    cause: causeMessage(cause)
+                    cause: getErrorMessage(cause)
                   })
               )
             ),
@@ -404,7 +411,7 @@ export class SessionService extends Effect.Service<SessionService>()('DrivableVs
             cause =>
               new DrivableVscodeLaunchError({
                 message: 'Failed to prepare VS Code launch directories',
-                cause: causeMessage(cause)
+                cause: getErrorMessage(cause)
               })
           )
         );
@@ -418,7 +425,7 @@ export class SessionService extends Effect.Service<SessionService>()('DrivableVs
               cause =>
                 new DrivableVscodeLaunchError({
                   message: 'Failed to write VS Code settings',
-                  cause: causeMessage(cause)
+                  cause: getErrorMessage(cause)
                 })
             )
           );
@@ -432,7 +439,7 @@ export class SessionService extends Effect.Service<SessionService>()('DrivableVs
                 reporter: new SilentReporter()
               }),
             catch: cause =>
-              new DrivableVscodeLaunchError({ message: 'Failed to acquire VS Code', cause: causeMessage(cause) })
+              new DrivableVscodeLaunchError({ message: 'Failed to acquire VS Code', cause: getErrorMessage(cause) })
           }));
         const resolved =
           extensionMode === 'dev'
@@ -471,7 +478,7 @@ export class SessionService extends Effect.Service<SessionService>()('DrivableVs
                   recordVideo: { dir: videosDir, size: { width: 1920, height: 1080 } }
                 }),
               catch: cause =>
-                new DrivableVscodeLaunchError({ message: 'Failed to launch VS Code', cause: causeMessage(cause) })
+                new DrivableVscodeLaunchError({ message: 'Failed to launch VS Code', cause: getErrorMessage(cause) })
             }),
             acquiredApp => finalizer(runPhase('electronClosed', closeElectron(acquiredApp)))
           )
@@ -487,7 +494,7 @@ export class SessionService extends Effect.Service<SessionService>()('DrivableVs
           catch: cause =>
             new DrivableVscodeLaunchError({
               message: 'VS Code workbench failed to become ready',
-              cause: causeMessage(cause)
+              cause: getErrorMessage(cause)
             })
         });
         const consoleWrites = yield* Queue.unbounded<ConsoleWrite>();
@@ -502,7 +509,7 @@ export class SessionService extends Effect.Service<SessionService>()('DrivableVs
                     cause =>
                       new DrivableVscodeTeardownError({
                         message: 'Failed to drain renderer console',
-                        cause: causeMessage(cause)
+                        cause: getErrorMessage(cause)
                       })
                   )
                 )
@@ -538,7 +545,7 @@ export class SessionService extends Effect.Service<SessionService>()('DrivableVs
           runId,
           objective: options.objective ?? 'Unspecified drivable VS Code objective',
           mode: extensionMode,
-          startedAt: new Date().toISOString(),
+          startedAt: DateTime.formatIso(yield* DateTime.now),
           repoRoot,
           workspaceDir,
           vscodeExecutable,
@@ -563,6 +570,7 @@ export class SessionService extends Effect.Service<SessionService>()('DrivableVs
           const sequence = current.observationSequence + 1;
           yield* Ref.set(state, { ...current, observationSequence: sequence });
           const screenshotPath = path.join(artifacts.screenshotsDir, `${String(sequence).padStart(4, '0')}.png`);
+          const clock = yield* Effect.clock;
           const observation = yield* Effect.tryPromise({
             try: async () => {
               const ariaSnapshot = await page.locator('body').ariaSnapshot();
@@ -575,7 +583,7 @@ export class SessionService extends Effect.Service<SessionService>()('DrivableVs
               };
               const redacted = redactValue({
                 sequence,
-                capturedAt: new Date().toISOString(),
+                capturedAt: DateTime.formatIso(DateTime.unsafeMake(clock.unsafeCurrentTimeMillis())),
                 title: await page.title(),
                 url: page.url(),
                 ariaSnapshot: ariaSnapshot.slice(0, ARIA_SNAPSHOT_LIMIT),
@@ -593,7 +601,7 @@ export class SessionService extends Effect.Service<SessionService>()('DrivableVs
             catch: cause =>
               new DrivableVscodeObservationError({
                 message: 'Failed to capture VS Code observation',
-                cause: causeMessage(cause)
+                cause: getErrorMessage(cause)
               })
           }).pipe(
             Effect.flatMap(Schema.decodeUnknown(DrivableVscodeObservation)),
@@ -602,7 +610,7 @@ export class SessionService extends Effect.Service<SessionService>()('DrivableVs
                 ? cause
                 : new DrivableVscodeObservationError({
                     message: 'Captured an invalid VS Code observation',
-                    cause: causeMessage(cause)
+                    cause: getErrorMessage(cause)
                   })
             )
           );
@@ -624,7 +632,7 @@ export class SessionService extends Effect.Service<SessionService>()('DrivableVs
           const record = {
             sequence: actionSequence,
             observationSequence: current.observationSequence,
-            startedAt: new Date().toISOString(),
+            startedAt: DateTime.formatIso(yield* DateTime.now),
             action
           };
           yield* artifacts.appendAction({ kind: 'action-started', ...record });
@@ -653,21 +661,23 @@ export class SessionService extends Effect.Service<SessionService>()('DrivableVs
               catch: cause =>
                 new DrivableVscodeTeardownError({
                   message: 'Failed to save final screenshot',
-                  cause: causeMessage(cause)
+                  cause: getErrorMessage(cause)
                 })
             }).pipe(Effect.asVoid)
           );
           const closingRecord = runPhase(
             'closingRecorded',
-            artifacts.appendAction({ kind: 'session-closing', capturedAt: new Date().toISOString() }).pipe(
-              Effect.mapError(
-                cause =>
-                  new DrivableVscodeTeardownError({
-                    message: 'Failed to record session close',
-                    cause: causeMessage(cause)
-                  })
+            artifacts
+              .appendAction({ kind: 'session-closing', capturedAt: DateTime.formatIso(yield* DateTime.now) })
+              .pipe(
+                Effect.mapError(
+                  cause =>
+                    new DrivableVscodeTeardownError({
+                      message: 'Failed to record session close',
+                      cause: getErrorMessage(cause)
+                    })
+                )
               )
-            )
           );
           const video = page.video();
           const videoSave = runPhase(
@@ -678,7 +688,7 @@ export class SessionService extends Effect.Service<SessionService>()('DrivableVs
                   catch: cause =>
                     new DrivableVscodeTeardownError({
                       message: 'Failed to locate session video',
-                      cause: causeMessage(cause)
+                      cause: getErrorMessage(cause)
                     })
                 }).pipe(
                   Effect.flatMap(videoPath => fs.rename(videoPath, path.join(artifacts.artifactDir, 'session.webm'))),
@@ -687,7 +697,7 @@ export class SessionService extends Effect.Service<SessionService>()('DrivableVs
                       ? cause
                       : new DrivableVscodeTeardownError({
                           message: 'Failed to save session video',
-                          cause: causeMessage(cause)
+                          cause: getErrorMessage(cause)
                         })
                   )
                 )
@@ -706,7 +716,7 @@ export class SessionService extends Effect.Service<SessionService>()('DrivableVs
                     cause =>
                       new DrivableVscodeTeardownError({
                         message: 'Failed to drain renderer console',
-                        cause: causeMessage(cause)
+                        cause: getErrorMessage(cause)
                       })
                   )
                 )
@@ -749,7 +759,7 @@ export class SessionService extends Effect.Service<SessionService>()('DrivableVs
                       cause =>
                         new DrivableVscodeTeardownError({
                           message: 'Failed to flush session artifacts',
-                          cause: causeMessage(cause)
+                          cause: getErrorMessage(cause)
                         })
                     )
                   )
@@ -759,7 +769,7 @@ export class SessionService extends Effect.Service<SessionService>()('DrivableVs
                 cause =>
                   new DrivableVscodeTeardownError({
                     message: 'Failed to finish session artifacts',
-                    cause: causeMessage(cause)
+                    cause: getErrorMessage(cause)
                   })
               )
             );
@@ -785,7 +795,7 @@ export class SessionService extends Effect.Service<SessionService>()('DrivableVs
                   ? error
                   : new DrivableVscodeTeardownError({
                       message: 'Drivable VS Code session teardown failed',
-                      cause: causeMessage(error)
+                      cause: getErrorMessage(error)
                     })
               )
             )

@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { Table } from '../../src/utils/table';
+import { createTable } from '../../src/utils/table';
 
 describe('Table Utils', () => {
   it('Should create a string with the correct formatting and number of Rows and Columns', () => {
@@ -25,7 +25,7 @@ describe('Table Utils', () => {
       { key: 'col2', label: 'Column 2' }
     ];
 
-    const table = new Table().createTable(rows, cols, 'Sample Table');
+    const table = createTable(rows, cols, 'Sample Table');
 
     expect(table).toBe(expectedTable);
   });
@@ -45,7 +45,7 @@ describe('Table Utils', () => {
       { key: 'col2', label: 'Column 2' }
     ];
 
-    const table = new Table().createTable(rows, cols);
+    const table = createTable(rows, cols);
 
     expect(table).toBe(expectedTable);
   });
@@ -66,18 +66,20 @@ describe('Table Utils', () => {
       { key: 'col2', label: 'Column 2' }
     ];
 
-    const table = new Table().createTable(rows, cols);
+    const table = createTable(rows, cols);
 
     expect(table).toBe(expectedTable);
   });
 
   it('Should correctly format another multiline cell', () => {
-    const expectedTable =
-      'Column 1  Column 2                    Column 3\n' +
-      '────────  ──────────────────────────  ────────\n' +
-      'test1     first line which is longer  \n' +
-      '          second line                 value1  \n' +
-      'test2     test3                       value2  \n';
+    const expectedTable = [
+      'Column 1  Column 2                    Column 3',
+      '────────  ──────────────────────────  ────────',
+      `${'test1'.padEnd(8)}  ${'first line which is longer'.padEnd(26)}  ${'value1'.padEnd(8)}`,
+      `${' '.repeat(8)}  ${'second line'.padEnd(26)}  ${' '.repeat(8)}`,
+      `${'test2'.padEnd(8)}  ${'test3'.padEnd(26)}  ${'value2'.padEnd(8)}`,
+      ''
+    ].join('\n');
     const rows = [
       {
         col1: 'test1',
@@ -92,12 +94,12 @@ describe('Table Utils', () => {
       { key: 'col3', label: 'Column 3' }
     ];
 
-    const table = new Table().createTable(rows, cols);
+    const table = createTable(rows, cols);
 
     expect(table).toBe(expectedTable);
   });
 
-  it('Should throw an error if a row is missing the key of a given column', () => {
+  it('Should leave a cell blank if the row is missing a column key', () => {
     const rows = [
       { col1: 'test', col2: 'test2' },
       { col1: 'test3', col2: 'test4' }
@@ -107,12 +109,14 @@ describe('Table Utils', () => {
       { key: 'col3', label: 'Column 2' }
     ];
 
-    let err;
-    try {
-      new Table().createTable(rows, cols);
-    } catch (e) {
-      err = e;
-    }
-    expect(err.message).toBe('Row is missing the key col3');
+    expect(createTable(rows, cols)).toBe(
+      [
+        'Column 1  Column 2',
+        '────────  ────────',
+        `${'test'.padEnd(8)}  ${' '.repeat(8)}`,
+        `${'test3'.padEnd(8)}  ${' '.repeat(8)}`,
+        ''
+      ].join('\n')
+    );
   });
 });

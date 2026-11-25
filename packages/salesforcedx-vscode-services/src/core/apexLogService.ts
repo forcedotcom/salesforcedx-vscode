@@ -20,8 +20,6 @@ import * as Stream from 'effect/Stream';
 import { ConnectionService } from './connectionService';
 import { refineSoqlError } from './queryExecute';
 
-export { ApexLogListItem, type ListLogsOptions } from '@salesforce/apex-node/effect';
-
 export class ApexLogService extends Effect.Service<ApexLogService>()('ApexLogService', {
   accessors: true,
   dependencies: [ConnectionService.Default],

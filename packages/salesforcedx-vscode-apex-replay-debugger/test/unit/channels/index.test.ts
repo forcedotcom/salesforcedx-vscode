@@ -22,7 +22,7 @@ const loadBridgeWithMockLayer = async () => {
   vi.resetModules();
   const freshVscode = await import('vscode');
   const { ExtensionProviderService } = await import('@salesforce/effect-ext-utils');
-  const { ChannelService } = await import('salesforcedx-vscode-services/out/src/vscode/channelService.js');
+  const { ChannelService } = await import('salesforcedx-vscode-services/src/vscode/channelService');
   const { setAllServicesLayer } = await import('../../../src/services/extensionProvider.js');
 
   const channel = {

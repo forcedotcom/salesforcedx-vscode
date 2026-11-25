@@ -14,38 +14,47 @@ import {
   executeCommandWithCommandPalette,
   NOTIFICATION_LIST_ITEM,
   openFileByName,
+  resetContainerWorkbench,
   saveScreenshot,
   selectOutputChannel,
+  setupConsoleMonitoring,
   setupMinimalOrgAndAuth,
+  setupNetworkMonitoring,
+  validateNoCriticalErrors,
   waitForNotification,
   waitForOutputChannelText
 } from '@salesforce/playwright-vscode-ext';
 
-import fs from 'node:fs';
-import path from 'node:path';
 import metadataNls from 'salesforcedx-vscode-metadata/package.nls.json';
 import packageNls from '../../../package.nls.json';
-import { test } from '../fixtures';
+import { isContainer, sharedTest as test } from '../fixtures';
+
+// No org setup on the container's shared, persistent workbench — every test uses the boot (default)
+// org, and editors/notifications are reset before each test rather than assuming a clean slate.
+test.beforeEach(async ({ page }) => {
+  if (isContainer) {
+    await resetContainerWorkbench(page);
+  }
+});
 
 // ── Spec 1: Unsupported file type ─────────────────────────────────────────────
 
-test('Launch Apex Replay Debugger with Selected File: shows error for unsupported file type', async ({
-  page,
-  workspaceDir
-}) => {
+test('Launch Apex Replay Debugger with Selected File: shows error for unsupported file type', async ({ page }) => {
   test.setTimeout(300_000);
+  const consoleErrors = setupConsoleMonitoring(page);
+  const networkErrors = setupNetworkMonitoring(page);
 
-  await test.step('setup minimal org and open a non-Apex .txt file', async () => {
-    await setupMinimalOrgAndAuth(page);
+  await test.step('open a non-Apex file already on disk (sfdx-project.json — no host fs write needed)', async () => {
+    if (!isContainer) {
+      await setupMinimalOrgAndAuth(page);
+    }
     await ensureSecondarySideBarHidden(page);
 
-    // Write a plain .txt file directly to the workspace — no deployment needed
-    const txtPath = path.join(workspaceDir, 'force-app', 'main', 'default', 'unsupported.txt');
-    fs.mkdirSync(path.dirname(txtPath), { recursive: true });
-    fs.writeFileSync(txtPath, 'this is not an apex file');
-
-    await openFileByName(page, 'unsupported.txt');
-    const editor = page.locator(`${EDITOR_WITH_URI}[data-uri$="unsupported.txt"]`);
+    // sfdx-project.json ships at the root of both the desktop scratch workspace and the container's
+    // seeded fixture, so it's a non-Apex file guaranteed to already exist on disk in both modes —
+    // no workspaceDir write needed.
+    await openFileByName(page, 'sfdx-project.json');
+    const editor = page.locator(`${EDITOR_WITH_URI}[data-uri$="sfdx-project.json"]`);
     await editor.waitFor({ state: 'visible', timeout: 15_000 });
     await saveScreenshot(page, 'setup.unsupported-file-open.png');
   });
@@ -60,15 +69,21 @@ test('Launch Apex Replay Debugger with Selected File: shows error for unsupporte
     await expect(errorNotification).toBeVisible({ timeout: 15_000 });
     await saveScreenshot(page, 'step.unsupported-file-error.png');
   });
+
+  await validateNoCriticalErrors(test, consoleErrors, networkErrors);
 });
 
 // ── Spec 2: No enabled checkpoints ───────────────────────────────────────────
 
 test('Update Checkpoints in Org: shows warning when no checkpoints are enabled', async ({ page }) => {
   test.setTimeout(300_000);
+  const consoleErrors = setupConsoleMonitoring(page);
+  const networkErrors = setupNetworkMonitoring(page);
 
-  await test.step('setup minimal org with an Apex class (no checkpoints toggled)', async () => {
-    await setupMinimalOrgAndAuth(page);
+  await test.step('setup (no checkpoints toggled)', async () => {
+    if (!isContainer) {
+      await setupMinimalOrgAndAuth(page);
+    }
     await ensureSecondarySideBarHidden(page);
     await ensureOutputPanelOpen(page);
   });
@@ -78,14 +93,16 @@ test('Update Checkpoints in Org: shows warning when no checkpoints are enabled',
     await waitForNotification(page, /You don't have any checkpoints enabled/, { timeout: 30_000 });
     await saveScreenshot(page, 'step.no-enabled-checkpoints-warning.png');
   });
+
+  await validateNoCriticalErrors(test, consoleErrors, networkErrors);
 });
 
 // ── Spec 3: Checkpoint limit exceeded ────────────────────────────────────────
 
-const accountServiceContent = (i: number) =>
+const accountServiceContent = (className: string) =>
   [
-    `public with sharing class AccountService${i} {`,
-    `  public Account createAccount${i}(String name) {`,
+    `public with sharing class ${className} {`,
+    '  public Account createAccount(String name) {',
     '    Account acct = new Account(Name = name);',
     '    return acct;',
     '  }',
@@ -94,17 +111,27 @@ const accountServiceContent = (i: number) =>
 
 test('Update Checkpoints in Org: shows error when more than 5 checkpoints are enabled', async ({ page }) => {
   test.setTimeout(600_000);
+  const consoleErrors = setupConsoleMonitoring(page);
+  const networkErrors = setupNetworkMonitoring(page);
 
-  // Six classes, one checkpoint per class → exceeds limit of 5
+  // Six classes, one checkpoint per class → exceeds limit of 5. On the container's shared, persistent
+  // workbench, names carry a per-run suffix so they never collide with classes left by a prior run;
+  // desktop gets a fresh scratch org and workspace every run, so plain names are fine there (and
+  // avoid a Quick Open fuzzy-match race that longer, near-identical-prefix names can trigger).
   const classCount = 6;
-  const classNames = Array.from({ length: classCount }, (_, i) => `AccountService${i + 1}`);
+  const uid = Date.now().toString(36);
+  const classNames = isContainer
+    ? Array.from({ length: classCount }, (_, i) => `AccountService_${uid}_${i + 1}`)
+    : Array.from({ length: classCount }, (_, i) => `AccountService${i + 1}`);
 
-  await test.step('setup minimal org and deploy 6 Apex classes', async () => {
-    await setupMinimalOrgAndAuth(page);
+  await test.step('setup and deploy 6 Apex classes', async () => {
+    if (!isContainer) {
+      await setupMinimalOrgAndAuth(page);
+    }
     await ensureSecondarySideBarHidden(page);
 
-    for (let i = 0; i < classCount; i++) {
-      await createApexClass(page, classNames[i], accountServiceContent(i + 1));
+    for (const className of classNames) {
+      await createApexClass(page, className, accountServiceContent(className));
     }
 
     await ensureOutputPanelOpen(page);
@@ -113,7 +140,7 @@ test('Update Checkpoints in Org: shows error when more than 5 checkpoints are en
       page,
       metadataNls.project_deploy_start_ignore_conflicts_default_org_text as string
     );
-    await waitForOutputChannelText(page, { expectedText: 'Starting metadata deployment', timeout: 30_000 });
+    await waitForOutputChannelText(page, { expectedText: 'Starting metadata deployment', timeout: 90_000 });
     await waitForOutputChannelText(page, { expectedText: 'Deployed Source', timeout: 120_000 });
     await saveScreenshot(page, 'setup.classes-deployed.png');
   });
@@ -153,4 +180,6 @@ test('Update Checkpoints in Org: shows error when more than 5 checkpoints are en
     await expect(errorNotification).toBeVisible({ timeout: 30_000 });
     await saveScreenshot(page, 'step.checkpoint-limit-error.png');
   });
+
+  await validateNoCriticalErrors(test, consoleErrors, networkErrors);
 });

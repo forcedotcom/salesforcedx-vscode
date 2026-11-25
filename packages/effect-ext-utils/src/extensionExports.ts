@@ -6,9 +6,10 @@
  */
 
 import * as Effect from 'effect/Effect';
-import { isError, isNotUndefined } from 'effect/Predicate';
+import { isNotUndefined } from 'effect/Predicate';
 import * as Schema from 'effect/Schema';
 import * as vscode from 'vscode';
+import { getMessageFromError } from './utils';
 
 /** On the error channel of `getExtensionExports`. @ExportTaggedError */
 export class ExtensionNotFoundError extends Schema.TaggedError<ExtensionNotFoundError>()('ExtensionNotFoundError', {
@@ -40,7 +41,7 @@ const getRawExtensionExports = (extId: string) =>
             catch: cause =>
               new ExtensionActivationError({
                 extId,
-                message: `Failed to activate extension '${extId}': ${isError(cause) ? cause.message : String(cause)}`,
+                message: `Failed to activate extension '${extId}': ${getMessageFromError(cause)}`,
                 cause
               })
           })

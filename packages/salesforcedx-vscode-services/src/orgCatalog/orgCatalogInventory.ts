@@ -7,6 +7,7 @@
 
 import type { TypeInventory } from './orgCatalogInternalTypes';
 import * as Arr from 'effect/Array';
+import * as DateTime from 'effect/DateTime';
 import * as Effect from 'effect/Effect';
 import * as HashMap from 'effect/HashMap';
 import * as Match from 'effect/Match';
@@ -26,7 +27,11 @@ export const makeOrgCatalogInventory = Effect.gen(function* () {
     MetadataRegistryService,
     MetadataDescribeService
   ]);
-  const loadType = Effect.fn('OrgCatalogInventory.loadType')(function* (orgId: string, xmlName: string) {
+  const loadType = Effect.fn('OrgCatalogInventory.loadType')(function* (
+    orgId: string,
+    xmlName: string,
+    requestedReference?: OrgMetadataComponentReference
+  ) {
     yield* state.ensureHydrated(orgId);
     const key = typeCacheKey(orgId, xmlName);
     const cached = yield* state.getInventory(orgId, xmlName);
@@ -36,13 +41,22 @@ export const makeOrgCatalogInventory = Effect.gen(function* () {
       const coalesced = yield* state.getInventory(orgId, xmlName);
       if (coalesced?.complete) return coalesced;
       const restored = yield* state.getPersistedInventory(orgId, xmlName);
+      const restoreComplete = isNotUndefined(restored) && restored.complete !== false;
+      const restoresRequestedComponent =
+        requestedReference !== undefined &&
+        restored?.components.some(component => component.fullName === requestedReference.fullName);
+      const restoredInventory = !isNotUndefined(restored)
+        ? undefined
+        : restoreComplete || restoresRequestedComponent
+          ? { components: restored.components, folders: restored.folders }
+          : undefined;
       const listOrgComponents =
-        isNotUndefined(restored) && restored.complete !== false
-          ? Effect.succeed({ components: restored.components, folders: restored.folders })
+        restoredInventory !== undefined
+          ? Effect.succeed(restoredInventory)
           : Match.value(FOLDERED_METADATA_TYPES.has(xmlName)).pipe(
               Match.when(true, () =>
                 Effect.gen(function* () {
-                  const folders = yield* metadataDescribeService.listMetadata(`${xmlName}Folder`, undefined, orgId);
+                  const folders = yield* metadataDescribeService.listMetadataFolders(xmlName, orgId);
                   const folderComponents = yield* Effect.all(
                     folders.map(folder => metadataDescribeService.listMetadata(xmlName, folder.fullName, orgId)),
                     { concurrency: 10 }
@@ -60,10 +74,10 @@ export const makeOrgCatalogInventory = Effect.gen(function* () {
         [listOrgComponents, workspace.scanWorkspaceInventory(xmlName)],
         { concurrency: 'unbounded' }
       );
-      const observedAt = restored && restored.complete !== false ? restored.observedAt : new Date().toISOString();
+      const observedAt = restoreComplete ? restored.observedAt : DateTime.formatIso(yield* DateTime.now);
       const inventory = {
         observedAt,
-        complete: true,
+        complete: restored?.complete ?? true,
         components: yield* mergeInventory({
           orgId,
           xmlName,
@@ -86,7 +100,7 @@ export const makeOrgCatalogInventory = Effect.gen(function* () {
         folderFullNameOrder: Arr.dedupe(orgListing.folders.map(folder => folder.fullName))
       } satisfies TypeInventory;
       yield* state.setInventory(orgId, xmlName, inventory);
-      if (!restored) yield* state.queuePersist(orgId);
+      if (!restoreComplete) yield* state.queuePersist(orgId);
       return inventory;
     }).pipe(semaphore.withPermits(1));
   });
@@ -99,7 +113,7 @@ export const makeOrgCatalogInventory = Effect.gen(function* () {
     const inventory =
       cached && findInventoryComponent(cached.components, reference)
         ? cached
-        : yield* loadType(orgId, reference.xmlName);
+        : yield* loadType(orgId, reference.xmlName, reference);
     return (
       findInventoryComponent(inventory.components, reference) ??
       (yield* projectChildren(

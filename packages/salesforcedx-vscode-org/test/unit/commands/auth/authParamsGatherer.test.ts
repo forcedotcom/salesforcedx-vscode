@@ -26,11 +26,8 @@ import {
   setAllServicesLayer
 } from '../../../../src/extensionProvider';
 import { nls } from '../../../../src/messages';
-import {
-  considerUndefinedAsCancellation,
-  makeConfirmOrThrow,
-  UserCancellationError
-} from '../../testHelpers/promptServiceStub';
+import { considerUndefinedAsCancellation, makeConfirmOrThrow } from '../../testHelpers/promptServiceStub';
+import { UserCancellationError } from 'salesforcedx-vscode-services/src/vscode/prompts/promptService';
 
 describe('AuthParamsGatherer', () => {
   const buildLayer = (confirm = true, projectLoginUrl?: string) => {
@@ -161,7 +158,7 @@ describe('AuthParamsGatherer', () => {
 
   describe('AccessTokenParamsGatherer', () => {
     const instanceUrl = 'https://demo.my.salesforce.com';
-    const accessToken = 'token123';
+    const accessToken = '00D000000000000!AQE-plant=+abc123';
 
     it('CONTINUE happy path with explicit alias', async () => {
       vi.spyOn(vscode.window, 'showInputBox')
@@ -203,7 +200,7 @@ describe('AuthParamsGatherer', () => {
       if (Exit.isFailure(exit)) expect(JSON.stringify(exit.cause)).toContain('UserCancellationError');
     });
 
-    it('wires validateInput on the instance-url and alias prompts', async () => {
+    it('validates the instance URL, alias, and Salesforce session ID prompts', async () => {
       const spy = vi
         .spyOn(vscode.window, 'showInputBox')
         .mockResolvedValueOnce(instanceUrl)
@@ -219,6 +216,9 @@ describe('AuthParamsGatherer', () => {
       expect(validateUrl?.('http://localhost:1717/oauth/callback')).toBeUndefined();
       expect(validateUrl?.('ftp://my.salesforce.com')).toBe(nls.localize('auth_invalid_url'));
       expect(validateUrl?.('https://my.salesforce.com/path?query=value')).toBe(nls.localize('auth_invalid_url'));
+      // This passes the safe-character pattern but fails the URL transformation.
+      expect(validateUrl?.('https://my.salesforce.com:99999')).toBe(nls.localize('auth_invalid_url'));
+      expect(validateUrl?.('')).toBe(nls.localize('auth_invalid_url'));
 
       // second prompt = alias: rejects shell metachars, accepts alphanumeric, hyphens, and empty (use default)
       const validateAlias = spy.mock.calls[1][0]?.validateInput?.bind(undefined);
@@ -226,6 +226,39 @@ describe('AuthParamsGatherer', () => {
       expect(validateAlias?.('GoodAlias')).toBeUndefined();
       expect(validateAlias?.('my-scratch-org')).toBeUndefined();
       expect(validateAlias?.('')).toBeUndefined();
+
+      const validateAccessToken = spy.mock.calls[2][0]?.validateInput?.bind(undefined);
+      expect(validateAccessToken?.(accessToken)).toBeUndefined();
+      expect(validateAccessToken?.('00D000000000000AAA!AQ-1=')).toBeUndefined();
+      expect(validateAccessToken?.('token123')).toBe(
+        nls.localize('parameter_gatherer_enter_session_id_diagnostic_message')
+      );
+      expect(validateAccessToken?.('04t000000000000!AQ-1=')).toBe(
+        nls.localize('parameter_gatherer_enter_session_id_diagnostic_message')
+      );
+      expect(validateAccessToken?.('00D000000000000!token with spaces')).toBe(
+        nls.localize('parameter_gatherer_enter_session_id_diagnostic_message')
+      );
     });
+  });
+
+  it('uses the same inline URL validation for custom web-login URLs', async () => {
+    vi.spyOn(vscode.window, 'showQuickPick').mockImplementation(async items =>
+      (await items).find(choice => choice.label === nls.localize('auth_custom_label'))
+    );
+    const input = vi
+      .spyOn(vscode.window, 'showInputBox')
+      .mockResolvedValueOnce('http://localhost:1717/login')
+      .mockResolvedValueOnce('');
+
+    expect(
+      await getOrgRuntime().runPromiseExit(
+        gatherAuthParams({ instanceUrl: undefined, reauthAliasOrUsername: undefined })
+      )
+    ).toStrictEqual(Exit.succeed({ alias: DEFAULT_ALIAS, loginUrl: 'http://localhost:1717/login' }));
+    const validate = input.mock.calls[0][0]?.validateInput?.bind(undefined);
+    expect(validate?.('')).toBe(nls.localize('auth_invalid_url'));
+    expect(validate?.('https://example.com:99999')).toBe(nls.localize('auth_invalid_url'));
+    expect(validate?.('http://localhost:1717/login')).toBeUndefined();
   });
 });

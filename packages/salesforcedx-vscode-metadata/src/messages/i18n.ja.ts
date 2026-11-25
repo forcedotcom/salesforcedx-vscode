@@ -36,7 +36,7 @@ export const messages: Partial<Record<MessageKey, string>> = {
 
   package_install_text: 'SFDX: パッケージをインストール',
   package_install_id_prompt: 'インストールするパッケージの ID を入力してください',
-  package_install_id_validation: 'パッケージ ID は 04t で始まる 15 文字または 18 文字の ID である必要があります',
+  package_install_id_validation: 'パッケージ ID は 04t で始まる 15 文字または 18 文字の ID である必要があります。',
   package_install_key_prompt:
     'キー保護されたパッケージのインストールキー (保護されていないパッケージの場合は空欄のままにしてください)',
   package_install_poll_prompt: 'パッケージのインストール完了を待ちますか？',

@@ -8,11 +8,15 @@
 import { expect } from '@playwright/test';
 
 import {
+  TEST_EXPLORER_PANEL,
+  TEST_EXPLORER_TREE_ITEM,
+  verifyNoTestRunInProgress,
   clearOutputChannel,
   createAndDeployApexTestClass,
   ensureOutputPanelOpen,
   ensureSecondarySideBarHidden,
   executeCommandWithCommandPalette,
+  resetContainerWorkbench,
   saveScreenshot,
   selectOutputChannel,
   setupConsoleMonitoring,
@@ -24,20 +28,24 @@ import {
 } from '@salesforce/playwright-vscode-ext';
 
 import packageNls from '../../../package.nls.json';
-import { test } from '../fixtures';
+import { isContainer, sharedTest as test } from '../fixtures';
 import { TEST_RUN_TIMEOUT, TEST_SETUP_TIMEOUT } from '../constants';
 import {
   CMD_RUN_ALL_TESTS,
   CMD_TOGGLE_MAXIMIZED_PANEL,
-  TEST_EXPLORER_PANEL,
-  TEST_EXPLORER_TREE_ITEM,
   TEST_RESULTS_TAB,
   clickTreeItemAction,
   findTestExplorerItem,
-  openTestExplorerAndDiscover,
-  verifyNoTestRunInProgress
+  openTestExplorerAndDiscover
 } from '../helpers/testExplorerHelpers';
 import { waitForApexRunOutputLine } from '../helpers/waitForApexRunOutputLine';
+
+// Shared persistent workbench: reset editor + notification state before each test.
+test.beforeEach(async ({ page }) => {
+  if (isContainer) {
+    await resetContainerWorkbench(page);
+  }
+});
 
 test('Apex Tests via Test Explorer: run all, verify discovery', async ({ page }) => {
   test.setTimeout(TEST_SETUP_TIMEOUT + TEST_RUN_TIMEOUT);
@@ -46,8 +54,11 @@ test('Apex Tests via Test Explorer: run all, verify discovery', async ({ page })
 
   let testClassName: string;
 
-  await test.step('setup non-tracking org with Apex test class', async () => {
-    await setupNonTrackingOrgAndAuth(page);
+  await test.step('setup org with Apex test class', async () => {
+    // The container uses its boot org, already authed at startup.
+    if (!isContainer) {
+      await setupNonTrackingOrgAndAuth(page);
+    }
     await ensureSecondarySideBarHidden(page);
     testClassName = `ExplorerTestClass${Date.now()}`;
     const testClassContent = [
@@ -142,12 +153,14 @@ test('Apex Tests via Test Explorer: run all, verify discovery', async ({ page })
     const classRow = findTestExplorerItem(page, testClassName);
     const twistie = classRow.locator('.monaco-tl-twistie');
     await expect(twistie).toBeVisible({ timeout: 10_000 });
-    await twistie.click();
+    // On the container's browser-served workbench the twistie glyph is a zero-size pseudo-element and
+    // the row intercepts pointer events at its coordinates.
+    await twistie.click({ force: isContainer });
     const methodRow = findTestExplorerItem(page, 'shouldDiscoverThisTest');
     await methodRow.waitFor({ state: 'visible', timeout: 15_000 });
 
     // Gate on the completion sentinel only. The Explorer run path (ApexTestExecutionService) writes the
-    // HumanReporter detail — including the dotted "Class.method" line — to the TestRun output
+    // Human-formatted detail — including the dotted "Class.method" line — to the TestRun output
     // (run.appendOutput, Test Results panel), NOT to the Apex Testing channel; only "Ended SFDX: Run Apex
     // Tests" reaches the channel. So the dotted string never appears in the channel on this path (unlike the
     // command path used by Re-Run Last Method below). Verify the specific method via its durable "Passed"

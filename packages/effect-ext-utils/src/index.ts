@@ -27,5 +27,6 @@ export {
 } from './utils';
 
 export { annotateRootSpan } from './annotateRootSpan';
-export { LetterStartNameSchema } from './letterStartName';
+export { LetterStartNamePattern, LetterStartNameSchema } from './letterStartName';
+export { parseErrorToValidationMessage } from './parseErrorToValidationMessage';
 export { SalesforceIdSchema } from './salesforceId';

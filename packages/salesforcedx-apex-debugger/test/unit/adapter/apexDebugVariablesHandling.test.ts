@@ -19,7 +19,7 @@ import {
   ScopeContainer,
   type VariableContainer
 } from '../../../src/adapter/apexDebug';
-import { type LocalValue, type Reference, type Value } from '../../../src/commands';
+import { type LocalValue, type Reference, type Value } from '../../../src/commands/protocol';
 import { BreakpointService } from '../../../src/core/breakpointService';
 import { RequestService } from '../../../src/requestService/requestService';
 import { ApexDebugForTest } from './apexDebugForTest';

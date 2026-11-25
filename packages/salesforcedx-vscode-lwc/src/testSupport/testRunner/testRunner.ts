@@ -12,7 +12,8 @@ import type * as vscode from 'vscode';
 import { nls } from '../../messages';
 import { getRuntime } from '../../services/runtime';
 import { isTestCaseInfo, type TestExecutionInfo, type TestRunType } from '../types';
-import { workspace, workspaceService } from '../workspace';
+import { workspace } from '../workspace';
+import { workspaceService } from '../workspace/workspaceService';
 import { type SfTask, taskService } from './taskService';
 import { testResultsWatcher } from './testResultsWatcher';
 

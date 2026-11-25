@@ -16,15 +16,15 @@ import * as vscode from 'vscode';
 import ApexLSPStatusBarItem from './apexLspStatusBarItem';
 import { checkAndResolveOrphanedLanguageServers } from './languageServerOrphanHandler';
 import {
-  configureApexLanguage,
   getExceptionBreakpointInfo,
   getLineBreakpointInfo,
   gatherOpenAPIContext,
   isOpenAPIEligible,
-  languageClientManager,
   restartLanguageServerAndClient,
   createLanguageClient
 } from './languageUtils';
+import { configureApexLanguage } from './languageUtils/apexLanguageConfiguration';
+import { languageClientManager } from './languageUtils/languageClientManager';
 import { nls } from './messages';
 import { setAllServicesLayer } from './services/extensionProvider';
 import { disposeRuntime, getRuntime } from './services/runtime';
@@ -32,7 +32,7 @@ import { disposeRuntime, getRuntime } from './services/runtime';
 const capabilitySettingsChanged = (event: vscode.ConfigurationChangeEvent): boolean =>
   event.affectsConfiguration('salesforcedx-vscode-apex.advanced.capabilities');
 
-export const activate = async (context: vscode.ExtensionContext) => {
+export const activate = async (context: vscode.ExtensionContext): Promise<ApexVSCodeApi> => {
   setAllServicesLayer(buildAllServicesLayer(context, nls.localize('channel_name')));
   await getRuntime().runPromise(activateEffect(context));
   return {
@@ -114,7 +114,7 @@ export type {
 } from './apexLanguageClient';
 export type { LanguageClientManager } from './languageUtils/languageClientManager';
 
-// Export OAS schema types for other extensions to consume
+// Export OAS schema types for other extensions to consume.
 export type {
   ApexClassOASEligibleRequest,
   ApexClassOASEligibleResponse,

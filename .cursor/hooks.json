@@ -4,7 +4,7 @@
     "beforeShellExecution": [
       {
         "command": ".claude/hooks/block-no-verify.sh",
-        "matcher": "git.*--no-verify"
+        "matcher": "\\bgit\\b"
       }
     ],
     "afterFileEdit": [{ "command": ".claude/hooks/mark-edit.sh" }],

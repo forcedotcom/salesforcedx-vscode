@@ -6,7 +6,9 @@
  */
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Arr from 'effect/Array';
+import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
+import * as Fiber from 'effect/Fiber';
 import * as Match from 'effect/Match';
 import * as Option from 'effect/Option';
 import { isUndefined } from 'effect/Predicate';
@@ -52,7 +54,7 @@ export class MetadataTypeTreeProvider implements vscode.TreeDataProvider<OrgBrow
   private orgRequestCount = 0;
   private orgRequestLabel = '';
   private orgRequestStatus: vscode.StatusBarItem | undefined;
-  private orgRequestStatusTimer: ReturnType<typeof setTimeout> | undefined;
+  private orgRequestStatusTimer: Fiber.RuntimeFiber<void> | undefined;
 
   /** Shows slow, uncached org requests without flashing for catalog cache hits. */
   public trackOrgRequest<A, E, R>(label: string, request: Effect.Effect<A, E, R>) {
@@ -66,13 +68,13 @@ export class MetadataTypeTreeProvider implements vscode.TreeDataProvider<OrgBrow
     this.orgRequestCount += 1;
     this.orgRequestLabel = label;
     if (this.orgRequestStatus || this.orgRequestStatusTimer) return;
-    this.orgRequestStatusTimer = setTimeout(() => {
+    this.orgRequestStatusTimer = Effect.sync(() => {
       this.orgRequestStatusTimer = undefined;
       if (this.orgRequestCount === 0) return;
       this.orgRequestStatus = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 99);
       this.updateOrgRequestStatus();
       this.orgRequestStatus.show();
-    }, 300);
+    }).pipe(Effect.delay(Duration.millis(300)), Effect.runFork);
   }
 
   private finishOrgRequest(): void {
@@ -81,7 +83,7 @@ export class MetadataTypeTreeProvider implements vscode.TreeDataProvider<OrgBrow
       this.updateOrgRequestStatus();
       return;
     }
-    if (this.orgRequestStatusTimer) clearTimeout(this.orgRequestStatusTimer);
+    if (this.orgRequestStatusTimer) this.orgRequestStatusTimer.pipe(Fiber.interruptFork, Effect.runSync);
     this.orgRequestStatusTimer = undefined;
     this.orgRequestStatus?.dispose();
     this.orgRequestStatus = undefined;

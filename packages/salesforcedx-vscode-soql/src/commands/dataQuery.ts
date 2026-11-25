@@ -9,6 +9,7 @@ import type { QueryResult } from '../types';
 import { type Column, createTable, ExtensionProviderService, type Row } from '@salesforce/effect-ext-utils';
 import * as Cause from 'effect/Cause';
 import * as Chunk from 'effect/Chunk';
+import * as DateTime from 'effect/DateTime';
 import * as Effect from 'effect/Effect';
 import { isBoolean, isDate, isNull, isNullable, isNumber, isRecord, isUndefined } from 'effect/Predicate';
 import * as Stream from 'effect/Stream';
@@ -50,13 +51,9 @@ export const runSoqlQuery = Effect.fn('runSoqlQuery')(function* (
     maxRows: api.services.SettingsService.pipe(
       Effect.flatMap(settings => settings.getValueOrElse(SOQL_CONFIGURATION_NAME, 'maxQueryLimit', 50_000))
     ),
-    promptService: api.services.PromptService,
-    progressLocation: api.services.NotificationModeService.pipe(
-      Effect.flatMap(notificationMode => notificationMode.getProgressLocation(COMMAND))
-    ),
     queryService: api.services.QueryService
   }).pipe(
-    Effect.flatMap(({ maxRows, promptService, progressLocation, queryService }) =>
+    Effect.flatMap(({ maxRows, queryService }) =>
       queryService.query({ ...query, tooling: useTooling }, JsonObject).pipe(
         Effect.flatMap(({ totalSize, records }) =>
           Stream.take(records, maxRows).pipe(
@@ -67,8 +64,7 @@ export const runSoqlQuery = Effect.fn('runSoqlQuery')(function* (
               records: [...Chunk.toReadonlyArray(chunk)]
             }))
           )
-        ),
-        promptService.withProgress(nls.localize('progress_running_query'), progressLocation)
+        )
       )
     )
   );
@@ -77,7 +73,7 @@ export const runSoqlQuery = Effect.fn('runSoqlQuery')(function* (
 const saveResultsToCSV = Effect.fn('saveResultsToCSV')(function* (queryResult: QueryResult<JsonObject>) {
   const csvContent = convertQueryResultToCSV(queryResult);
 
-  const timestamp = new Date().toISOString().replaceAll(/[:.]/g, '-');
+  const timestamp = DateTime.formatIso(yield* DateTime.now).replaceAll(/[:.]/g, '-');
   const fileName = `soql-query-${timestamp}.csv`;
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const notificationMode = yield* api.services.NotificationModeService;
@@ -103,6 +99,7 @@ export const executeDataQuery = Effect.fn('executeDataQuery')(function* (
 ) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const channelService = yield* api.services.ChannelService;
+  const promptService = yield* api.services.PromptService;
 
   if (yield* (yield* api.services.SettingsService).getValueOrElse(SFDX_CORE_SECTION, 'clearOutputTab', false)) {
     yield* channelService.clearChannel;
@@ -125,6 +122,7 @@ export const executeDataQuery = Effect.fn('executeDataQuery')(function* (
     yield* channelService.showChannel;
     yield* saveResultsToCSV(queryResult);
   }).pipe(
+    promptService.withProgress({ command: COMMAND, title: nls.localize('progress_running_query'), cancellable: false }),
     Effect.catchAllCause(cause =>
       cause.pipe(
         Cause.squash,

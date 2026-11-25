@@ -1,0 +1,19 @@
+{
+  "name": "pass-through-exports-fixture",
+  "exports": {
+    ".": {
+      "types": "./build/public.d.ts",
+      "default": "./build/public.js"
+    },
+    "./nested": {
+      "import": {
+        "types": "./build/nested/entry.d.ts",
+        "default": "./build/nested/entry.js"
+      }
+    },
+    "./source": "./src/source.ts",
+    "./features/*": "./build/features/*.js",
+    "./choice": [null, "./build/choice.js"],
+    "./disabled": null
+  }
+}

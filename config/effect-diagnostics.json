@@ -28,6 +28,9 @@
     "globalConsoleInEffect",
     "missingEffectServiceDependency",
     "nestedEffectGenYield",
-    "strictEffectProvide"
+    "strictEffectProvide",
+    "newPromise",
+    "globalTimers",
+    "globalDateInEffect"
   ]
 }

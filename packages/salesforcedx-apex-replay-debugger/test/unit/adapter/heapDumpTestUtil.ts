@@ -6,7 +6,7 @@
  */
 
 import { type ApexExecutionOverlayResultCommandSuccess } from '../../../src/commands/apexExecutionOverlayResultCommand';
-import { ApexHeapDump } from '../../../src/core';
+import { ApexHeapDump } from '../../../src/core/heapDump';
 
 // Rather than duplicate a large heapdump in multiple places just have a common function return it. The
 // heap dump for triggers is ends up bring pretty large but there are only 3 Account records in here.

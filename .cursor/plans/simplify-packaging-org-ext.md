@@ -2,9 +2,11 @@
 
 # Simplify VSIX Packaging for salesforcedx-vscode-org
 
-## Current vs Target State
+Archived plan, not current guidance. Packaging now uses `vsce package` through Wireit; see [package.json](../../packages/salesforcedx-vscode-org/package.json). Checklist retained as historical planning, not verification evidence.
 
-**Current (org):**
+## Historical Starting vs Target State
+
+**Starting state (org):**
 
 - Bundles from `./src/index.ts` → `./dist/index.js`
 - `main: ./out/src` in package.json
@@ -20,7 +22,7 @@
 - `vscode:package` runs simple `vsce package`
 - .vscodeignore has clean modern pattern
 
-## Changes Required
+## Historical Proposed Changes
 
 ### 1. Update esbuild.config.mjs
 
@@ -32,7 +34,7 @@ Change entry point from TypeScript source to compiled JavaScript:
 
 - Change `main: ./out/src` → `main: ./dist/index.js`
 - Remove entire `packaging` section (lines 57-73)
-- Change `vscode:package: ts-node ../../scripts/vsce-bundled-extension.ts` → `vscode:package: vsce package`
+- Replace the legacy packaging script with `vsce package` through Wireit
 
 ### 3. Update .vscodeignore
 
@@ -69,7 +71,7 @@ Workflow: compile → vscode:bundle → vscode:package
 - `npm run vscode:bundle` bundles to `dist/index.js`
 - `npm run vscode:package` packages with vsce using `dist/` as entrypoint
 
-### To-dos
+### Historical Checklist
 
 - [ ] Change esbuild entry point from ./src/index.ts to ./out/src/index.js
 - [ ] Update package.json: change main to ./dist/index.js, remove packaging section, simplify vscode:package script

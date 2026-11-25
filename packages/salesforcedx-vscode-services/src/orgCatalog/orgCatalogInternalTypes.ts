@@ -6,12 +6,16 @@
  */
 
 import type { PersistedTypeInventory } from './orgMetadataCatalogStore';
-import type { OrgMetadataCatalogInternalEntry as OrgMetadataCatalogEntry } from './orgMetadataCatalogTypes';
+import type {
+  OrgMetadataCatalogInternalEntry as OrgMetadataCatalogEntry,
+  OrgMetadataCatalogRemoteProvenance
+} from './orgMetadataCatalogTypes';
 import type { OrgMetadataComponentReference } from './orgMetadataReference';
 import type * as HashMap from 'effect/HashMap';
 
 export type ListedMetadataComponent = {
   readonly fullName: string;
+  readonly provenance?: OrgMetadataCatalogRemoteProvenance;
   readonly namespacePrefix?: string;
   readonly manageableState?: string;
   readonly fileName?: string;
@@ -44,10 +48,7 @@ export type RemoteTrackingObservation = {
   readonly signature: string;
 };
 
-export type RemoteTrackingObservations = {
-  readonly byIdentity: HashMap.HashMap<string, RemoteTrackingObservation>;
-  readonly identityOrder: readonly string[];
-};
+export type RemoteTrackingObservations = HashMap.HashMap<string, RemoteTrackingObservation>;
 
 export type MetadataTypeObservation = {
   readonly xmlName: string;

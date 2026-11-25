@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { getErrorMessage } from '@salesforce/salesforcedx-utils';
 import {
   ComponentSet,
   DestructiveChangesType,
@@ -12,7 +13,6 @@ import {
   type MetadataComponent
 } from '@salesforce/source-deploy-retrieve';
 import * as Effect from 'effect/Effect';
-import { isError } from 'effect/Predicate';
 import * as Schema from 'effect/Schema';
 import { FsService } from '../vscode/fsService';
 import { MetadataRegistryService } from './metadataRegistryService';
@@ -66,7 +66,7 @@ export class MetadataDeleteService extends Effect.Service<MetadataDeleteService>
           try: () => deleteCustomLabels(customLabels[0].xml!, customLabels.filter(isSourceComponent)),
           catch: error =>
             new MetadataDeleteError({
-              message: `Failed to delete custom labels: ${isError(error) ? error.message : String(error)}`,
+              message: `Failed to delete custom labels: ${getErrorMessage(error)}`,
               cause: error
             })
         });

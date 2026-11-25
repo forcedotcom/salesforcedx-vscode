@@ -13,24 +13,21 @@ permissions:
   checks: read
   pull-requests: read
 
-concurrency:
-  group: category-approve-${{ github.event.check_run.head_sha || github.event.pull_request.head.sha }}
-  cancel-in-progress: false
-
 jobs:
   category-approve:
-    # Own check runs and fork PRs must not start a run (forks have no IDEE_GH_TOKEN).
-    # Title/body edits and comment-only reviews do not change a skip gate.
-    # The bot's APPROVED reviews are already covered by the approved-head skip.
+    name: category-approve
     if: >-
       (github.event_name == 'check_run' && github.event.check_run.name != 'category-approve' &&
       (github.event.check_run.pull_requests[0].head.repo.full_name == github.repository || github.event.check_run.pull_requests[0] == null)) ||
       (github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.draft == false &&
       ((github.event_name == 'pull_request' && (github.event.action != 'edited' || github.event.changes.base.ref.from)) ||
-      (github.event_name == 'pull_request_review' && (github.event.action == 'dismissed' ||
-      ((github.event.review.state == 'APPROVED' || github.event.review.state == 'approved') &&
-      github.event.review.user.login != 'svc-idee-bot')))))
+       (github.event_name == 'pull_request_review' && (github.event.action == 'dismissed' ||
+       ((github.event.review.state == 'APPROVED' || github.event.review.state == 'approved') &&
+       github.event.review.user.login != 'svc-idee-bot')))))
     runs-on: ubuntu-latest
+    concurrency:
+      group: category-approve-${{ github.event.pull_request.number || github.event.check_run.pull_requests[0].number || github.run_id }}
+      cancel-in-progress: true
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
@@ -49,9 +46,9 @@ jobs:
         with:
           github-token: ${{ secrets.IDEE_GH_TOKEN }}
           script: |
+            const fs = require('node:fs');
+            fs.writeFileSync(`${process.env.RUNNER_TEMP}/category-approve-event.json`, JSON.stringify(context.payload));
             const preflightPath = `${process.env.RUNNER_TEMP}/trusted-approver/scripts/category-approve-preflight.cjs`;
-            // Until develop contains the helper, run the existing trusted approver without preflight skips.
-            if (!require('node:fs').existsSync(preflightPath)) return true;
             return await require(preflightPath)({ github, context });
       - uses: ./.github/actions/setup-pnpm
         if: steps.preflight.outputs.result == 'true'
@@ -67,21 +64,17 @@ jobs:
         if: steps.preflight.outputs.result == 'true'
         working-directory: ${{ runner.temp }}/trusted-approver
         run: pnpm --filter @salesforce/effect-octokit compile
-      - name: Install Cursor CLI
+      - name: Install OpenCode CLI
         if: steps.preflight.outputs.result == 'true'
-        run: curl https://cursor.com/install -fsS | bash
+        run: npm install --global --allow-scripts=@opencode/cli @opencode/cli@2.2.5
       - name: Decide and approve
         if: steps.preflight.outputs.result == 'true'
         env:
           IDEE_GH_TOKEN: ${{ secrets.IDEE_GH_TOKEN }}
-          CURSOR_API_KEY: ${{ secrets.IDEE_CURSOR_API_KEY }}
-          GITHUB_EVENT_PATH: ${{ github.event_path }}
+          OPENCODE_API_KEY: ${{ secrets.OPENCODE_API_KEY }}
+          OPENCODE_MODELS: ${{ vars.OPENCODE_MODELS }}
           GITHUB_REPOSITORY: ${{ github.repository }}
           GITHUB_RUN_ID: ${{ github.run_id }}
         run: |
-          if [ -f "$RUNNER_TEMP/trusted-approver/scripts/category-approve.mts" ]; then
-            node "$RUNNER_TEMP/trusted-approver/scripts/category-approve.mts"
-          else
-            # Until develop contains the native ESM entry point, run its trusted .ts script.
-            node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON "$RUNNER_TEMP/trusted-approver/scripts/category-approve.ts"
-          fi
+          export GITHUB_EVENT_PATH="$RUNNER_TEMP/category-approve-event.json"
+          node "$RUNNER_TEMP/trusted-approver/scripts/categoryApprove.mts"

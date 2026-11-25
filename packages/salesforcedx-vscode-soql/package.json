@@ -10,7 +10,7 @@
   "repository": {
     "url": "https://github.com/forcedotcom/salesforcedx-vscode"
   },
-  "version": "68.9.5",
+  "version": "68.15.7",
   "publisher": "salesforce",
   "o11yUploadEndpoint": "https://794testsite.my.site.com/byolwr/webruntime/log/metrics",
   "enableO11y": "true",
@@ -35,7 +35,7 @@
     "soql builder"
   ],
   "dependencies": {
-    "@jsforce/jsforce-node": "^3.10.24",
+    "@jsforce/jsforce-node": "^3.13.1",
     "@salesforce/effect-ext-utils": "workspace:*",
     "@salesforce/soql-builder-ui": "workspace:*",
     "@salesforce/soql-common": "workspace:*",
@@ -44,7 +44,7 @@
     "@salesforce/vscode-i18n": "workspace:*",
     "antlr4ts": "^0.5.0-alpha.3",
     "debounce": "^2.2.0",
-    "effect": "^3.21.2",
+    "effect": "^3.22.4",
     "papaparse": "^5.3.0",
     "vscode-languageclient": "^9.0.1",
     "vscode-uri": "^3.1.0"
@@ -63,7 +63,7 @@
     "@rollup/plugin-inject": "^5.0.0",
     "@rollup/plugin-node-resolve": "^16.0.0",
     "@rollup/plugin-terser": "^1.0.0",
-    "@salesforce/core": "^9.3.0",
+    "@salesforce/core": "^9.4.1",
     "@salesforce/eslint-config-lwc": "^4.1.2",
     "@salesforce/eslint-plugin-lightning": "^2.0.0",
     "@salesforce/playwright-vscode-ext": "workspace:*",
@@ -94,14 +94,15 @@
     "test:web": "wireit",
     "test:web:ui": "DEBUG_MODE=1 pnpm --dir ../.. --filter ./packages/salesforcedx-vscode-soql test:web --headed",
     "test:web:debug": "pnpm --dir ../.. --filter ./packages/salesforcedx-vscode-soql test:web --debug",
+    "test:container": "wireit",
     "test:desktop": "wireit",
     "test:desktop:debug": "pnpm --dir ../.. --filter ./packages/salesforcedx-vscode-soql test:desktop --debug",
     "test:e2e": "wireit",
     "vscode:package": "wireit",
     "vscode:bundle:migration": "wireit",
     "vscode:package:migration": "wireit",
-    "vscode:sha256": "node ../../scripts/generate-sha256.js >> ../../SHA256",
-    "vscode:publish": "node ../../scripts/publish-vsix.js",
+    "vscode:sha256": "node ../../scripts/generateSha256.mts >> ../../SHA256",
+    "vscode:publish": "node ../../scripts/publishVsix.mts",
     "test:compile": "wireit",
     "vscode:package:prerelease": "wireit",
     "check:effect-diagnostics": "wireit"
@@ -183,6 +184,7 @@
         "src/soql-builder-ui/modules/querybuilder/services/message/**",
         "src/soql-builder-ui/esbuild.lit.config.mjs",
         "../../scripts/bundling/web.mjs",
+        "../../scripts/bundling/process-polyfill.js",
         "../soql-builder-ui/out/**",
         "package.json"
       ],
@@ -263,6 +265,7 @@
         "esbuild.config.mjs",
         "../../scripts/bundling/node.mjs",
         "../../scripts/bundling/web.mjs",
+        "../../scripts/bundling/process-polyfill.js",
         "out/**",
         "src/soql-builder-ui/dist/**",
         "src/soql-data-view/**"
@@ -284,6 +287,7 @@
         "scripts/verify-lit-migration-parity.mjs",
         "../../scripts/bundling/node.mjs",
         "../../scripts/bundling/web.mjs",
+        "../../scripts/bundling/process-polyfill.js",
         "out/**",
         "src/soql-builder-ui/dist-lit/**",
         "src/soql-data-view/**"
@@ -304,6 +308,7 @@
         "esbuild.config.mjs",
         "../../scripts/bundling/node.mjs",
         "../../scripts/bundling/web.mjs",
+        "../../scripts/bundling/process-polyfill.js",
         "out/**",
         "src/soql-builder-ui/dist/**",
         "src/soql-data-view/**"
@@ -352,7 +357,7 @@
       "files": [
         "src/**/*.ts",
         "src/**/*.html",
-        "test/**/*.ts",
+        "test/**/*.{ts,mts}",
         "../../eslint.config.mjs",
         ".vscodeignore",
         "package.json",
@@ -390,9 +395,32 @@
         "../soql-builder-ui:test:browser"
       ],
       "files": [
-        "test/playwright/**/*.ts",
+        "test/playwright/**/*.{ts,mts}",
         "package*.json",
         "../../.github/**"
+      ],
+      "output": []
+    },
+    "test:container": {
+      "command": "playwright test --config=test/playwright/playwright.config.container.ts",
+      "env": {
+        "VSCODE_CONTAINER": "1",
+        "CODE_BUILDER_URL": {
+          "external": true
+        },
+        "CB_GREP": {
+          "external": true
+        },
+        "CB_UNDER_TEST": {
+          "external": true
+        }
+      },
+      "dependencies": [
+        "../playwright-vscode-ext:compile"
+      ],
+      "files": [
+        "test/playwright/**",
+        "package*.json"
       ],
       "output": []
     },
@@ -473,7 +501,7 @@
         "../playwright-vscode-ext:compile"
       ],
       "files": [
-        "test/**/*.ts",
+        "test/**/*.{ts,mts}",
         "test/tsconfig.json"
       ],
       "output": []

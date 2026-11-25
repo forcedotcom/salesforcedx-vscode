@@ -5,13 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import {
-  type ApexCodeCoverageAggregateRecord,
-  type ApexCodeCoverageRecord,
-  type ApexTestResultRecord,
-  type SyncTestResult,
-  type TestResult
-} from '../src/tests/types';
+import { type ApexTestResultRecord, type SyncTestResult, type TestResult } from '../src/tests/types';
+import { type ApexCodeCoverageAggregateRecord, type ApexCodeCoverageRecord } from '../src/effect/schema/wire/coverage';
 import { salesforceId } from './schemaHelpers';
 
 export const syncTestResultSimple: SyncTestResult = {

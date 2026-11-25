@@ -10,9 +10,9 @@ import {
   ensureOutputPanelOpen,
   selectOutputChannel,
   clearOutputChannel,
+  outputChannelContains,
   waitForOutputChannelText
 } from '../../../src/pages/outputChannel';
-import { saveScreenshot } from '../../../src/shared/screenshotUtils';
 import { waitForVSCodeWorkbench, closeWelcomeTabs, isDesktop } from '../../../src/utils/helpers';
 import { ensureSecondarySideBarHidden } from '../../../src/utils/workflows';
 import { EDITOR } from '../../../src/utils/locators';
@@ -115,7 +115,11 @@ test.describe('Output Channel', () => {
     });
 
     await test.step('Check if output contains text', async () => {
-      await waitForOutputChannelText(page, { expectedText: 'Salesforce', timeout: 10_000 });
+      expect(await outputChannelContains(page, 'Salesforce'), 'Should find matching output').toBe(true);
+      expect(
+        await outputChannelContains(page, 'zzz_nonexistent_term_zzz', { timeout: 1000 }),
+        'Should report missing output'
+      ).toBe(false);
     });
   });
 
@@ -135,7 +139,6 @@ test.describe('Output Channel', () => {
         const count = await viewLines().count();
         expect(count, 'channel should have multiple lines').toBeGreaterThan(3);
       }).toPass({ timeout: 5000 });
-      await saveScreenshot(page, 'filter-test-unfiltered.png', false);
     });
 
     await test.step('apply matching filter and verify content remains', async () => {
@@ -150,7 +153,6 @@ test.describe('Output Channel', () => {
         const text = ((await outputPanelViewLines(page).textContent()) ?? '').replaceAll('\u00A0', ' ');
         expect(text.toLowerCase(), 'filtered output should contain matching term').toContain('window');
       }).toPass({ timeout: 5000 });
-      await saveScreenshot(page, 'filter-test-matching.png', false);
     });
 
     await test.step('apply non-existent filter and verify content disappears', async () => {
@@ -167,7 +169,6 @@ test.describe('Output Channel', () => {
         const text = ((await outputPanelViewLines(page).textContent()) ?? '').trim();
         expect(text.length, 'output should be empty with non-existent filter').toBe(0);
       }).toPass({ timeout: 5000 });
-      await saveScreenshot(page, 'filter-test-empty.png', false);
     });
 
     await test.step('clear filter and verify content restores', async () => {
@@ -180,7 +181,6 @@ test.describe('Output Channel', () => {
         const count = await viewLines().count();
         expect(count, 'lines should return after clearing filter').toBeGreaterThan(3);
       }).toPass({ timeout: 5000 });
-      await saveScreenshot(page, 'filter-test-restored.png', false);
     });
   });
 
@@ -196,9 +196,6 @@ test.describe('Output Channel', () => {
     await test.step('Clear output channel and verify', async () => {
       // clearOutputChannel already verifies the channel is completely cleared internally
       await clearOutputChannel(page);
-      // Take screenshot to verify output channel is completely clear (requirement 1a)
-      await saveScreenshot(page, 'output-channel-cleared.png', false);
-      // Verify channel is still completely cleared after screenshot (requirement 1a)
       const codeArea = page.locator('[id="workbench.panel.output"]').locator(`${EDITOR} .view-lines`);
       const text = await codeArea.textContent();
       expect(text?.trim().length ?? 0, 'Output channel should be completely cleared with no text left').toBe(0);

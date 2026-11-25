@@ -7,35 +7,59 @@
 
 import { expect } from '@playwright/test';
 import {
+  closeWelcomeTabs,
+  ensureSecondarySideBarHidden,
   executeCommandWithCommandPalette,
   prepareNoFolderOpenForPaletteTests,
   QUICK_INPUT_WIDGET,
   isDesktop,
+  resetContainerWorkbench,
   saveScreenshot,
   selectQuickInputOption,
+  setupConsoleMonitoring,
+  setupNetworkMonitoring,
+  validateNoCriticalErrors,
   verifyCommandExists
 } from '@salesforce/playwright-vscode-ext';
 import * as fs from 'node:fs/promises';
 import * as path from 'node:path';
 import packageNls from '../../../package.nls.json';
-import { emptyWorkspaceDesktopTest as test } from '../fixtures';
+import { isContainer, sharedProjectTargetTest as test } from '../fixtures';
 
 const PROJECT_NAME = `TestProjectEmptyWindow${Date.now()}`;
 
-(isDesktop() ? test : test.skip.bind(test))(
-  'Create Project: standard project from empty window (no folder open)',
-  async ({ page, workspaceDir }) => {
-    test.setTimeout(120_000);
+// On Code Builder this runs in the test:container:nofolder phase, whose seeded workspace has no folder open.
+if (isContainer) {
+  test.beforeEach(async ({ page }) => {
+    await resetContainerWorkbench(page);
+  });
+}
 
-    const targetDir = path.dirname(workspaceDir);
+test.afterEach(({ projectTarget }) => {
+  projectTarget.removeProject(PROJECT_NAME);
+});
+
+(isDesktop() || isContainer ? test : test.skip.bind(test))(
+  'Create Project: standard project from empty window (no folder open)',
+  async ({ page, projectTarget }) => {
+    test.setTimeout(120_000);
+    const consoleErrors = setupConsoleMonitoring(page);
+    const networkErrors = setupNetworkMonitoring(page);
 
     await test.step('close workspace to empty window', async () => {
-      await prepareNoFolderOpenForPaletteTests(page);
+      if (isContainer) {
+        // The containerTest fixture already awaited workbench readiness, and no folder is open.
+        await closeWelcomeTabs(page);
+        await ensureSecondarySideBarHidden(page);
+      } else {
+        await prepareNoFolderOpenForPaletteTests(page);
+      }
       await saveScreenshot(page, 'createProjectEmptyWindow.01-empty-window.png');
     });
 
-    await test.step('verify Create Project command available', async () => {
+    await test.step('verify Create Project commands available', async () => {
       await verifyCommandExists(page, packageNls.project_generate_text, 120_000);
+      await verifyCommandExists(page, packageNls.project_generate_with_manifest_text, 120_000);
     });
 
     await test.step('run Create Project, select Standard template', async () => {
@@ -63,11 +87,12 @@ const PROJECT_NAME = `TestProjectEmptyWindow${Date.now()}`;
       await saveScreenshot(page, 'createProjectEmptyWindow.04-folder-dialog.png');
 
       const input = quickInput.locator('input.input');
-      const targetPath = `${targetDir}${path.sep}`;
-      await input.fill(targetPath);
+      const { dialogDir, dialogSep } = projectTarget;
+      await input.fill(`${dialogDir}${dialogSep}`);
 
       await expect(quickInput.getByText('path does not exist')).not.toBeVisible({ timeout: 5000 });
-      await expect(input).toHaveValue(new RegExp(`${targetDir.replaceAll('\\', '\\\\')}[/\\\\]$`), { timeout: 5000 });
+      const escapedDialogDir = dialogDir.replaceAll(/[.*+?^${}()|[\]\\]/g, String.raw`\$&`);
+      await expect(input).toHaveValue(new RegExp(`${escapedDialogDir}[/\\\\]$`), { timeout: 5000 });
       await saveScreenshot(page, 'createProjectEmptyWindow.05-folder-path-set.png');
 
       const createButton = quickInput.getByRole('button', { name: 'Create Project' });
@@ -75,7 +100,7 @@ const PROJECT_NAME = `TestProjectEmptyWindow${Date.now()}`;
     });
 
     await test.step('verify project files on disk', async () => {
-      const projectDir = path.join(targetDir, PROJECT_NAME);
+      const projectDir = path.join(projectTarget.hostDir, PROJECT_NAME);
 
       await expect(async () => {
         await fs.access(path.join(projectDir, 'sfdx-project.json'));
@@ -84,5 +109,7 @@ const PROJECT_NAME = `TestProjectEmptyWindow${Date.now()}`;
       await fs.access(path.join(projectDir, 'force-app'));
       await saveScreenshot(page, 'createProjectEmptyWindow.06-verified.png');
     });
+
+    await validateNoCriticalErrors(test, consoleErrors, networkErrors);
   }
 );

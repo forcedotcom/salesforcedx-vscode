@@ -22,6 +22,8 @@ import { noJsforceQuery } from './noJsforceQuery';
 import { noLegacyTelemetryService } from './noLegacyTelemetryService';
 import { noNestedEffectGenCatchTags } from './noNestedEffectGenCatchTags';
 import { noNestedEffectTernary } from './noNestedEffectTernary';
+import { noOptionTag } from './noOptionTag';
+import { noPassThroughExports } from './noPassThroughExports';
 import { noRawDuration } from './noRawDuration';
 import { noRuntimeVscodeImport } from './noRuntimeVscodeImport';
 import { noSchemaIsThrowGuard } from './noSchemaIsThrowGuard';
@@ -36,6 +38,7 @@ import { noVscodeQuickpickDescriptionLiterals } from './noVscodeQuickpickDescrip
 import { noVscodeShowTextDocument } from './noVscodeShowTextDocument';
 import { noVscodeUri } from './noVscodeUri';
 import { noVscodeValidateInputLiterals } from './noVscodeValidateInputLiterals';
+import { noVscodeWithProgress } from './noVscodeWithProgress';
 import { packageJsonCommandRefs } from './packageJsonCommandRefs';
 import { packageJsonExtensionIcon } from './packageJsonExtensionIcon';
 import { packageJsonI18nDescriptions } from './packageJsonI18nDescriptions';
@@ -45,6 +48,7 @@ import { packageJsonNoServicesDependency } from './packageJsonNoServicesDependen
 import { packageJsonRequireRootInstall } from './packageJsonRequireRootInstall';
 import { packageJsonSalesforceDepVersions } from './packageJsonSalesforceDepVersions';
 import { packageJsonViewRefs } from './packageJsonViewRefs';
+import { preferEffectArrayEnsure } from './preferEffectArrayEnsure';
 import { queryBuilderHtmlI18nKeys } from './queryBuilderHtmlI18nKeys';
 import { requireEffectFnSpanName } from './requireEffectFnSpanName';
 import { vscodeignoreContributesConflict } from './vscodeignoreContributesConflict';
@@ -77,10 +81,13 @@ const plugin: TSESLint.FlatConfig.Plugin = {
     'no-legacy-telemetry-service': noLegacyTelemetryService,
     'no-nested-effect-gen-catch-tags': noNestedEffectGenCatchTags,
     'no-nested-effect-ternary': noNestedEffectTernary,
+    'no-option-tag': noOptionTag,
+    'no-pass-through-exports': noPassThroughExports,
     'no-raw-duration': noRawDuration,
     'no-schema-is-throw-guard': noSchemaIsThrowGuard,
     'no-standalone-pipeable-value': noStandalonePipeableValue,
     'no-unused-i18n-messages': noUnusedI18nMessages,
+    'prefer-effect-array-ensure': preferEffectArrayEnsure,
     'query-builder-html-i18n-keys': queryBuilderHtmlI18nKeys,
     'no-vscode-message-literals': noVscodeMessageLiterals,
     'no-vscode-progress-title-literals': noVscodeProgressTitleLiterals,
@@ -88,6 +95,7 @@ const plugin: TSESLint.FlatConfig.Plugin = {
     'no-vscode-show-text-document': noVscodeShowTextDocument,
     'no-vscode-uri': noVscodeUri,
     'no-vscode-validateinput-literals': noVscodeValidateInputLiterals,
+    'no-vscode-with-progress': noVscodeWithProgress,
     'package-json-i18n-descriptions': packageJsonI18nDescriptions,
     'package-json-extension-icon': packageJsonExtensionIcon,
     'package-json-icon-paths': packageJsonIconPaths,

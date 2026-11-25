@@ -18,7 +18,7 @@ Draft PR titles and bodies per salesforcedx-vscode conventions. Requires a Gus w
 2. Else ask: "Do you have a Gus work item (W-XXXXX) for this PR?"
 3. If yes → try to find it using [gus-cli/SKILL.md](../gus-cli/SKILL.md). Confirm with the user that you got it right, or ask them to choose if several could be right.
 4. If no → offer to create via Gus. Follow [gus-cli/SKILL.md](../gus-cli/SKILL.md). **Before creating:** show user Subject, Epic, Details, assignee. Ask: "Create this work item?" Do not run `sf data create record` until user says yes. If user declines creation and still wants to proceed with the PR, include `[skip-validate-pr]` in the PR body.
-5. Before creating PR: push current branch to remote if it doesn't already exist (`git push -u origin $(git branch --show-current)` or equivalent). Never push to `develop`/`main`
+5. Before creating PR: inspect `gh pr view --json headRefName,baseRefName,url 2>/dev/null || true`, `git config --get "branch.$(git branch --show-current).github-pr-base-branch"`, and `gh stack view`. If the PR base or stored base is neither `develop` nor `main`, use `gh stack push`; otherwise use `git push -u origin $(git branch --show-current)`. Never push to `develop`/`main`.
 6. After PR created: update work item `Details__c` with PR link. Query current `Details__c`, append `"\nPR: <url>"` (or prepend if empty). **Before updating:** show user the new Details__c. Ask: "Update work item with PR link?" Do not run `sf data update record` until user says yes.
 7. After PR created: offer Ready for Review. If the user opts in, run the reviewer-pick → WI update → GitHub reassignment → Slack ping handoff in **[review-handoff.md](./review-handoff.md)**.
 
@@ -27,6 +27,14 @@ Draft PR titles and bodies per salesforcedx-vscode conventions. Requires a Gus w
 - Default `develop`
 - From other branch (≠ develop, ≠ main)? Use it. Detect: `git reflog show <branch> | tail -1` → "moving from X" / "Created from X"
 - Never `main`; inferred main → develop
+
+## Stacked PRs
+
+Treat a branch whose PR base or stored `github-pr-base-branch` is neither `develop` nor `main` as stacked.
+
+- Use `gh stack push` to publish changes to an existing stack.
+- Use `gh stack sync` before resolving remote divergence and `gh stack rebase` for stack-wide rebases.
+- Use ordinary `git push` only for a non-stacked branch.
 
 ## Title format
 

@@ -6,6 +6,7 @@
  */
 
 import type { SyncTestConfigurationSchema, TestItemSchema } from '../effect/schema/testPayloads';
+import type { ApexTestQueueItemStatusSchema } from '../effect/schema/wire/asyncTests';
 import * as Schema from 'effect/Schema';
 import { CodeCoverageResultSchema, PerClassCoverageSchema } from '../effect/coverageSchemas';
 import { ApexDiagnosticSchema } from '../effect/diagnostics';
@@ -20,15 +21,6 @@ import {
   UserIdString
 } from '../schemas/salesforceId';
 
-export type {
-  ApexCodeCoverage,
-  ApexCodeCoverageAggregate,
-  ApexCodeCoverageAggregateRecord,
-  ApexCodeCoverageRecord,
-  ApexOrgWideCoverage
-} from '../effect/schema/wire/coverage';
-export type { CodeCoverageResult, PerClassCoverage } from '../effect/coverageSchemas';
-
 /**
  * Specifies which Apex tests run.
  *
@@ -40,6 +32,11 @@ export const TestLevelSchema = Schema.Literal('RunLocalTests', 'RunAllTestsInOrg
   identifier: 'TestLevel'
 });
 export type TestLevel = typeof TestLevelSchema.Type;
+export const TestLevel = {
+  RunLocalTests: 'RunLocalTests',
+  RunAllTestsInOrg: 'RunAllTestsInOrg',
+  RunSpecifiedTests: 'RunSpecifiedTests'
+} as const satisfies { [K in TestLevel]: K };
 
 /** Test implementation category. */
 export const TestCategorySchema = Schema.Literal('Apex', 'Flow');
@@ -90,6 +87,14 @@ export const ResultFormatSchema = Schema.Literal('junit', 'tap', 'json', 'human'
   identifier: 'ResultFormat'
 });
 export type ResultFormat = typeof ResultFormatSchema.Type;
+export const ResultFormat = {
+  junit: 'junit',
+  tap: 'tap',
+  json: 'json',
+  human: 'human',
+  markdown: 'markdown',
+  text: 'text'
+} as const satisfies { [K in ResultFormat]: K };
 
 export const ResultFormatsSchema = ResultFormatSchema.pipe(
   Schema.Array,
@@ -100,6 +105,7 @@ export const ResultFormatsSchema = ResultFormatSchema.pipe(
 const ResultFileFormatSchema = Schema.Literal('junit', 'tap', 'json', 'markdown', 'text').pipe(
   Schema.annotations({ identifier: 'ResultFileFormat' })
 );
+export type ResultFileFormat = typeof ResultFileFormatSchema.Type;
 export const ResultFileFormatsSchema = Schema.Array(ResultFileFormatSchema).pipe(
   Schema.annotations({ identifier: 'ResultFileFormats' })
 );
@@ -176,27 +182,39 @@ export const ApexTestResultOutcomeSchema = Schema.Literal('Pass', 'Fail', 'Compi
 );
 export type ApexTestResultOutcome = Schema.Schema.Type<typeof ApexTestResultOutcomeSchema>;
 
-type FlowTestResultRecord = {
-  Id: string;
-  ApexTestQueueItemId: string;
-  Result: ApexTestResultOutcome;
-  FlowTest: {
-    /**
-     * Name of the Flow Test Method (up to 255 characters)
-     */
-    DeveloperName: string;
-  };
-  FlowDefinition: {
-    DeveloperName: string;
-    NamespacePrefix: string | null;
-  };
+export const FlowTestResultRecordSchema = Schema.Struct({
+  Id: FlowTestResultIdString,
+  ApexTestQueueItemId: ApexTestQueueItemIdString,
+  Result: ApexTestResultOutcomeSchema,
+  FlowTest: Schema.Struct({ DeveloperName: Schema.String }),
+  FlowDefinition: Schema.Struct({
+    DeveloperName: Schema.String,
+    NamespacePrefix: Schema.optional(Schema.NullOr(Schema.String))
+  }),
+  TestStartDateTime: Schema.String,
+  TestEndDateTime: Schema.String
+}).annotations({ identifier: 'FlowTestResultRecord' });
+export type FlowTestResultRecord = Schema.Schema.Type<typeof FlowTestResultRecordSchema>;
 
-  /**
-   * The start time of the test method.
-   */
-  TestStartDateTime: string;
-  TestEndDateTime: string;
-};
+export const ApexTestResultQueryRecordSchema = Schema.Struct({
+  Id: ApexTestResultIdString,
+  QueueItemId: ApexTestQueueItemIdString,
+  StackTrace: Schema.optional(Schema.NullOr(Schema.String)),
+  Message: Schema.optional(Schema.NullOr(Schema.String)),
+  RunTime: Schema.NullOr(Schema.Number),
+  TestTimestamp: Schema.optional(Schema.String),
+  AsyncApexJobId: Schema.optional(TestRunIdString),
+  MethodName: Schema.String,
+  Outcome: ApexTestResultOutcomeSchema,
+  ApexLogId: Schema.NullOr(ApexLogIdString),
+  IsTestSetup: Schema.optional(Schema.Boolean),
+  ApexClass: Schema.Struct({
+    Id: Schema.optional(ApexClassIdString),
+    Name: Schema.String,
+    NamespacePrefix: Schema.optional(Schema.NullOr(Schema.String))
+  })
+}).annotations({ identifier: 'ApexTestResultQueryRecord' });
+export type ApexTestResultQueryRecord = Schema.Schema.Type<typeof ApexTestResultQueryRecordSchema>;
 
 export type ApexTestResultRecord = {
   Id: string;
@@ -261,12 +279,6 @@ export type ApexTestResult = {
   records: ApexTestResultRecord[];
 };
 
-export type FlowTestResult = {
-  done: boolean;
-  totalSize: number;
-  records: FlowTestResultRecord[];
-};
-
 export const ApexTestRunResultStatusSchema = Schema.Literal(
   'Queued',
   'Processing',
@@ -321,25 +333,13 @@ export type ApexTestRunResult = {
   UserId?: string;
 };
 
-export type ApexTestQueueItemStatus =
-  | 'Holding'
-  | 'Queued'
-  | 'Preparing'
-  | 'Processing'
-  | 'Aborted'
-  | 'Completed'
-  | 'Failed';
-
+export type ApexTestQueueItemStatus = Schema.Schema.Type<typeof ApexTestQueueItemStatusSchema>;
 export type ApexTestQueueItemRecord = {
   Id: string;
-  /**
-   * The status of the job
-   */
+  /** The status of the job. */
   Status: ApexTestQueueItemStatus;
   ApexClassId: string | null;
-  /**
-   * The ID of the associated ApexTestRunResult object
-   */
+  /** The ID of the associated ApexTestRunResult object. */
   TestRunResultId: string;
 };
 

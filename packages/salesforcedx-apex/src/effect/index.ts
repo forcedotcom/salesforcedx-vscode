@@ -48,13 +48,31 @@ export {
   ApexResponseDecodeError,
   ApexRuntimeError
 } from './schema/errors';
-export { causeMessage } from './errors';
-export { listLogs, getLogBody, streamLogs } from './logs';
-export { ApexLogListItem } from './schema/wire/logs';
-export { ListLogsOptionsSchema, LogStreamEventSchema } from './schema/logs';
+export { ApexReportError, causeMessage } from './errors';
+export { FileOutput, FileOutputError, PartialResultFilesError } from './fileOutput';
+export { NodeFileOutput, FileOutputLayer } from './nodeFileOutput';
+export { writeResultFiles } from './writeResultFiles';
+export type { WriteResultFilesOptions } from './writeResultFiles';
+export { listLogs, getLogRecords, getLogs, getLogBody, streamLogs } from './logs';
+export { ApexLogRecordSchema } from './schema/wire/logs';
+export {
+  ApexLogResultSchema,
+  ApexLogWithBodySchema,
+  EffectApexLogGetOptionsSchema,
+  ListLogsOptionsSchema,
+  LogStreamEventSchema
+} from './schema/logs';
 export { QueryPageSchema } from './schema/queryPage';
-export type { ListLogsOptions, LogStreamEvent } from './schema/logs';
+export type {
+  ApexLogResult,
+  ApexLogWithBody,
+  EffectApexLogGetOptions,
+  ListLogsOptions,
+  LogStreamEvent
+} from './schema/logs';
+export type { ApexLogRecord, ApexLogRecord as ApexLogListItem } from './schema/wire/logs';
 export type { StreamLogsOptions } from './logs';
+export type { ApexLogWriter } from './logs';
 export { BuildSyncPayloadOptionsSchema, BuildAsyncPayloadOptionsSchema } from './schema/testPayloads';
 export { buildSyncPayload, buildAsyncPayload } from './testPayloads';
 export type { BuildSyncPayloadOptions, BuildAsyncPayloadOptions } from './schema/testPayloads';
@@ -62,9 +80,61 @@ export { TestSuiteSchema, TestSuiteMembershipSchema } from './schema/testSuites'
 export { retrieveAllSuites, getTestsInSuite, buildSuite } from './testSuites';
 export type { TestSuite, TestSuiteMembership } from './schema/testSuites';
 export { ApexTestSuiteId } from '../schemas/salesforceId';
+export { ApexClassId, ApexTriggerId, SalesforceId, TraceFlagEntityId, UserId } from '../schemas/salesforceId';
+export { DebugLevelId, TraceFlagId } from './schema/salesforceId';
+export { createRecord, deleteRecord, updateRecord } from './records';
 export { AsyncTestOptionsSchema } from './schema/wire/asyncTests';
 export { AsyncTestProgressSchema, AsyncTestResultSchema, AsyncTestRunEventSchema } from './schema/asyncTests';
 export { runTestAsynchronous } from './asyncTests';
 export type { AsyncTestOptions } from './schema/wire/asyncTests';
 export type { AsyncTestProgress, AsyncTestRunEvent, AsyncTestRunSummary } from './schema/asyncTests';
 export type { AsyncTestPollingOptions, AsyncTestRun } from './asyncTests';
+export {
+  formatHumanReport,
+  formatTapReport,
+  formatJUnitReport,
+  formatMarkdownTextReport,
+  formatMarkdownTextReportStream
+} from './reporters';
+export type { HumanReporterOptions } from './reporters';
+export type { MarkdownTextReporterOptions, OutputFormat, TestSortOrder } from '../reporters/markdownTextReporter';
+export { buildCoverageMap, generateCoverageReports, IstanbulReports } from './coverageReports';
+export type { CoverageReportOptions } from './coverageReports';
+export type { CoverageSource } from '../reporters/coverageMap';
+export { DefaultReportOptions, DefaultWatermarks } from '../reporters/coverageOptions';
+export type { CoverageReporterOptions, CoverageReportFormats } from '../reporters/coverageOptions';
+export {
+  getTraceFlags,
+  getTraceFlagForEntity,
+  getDebugLevels,
+  findDebugLevel,
+  createDebugLevel,
+  updateDebugLevel,
+  deleteDebugLevel,
+  getOrCreateDebugLevel,
+  createTraceFlag,
+  updateTraceFlag,
+  deleteTraceFlag,
+  changeTraceFlagDebugLevel,
+  extendTraceFlag,
+  ensureTraceFlag,
+  traceFlagExpirationDate
+} from './traceFlags';
+export type { UpdateTraceFlagOptions, EnsureTraceFlagOptions } from './traceFlags';
+export {
+  TraceFlagLogType,
+  TraceFlagRecordSchema,
+  TraceFlagForEntitySchema,
+  LogCategoryLevel,
+  DebugLevelRecordSchema,
+  CreateDebugLevelSchema,
+  UpdateDebugLevelSchema
+} from './schema/wire/traceFlags';
+export type {
+  TraceFlagRecord,
+  TraceFlagForEntity,
+  DebugLevelRecord,
+  CreateDebugLevel,
+  UpdateDebugLevel
+} from './schema/wire/traceFlags';
+export { ApexToolingMutationError } from './schema/errors';

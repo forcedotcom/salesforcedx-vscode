@@ -10,7 +10,9 @@ import type { GraphqlResponseError } from '@octokit/graphql';
 import { paginateRest } from '@octokit/plugin-paginate-rest';
 import type { RequestError } from '@octokit/request-error';
 import { type Endpoints } from '@octokit/types';
+import { getErrorMessage } from '@salesforce/salesforcedx-utils';
 import * as Config from 'effect/Config';
+import * as ConfigProvider from 'effect/ConfigProvider';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
 import { isError, isNullable } from 'effect/Predicate';
@@ -26,7 +28,8 @@ export {
   readCompletedChecksEvent,
   readIssueCommentEvent,
   readPullRequestEvent,
-  readSynchronizeEvent
+  readSynchronizeEvent,
+  readWorkflowDispatchEvent
 } from './actionsEvent.js';
 
 export type PullReview = Endpoints['GET /repos/{owner}/{repo}/pulls/{pull_number}/reviews']['response']['data'][number];
@@ -35,6 +38,35 @@ export type CommitStatus =
 export type CheckRun =
   Endpoints['GET /repos/{owner}/{repo}/commits/{ref}/check-runs']['response']['data']['check_runs'][number];
 export type PullFile = Endpoints['GET /repos/{owner}/{repo}/pulls/{pull_number}/files']['response']['data'][number];
+
+export const WorkflowRunJob = Schema.Struct({
+  id: Schema.Number,
+  name: Schema.String,
+  conclusion: Schema.NullOr(Schema.String),
+  started_at: Schema.NullishOr(Schema.String),
+  completed_at: Schema.NullishOr(Schema.String)
+});
+export type WorkflowRunJob = typeof WorkflowRunJob.Type;
+
+export const WorkflowRun = Schema.Struct({
+  id: Schema.Number,
+  name: Schema.NullOr(Schema.String),
+  path: Schema.String,
+  head_sha: Schema.String,
+  status: Schema.NullOr(Schema.String),
+  conclusion: Schema.NullOr(Schema.String),
+  run_attempt: Schema.Number
+});
+export type WorkflowRun = typeof WorkflowRun.Type;
+
+export const WorkflowArtifact = Schema.Struct({
+  id: Schema.Number,
+  name: Schema.String,
+  expired: Schema.Boolean,
+  created_at: Schema.String,
+  workflow_run: Schema.optional(Schema.Struct({ head_sha: Schema.String }))
+});
+export type WorkflowArtifact = typeof WorkflowArtifact.Type;
 
 type Check = {
   readonly state?: string;
@@ -97,10 +129,27 @@ export class GitHubRequestError extends Schema.TaggedError<GitHubRequestError>()
   retryAfterMillis: Schema.optional(Schema.Number)
 }) {}
 
+const decodeResponse = <A, I, R>(schema: Schema.Schema<A, I, R>, input: unknown, method: string, path: string) =>
+  Schema.decodeUnknown(schema)(input).pipe(
+    Effect.mapError(
+      error =>
+        new GitHubRequestError({
+          message: error.message,
+          status: 200,
+          method,
+          path
+        })
+    )
+  );
+
+export const PullRequestState = Schema.Literal('OPEN', 'CLOSED', 'MERGED');
+export type PullRequestState = typeof PullRequestState.Type;
+
 export const PullRequest = Schema.Struct({
   reviewDecision: Schema.NullOr(Schema.String),
   isDraft: Schema.Boolean,
-  state: Schema.String,
+  state: PullRequestState,
+  body: Schema.NullOr(Schema.String).pipe(Schema.optional),
   baseRefName: Schema.String,
   headRefOid: Schema.String,
   author: Schema.NullOr(Schema.Struct({ login: Schema.String })),
@@ -115,7 +164,7 @@ const PullRequestQuery = Schema.Struct({
 const pullQuery = `query($owner:String!,$name:String!,$number:Int!){
   repository(owner:$owner,name:$name){
     pullRequest(number:$number){
-      reviewDecision isDraft state baseRefName headRefOid
+      reviewDecision isDraft state body baseRefName headRefOid
       author { login }
       headRepository { nameWithOwner }
       baseRepository { nameWithOwner }
@@ -158,7 +207,7 @@ const retryAfterMillis = (cause: unknown) => {
 const toError = (method: string, path: string, cause: unknown) => {
   const wait = retryAfterMillis(cause);
   return new GitHubRequestError({
-    message: isError(cause) ? cause.message : String(cause),
+    message: getErrorMessage(cause),
     status: isRequestError(cause) ? cause.status : isGraphqlResponseError(cause) ? 200 : 0,
     method,
     path,
@@ -239,6 +288,77 @@ export class GitHub extends Effect.Service<GitHub>()('GitHub', {
       );
     });
 
+    /** Read one comment page, preserving the issue actions' listComments behavior. */
+    const issueComments = Effect.fn('GitHub.issueComments')(function* (
+      owner: string,
+      repo: string,
+      issueNumber: number
+    ) {
+      return yield* run('GET', `/repos/${owner}/${repo}/issues/${issueNumber}/comments`, () =>
+        octokit
+          .request('GET /repos/{owner}/{repo}/issues/{issue_number}/comments', {
+            owner,
+            repo,
+            issue_number: issueNumber
+          })
+          .then(response => response.data)
+      );
+    });
+
+    const createIssueComment = Effect.fn('GitHub.createIssueComment')(function* (
+      owner: string,
+      repo: string,
+      issueNumber: number,
+      body: string
+    ) {
+      return yield* run('POST', `/repos/${owner}/${repo}/issues/${issueNumber}/comments`, () =>
+        octokit
+          .request('POST /repos/{owner}/{repo}/issues/{issue_number}/comments', {
+            owner,
+            repo,
+            issue_number: issueNumber,
+            body
+          })
+          .then(response => response.data)
+      );
+    });
+
+    const addIssueLabels = Effect.fn('GitHub.addIssueLabels')(function* (
+      owner: string,
+      repo: string,
+      issueNumber: number,
+      labels: readonly string[]
+    ) {
+      yield* run('POST', `/repos/${owner}/${repo}/issues/${issueNumber}/labels`, () =>
+        octokit
+          .request('POST /repos/{owner}/{repo}/issues/{issue_number}/labels', {
+            owner,
+            repo,
+            issue_number: issueNumber,
+            labels: [...labels]
+          })
+          .then(() => undefined)
+      );
+    });
+
+    const removeIssueLabel = Effect.fn('GitHub.removeIssueLabel')(function* (
+      owner: string,
+      repo: string,
+      issueNumber: number,
+      label: string
+    ) {
+      yield* run('DELETE', `/repos/${owner}/${repo}/issues/${issueNumber}/labels/${label}`, () =>
+        octokit
+          .request('DELETE /repos/{owner}/{repo}/issues/{issue_number}/labels/{name}', {
+            owner,
+            repo,
+            issue_number: issueNumber,
+            name: label
+          })
+          .then(() => undefined)
+      );
+    });
+
     const pullReviews = Effect.fn('GitHub.pullReviews')(function* (owner: string, repo: string, pullNumber: number) {
       return yield* run('GET', `/repos/${owner}/${repo}/pulls/${pullNumber}/reviews`, () =>
         octokit.paginate('GET /repos/{owner}/{repo}/pulls/{pull_number}/reviews', {
@@ -258,6 +378,52 @@ export class GitHub extends Effect.Service<GitHub>()('GitHub', {
           ref: sha,
           per_page: 100
         })
+      );
+    });
+
+    const workflowRunJobs = Effect.fn('GitHub.workflowRunJobs')(function* (
+      repository: string,
+      runId: string,
+      filter: 'latest' | 'all' = 'latest'
+    ) {
+      const path = `/repos/${repository}/actions/runs/${runId}/jobs`;
+      return yield* run('GET', path, () =>
+        octokit.paginate<unknown>(`GET ${path}`, {
+          filter,
+          per_page: 100
+        })
+      ).pipe(Effect.flatMap(jobs => decodeResponse(Schema.Array(WorkflowRunJob), jobs, 'GET', path)));
+    });
+
+    const workflowRuns = Effect.fn('GitHub.workflowRuns')(function* (
+      parameters: Endpoints['GET /repos/{owner}/{repo}/actions/runs']['parameters']
+    ) {
+      return yield* run('GET', `/repos/${parameters.owner}/${parameters.repo}/actions/runs`, () =>
+        octokit
+          .request('GET /repos/{owner}/{repo}/actions/runs', parameters)
+          .then(response => response.data.workflow_runs)
+      );
+    });
+
+    const workflowRun = Effect.fn('GitHub.workflowRun')(function* (
+      parameters: Endpoints['GET /repos/{owner}/{repo}/actions/runs/{run_id}']['parameters']
+    ) {
+      return yield* run('GET', `/repos/${parameters.owner}/${parameters.repo}/actions/runs/${parameters.run_id}`, () =>
+        octokit.request('GET /repos/{owner}/{repo}/actions/runs/{run_id}', parameters).then(response => response.data)
+      );
+    });
+
+    const workflowRunArtifacts = Effect.fn('GitHub.workflowRunArtifacts')(function* (
+      parameters: Endpoints['GET /repos/{owner}/{repo}/actions/runs/{run_id}/artifacts']['parameters']
+    ) {
+      return yield* run(
+        'GET',
+        `/repos/${parameters.owner}/${parameters.repo}/actions/runs/${parameters.run_id}/artifacts`,
+        () =>
+          octokit.paginate('GET /repos/{owner}/{repo}/actions/runs/{run_id}/artifacts', {
+            per_page: 100,
+            ...parameters
+          })
       );
     });
 
@@ -393,21 +559,12 @@ export class GitHub extends Effect.Service<GitHub>()('GitHub', {
     });
 
     const pullRequest = Effect.fn('GitHub.pullRequest')(function* (owner: string, repo: string, pullNumber: number) {
-      const data = yield* run('POST', '/graphql', () =>
+      return yield* run('POST', '/graphql', () =>
         octokit.graphql(pullQuery, { owner, name: repo, number: pullNumber })
+      ).pipe(
+        Effect.flatMap(data => decodeResponse(PullRequestQuery, data, 'POST', '/graphql')),
+        Effect.map(decoded => decoded.repository?.pullRequest ?? undefined)
       );
-      const decoded = yield* Schema.decodeUnknown(PullRequestQuery)(data).pipe(
-        Effect.mapError(
-          error =>
-            new GitHubRequestError({
-              message: error.message,
-              status: 200,
-              method: 'POST',
-              path: '/graphql'
-            })
-        )
-      );
-      return decoded.repository?.pullRequest ?? undefined;
     });
 
     return {
@@ -416,8 +573,16 @@ export class GitHub extends Effect.Service<GitHub>()('GitHub', {
       paginate,
       teamMembership,
       pullFiles,
+      issueComments,
+      createIssueComment,
+      addIssueLabels,
+      removeIssueLabel,
       pullReviews,
       checkRuns,
+      workflowRunJobs,
+      workflowRuns,
+      workflowRun,
+      workflowRunArtifacts,
       combinedStatus,
       headChecks,
       createReview,
@@ -429,3 +594,11 @@ export class GitHub extends Effect.Service<GitHub>()('GitHub', {
     };
   })
 }) {}
+
+/** Build the GitHub service using only the supplied token, never runner environment credentials. */
+export const githubFromToken = Effect.fn('GitHub.fromToken')((token: string) =>
+  GitHub.pipe(
+    Effect.provide(GitHub.Default),
+    Effect.withConfigProvider(ConfigProvider.fromMap(new Map([['GITHUB_TOKEN', token]])))
+  )
+);

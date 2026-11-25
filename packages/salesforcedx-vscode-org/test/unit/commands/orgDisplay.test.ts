@@ -12,6 +12,7 @@ import * as Exit from 'effect/Exit';
 import * as Schema from 'effect/Schema';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
 import { orgDisplayDefaultCommand, orgDisplayUsernameCommand } from '../../../src/commands/orgDisplay';
+import { nls } from '../../../src/messages';
 
 // Both commands use Org Display for metadata and the dedicated auth commands for credentials.
 // The picker is mocked so the tests assert command construction, table rendering, and failures.
@@ -85,11 +86,11 @@ const buildServices = (opts: Opts) => ({
   },
   TerminalService: Effect.succeed({ simpleExec: opts.simpleExec }),
   PromptService: Effect.succeed({
-    withCancellableProgress:
-      <A, E>(_message: string, _location?: unknown) =>
-      (effect: Effect.Effect<A, E>) => {
-        opts.withProgress?.(_message);
-        return effect;
+    withProgress:
+      (params: { title: string }) =>
+      <A, E, R>(work: Effect.Effect<A, E, R>) => {
+        opts.withProgress?.(params.title);
+        return work;
       }
   }),
   NotificationModeService: Effect.succeed({
@@ -231,7 +232,7 @@ describe('orgDisplayDefaultCommand', () => {
     const exit = await run(orgDisplayDefaultCommand, { simpleExec, appendToChannel, show, withProgress });
 
     expect(Exit.isSuccess(exit)).toBe(true);
-    expect(withProgress).toHaveBeenCalledWith('Getting org details');
+    expect(withProgress).toHaveBeenCalledWith(nls.localize('org_display_progress'));
   });
 
   it('omits --target-org (sf resolves its own default) when no default-org username is tracked', async () => {

@@ -8,7 +8,7 @@
 import { AuthInfo, Connection } from '@salesforce/core';
 import { MockTestOrgData, TestContext } from '@salesforce/core/testSetup';
 import { nls } from '../../src/i18n';
-import { TestService } from '../../src/tests';
+import { TestService } from '../../src/tests/testService';
 
 const { queryNamespacesMock } = vi.hoisted(() => ({ queryNamespacesMock: vi.fn() }));
 

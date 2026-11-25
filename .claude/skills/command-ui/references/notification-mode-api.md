@@ -49,7 +49,7 @@ Error toast with buttons for an operation that completed with errors (e.g. "comp
 const location = yield* service.getProgressLocation(commandKey);
 ```
 
-Returns `Effect<vscode.ProgressLocation.Notification | vscode.ProgressLocation.Window>`. Pass to `PromptService.withProgress` / `withCancellableProgress`.
+Returns `Effect<vscode.ProgressLocation.Notification | vscode.ProgressLocation.Window>`. Prefer `PromptService.withProgress({ command, title, cancellable })(build)` to resolve the per-extension setting at execution time. Use `{ location, title, cancellable }` when placement must be explicit.
 
 ## Lifecycle
 

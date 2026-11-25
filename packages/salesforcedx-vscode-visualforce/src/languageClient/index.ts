@@ -28,5 +28,3 @@ export const createLanguageClient = Effect.fn('createLanguageClient')(function* 
   const { createLanguageClient: createNodeLanguageClient } = yield* Effect.promise(() => import('./node.js'));
   return createNodeLanguageClient(nodeServerPath, initializationOptions);
 });
-
-export type { LanguageClientWorkerStartError } from './web';

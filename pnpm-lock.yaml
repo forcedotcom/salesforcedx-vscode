@@ -163,9 +163,10 @@ settings:
   excludeLinksFromLockfile: false
 
 overrides:
-  '@azure/monitor-opentelemetry-exporter': 1.0.0-beta.43
-  '@vscode/test-web>playwright': 1.64.1
-  '@vscode/test-web>@playwright/browser-chromium': 1.64.1
+  '@azure/monitor-opentelemetry-exporter': 1.0.0-beta.47
+  '@jsforce/jsforce-node': 3.13.1
+  '@vscode/test-web>playwright': ^1.64.1
+  '@vscode/test-web>@playwright/browser-chromium': ^1.64.1
   jest: 30.4.2
   vscode-languageserver-textdocument: 1.0.12
   wireit>brace-expansion: 5.0.9
@@ -176,21 +177,24 @@ importers:
 
   .:
     dependencies:
+      '@salesforce/effect-ext-utils':
+        specifier: workspace:*
+        version: link:packages/effect-ext-utils
       '@salesforce/o11y-reporter':
         specifier: ^1.8.5
         version: 1.8.5
+      '@salesforce/salesforcedx-utils':
+        specifier: workspace:*
+        version: link:packages/salesforcedx-utils
       jsforce:
-        specifier: ^3.10.24
-        version: 3.10.25(@types/node@24.19.2)
+        specifier: ^3.13.1
+        version: 3.13.1(@types/node@24.19.2)
       memfs:
         specifier: ^4.32.0
         version: 4.74.0
       semver:
         specifier: ^7.5.4
         version: 7.8.5
-      ts-node:
-        specifier: 10.9.2
-        version: 10.9.2(@types/node@24.19.2)(typescript@6.0.3)
       url:
         specifier: 0.11.4
         version: 0.11.4
@@ -210,9 +214,6 @@ importers:
       '@commitlint/config-conventional':
         specifier: ^19.8.1
         version: 19.8.1
-      '@cursor/sdk':
-        specifier: 1.0.35
-        version: 1.0.35
       '@effect/eslint-plugin':
         specifier: 0.3.2
         version: 0.3.2
@@ -220,11 +221,11 @@ importers:
         specifier: ^0.87.2
         version: 0.87.2
       '@effect/platform':
-        specifier: 0.96.1
-        version: 0.96.1(effect@3.22.2)
+        specifier: 0.97.3
+        version: 0.97.3(effect@3.22.4)
       '@effect/platform-node':
-        specifier: 0.106.0
-        version: 0.106.0(@effect/cluster@0.58.2(@effect/platform@0.96.1(effect@3.22.2))(@effect/rpc@0.75.1(@effect/platform@0.96.1(effect@3.22.2))(effect@3.22.2))(@effect/sql@0.51.1(@effect/experimental@0.60.0(@effect/platform@0.96.1(effect@3.22.2))(effect@3.22.2))(@effect/platform@0.96.1(effect@3.22.2))(effect@3.22.2))(@effect/workflow@0.18.2(@effect/experimental@0.60.0(@effect/platform@0.96.1(effect@3.22.2))(effect@3.22.2))(@effect/platform@0.96.1(effect@3.22.2))(@effect/rpc@0.75.1(@effect/platform@0.96.1(effect@3.22.2))(effect@3.22.2))(effect@3.22.2))(effect@3.22.2))(@effect/platform@0.96.1(effect@3.22.2))(@effect/rpc@0.75.1(@effect/platform@0.96.1(effect@3.22.2))(effect@3.22.2))(@effect/sql@0.51.1(@effect/experimental@0.60.0(@effect/platform@0.96.1(effect@3.22.2))(effect@3.22.2))(@effect/platform@0.96.1(effect@3.22.2))(effect@3.22.2))(effect@3.22.2)
+        specifier: 0.108.4
+        version: 0.108.4(@effect/cluster@0.60.5(@effect/platform@0.97.3(effect@3.22.4))(@effect/rpc@0.76.4(@effect/platform@0.97.3(effect@3.22.4))(effect@3.22.4))(@effect/sql@0.52.2(@effect/experimental@0.61.2(@effect/platform@0.97.3(effect@3.22.4))(effect@3.22.4))(@effect/platform@0.97.3(effect@3.22.4))(effect@3.22.4))(@effect/workflow@0.19.1(@effect/experimental@0.61.2(@effect/platform@0.97.3(effect@3.22.4))(effect@3.22.4))(@effect/platform@0.97.3(effect@3.22.4))(@effect/rpc@0.76.4(@effect/platform@0.97.3(effect@3.22.4))(effect@3.22.4))(effect@3.22.4))(effect@3.22.4))(@effect/platform@0.97.3(effect@3.22.4))(@effect/rpc@0.76.4(@effect/platform@0.97.3(effect@3.22.4))(effect@3.22.4))(@effect/sql@0.52.2(@effect/experimental@0.61.2(@effect/platform@0.97.3(effect@3.22.4))(effect@3.22.4))(@effect/platform@0.97.3(effect@3.22.4))(effect@3.22.4))(effect@3.22.4)
       '@eslint/json':
         specifier: ^0.14.0
         version: 0.14.0
@@ -250,20 +251,23 @@ importers:
         specifier: 7.6.1
         version: 7.6.1
       '@playwright/test':
-        specifier: 1.64.1
+        specifier: ^1.64.1
         version: 1.64.1
       '@salesforce/apex-tmlanguage':
         specifier: ^2.0.3
         version: 2.0.3
       '@salesforce/core':
-        specifier: ^9.3.6
-        version: 9.3.6
+        specifier: ^9.4.1
+        version: 9.6.0
       '@salesforce/dev-config':
         specifier: ^4.3.2
         version: 4.3.3
       '@salesforce/effect-octokit':
         specifier: workspace:*
         version: link:packages/effect-octokit
+      '@salesforce/playwright-vscode-ext':
+        specifier: workspace:*
+        version: link:packages/playwright-vscode-ext
       '@secretlint/node':
         specifier: 11.7.1
         version: 11.7.1(supports-color@8.1.1)
@@ -291,6 +295,9 @@ importers:
       '@types/xml2js':
         specifier: 0.4.14
         version: 0.4.14
+      '@types/yauzl':
+        specifier: 3.4.0
+        version: 3.4.0
       '@typescript-eslint/eslint-plugin':
         specifier: ^8.72.0
         version: 8.72.0(@typescript-eslint/parser@8.72.0(eslint@10.13.0(jiti@2.7.0)(supports-color@8.1.1))(supports-color@8.1.1)(typescript@6.0.3))(eslint@10.13.0(jiti@2.7.0)(supports-color@8.1.1))(supports-color@8.1.1)(typescript@6.0.3)
@@ -315,6 +322,9 @@ importers:
       acorn:
         specifier: 8.15.0
         version: 8.15.0
+      applicationinsights:
+        specifier: 1.8.10
+        version: 1.8.10
       assert:
         specifier: 2.1.0
         version: 2.1.0
@@ -337,8 +347,8 @@ importers:
         specifier: ^3.14.0
         version: 3.15.1
       effect:
-        specifier: ^3.21.2
-        version: 3.22.2
+        specifier: ^3.22.4
+        version: 3.22.4
       esbuild:
         specifier: ^0.28.1
         version: 0.28.2
@@ -374,7 +384,7 @@ importers:
         version: 4.17.1(@typescript-eslint/utils@8.71.2(eslint@10.13.0(jiti@2.7.0)(supports-color@8.1.1))(supports-color@8.1.1)(typescript@6.0.3))(eslint-import-resolver-node@0.3.10(supports-color@8.1.1))(eslint@10.13.0(jiti@2.7.0)(supports-color@8.1.1))(supports-color@8.1.1)
       eslint-plugin-jest:
         specifier: 29.17.0
-        version: 29.17.0(@typescript-eslint/eslint-plugin@8.72.0(@typescript-eslint/parser@8.72.0(eslint@10.13.0(jiti@2.7.0)(supports-color@8.1.1))(supports-color@8.1.1)(typescript@6.0.3))(eslint@10.13.0(jiti@2.7.0)(supports-color@8.1.1))(supports-color@8.1.1)(typescript@6.0.3))(eslint@10.13.0(jiti@2.7.0)(supports-color@8.1.1))(jest@30.4.2(@types/node@24.19.2)(supports-color@8.1.1)(ts-node@10.9.2(@types/node@24.19.2)(typescript@6.0.3)))(supports-color@8.1.1)(typescript@6.0.3)
+        version: 29.17.0(@typescript-eslint/eslint-plugin@8.72.0(@typescript-eslint/parser@8.72.0(eslint@10.13.0(jiti@2.7.0)(supports-color@8.1.1))(supports-color@8.1.1)(typescript@6.0.3))(eslint@10.13.0(jiti@2.7.0)(supports-color@8.1.1))(supports-color@8.1.1)(typescript@6.0.3))(eslint@10.13.0(jiti@2.7.0)(supports-color@8.1.1))(jest@30.4.2(@types/node@24.19.2)(supports-color@8.1.1))(supports-color@8.1.1)(typescript@6.0.3)
       eslint-plugin-jsdoc:
         specifier: 63.3.3
         version: 63.3.3(eslint@10.13.0(jiti@2.7.0)(supports-color@8.1.1))(supports-color@8.1.1)
@@ -413,7 +423,7 @@ importers:
         version: 14.2.3(@types/node@24.19.2)
       jest:
         specifier: 30.4.2
-        version: 30.4.2(@types/node@24.19.2)(supports-color@8.1.1)(ts-node@10.9.2(@types/node@24.19.2)(typescript@6.0.3))
+        version: 30.4.2(@types/node@24.19.2)(supports-color@8.1.1)
       jscpd:
         specifier: ^4.0.5
         version: 4.3.0
@@ -442,7 +452,7 @@ importers:
         specifier: ^1.0.1
         version: 1.0.1
       playwright:
-        specifier: 1.64.1
+        specifier: ^1.64.1
         version: 1.64.1
       prettier:
         specifier: 3.8.3
@@ -473,10 +483,7 @@ importers:
         version: 2.0.12
       ts-jest:
         specifier: 29.4.11
-        version: 29.4.11(@babel/core@7.29.7(supports-color@8.1.1))(@jest/transform@30.4.1(supports-color@8.1.1))(@jest/types@30.5.1)(babel-jest@30.4.1(@babel/core@7.29.7(supports-color@8.1.1))(supports-color@8.1.1))(esbuild@0.28.2)(jest-util@30.5.1)(jest@30.4.2(@types/node@24.19.2)(supports-color@8.1.1)(ts-node@10.9.2(@types/node@24.19.2)(typescript@6.0.3)))(typescript@6.0.3)
-      tsx:
-        specifier: 4.22.4
-        version: 4.22.4
+        version: 29.4.11(@babel/core@7.29.7(supports-color@8.1.1))(@jest/transform@30.4.1(supports-color@8.1.1))(@jest/types@30.5.1)(babel-jest@30.4.1(@babel/core@7.29.7(supports-color@8.1.1))(supports-color@8.1.1))(esbuild@0.28.2)(jest-util@30.5.1)(jest@30.4.2(@types/node@24.19.2)(supports-color@8.1.1))(typescript@6.0.3)
       typescript:
         specifier: 6.0.3
         version: 6.0.3
@@ -498,30 +505,36 @@ importers:
       yaml:
         specifier: ^2.9.0
         version: 2.9.0
+      yauzl:
+        specifier: 3.4.0
+        version: 3.4.0
 
   packages/drivable-vscode:
     dependencies:
       '@effect/platform':
-        specifier: 0.96.1
-        version: 0.96.1(effect@3.22.2)
+        specifier: 0.97.3
+        version: 0.97.3(effect@3.22.4)
       '@effect/platform-node':
-        specifier: 0.106.0
-        version: 0.106.0(@effect/cluster@0.58.2(@effect/platform@0.96.1(effect@3.22.2))(@effect/rpc@0.75.1(@effect/platform@0.96.1(effect@3.22.2))(effect@3.22.2))(@effect/sql@0.51.1(@effect/experimental@0.60.0(@effect/platform@0.96.1(effect@3.22.2))(effect@3.22.2))(@effect/platform@0.96.1(effect@3.22.2))(effect@3.22.2))(@effect/workflow@0.18.2(@effect/experimental@0.60.0(@effect/platform@0.96.1(effect@3.22.2))(effect@3.22.2))(@effect/platform@0.96.1(effect@3.22.2))(@effect/rpc@0.75.1(@effect/platform@0.96.1(effect@3.22.2))(effect@3.22.2))(effect@3.22.2))(effect@3.22.2))(@effect/platform@0.96.1(effect@3.22.2))(@effect/rpc@0.75.1(@effect/platform@0.96.1(effect@3.22.2))(effect@3.22.2))(@effect/sql@0.51.1(@effect/experimental@0.60.0(@effect/platform@0.96.1(effect@3.22.2))(effect@3.22.2))(@effect/platform@0.96.1(effect@3.22.2))(effect@3.22.2))(effect@3.22.2)
+        specifier: 0.108.4
+        version: 0.108.4(@effect/cluster@0.60.5(@effect/platform@0.97.3(effect@3.22.4))(@effect/rpc@0.76.4(@effect/platform@0.97.3(effect@3.22.4))(effect@3.22.4))(@effect/sql@0.52.2(@effect/experimental@0.61.2(@effect/platform@0.97.3(effect@3.22.4))(effect@3.22.4))(@effect/platform@0.97.3(effect@3.22.4))(effect@3.22.4))(@effect/workflow@0.19.1(@effect/experimental@0.61.2(@effect/platform@0.97.3(effect@3.22.4))(effect@3.22.4))(@effect/platform@0.97.3(effect@3.22.4))(@effect/rpc@0.76.4(@effect/platform@0.97.3(effect@3.22.4))(effect@3.22.4))(effect@3.22.4))(effect@3.22.4))(@effect/platform@0.97.3(effect@3.22.4))(@effect/rpc@0.76.4(@effect/platform@0.97.3(effect@3.22.4))(effect@3.22.4))(@effect/sql@0.52.2(@effect/experimental@0.61.2(@effect/platform@0.97.3(effect@3.22.4))(effect@3.22.4))(@effect/platform@0.97.3(effect@3.22.4))(effect@3.22.4))(effect@3.22.4)
       '@modelcontextprotocol/sdk':
         specifier: 1.32.0
-        version: 1.32.0(supports-color@8.1.1)(zod@4.6.1)
+        version: 1.32.0(supports-color@8.1.1)(zod@4.6.7)
       '@playwright/test':
-        specifier: 1.64.1
+        specifier: ^1.64.1
         version: 1.64.1
       '@salesforce/playwright-vscode-ext':
         specifier: workspace:*
         version: link:../playwright-vscode-ext
+      '@salesforce/salesforcedx-utils':
+        specifier: '*'
+        version: link:../salesforcedx-utils
       '@vscode/test-electron':
         specifier: 3.1.0
         version: 3.1.0(supports-color@8.1.1)
       effect:
-        specifier: ^3.21.2
-        version: 3.22.2
+        specifier: ^3.22.4
+        version: 3.22.4
 
   packages/effect-ext-utils:
     dependencies:
@@ -529,8 +542,8 @@ importers:
         specifier: ^1.90.0
         version: 1.90.0
       effect:
-        specifier: ^3.21.2
-        version: 3.22.2
+        specifier: ^3.22.4
+        version: 3.22.4
       vscode-uri:
         specifier: ^3.1.0
         version: 3.2.0
@@ -542,8 +555,8 @@ importers:
   packages/effect-octokit:
     dependencies:
       '@effect/platform':
-        specifier: 0.96.1
-        version: 0.96.1(effect@3.22.2)
+        specifier: 0.97.3
+        version: 0.97.3(effect@3.22.4)
       '@octokit/core':
         specifier: ^7.0.6
         version: 7.0.8
@@ -559,9 +572,12 @@ importers:
       '@octokit/types':
         specifier: ^16.0.0
         version: 16.0.0
+      '@salesforce/salesforcedx-utils':
+        specifier: '*'
+        version: link:../salesforcedx-utils
       effect:
-        specifier: ^3.21.2
-        version: 3.22.2
+        specifier: ^3.22.4
+        version: 3.22.4
 
   packages/eslint-local-rules:
     dependencies:
@@ -581,8 +597,11 @@ importers:
         specifier: '>=9.0.0'
         version: 10.13.0(jiti@2.7.0)(supports-color@8.1.1)
       minimatch:
-        specifier: ^10.2.6
-        version: 10.2.6
+        specifier: ^11.0.1
+        version: 11.0.4
+      typescript:
+        specifier: 6.0.3
+        version: 6.0.3
     devDependencies:
       '@types/eslint':
         specifier: ^9.0.0
@@ -603,11 +622,17 @@ importers:
   packages/playwright-vscode-ext:
     dependencies:
       '@effect/platform':
-        specifier: ^0.96.1
-        version: 0.96.1(effect@3.22.2)
+        specifier: ^0.97.3
+        version: 0.97.3(effect@3.22.4)
       '@playwright/test':
-        specifier: 1.64.1
+        specifier: ^1.64.1
         version: 1.64.1
+      '@salesforce/core':
+        specifier: ^9.4.1
+        version: 9.6.0
+      '@salesforce/salesforcedx-utils':
+        specifier: '*'
+        version: link:../salesforcedx-utils
       '@vscode/test-electron':
         specifier: 3.1.0
         version: 3.1.0(supports-color@8.1.1)
@@ -615,30 +640,32 @@ importers:
         specifier: ^0.0.81
         version: 0.0.81(supports-color@8.1.1)
       effect:
-        specifier: ^3.21.2
-        version: 3.22.2
-    devDependencies:
-      '@salesforce/core':
-        specifier: ^9.3.0
-        version: 9.3.6
+        specifier: ^3.22.4
+        version: 3.22.4
+      jsonc-parser:
+        specifier: ^3.3.1
+        version: 3.3.1
 
   packages/salesforcedx-apex:
     dependencies:
       '@effect/platform':
-        specifier: ^0.96.1
-        version: 0.96.1(effect@3.22.2)
+        specifier: ^0.97.3
+        version: 0.97.3(effect@3.22.4)
+      '@effect/platform-node':
+        specifier: 0.108.4
+        version: 0.108.4(@effect/cluster@0.60.5(@effect/platform@0.97.3(effect@3.22.4))(@effect/rpc@0.76.4(@effect/platform@0.97.3(effect@3.22.4))(effect@3.22.4))(@effect/sql@0.52.2(@effect/experimental@0.61.2(@effect/platform@0.97.3(effect@3.22.4))(effect@3.22.4))(@effect/platform@0.97.3(effect@3.22.4))(effect@3.22.4))(@effect/workflow@0.19.1(@effect/experimental@0.61.2(@effect/platform@0.97.3(effect@3.22.4))(effect@3.22.4))(@effect/platform@0.97.3(effect@3.22.4))(@effect/rpc@0.76.4(@effect/platform@0.97.3(effect@3.22.4))(effect@3.22.4))(effect@3.22.4))(effect@3.22.4))(@effect/platform@0.97.3(effect@3.22.4))(@effect/rpc@0.76.4(@effect/platform@0.97.3(effect@3.22.4))(effect@3.22.4))(@effect/sql@0.52.2(@effect/experimental@0.61.2(@effect/platform@0.97.3(effect@3.22.4))(effect@3.22.4))(@effect/platform@0.97.3(effect@3.22.4))(effect@3.22.4))(effect@3.22.4)
       '@salesforce/core':
-        specifier: ^9.3.0
-        version: 9.3.6
+        specifier: ^9.4.1
+        version: 9.6.0
       '@salesforce/kit':
         specifier: ^4.0.0
         version: 4.0.0
+      '@salesforce/salesforcedx-utils':
+        specifier: '*'
+        version: link:../salesforcedx-utils
       effect:
-        specifier: ^3.21.2
-        version: 3.22.2
-      fast-glob:
-        specifier: ^3.3.2
-        version: 3.3.3
+        specifier: ^3.22.4
+        version: 3.22.4
       faye:
         specifier: 1.4.1
         version: 1.4.1
@@ -651,13 +678,13 @@ importers:
       istanbul-reports:
         specifier: ^3.2.0
         version: 3.2.0
-      json-stream-stringify:
-        specifier: ^3.1.7
-        version: 3.1.7
+      tinyglobby:
+        specifier: ^0.2.17
+        version: 0.2.17
     devDependencies:
       '@jsforce/jsforce-node':
-        specifier: ^3.10.18
-        version: 3.10.29
+        specifier: 3.13.1
+        version: 3.13.1
       '@types/istanbul-lib-coverage':
         specifier: ^2.0.6
         version: 2.0.6
@@ -683,8 +710,8 @@ importers:
   packages/salesforcedx-apex-debugger:
     dependencies:
       '@salesforce/core':
-        specifier: ^9.3.0
-        version: 9.3.6
+        specifier: ^9.4.1
+        version: 9.6.0
       '@salesforce/salesforcedx-utils':
         specifier: workspace:*
         version: link:../salesforcedx-utils
@@ -704,8 +731,8 @@ importers:
         specifier: 7.0.6
         version: 7.0.6
       effect:
-        specifier: ^3.21.2
-        version: 3.22.2
+        specifier: ^3.22.4
+        version: 3.22.4
       faye:
         specifier: 1.4.1
         version: 1.4.1
@@ -741,8 +768,8 @@ importers:
         specifier: 1.68.0
         version: 1.68.0
       effect:
-        specifier: ^3.21.2
-        version: 3.22.2
+        specifier: ^3.22.4
+        version: 3.22.4
       vscode-uri:
         specifier: ^3.1.0
         version: 3.2.0
@@ -759,6 +786,9 @@ importers:
       '@salesforce/salesforcedx-lightning-lsp-common':
         specifier: workspace:*
         version: link:../salesforcedx-lightning-lsp-common
+      '@salesforce/salesforcedx-utils':
+        specifier: '*'
+        version: link:../salesforcedx-utils
       '@salesforce/vscode-i18n':
         specifier: workspace:*
         version: link:../salesforcedx-vscode-i18n
@@ -772,14 +802,14 @@ importers:
         specifier: ^6.0.0
         version: 6.2.0
       effect:
-        specifier: ^3.21.2
-        version: 3.22.2
+        specifier: ^3.22.4
+        version: 3.22.4
       line-column:
         specifier: ^1.0.2
         version: 1.0.2
       minimatch:
-        specifier: ^10.2.6
-        version: 10.2.6
+        specifier: ^11.0.1
+        version: 11.0.4
       vscode-html-languageservice:
         specifier: ^5.0.0
         version: 5.6.2
@@ -805,14 +835,14 @@ importers:
         specifier: workspace:*
         version: link:../salesforcedx-vscode-i18n
       effect:
-        specifier: ^3.21.2
-        version: 3.22.2
+        specifier: ^3.22.4
+        version: 3.22.4
       ejs:
         specifier: ^3.1.10
         version: 3.1.10
       minimatch:
-        specifier: ^10.2.6
-        version: 10.2.6
+        specifier: ^11.0.1
+        version: 11.0.4
       tiny-jsonc:
         specifier: ^1.0.2
         version: 1.0.2
@@ -868,6 +898,9 @@ importers:
       '@salesforce/salesforcedx-lightning-lsp-common':
         specifier: workspace:*
         version: link:../salesforcedx-lightning-lsp-common
+      '@salesforce/salesforcedx-utils':
+        specifier: '*'
+        version: link:../salesforcedx-utils
       '@salesforce/schema':
         specifier: ^0.0.21
         version: 0.0.21
@@ -884,14 +917,14 @@ importers:
         specifier: ^0.7.6
         version: 0.7.6
       effect:
-        specifier: ^3.21.2
-        version: 3.22.2
+        specifier: ^3.22.4
+        version: 3.22.4
       ejs:
         specifier: ^3.1.10
         version: 3.1.10
       minimatch:
-        specifier: ^10.2.6
-        version: 10.2.6
+        specifier: ^11.0.1
+        version: 11.0.4
       vscode-html-languageservice:
         specifier: ^5.5.1
         version: 5.6.2
@@ -970,8 +1003,8 @@ importers:
         specifier: workspace:*
         version: link:../salesforcedx-vscode-i18n
       effect:
-        specifier: ^3.21.2
-        version: 3.22.2
+        specifier: ^3.22.4
+        version: 3.22.4
       find-java-home:
         specifier: 1.2.2
         version: 1.2.2
@@ -986,8 +1019,8 @@ importers:
         version: 3.2.0
     devDependencies:
       '@salesforce/core':
-        specifier: ^9.3.0
-        version: 9.3.6
+        specifier: ^9.4.1
+        version: 9.6.0
       '@salesforce/playwright-vscode-ext':
         specifier: workspace:*
         version: link:../playwright-vscode-ext
@@ -998,8 +1031,8 @@ importers:
   packages/salesforcedx-vscode-apex-debugger:
     dependencies:
       '@salesforce/core':
-        specifier: ^9.3.0
-        version: 9.3.6
+        specifier: ^9.4.1
+        version: 9.6.0
       '@salesforce/effect-ext-utils':
         specifier: workspace:*
         version: link:../effect-ext-utils
@@ -1010,8 +1043,8 @@ importers:
         specifier: workspace:*
         version: link:../salesforcedx-vscode-i18n
       effect:
-        specifier: ^3.21.2
-        version: 3.22.2
+        specifier: ^3.22.4
+        version: 3.22.4
       sanitize-filename:
         specifier: ^1.6.1
         version: 1.6.4
@@ -1044,15 +1077,15 @@ importers:
         specifier: workspace:*
         version: link:../salesforcedx-vscode-i18n
       effect:
-        specifier: ^3.21.2
-        version: 3.22.2
+        specifier: ^3.22.4
+        version: 3.22.4
       vscode-uri:
         specifier: ^3.1.0
         version: 3.2.0
     devDependencies:
       '@salesforce/core':
-        specifier: ^9.3.0
-        version: 9.3.6
+        specifier: ^9.4.1
+        version: 9.6.0
       '@salesforce/playwright-vscode-ext':
         specifier: workspace:*
         version: link:../playwright-vscode-ext
@@ -1081,8 +1114,8 @@ importers:
         specifier: 1.22.6
         version: 1.22.6(encoding@0.1.13)
       effect:
-        specifier: ^3.21.2
-        version: 3.22.2
+        specifier: ^3.22.4
+        version: 3.22.4
       ejs:
         specifier: 3.1.10
         version: 3.1.10
@@ -1136,8 +1169,8 @@ importers:
         specifier: workspace:*
         version: link:../salesforcedx-vscode-i18n
       effect:
-        specifier: ^3.21.2
-        version: 3.22.2
+        specifier: ^3.22.4
+        version: 3.22.4
       salesforcedx-vscode-apex-log:
         specifier: workspace:*
         version: link:../salesforcedx-vscode-apex-log
@@ -1146,11 +1179,11 @@ importers:
         version: 3.2.0
     devDependencies:
       '@playwright/test':
-        specifier: 1.64.1
+        specifier: ^1.64.1
         version: 1.64.1
       '@salesforce/core':
-        specifier: ^9.3.0
-        version: 9.3.6
+        specifier: ^9.4.1
+        version: 9.6.0
       '@salesforce/playwright-vscode-ext':
         specifier: workspace:*
         version: link:../playwright-vscode-ext
@@ -1182,21 +1215,21 @@ importers:
         specifier: workspace:*
         version: link:../salesforcedx-vscode-i18n
       effect:
-        specifier: ^3.21.2
-        version: 3.22.2
+        specifier: ^3.22.4
+        version: 3.22.4
       vscode-uri:
         specifier: ^3.1.0
         version: 3.2.0
     devDependencies:
       '@salesforce/core':
-        specifier: ^9.3.0
-        version: 9.3.6
+        specifier: ^9.6.0
+        version: 9.6.0
       '@salesforce/playwright-vscode-ext':
         specifier: workspace:*
         version: link:../playwright-vscode-ext
       '@salesforce/source-deploy-retrieve':
-        specifier: ^13.5.0
-        version: 13.5.0(supports-color@8.1.1)
+        specifier: ^13.14.1
+        version: 13.14.1(supports-color@8.1.1)
       salesforcedx-vscode-services:
         specifier: workspace:*
         version: link:../salesforcedx-vscode-services
@@ -1204,8 +1237,8 @@ importers:
   packages/salesforcedx-vscode-core:
     dependencies:
       '@salesforce/core':
-        specifier: ^9.3.0
-        version: 9.3.6
+        specifier: ^9.4.1
+        version: 9.6.0
       '@salesforce/effect-ext-utils':
         specifier: workspace:*
         version: link:../effect-ext-utils
@@ -1216,8 +1249,8 @@ importers:
         specifier: workspace:*
         version: link:../salesforcedx-vscode-i18n
       effect:
-        specifier: ^3.21.2
-        version: 3.22.2
+        specifier: ^3.22.4
+        version: 3.22.4
       fast-xml-parser:
         specifier: ^5.7.1
         version: 5.11.2
@@ -1270,8 +1303,8 @@ importers:
         specifier: 1.8.10
         version: 1.8.10
       effect:
-        specifier: ^3.21.2
-        version: 3.22.2
+        specifier: ^3.22.4
+        version: 3.22.4
       vscode-html-languageservice:
         specifier: ^5.5.1
         version: 5.6.2
@@ -1301,8 +1334,8 @@ importers:
         specifier: workspace:*
         version: link:../salesforcedx-vscode-i18n
       effect:
-        specifier: ^3.21.2
-        version: 3.22.2
+        specifier: ^3.22.4
+        version: 3.22.4
       jest-editor-support:
         specifier: 31.1.2
         version: 31.1.2(supports-color@8.1.1)
@@ -1323,8 +1356,8 @@ importers:
         version: 1.3.1
     devDependencies:
       '@salesforce/core':
-        specifier: ^9.3.0
-        version: 9.3.6
+        specifier: ^9.4.1
+        version: 9.6.0
       '@salesforce/playwright-vscode-ext':
         specifier: workspace:*
         version: link:../playwright-vscode-ext
@@ -1347,8 +1380,8 @@ importers:
         specifier: workspace:*
         version: link:../salesforcedx-vscode-i18n
       effect:
-        specifier: ^3.21.2
-        version: 3.22.2
+        specifier: ^3.22.4
+        version: 3.22.4
       vscode-uri:
         specifier: ^3.1.0
         version: 3.2.0
@@ -1357,14 +1390,14 @@ importers:
         specifier: workspace:*
         version: link:../playwright-vscode-ext
       '@salesforce/source-deploy-retrieve':
-        specifier: ^13.5.0
-        version: 13.5.0(supports-color@8.1.1)
+        specifier: ^13.14.1
+        version: 13.14.1(supports-color@8.1.1)
       '@salesforce/source-tracking':
-        specifier: ^8.1.7
-        version: 8.1.7(supports-color@8.1.1)
+        specifier: ^8.1.16
+        version: 8.1.16(supports-color@8.1.1)
       '@salesforce/templates':
-        specifier: ^66.17.4
-        version: 66.17.4
+        specifier: ^66.19.0
+        version: 66.19.0
       '@salesforce/types':
         specifier: ^1.8.0
         version: 1.8.0
@@ -1384,18 +1417,18 @@ importers:
         specifier: workspace:*
         version: link:../salesforcedx-vscode-services-types
       effect:
-        specifier: ^3.21.2
-        version: 3.22.2
+        specifier: ^3.22.4
+        version: 3.22.4
       vscode-uri:
         specifier: ^3.0.8
         version: 3.2.0
     devDependencies:
       '@effect/opentelemetry':
-        specifier: 0.63.0
-        version: 0.63.0(@effect/platform@0.96.1(effect@3.22.2))(@opentelemetry/api@1.9.1)(@opentelemetry/resources@2.12.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-logs@0.219.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-metrics@2.12.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-base@2.10.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-node@2.8.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-web@2.8.0(@opentelemetry/api@1.9.1))(@opentelemetry/semantic-conventions@1.43.0)(effect@3.22.2)
+        specifier: 0.64.0
+        version: 0.64.0(@effect/platform@0.97.3(effect@3.22.4))(@opentelemetry/api@1.9.1)(@opentelemetry/resources@2.12.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-logs@0.221.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-metrics@2.12.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-base@2.10.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-node@2.8.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-web@2.8.0(@opentelemetry/api@1.9.1))(@opentelemetry/semantic-conventions@1.43.0)(effect@3.22.4)
       '@salesforce/core':
-        specifier: ^9.3.0
-        version: 9.3.6
+        specifier: ^9.4.1
+        version: 9.6.0
       '@salesforce/playwright-vscode-ext':
         specifier: workspace:*
         version: link:../playwright-vscode-ext
@@ -1412,21 +1445,21 @@ importers:
         specifier: workspace:*
         version: link:../salesforcedx-vscode-i18n
       effect:
-        specifier: ^3.21.2
-        version: 3.22.2
+        specifier: ^3.22.4
+        version: 3.22.4
       vscode-uri:
         specifier: ^3.1.0
         version: 3.2.0
     devDependencies:
       '@salesforce/core':
-        specifier: ^9.3.0
-        version: 9.3.6
+        specifier: ^9.6.0
+        version: 9.6.0
       '@salesforce/playwright-vscode-ext':
         specifier: workspace:*
         version: link:../playwright-vscode-ext
       '@salesforce/source-deploy-retrieve':
-        specifier: ^13.5.0
-        version: 13.5.0(supports-color@8.1.1)
+        specifier: ^13.14.1
+        version: 13.14.1(supports-color@8.1.1)
       salesforcedx-vscode-services:
         specifier: workspace:*
         version: link:../salesforcedx-vscode-services
@@ -1434,20 +1467,20 @@ importers:
   packages/salesforcedx-vscode-services:
     dependencies:
       '@azure/monitor-opentelemetry-exporter':
-        specifier: 1.0.0-beta.43
-        version: 1.0.0-beta.43(supports-color@8.1.1)
+        specifier: 1.0.0-beta.47
+        version: 1.0.0-beta.47(supports-color@8.1.1)
       '@effect/opentelemetry':
-        specifier: 0.63.0
-        version: 0.63.0(@effect/platform@0.96.1(effect@3.22.2))(@opentelemetry/api@1.9.1)(@opentelemetry/resources@2.11.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-logs@0.219.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-metrics@2.12.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-base@2.10.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-node@2.8.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-web@2.8.0(@opentelemetry/api@1.9.1))(@opentelemetry/semantic-conventions@1.43.0)(effect@3.22.2)
+        specifier: 0.64.0
+        version: 0.64.0(@effect/platform@0.97.3(effect@3.22.4))(@opentelemetry/api@1.9.1)(@opentelemetry/resources@2.11.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-logs@0.219.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-metrics@2.12.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-base@2.10.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-node@2.8.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-web@2.8.0(@opentelemetry/api@1.9.1))(@opentelemetry/semantic-conventions@1.43.0)(effect@3.22.4)
       '@effect/platform':
-        specifier: ^0.96.1
-        version: 0.96.1(effect@3.22.2)
+        specifier: ^0.97.3
+        version: 0.97.3(effect@3.22.4)
       '@effect/platform-node-shared':
-        specifier: 0.59.0
-        version: 0.59.0(@effect/cluster@0.58.2(@effect/platform@0.96.1(effect@3.22.2))(@effect/rpc@0.75.1(@effect/platform@0.96.1(effect@3.22.2))(effect@3.22.2))(@effect/sql@0.51.1(@effect/experimental@0.60.0(@effect/platform@0.96.1(effect@3.22.2))(effect@3.22.2))(@effect/platform@0.96.1(effect@3.22.2))(effect@3.22.2))(@effect/workflow@0.18.2(@effect/experimental@0.60.0(@effect/platform@0.96.1(effect@3.22.2))(effect@3.22.2))(@effect/platform@0.96.1(effect@3.22.2))(@effect/rpc@0.75.1(@effect/platform@0.96.1(effect@3.22.2))(effect@3.22.2))(effect@3.22.2))(effect@3.22.2))(@effect/platform@0.96.1(effect@3.22.2))(@effect/rpc@0.75.1(@effect/platform@0.96.1(effect@3.22.2))(effect@3.22.2))(@effect/sql@0.51.1(@effect/experimental@0.60.0(@effect/platform@0.96.1(effect@3.22.2))(effect@3.22.2))(@effect/platform@0.96.1(effect@3.22.2))(effect@3.22.2))(effect@3.22.2)
+        specifier: 0.61.2
+        version: 0.61.2(@effect/cluster@0.60.5(@effect/platform@0.97.3(effect@3.22.4))(@effect/rpc@0.76.4(@effect/platform@0.97.3(effect@3.22.4))(effect@3.22.4))(@effect/sql@0.52.2(@effect/experimental@0.61.2(@effect/platform@0.97.3(effect@3.22.4))(effect@3.22.4))(@effect/platform@0.97.3(effect@3.22.4))(effect@3.22.4))(@effect/workflow@0.19.1(@effect/experimental@0.61.2(@effect/platform@0.97.3(effect@3.22.4))(effect@3.22.4))(@effect/platform@0.97.3(effect@3.22.4))(@effect/rpc@0.76.4(@effect/platform@0.97.3(effect@3.22.4))(effect@3.22.4))(effect@3.22.4))(effect@3.22.4))(@effect/platform@0.97.3(effect@3.22.4))(@effect/rpc@0.76.4(@effect/platform@0.97.3(effect@3.22.4))(effect@3.22.4))(@effect/sql@0.52.2(@effect/experimental@0.61.2(@effect/platform@0.97.3(effect@3.22.4))(effect@3.22.4))(@effect/platform@0.97.3(effect@3.22.4))(effect@3.22.4))(effect@3.22.4)
       '@jsforce/jsforce-node':
-        specifier: ^3.10.24
-        version: 3.10.29
+        specifier: 3.13.1
+        version: 3.13.1
       '@opentelemetry/api':
         specifier: 1.9.1
         version: 1.9.1
@@ -1479,8 +1512,8 @@ importers:
         specifier: workspace:*
         version: link:../salesforcedx-apex
       '@salesforce/core':
-        specifier: ^9.3.6
-        version: 9.3.6
+        specifier: ^9.6.0
+        version: 9.6.0
       '@salesforce/o11y-reporter':
         specifier: ^1.8.5
         version: 1.8.5
@@ -1488,14 +1521,14 @@ importers:
         specifier: workspace:*
         version: link:../salesforcedx-utils
       '@salesforce/source-deploy-retrieve':
-        specifier: ^13.5.0
-        version: 13.5.0(supports-color@8.1.1)
+        specifier: ^13.14.1
+        version: 13.14.1(supports-color@8.1.1)
       '@salesforce/source-tracking':
-        specifier: ^8.1.7
-        version: 8.1.7(supports-color@8.1.1)
+        specifier: ^8.1.16
+        version: 8.1.16(supports-color@8.1.1)
       '@salesforce/templates':
-        specifier: ^66.17.4
-        version: 66.17.4
+        specifier: ^66.19.0
+        version: 66.19.0
       '@salesforce/vscode-i18n':
         specifier: workspace:*
         version: link:../salesforcedx-vscode-i18n
@@ -1506,11 +1539,11 @@ importers:
         specifier: 7.0.6
         version: 7.0.6
       effect:
-        specifier: ^3.21.2
-        version: 3.22.2
+        specifier: ^3.22.4
+        version: 3.22.4
       jsforce:
-        specifier: ^3.10.24
-        version: 3.10.25(@types/node@24.19.2)
+        specifier: ^3.13.1
+        version: 3.13.1(@types/node@24.19.2)
       o11y_schema:
         specifier: ^264.89.0
         version: 264.124.0
@@ -1537,11 +1570,11 @@ importers:
   packages/salesforcedx-vscode-services-types:
     dependencies:
       '@azure/monitor-opentelemetry-exporter':
-        specifier: 1.0.0-beta.43
-        version: 1.0.0-beta.43(supports-color@8.1.1)
+        specifier: 1.0.0-beta.47
+        version: 1.0.0-beta.47(supports-color@8.1.1)
       '@effect/opentelemetry':
-        specifier: 0.63.0
-        version: 0.63.0(@effect/platform@0.96.1(effect@3.22.2))(@opentelemetry/api@1.9.1)(@opentelemetry/resources@2.12.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-logs@0.219.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-metrics@2.12.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-base@2.10.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-node@2.8.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-web@2.8.0(@opentelemetry/api@1.9.1))(@opentelemetry/semantic-conventions@1.43.0)(effect@3.22.2)
+        specifier: 0.64.0
+        version: 0.64.0(@effect/platform@0.97.3(effect@3.22.4))(@opentelemetry/api@1.9.1)(@opentelemetry/resources@2.12.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-logs@0.219.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-metrics@2.12.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-base@2.10.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-node@2.8.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-web@2.8.0(@opentelemetry/api@1.9.1))(@opentelemetry/semantic-conventions@1.43.0)(effect@3.22.4)
       '@opentelemetry/api':
         specifier: 1.9.1
         version: 1.9.1
@@ -1567,23 +1600,23 @@ importers:
         specifier: 2.8.0
         version: 2.8.0(@opentelemetry/api@1.9.1)
       '@salesforce/core':
-        specifier: ^9.3.6
-        version: 9.3.6
+        specifier: ^9.6.0
+        version: 9.6.0
       '@salesforce/source-deploy-retrieve':
-        specifier: ^13.5.0
-        version: 13.5.0(supports-color@8.1.1)
+        specifier: ^13.14.1
+        version: 13.14.1(supports-color@8.1.1)
       '@salesforce/source-tracking':
-        specifier: ^8.1.7
-        version: 8.1.7(supports-color@8.1.1)
+        specifier: ^8.1.16
+        version: 8.1.16(supports-color@8.1.1)
       '@types/vscode':
         specifier: ^1.129.0
         version: 1.140.0
       effect:
-        specifier: ^3.21.2
-        version: 3.22.2
+        specifier: ^3.22.4
+        version: 3.22.4
       jsforce:
-        specifier: ^3.10.24
-        version: 3.10.25(@types/node@24.19.2)
+        specifier: ^3.13.1
+        version: 3.13.1(@types/node@24.19.2)
       vscode-uri:
         specifier: ^3.1.0
         version: 3.2.0
@@ -1591,15 +1624,12 @@ importers:
       shx:
         specifier: ^0.4.0
         version: 0.4.0
-      ts-node:
-        specifier: ^10.9.2
-        version: 10.9.2(@types/node@24.19.2)(typescript@6.0.3)
 
   packages/salesforcedx-vscode-soql:
     dependencies:
       '@jsforce/jsforce-node':
-        specifier: ^3.10.24
-        version: 3.10.29
+        specifier: 3.13.1
+        version: 3.13.1
       '@salesforce/effect-ext-utils':
         specifier: workspace:*
         version: link:../effect-ext-utils
@@ -1625,8 +1655,8 @@ importers:
         specifier: ^2.2.0
         version: 2.2.0
       effect:
-        specifier: ^3.21.2
-        version: 3.22.2
+        specifier: ^3.22.4
+        version: 3.22.4
       papaparse:
         specifier: ^5.3.0
         version: 5.7.0
@@ -1677,11 +1707,11 @@ importers:
         specifier: ^1.0.0
         version: 1.0.0(rollup@4.63.1)
       '@salesforce/core':
-        specifier: ^9.3.0
-        version: 9.3.6
+        specifier: ^9.4.1
+        version: 9.6.0
       '@salesforce/eslint-config-lwc':
         specifier: ^4.1.2
-        version: 4.1.2(36b0f383863031eead4017742c61b37b)
+        version: 4.1.2(107e08d063f4899a7b654f3a416377a2)
       '@salesforce/eslint-plugin-lightning':
         specifier: ^2.0.0
         version: 2.0.0(eslint@10.13.0(jiti@2.7.0)(supports-color@8.1.1))
@@ -1710,8 +1740,8 @@ importers:
         specifier: workspace:*
         version: link:../salesforcedx-vscode-i18n
       effect:
-        specifier: ^3.21.2
-        version: 3.22.2
+        specifier: ^3.22.4
+        version: 3.22.4
       vscode-css-languageservice:
         specifier: ^6.3.7
         version: 6.3.10
@@ -1741,8 +1771,8 @@ importers:
         specifier: ^2.5.1
         version: 2.5.1(@vscode/codicons@0.0.45)
       effect:
-        specifier: ^3.21.2
-        version: 3.22.2
+        specifier: ^3.22.4
+        version: 3.22.4
       lit:
         specifier: 3.3.3
         version: 3.3.3
@@ -1844,8 +1874,8 @@ packages:
     resolution: {integrity: sha512-rbAE25KUfjU/s3XHUdJgceoCP5dEOpMx85J04kF+QMdta73XkuG9JGHHinch+XIoKpBdqljin+KqURpJriSzLA==}
     engines: {node: '>=22.0.0'}
 
-  '@azure/monitor-opentelemetry-exporter@1.0.0-beta.43':
-    resolution: {integrity: sha512-551lMY6gSf7TO+j15nmQ23+nG9fExb664TH9RDs9zUul1xHt3NUtfsZe90nNhOzMEeg+I1f7zn955dvH5o6yjA==}
+  '@azure/monitor-opentelemetry-exporter@1.0.0-beta.47':
+    resolution: {integrity: sha512-GglsCyWZaU1RGfTJBGWEzv8ETtAGOMPOd+4xivvetjFpY3fJtd6GDGKW9W8LFQNTo8nGs2AtbEwjk9W6Ywk4+g==}
     engines: {node: '>=22.0.0'}
 
   '@azure/msal-browser@5.21.0':
@@ -2253,9 +2283,6 @@ packages:
     resolution: {integrity: sha512-6zABk/ECA/QYSCQ1NGiVwwbQerUCZ+TQbp64Q3AgmfNvurHH0j8TtXa1qbShXA6qqkpAj4V5W8pP6mLe1mcMqA==}
     engines: {node: '>=18'}
 
-  '@bufbuild/protobuf@1.10.0':
-    resolution: {integrity: sha512-QDdVFLoN93Zjg36NoQPZfsVH9tZew7wKDKyV5qRdj8ntT4wQCOradQjRaTdwMhWUYsgKsvCINKKm87FdEk96Ag==}
-
   '@cacheable/memory@2.2.0':
     resolution: {integrity: sha512-CTLKqLItRCEixEAewD3/j9DB3/o96gpTPD4eJ1v+DGOlxZRZncRQkGYqqnAGCscYd6RNeXfGeiuCphsPtqyIfQ==}
 
@@ -2355,21 +2382,6 @@ packages:
     resolution: {integrity: sha512-7zVFCDB2reMvJH5dmbKnOQPjZEvjdJTH8jc0U/PIPU1r3/+vf5pD1HlfitV2MWsWXrvu7u39iY1lyLUPOaN0Gw==}
     engines: {node: '>=22.12.0'}
 
-  '@connectrpc/connect-web@1.7.0':
-    resolution: {integrity: sha512-qyP0YOnUPRWwCc/VfsoydMJvkb7EyUPr2q9sHgBuJzbADjiqck1gKH5V5ZPzPhTLBvmz5UvG+wiZ5sMRQHU1MQ==}
-    peerDependencies:
-      '@bufbuild/protobuf': ^1.10.0
-      '@connectrpc/connect': 1.7.0
-
-  '@connectrpc/connect@1.7.0':
-    resolution: {integrity: sha512-iNKdJRi69YP3mq6AePRT8F/HrxWCewrhxnLMNm0vpqXAR8biwzRtO6Hjx80C6UvtKJ5sFmffQT7I4Baecz389w==}
-    peerDependencies:
-      '@bufbuild/protobuf': ^1.10.0
-
-  '@cspotcode/source-map-support@0.8.1':
-    resolution: {integrity: sha512-IchNf6dN4tHoMFIn/7OE8LWZ19Y6q/67Bmf6vnGREv8RSbBVb9LPJxEcnwrcwX6ixSvaiGoomAUvu4YSxXrVgw==}
-    engines: {node: '>=12'}
-
   '@csstools/color-helpers@6.1.2':
     resolution: {integrity: sha512-grhRy3OKmniaAEKXMjua5z/EODX0MSqBGjunw8+j/3HQjOnahs2AGhvEOIYVUWcU6ScApbhLhVrQTX8XqrMrow==}
     engines: {node: '>=20.19.0'}
@@ -2406,63 +2418,29 @@ packages:
     resolution: {integrity: sha512-OoKoR0f76dCY666JlcbhmVTs2drYj1GUXZTYTcbUgJjh9Nv41aFfZ21bPQTERm5+L5cBDo466NltB2lplS5GBw==}
     engines: {node: '>=20.19.0'}
 
-  '@cursor/sdk-darwin-arm64@1.0.35':
-    resolution: {integrity: sha512-q9/y2NHTGnE0iwMfJ+FIHmj2gDGDRy45fH3rF3SAFGEGzM4xh726r64n6hH4OQYwKhcMqhqxbPGBpXHd5lRW4A==}
-    cpu: [arm64]
-    os: [darwin]
-    hasBin: true
-
-  '@cursor/sdk-darwin-x64@1.0.35':
-    resolution: {integrity: sha512-0IGwzNr3Lq9IrcIRU4AlT7kTkwwVhRpQyjHqhvnKdgtn+WFYShr9gqTb44leihi/Cbf7a76yEdCgpfScBCPtxQ==}
-    cpu: [x64]
-    os: [darwin]
-    hasBin: true
-
-  '@cursor/sdk-linux-arm64@1.0.35':
-    resolution: {integrity: sha512-AAx2DBqOc21kIwKuHRLl+4bCbuU7Su/BWY+TzXMgMsxAOHvLDGg7SGVvHOMV4ENczbOEcO4zc3XDbmQB4x3rdw==}
-    cpu: [arm64]
-    os: [linux]
-    hasBin: true
-
-  '@cursor/sdk-linux-x64@1.0.35':
-    resolution: {integrity: sha512-3PABXvbT/Ue3jN+ytWcNDPBWptAiJv4qzxL0m2rma3e7kyx/Q1/8FYRYunIpX21HfPGgDSURlWztEov1xdZs3Q==}
-    cpu: [x64]
-    os: [linux]
-    hasBin: true
-
-  '@cursor/sdk-win32-x64@1.0.35':
-    resolution: {integrity: sha512-zADtORY6QRMCBTckxTieAKxcthRiefNNHxVhX2RtO3pQGa4iQwTrHjmjUw0nqCF6sJlCrQ58DTgkrz+BZhLEcw==}
-    cpu: [x64]
-    os: [win32]
-    hasBin: true
-
-  '@cursor/sdk@1.0.35':
-    resolution: {integrity: sha512-CJQR4ocRFm74N1miSqSSrhWyEbvTRIJGyMfHQvZlcBIYzLMXCVPmb1bV82L4NJ8mG9TyvbckEjERjbnzpG5akQ==}
-    engines: {node: '>=22.13'}
-
   '@dprint/formatter@0.4.1':
     resolution: {integrity: sha512-IB/GXdlMOvi0UhQQ9mcY15Fxcrc2JPadmo6tqefCNV0bptFq7YBpggzpqYXldBXDa04CbKJ+rDwO2eNRPE2+/g==}
 
   '@dprint/typescript@0.91.8':
     resolution: {integrity: sha512-tuKn4leCPItox1O4uunHcQF0QllDCvPWklnNQIh2PiWWVtRAGltJJnM4Cwj5AciplosD1Hiz7vAY3ew3crLb3A==}
 
-  '@effect/cluster@0.58.2':
-    resolution: {integrity: sha512-oxQ3zUhXq0mJA7Y4TliALMP39Bx0LtAIxcqOW1Bdjh6uk+nG7kul/Puw80SwlcYGv3ul50SG+gvSRUTXB8d3JQ==}
+  '@effect/cluster@0.60.5':
+    resolution: {integrity: sha512-F/TDvMI2IMMWEWTDKn15T8nlM3FSHEzfKSN5Cm4gP22+oEAR33//EG7RfNi5utgjOJiCGJFnexr995f950Ip/Q==}
     peerDependencies:
-      '@effect/platform': ^0.96.1
-      '@effect/rpc': ^0.75.1
-      '@effect/sql': ^0.51.1
-      '@effect/workflow': ^0.18.0
-      effect: ^3.21.2
+      '@effect/platform': ^0.97.3
+      '@effect/rpc': ^0.76.4
+      '@effect/sql': ^0.52.2
+      '@effect/workflow': ^0.19.1
+      effect: ^3.22.4
 
   '@effect/eslint-plugin@0.3.2':
     resolution: {integrity: sha512-c4Vs9t3r54A4Zpl+wo8+PGzZz3JWYsip41H+UrebRLjQ2Hk/ap63IeCgN/HWcYtxtyhRopjp7gW9nOQ2Snbl+g==}
 
-  '@effect/experimental@0.60.0':
-    resolution: {integrity: sha512-i5zIg7Xup2KgHyqHlYtkgqSE1bNzCL0GbbTQxrpIzKF0q/ebknOk/ox8B/gIq2vImjoEE81h/oxU+6i1NH210g==}
+  '@effect/experimental@0.61.2':
+    resolution: {integrity: sha512-iW2tFXXGUzvBN7zQC+4hMRu3k1L4HU58lvtPkmmPOlP8UILTFb/tCEaLf0vK9rOdfW/GpwLdcPyx0vvnb3okBQ==}
     peerDependencies:
-      '@effect/platform': ^0.96.0
-      effect: ^3.21.0
+      '@effect/platform': ^0.97.3
+      effect: ^3.22.4
       ioredis: ^5
       lmdb: ^3
     peerDependenciesMeta:
@@ -2475,10 +2453,10 @@ packages:
     resolution: {integrity: sha512-CfiSoaVQO8pZgaMZGw5VvMvRGybsJ2LaSDoLYaqiVGvo/YYPYVR2GzUKY0h1NtIweq/+SQ5XLrvtzPIttWQ0GQ==}
     hasBin: true
 
-  '@effect/opentelemetry@0.63.0':
-    resolution: {integrity: sha512-2yUG2QWNATi1uKP0kwhaP5eLp+c5NDzAL3EOpIcGLBAC0cbXZrx4n9Qw/QwUKxpuV+pbhrBUPCiByyWAFKfuCw==}
+  '@effect/opentelemetry@0.64.0':
+    resolution: {integrity: sha512-fLdsyh/u5ImTyvWUfDQy53PVgHEWO0fOjwKzpmhQzW6CYs8wFBU6pP/VpuRYvCGgpZxk8KW4ySr+fvQ0o74rrA==}
     peerDependencies:
-      '@effect/platform': ^0.96.0
+      '@effect/platform': ^0.97.0
       '@opentelemetry/api': ^1.9
       '@opentelemetry/resources': ^2.0.0
       '@opentelemetry/sdk-logs': '>=0.203.0 <0.300.0'
@@ -2487,51 +2465,51 @@ packages:
       '@opentelemetry/sdk-trace-node': ^2.0.0
       '@opentelemetry/sdk-trace-web': ^2.0.0
       '@opentelemetry/semantic-conventions': ^1.33.0
-      effect: ^3.21.0
+      effect: ^3.22.0
 
-  '@effect/platform-node-shared@0.59.0':
-    resolution: {integrity: sha512-3bq2YKKfLY7UFauZSxqZUneCXoA3SMSls82V+0RKunvRlfPuPQW0hVn6t1RkvEdh0PDoygWG2mZXYQa6Iqgp9A==}
+  '@effect/platform-node-shared@0.61.2':
+    resolution: {integrity: sha512-TpmCdBxxrOh4oCi9yckOic9mvOdfSD54iRN6AvM47Qb/3+YZB+jdfOgMxE4jaMdTKgNaK55D7EODtgoSAcgCqA==}
     peerDependencies:
-      '@effect/cluster': ^0.58.0
-      '@effect/platform': ^0.96.0
-      '@effect/rpc': ^0.75.0
-      '@effect/sql': ^0.51.0
-      effect: ^3.21.0
+      '@effect/cluster': ^0.60.5
+      '@effect/platform': ^0.97.3
+      '@effect/rpc': ^0.76.4
+      '@effect/sql': ^0.52.2
+      effect: ^3.22.4
 
-  '@effect/platform-node@0.106.0':
-    resolution: {integrity: sha512-mpsJK2jNLVd0jQAjHKBo8j3wdKWznSGvfnKBcAuG/9Rr4mb8bMRZFLXHHT9wUP7EvnZ0tDZJgEDxkC+j+ByRag==}
+  '@effect/platform-node@0.108.4':
+    resolution: {integrity: sha512-2rP4Wp3PZbgxk60no8M8JCfWWK/Sy2L8oCVU90L3Xb0WVzRXzhzTxr9aaRUFtAi9N0nUeafdiNLh0C/8xFmMfQ==}
     peerDependencies:
-      '@effect/cluster': ^0.58.0
-      '@effect/platform': ^0.96.0
-      '@effect/rpc': ^0.75.0
-      '@effect/sql': ^0.51.0
-      effect: ^3.21.0
+      '@effect/cluster': ^0.60.5
+      '@effect/platform': ^0.97.3
+      '@effect/rpc': ^0.76.4
+      '@effect/sql': ^0.52.2
+      effect: ^3.22.4
 
-  '@effect/platform@0.96.1':
-    resolution: {integrity: sha512-cjB1QZZYEP8JXCFNGvBLVi0T6YUBQTmOVEUA3SDbiQ6RUO+p6CE3eyD2vMWmrz5nE8yY5QSAuOV9v0boEcUv+A==}
+  '@effect/platform@0.97.3':
+    resolution: {integrity: sha512-1TCJP7jAYDE8kXMSMdc2Xlpt+JjGkgLkTGOT4fjDf3HiyXj6l2ouAghJnfebBYvocF5fNH30bWq0uX4n8parnA==}
     peerDependencies:
-      effect: ^3.21.2
+      effect: ^3.22.4
 
-  '@effect/rpc@0.75.1':
-    resolution: {integrity: sha512-8yxF8+mMGGEbF8BUCp34HjdJj7CvTpGeZxBcpsDF6v7zPiGbJL1UDLzA8ZqYjmcngBHhPecbmeONTk/LiLAaEg==}
+  '@effect/rpc@0.76.4':
+    resolution: {integrity: sha512-DF+yMxGIuBC1u5efwtSRX9QFVP5vkwBbYLddudoR05pn6TIEz8tTsJFDk5RvVn3I4vxFZFguidofA4khKt/2KA==}
     peerDependencies:
-      '@effect/platform': ^0.96.1
-      effect: ^3.21.2
+      '@effect/platform': ^0.97.3
+      effect: ^3.22.4
 
-  '@effect/sql@0.51.1':
-    resolution: {integrity: sha512-iPDAefrJcI0HcTk9keP9Gq8Pg08K1HmpnmZZt85AqyTcvorhoNsXDFiKBbPldfV2CortwVkacX8KjO9GPpSYCA==}
+  '@effect/sql@0.52.2':
+    resolution: {integrity: sha512-HZP08FIVtQb9jJOuFf8g4C2vvQvRzVzspMOVxUSEZE/64u4rVoVV72gOPdFpyslyCC0BFb7nNiFkT9CabkLagA==}
     peerDependencies:
-      '@effect/experimental': ^0.60.0
-      '@effect/platform': ^0.96.1
-      effect: ^3.21.2
+      '@effect/experimental': ^0.61.2
+      '@effect/platform': ^0.97.3
+      effect: ^3.22.4
 
-  '@effect/workflow@0.18.2':
-    resolution: {integrity: sha512-2av0TexhxHnapQa3eLn6TkniokUFRZKf8dlWlLqbODMpXAJ3mm+DOHWM0ozMGkg9K/+zGCtiL3dMqJyJ8r7G8g==}
+  '@effect/workflow@0.19.1':
+    resolution: {integrity: sha512-irU6ddHdIxYOhv0cJiJTk2AUxRmPYjRJ5JdB5UCvpJC4vLCyR2XyKspiCNDiEX1aSGPhVWEXhVMWXR1cErMS3A==}
     peerDependencies:
-      '@effect/experimental': ^0.60.0
-      '@effect/platform': ^0.96.1
-      '@effect/rpc': ^0.75.1
-      effect: ^3.21.2
+      '@effect/experimental': ^0.61.1
+      '@effect/platform': ^0.97.1
+      '@effect/rpc': ^0.76.2
+      effect: ^3.22.1
 
   '@emnapi/core@1.10.0':
     resolution: {integrity: sha512-yq6OkJ4p82CAfPl0u9mQebQHKPJkY7WrIuk205cTYnYe+k2Z8YBh11FrbRG/H6ihirqcacOgl2BIO8oyMQLeXw==}
@@ -2770,11 +2748,11 @@ packages:
     resolution: {integrity: sha512-IkO+/KEUvwbVpiURZg+P7zF74z5Jxe0UgJxVni+RtoHQ6IZieXaO02kmadomap/q+l6bc/jdPGGqTjhuZnuz1Q==}
     engines: {node: ^20.19.0 || ^22.13.0 || >=24}
 
-  '@hono/node-server@2.1.1':
-    resolution: {integrity: sha512-ELuehkj5VCBdgEw9zs+ivkKwyzzUCSQuE96YmiPvn1ECBoZCczbFXJLeEGMTYjphP6gydh4pHMqEYPVMYUVgQg==}
+  '@hono/node-server@2.1.9':
+    resolution: {integrity: sha512-Sk4NQd3GFY0WZWCzndwFMPwJhtD0y9qjsQ+pjID0/03nK9pxyBCUoUHCho8QYBLBVhi0ssL8UkNPHqbgSOFPIQ==}
     engines: {node: '>=20'}
     peerDependencies:
-      hono: ^4
+      hono: ^4 || ^5.0.0-0
 
   '@html-eslint/core@0.59.0':
     resolution: {integrity: sha512-/s5W9Iivmf2RXVzQlFboXQRqK62JQdKvcIdFMP5K1kxbVEJxha/VUo1Rafn1GKgLQsP5QIbUjoZbzGlN7fVxog==}
@@ -2977,6 +2955,9 @@ packages:
     resolution: {integrity: sha512-wgm9Ehl2jpeqP3zw/7mo3kRHFp5MEDhqAdwy1fTGkHAwnkGOVsgpvQhL8B5n1qlb01jV3n/bI0ZfZp5lWA1k4w==}
     engines: {node: '>=18.0.0'}
 
+  '@isaacs/nonrecursive-glob-match@1.0.3':
+    resolution: {integrity: sha512-SI7kyKHq4XXDRozw+r9GlRZkia1ZkFrpLW98r2IC2Bpr8YkFGE3fvjzmxCG0x78A++69HmDNrDvSMYBZmHGpKA==}
+
   '@istanbuljs/load-nyc-config@1.1.0':
     resolution: {integrity: sha512-VjeHSlIzpv/NyD3N0YuHfXOPDIixcA1q2ZV98wsMqcYlPmv2n3Yb2lYP9XMElnaFVXg5A7YLTeLu6V84uQDjmQ==}
     engines: {node: '>=8'}
@@ -3118,9 +3099,6 @@ packages:
   '@jridgewell/trace-mapping@0.3.31':
     resolution: {integrity: sha512-zzNR+SdQSDJzc8joaeP8QQoCQr8NuYx2dIIytl1QeBEZHJ9uW6hebsrYgbz8hJwUQao3TWCMtmfV8Nu1twOLAw==}
 
-  '@jridgewell/trace-mapping@0.3.9':
-    resolution: {integrity: sha512-3Belt6tdc8bPgAtbcmdtNJlirVoTmEb5e2gC94PnkwEW9jI6CAHUeoG85tjWP5WquqfavoMtMwiG4P926ZKKuQ==}
-
   '@jscpd/badge-reporter@4.2.5':
     resolution: {integrity: sha512-ktXrjPeRaRyUDktxTroSA2/w5sshXpQplWkUuq/e6XqEpKBSbGEnwZLIaegSijOrMwIcCXPQ9k4feXIz5eVJNA==}
 
@@ -3154,8 +3132,8 @@ packages:
     peerDependencies:
       jsep: ^0.4.0||^1.0.0
 
-  '@jsforce/jsforce-node@3.10.29':
-    resolution: {integrity: sha512-N3TRPYGSrhEQuAJbxvOo/L4Zz12fhBG8og99SaYER2+3tVw8HeXcf7NlNCn56jbhPIaj8iHpQK+AE+xW1s3KNQ==}
+  '@jsforce/jsforce-node@3.13.1':
+    resolution: {integrity: sha512-vpHhwc+Wcufk9vARzL4oxYSzg8ndNButSn88D6pMImjns7/NTkwPZ9qQwD2F/P4c+A0lwTyDl4Alry0BMgFsTg==}
     engines: {node: '>=22'}
 
   '@jsonjoy.com/base64@1.1.2':
@@ -3200,8 +3178,20 @@ packages:
     peerDependencies:
       tslib: '2'
 
+  '@jsonjoy.com/fs-core@4.80.0':
+    resolution: {integrity: sha512-qMKWshnyjbyhm+NbzqGE3w5y1mckFFEMj0aDPU2/JBNh1BzIjVy9esq9lBmRnNVmhMEkxwDzLZ8Gqh5G1P5Dag==}
+    engines: {node: '>=10.0'}
+    peerDependencies:
+      tslib: '2'
+
   '@jsonjoy.com/fs-fsa@4.74.0':
     resolution: {integrity: sha512-tSxP6u4wo6CuuLN7y53dKSQ8J/Ye+PKCbvpdNl+rR2CFLVpBw+SDLXAx/BMjilgDZJT0opi7daMTDevZ04y9iA==}
+    engines: {node: '>=10.0'}
+    peerDependencies:
+      tslib: '2'
+
+  '@jsonjoy.com/fs-fsa@4.80.0':
+    resolution: {integrity: sha512-ZBEKl7J6dbkRCfmrFV48Re211A/FHqniTUhsWCsaRteNSOqMgkX3qF1UreVgwB9oSPm81JLAwhIi6Lb/NH/PoA==}
     engines: {node: '>=10.0'}
     peerDependencies:
       tslib: '2'
@@ -3212,8 +3202,20 @@ packages:
     peerDependencies:
       tslib: '2'
 
+  '@jsonjoy.com/fs-node-builtins@4.80.0':
+    resolution: {integrity: sha512-OIOIhqaWiwUySFMny4epIAoviXsyMaQQ63PTc3zH+5HEOvarl5hpUmZIhp2m5+OfyKAh5ylxXnQIgew1OgJDVw==}
+    engines: {node: '>=10.0'}
+    peerDependencies:
+      tslib: '2'
+
   '@jsonjoy.com/fs-node-to-fsa@4.74.0':
     resolution: {integrity: sha512-4MnTEOVQRmept4HIZUTgHwLy+dvcVz7DHmTz/aUa3jwI8detOhAX4F2rAOVhDPu2lEL/DGOpAGLPjKHsOhBtQw==}
+    engines: {node: '>=10.0'}
+    peerDependencies:
+      tslib: '2'
+
+  '@jsonjoy.com/fs-node-to-fsa@4.80.0':
+    resolution: {integrity: sha512-ljeaR5xwtX1EyRmB0wvXANUMQZ3mjKcm7z8s2N8D8SLQ04CcAGtUhHFRZQXFb9mhgFyEVMydQGQtSOFS7pcrFQ==}
     engines: {node: '>=10.0'}
     peerDependencies:
       tslib: '2'
@@ -3224,8 +3226,20 @@ packages:
     peerDependencies:
       tslib: '2'
 
+  '@jsonjoy.com/fs-node-utils@4.80.0':
+    resolution: {integrity: sha512-xwHeVVi3f+Khg/Fmb8i5qoYVmQ08QznE5TWhQokUmIZjz4KBPzU+zt/+bahBI6G1ghtqajt27lWuAciIxApuzA==}
+    engines: {node: '>=10.0'}
+    peerDependencies:
+      tslib: '2'
+
   '@jsonjoy.com/fs-node@4.74.0':
     resolution: {integrity: sha512-A+yVPQuO5LGxrXhjR+6vPmx4gVrChahjSqPad/VbnUgEX9uWRr1IWGkJ8baWEUAY3dsIzpyK+B6N54mq9UCl4A==}
+    engines: {node: '>=10.0'}
+    peerDependencies:
+      tslib: '2'
+
+  '@jsonjoy.com/fs-node@4.80.0':
+    resolution: {integrity: sha512-yiBlUfkMMRFFGy8CD/h2zd5rPnrM6bjlF+nx2LRAxNV6hOSiuObQIUEE7m7y2VTMisjxCRtzINH94bFGySWL7g==}
     engines: {node: '>=10.0'}
     peerDependencies:
       tslib: '2'
@@ -3236,8 +3250,20 @@ packages:
     peerDependencies:
       tslib: '2'
 
+  '@jsonjoy.com/fs-print@4.80.0':
+    resolution: {integrity: sha512-1ocZLJw/m/xlq0moaIHO7HV9nHRVBUvdc2zMzhsJGkFOrqfwWvexfCv5cYCPPLRhP+9p3yunoi4Ep5YhRORC9Q==}
+    engines: {node: '>=10.0'}
+    peerDependencies:
+      tslib: '2'
+
   '@jsonjoy.com/fs-snapshot@4.74.0':
     resolution: {integrity: sha512-YESl/MSqCoIj4mk0VEz3jOPZM62yoGLv/ATq/Y6+bWVUMCuZ4VhZTIQM9+nebEFKphV/KOQiRJv9nz2FrDFEpw==}
+    engines: {node: '>=10.0'}
+    peerDependencies:
+      tslib: '2'
+
+  '@jsonjoy.com/fs-snapshot@4.80.0':
+    resolution: {integrity: sha512-3AV23Q1H228KTtJKTUE0nNq8FCtxSvtENOLrEat80wkAJCKHuqQEv8yjhpS8Bei2OEFJAnluGXp9Ri2SWBlROw==}
     engines: {node: '>=10.0'}
     peerDependencies:
       tslib: '2'
@@ -3355,6 +3381,7 @@ packages:
 
   '@lwc/engine-server@2.50.0':
     resolution: {integrity: sha512-7oBlqPt2gEbWIGWHp+twoQVUunLDLB6hB2+j0psEDds98sRY/uMtrBd/0HiZNrP6l1agLjI40W6iUyiw13xCfQ==}
+    deprecated: This package has been replaced by @lwc/ssr-runtime
 
   '@lwc/errors@2.50.0':
     resolution: {integrity: sha512-hGn9SUrq3/GI/1t2yLhEZsUKPwCBBnk/PhyJmStzZs5TMB5PxVUvDHvPCSwJAVpYY1IHNScMaRSyK+qEv9KVNg==}
@@ -3718,6 +3745,7 @@ packages:
 
   '@octokit/webhooks-types@7.6.1':
     resolution: {integrity: sha512-S8u2cJzklBC0FgTwWVLaM8tMrDuDMVE4xiTK4EYXM9GntyvrdbSoxqDQa+Fh57CCNApyIpyeqPhhFEmHPfrXgw==}
+    deprecated: Package no longer supported. Contact Support at https://www.npmjs.com/support for more info.
 
   '@oozcitak/dom@2.0.2':
     resolution: {integrity: sha512-GjpKhkSYC3Mj4+lfwEyI1dqnsKTgwGy48ytZEhm4A/xnH/8z9M3ZVXKr/YGQi3uCLs1AEBS+x5T2JPiueEDW8w==}
@@ -3737,6 +3765,10 @@ packages:
 
   '@opentelemetry/api-logs@0.219.0':
     resolution: {integrity: sha512-FFx7YnaYJlIjqWW/AG/yAZ0L/NEY724PipXXXQLdtZPbLwBGbUMTGL1i/esI56TWfTUXxhLfpgrnWJCG8aUJyg==}
+    engines: {node: '>=8.0.0'}
+
+  '@opentelemetry/api-logs@0.221.0':
+    resolution: {integrity: sha512-OlanaW1vv7ufTqQ3/fPLI4arGt5ZoM+P8abOMki6uEYnpRazepSWDwDnnw+la7kE26SHVC18//SMccrDvLKOXQ==}
     engines: {node: '>=8.0.0'}
 
   '@opentelemetry/api@1.9.1':
@@ -3821,6 +3853,12 @@ packages:
     peerDependencies:
       '@opentelemetry/api': '>=1.4.0 <1.10.0'
 
+  '@opentelemetry/sdk-logs@0.221.0':
+    resolution: {integrity: sha512-FaDcazjyMp7TZZZAsqbo4IkovP0UegoCu0EBkiNt+qCqvUf7FPAsfcrZ3+ZEkKgXZ/jHafop+JoGPDk3A0SmLg==}
+    engines: {node: ^18.19.0 || >=20.6.0}
+    peerDependencies:
+      '@opentelemetry/api': '>=1.4.0 <1.10.0'
+
   '@opentelemetry/sdk-metrics@2.12.0':
     resolution: {integrity: sha512-mVMaEHwCUJuY3S4Esn+nT0yQA3qCEGh+SOPJsXygU0Gl453WcsDNjtEa8EfdewMwoLyr1tlofB4fXytVpiXuow==}
     engines: {node: ^18.19.0 || >=20.6.0}
@@ -3836,24 +3874,28 @@ packages:
   '@opentelemetry/sdk-trace-base@2.10.0':
     resolution: {integrity: sha512-GuYQQT7QD2EeO8lcZLRQzcbOyhqAzL+6WWTKTU9mSUBYBazkEDl+VrQcXQhbB08OWM9anD1aHleVadzulpOaUQ==}
     engines: {node: ^18.19.0 || >=20.6.0}
+    deprecated: Use @opentelemetry/sdk-trace package
     peerDependencies:
       '@opentelemetry/api': '>=1.3.0 <1.10.0'
 
   '@opentelemetry/sdk-trace-base@2.8.0':
     resolution: {integrity: sha512-mhU4jp+vW0mGbFRd+GeXHvmfA4aDqWjBjLC3pE5XMpLs0IE2ryYb019Ts2AQrOq67gaTF25D91+fgvEHDZEnuQ==}
     engines: {node: ^18.19.0 || >=20.6.0}
+    deprecated: Use @opentelemetry/sdk-trace package
     peerDependencies:
       '@opentelemetry/api': '>=1.3.0 <1.10.0'
 
   '@opentelemetry/sdk-trace-node@2.8.0':
     resolution: {integrity: sha512-nZt9OGufioAc3AfoLTqA9bsAeaMJAictYDdI2VcNQ+PmT+3rfKjAZDZvgPfd8VPX0O5Bw1hdQF6kDK8VSpZiWg==}
     engines: {node: ^18.19.0 || >=20.6.0}
+    deprecated: Use @opentelemetry/sdk-trace package
     peerDependencies:
       '@opentelemetry/api': '>=1.0.0 <1.10.0'
 
   '@opentelemetry/sdk-trace-web@2.8.0':
     resolution: {integrity: sha512-P3ZM8BGJ5mwjtyfAxRyxsCyWHvaj+xahdhLoS3YiPsEyTHcWTVzx2691C8SrGkpvro3tNFCsWuNNrvM+spKODg==}
     engines: {node: ^18.19.0 || >=20.6.0}
+    deprecated: Use @opentelemetry/sdk-trace package
     peerDependencies:
       '@opentelemetry/api': '>=1.0.0 <1.10.0'
 
@@ -4610,8 +4652,8 @@ packages:
   '@salesforce/apex@0.0.21':
     resolution: {integrity: sha512-sRQ7eHDzgjCN2FEDZgyDK35TonKT9MWC3Qb1dsOqpmc4icdTIpGxzKd8IZ8JlMIH1TkvJ1VfksFRV9zdn+D+eg==}
 
-  '@salesforce/core@9.3.6':
-    resolution: {integrity: sha512-2LuJVv8b4Yf3o8hKXQXZHfhP8LpyKQL5YRncPzVvE1AwLvbwabzLHc2NrELt2t+vpXiD3UURbP8KVMDjJn1KaA==}
+  '@salesforce/core@9.6.0':
+    resolution: {integrity: sha512-zaKpx/G5ECPPTAD/V9qHsYEXA7Q74KmuUHUyKNMDZts5L6j4SwcJOIjSkOSQQNstQQt0sbaVuY8vEUne+xYjKw==}
     engines: {node: '>=22.0.0'}
 
   '@salesforce/dev-config@4.3.3':
@@ -4637,6 +4679,10 @@ packages:
     resolution: {integrity: sha512-VwxhSH/8PQ5YmPAdhmLaJGCgR0n/pOm8T2y+/odMFthd5SA0xsO/kTdaRLFnFQAxxNj1nYtNHRb+BoMuAatzew==}
     engines: {node: '>=22.0.0'}
 
+  '@salesforce/kit@4.0.10':
+    resolution: {integrity: sha512-LXCswafab7AYmpaEvjHmpI3Ueg4dk9c/vFfHSEenVyx/dF1ABlxmf8kpVyox6iRBBh3RvM5/LkQMtXUv7iSd7w==}
+    engines: {node: '>=22.0.0'}
+
   '@salesforce/kit@4.0.8':
     resolution: {integrity: sha512-buPp7lWQNK6f5S/vCXwcgclUPZlfRw66E1aXAY/Uy/qMPlaajS4xmo58HY7ge2zUfOjfwpH1b0GUV5cQ5D9EAw==}
     engines: {node: '>=22.0.0'}
@@ -4657,16 +4703,16 @@ packages:
   '@salesforce/soql-language-server@1.1.0':
     resolution: {integrity: sha512-zlUe2knV7Hd7VoJGfB78PU7JtybOLiJFU7YR6vY0PrTc3vCUzfl+eQBO+fvZH8UI18qfNMEY0+tzysY+ifejcQ==}
 
-  '@salesforce/source-deploy-retrieve@13.5.0':
-    resolution: {integrity: sha512-kMQfGF6sz+7QC3q9rFPZYbz0iHqeImZSGTILtCFnDhX+YlwTcbUvs/PPXInL18n3xNcznpJIkle7eHfw1nRsIg==}
+  '@salesforce/source-deploy-retrieve@13.14.1':
+    resolution: {integrity: sha512-eSeN2QaPUy9Ph0xOmVA24jus0cbospOhzeWM6ud+SKY45E4MeGW8E0pYl8AQJH9ufnKyuLZO4NfiE+dIY8gNuQ==}
     engines: {node: '>=22.0.0'}
 
-  '@salesforce/source-tracking@8.1.7':
-    resolution: {integrity: sha512-Fp9KjXtPe30XCxCQ23jMu5ZyWnXEvEv+rEwbNu6VFi+QypHQeBexG+xRnwFYNc6iky5p3X/hah43nYgZtnIjfQ==}
+  '@salesforce/source-tracking@8.1.16':
+    resolution: {integrity: sha512-hl8KXvnbT6sBiy7QXbghAymbXDYlb8Q9BjBAVDuuERAEEWC2suHBI9tbrmlKH2pn+t+NcmtlqA93aFZzj9fX7w==}
     engines: {node: '>=22.0.0'}
 
-  '@salesforce/templates@66.17.4':
-    resolution: {integrity: sha512-WPC2GgZl02FKYICgVNGGPkD2gKaGTtnzz5Utbm2rjHomSyF48246q+GX4FcriZy+Gcii/kP/TTBmEiMWCoHi5Q==}
+  '@salesforce/templates@66.19.0':
+    resolution: {integrity: sha512-pvkQT//+NRUuia0e6HHTcUnoVNY00mDFGj2iZN4qGmaflKbgs8gVRIlefFRMsxnm4zookojqkdrwwyqT9Ob6wA==}
     engines: {node: '>=22.0.0'}
 
   '@salesforce/ts-types@3.2.0':
@@ -4677,8 +4723,16 @@ packages:
     resolution: {integrity: sha512-re+ceqPAgBXdgml1bTPoetNb6UfDwh54Gi6USRvPLK6/iV5P9rrLp4d7Ee2UDs/rw80V3nCjfASacpARRDaLRw==}
     engines: {node: '>=22.0.0'}
 
+  '@salesforce/ts-types@3.2.4':
+    resolution: {integrity: sha512-kTzgXQbOdon0gJFwdHQ+A+UvMR/E3zzlj6O1Wyl5//waq7OSNjspB49y9LrZefIyqHV+ACfB9/aWBJ9aSKMrvQ==}
+    engines: {node: '>=22.0.0'}
+
   '@salesforce/types@1.8.0':
     resolution: {integrity: sha512-sliQcoI0XeR3YYUElIV3z93l7ZL9lDtnegVGbknBFbQKjN/oxH/PQSiM4imnXnModhFQSoe/V3mGXniASoLNvA==}
+    engines: {node: '>=18'}
+
+  '@salesforce/types@1.9.0':
+    resolution: {integrity: sha512-+VECX78jTYpeAHkv80C6uy86fbrNO/RplqxeLuasLV/rJF1NIYyFtrtAVqFlMvI8YwjQnyuprWOyzI8VF+Wi7g==}
     engines: {node: '>=18'}
 
   '@salesforce/vscode-service-provider@1.5.0':
@@ -4779,10 +4833,12 @@ packages:
   '@secretlint/secretlint-rule-preset-recommend@10.2.2':
     resolution: {integrity: sha512-K3jPqjva8bQndDKJqctnGfwuAxU2n9XNCPtbXVI5JvC7FnQiNg/yWlQPbMUlBXtBoBGFYp08A94m6fvtc9v+zA==}
     engines: {node: '>=20.0.0'}
+    deprecated: Built into secretlint v14 and later. Remove this package; the rule id still works. https://github.com/secretlint/secretlint/blob/HEAD/docs/rules/preset-recommend.md
 
   '@secretlint/secretlint-rule-preset-recommend@9.3.4':
     resolution: {integrity: sha512-RvzrLNN2A0B2bYQgRSRjh2dkdaIDuhXjj4SO5bElK1iBtJNiD6VBTxSSY1P3hXYaBeva7MEF+q1PZ3cCL8XYOA==}
     engines: {node: ^14.13.1 || >=16.0.0}
+    deprecated: Built into secretlint v14 and later. Remove this package; the rule id still works. https://github.com/secretlint/secretlint/blob/HEAD/docs/rules/preset-recommend.md
 
   '@secretlint/source-creator@10.2.2':
     resolution: {integrity: sha512-h6I87xJfwfUTgQ7irWq7UTdq/Bm1RuQ/fYhA3dtTIAop5BwSFmZyrchph4WcoEvbN460BWKmk4RYSvPElIIvxw==}
@@ -4841,15 +4897,12 @@ packages:
 
   '@sinonjs/text-encoding@0.7.3':
     resolution: {integrity: sha512-DE427ROAphMQzU4ENbliGYrBSYPXF+TtLg9S8vzeA+OF4ZKzoDdzfL8sxuMUGS/lgRhM6j1URSk9ghf7Xo1tyA==}
+    deprecated: |-
+      Deprecated: no longer maintained and no longer used by Sinon packages. See
+        https://github.com/sinonjs/nise/issues/243 for replacement details.
 
   '@standard-schema/spec@1.1.0':
     resolution: {integrity: sha512-l2aFy5jALhniG5HgqrD6jXLi/rUWrKvqN/qJx6yoJsgKhblVd+iqqU4RCXavm/jPityDo5TCvKMnpjKnOriy0w==}
-
-  '@statsig/client-core@3.31.0':
-    resolution: {integrity: sha512-SuxQD6TmVszPG7FoMKwTk/uyBuVFk7XnxI3T/E0uyb7PL7GNjONtfsoh+NqBBVUJVse0CUeSFfgJPoZy1ZOslQ==}
-
-  '@statsig/js-client@3.31.0':
-    resolution: {integrity: sha512-LFa5E0LjT6sTfZv3sNGoyRLSZ1078+agdgOA+Vm1ecjG+KbSOfBLTW7hMwimrJ29slRwbYDzbtKaPJo/R37N2g==}
 
   '@stoplight/better-ajv-errors@1.0.3':
     resolution: {integrity: sha512-0p9uXkuB22qGdNfy3VeEhxkU5uwvp/KrBTAbrLBURv6ilxIVwanKwjMc41lQfIVgPGcOkmLbTolfFrSsueu7zA==}
@@ -4969,21 +5022,6 @@ packages:
     resolution: {integrity: sha512-O3PDvjikVWECu078bLdRb2HwjVgR+wa7D0GX8gN1A8axlgEc7tordHOoEYcKRVxGcAw7bxXjwiKGXaY17qXD+Q==}
     peerDependencies:
       eslint: '>=7.7.0'
-
-  '@tootallnate/quickjs-emscripten@0.23.0':
-    resolution: {integrity: sha512-C5Mc6rdnsaJDjO3UpGW/CQTHtCKaYlScZTly4JIu97Jxo/odCiH0ITnDXSJPTOrEKk/ycSZ0AOgTmkDtkOsvIA==}
-
-  '@tsconfig/node10@1.0.13':
-    resolution: {integrity: sha512-gcLdvR9HO1ZJBypsOGqaP6TFEzb6vIta0KSTLt9NAQ6pXQO3cRgSVyCN6pzYqI9DlJgY71XKO0dpDhCf08b3pg==}
-
-  '@tsconfig/node12@1.0.11':
-    resolution: {integrity: sha512-cqefuRsh12pWyGsIoBKJA9luFu3mRxCA+ORZvA4ktLSzIuCUtWVxGIuXigEwO5/ywWFMZ2QEGKWvkZG1zDMTag==}
-
-  '@tsconfig/node14@1.0.3':
-    resolution: {integrity: sha512-ysT8mhdixWK6Hw3i1V2AeRqZ5WfXg1G43mqoYlM2nc6388Fq5jcXyr5mRsqViLx/GJYdoL0bfXD8nmF+Zn/Iow==}
-
-  '@tsconfig/node16@1.0.4':
-    resolution: {integrity: sha512-vxhUy4J8lyeyinH7Azl1pdd43GJhZH/tP2weN8TntQblOY+A0XbT8DJk1/oCPuOOyg/Ja757rG0CgHcWC8OfMA==}
 
   '@tybys/wasm-util@0.10.3':
     resolution: {integrity: sha512-F3fo1MYrRJYL3zER0OUOmkutjr1Vp23m7OsSgp7nq4SP6OqX6C/56XFIPAl5bt3zaBRjmW7SGz3u/6LwFpYcOg==}
@@ -5137,6 +5175,9 @@ packages:
 
   '@types/yargs@17.0.35':
     resolution: {integrity: sha512-qUHkeCyQFxMXg79wQfTtfndEC+N9ZZg76HJftDJp+qH2tV7Gj4OJi7l+PiWwJ+pWtW8GwSmqsDj/oymhrTWXjg==}
+
+  '@types/yauzl@3.4.0':
+    resolution: {integrity: sha512-NRPn5w6h8dhcnmx3YIRQcqMywY/+nND/uOkJessedcrowO3C0AssHp3tMJpxKAwOhFOo0OV1y9VtsC5hbKKBAw==}
 
   '@typescript-eslint/eslint-plugin@8.70.0':
     resolution: {integrity: sha512-/v8HZt6RlyIZxB3ntehELOcUcfxKPVGWXnQdJuHRmzrqgF8nQypcC/oxGW+Ot4VGKDq81XugPKxx0n5PBtf9PA==}
@@ -5626,10 +5667,6 @@ packages:
     resolution: {integrity: sha512-7evsyfH1cLOCdAzZAd43Cic04yKydNx0cF+7tiA19p1XnLLPU4dpCQOqpjqwokFe//vS0QqfqqjCS2JkiIs0cA==}
     engines: {node: '>=0.4.0'}
 
-  acorn-walk@8.3.5:
-    resolution: {integrity: sha512-HEHNfbars9v4pgpW6SO1KSPkfoS0xVOM/9UzkJltjlsHZmJasxg8aXkuZa7SMf8vKGIBhpUsPluQSqhJFCqebw==}
-    engines: {node: '>=0.4.0'}
-
   acorn@6.4.2:
     resolution: {integrity: sha512-XtGIhXwF8YM8bJhGxG5kXgjkEuNGLTkoYqVE+KMR+aspr4KGYmKYg7yUe3KghyQ9yheNwLnjmzh/7+gfDBmHCQ==}
     engines: {node: '>=0.4.0'}
@@ -5687,11 +5724,6 @@ packages:
 
   ajv-formats@2.1.1:
     resolution: {integrity: sha512-Wx0Kx52hxE7C18hkMEggYlEifqWZtYaRgouJor+WMdPnQyEK13vgEWyVNup7SoeeoLMsr4kf5h6dOW11I15MUA==}
-    peerDependencies:
-      ajv: ^8.0.0
-    peerDependenciesMeta:
-      ajv:
-        optional: true
 
   ajv-formats@3.0.1:
     resolution: {integrity: sha512-8iUql50EUR+uUcdRQ3HDqa6EVyo3docL8g5WJ3FNcWmu62IbkGUue/pEyLBW8VGKKucTPgqeks4fIU1DA4yowQ==}
@@ -5763,9 +5795,6 @@ packages:
   are-docs-informative@0.0.2:
     resolution: {integrity: sha512-ixiS0nLNNG5jNQzgZJNoUpBKdo9yTYZMGJ+QgT2jmjR7G7+QHRCc4v6LQ3NgE7EBJq+o0ams3waJwkrlBom8Ig==}
     engines: {node: '>=14'}
-
-  arg@4.1.3:
-    resolution: {integrity: sha512-58S9QDqG0Xx27YwPSt9fJxivjYl432YCwfDMfZ+71RAqUrZef7LrKQZ3LHLOwCS4FLNBplP533Zx895SeOCHvA==}
 
   argparse@1.0.10:
     resolution: {integrity: sha512-o5Roy6tNG4SL/FOkCAN6RzjiakZS25RLYFrcMttJqbdd8BWrnA+fGz57iN5Pb06pvBGvl5gQ0B48dJlslXvoTg==}
@@ -5997,6 +6026,10 @@ packages:
     resolution: {integrity: sha512-bopVNp6ugyA150DDuZfPFdt1KZ5a94ZDiwX4hMgZDzF+GttD80lEy8kj98kbyhLXnPvhtIo93mdnLIjpCAeeOw==}
     engines: {node: '>=10.0.0'}
 
+  basic-ftp@6.2.6:
+    resolution: {integrity: sha512-0EjZCaodOz6yiokv2JA1VyKGNdGxULZ+GGlPgG9tm4d+T/bHtX1hUch8CumDneBfpIbiSdn7TaCGwpM+gwsOlw==}
+    engines: {node: '>=10.0.0'}
+
   before-after-hook@4.0.0:
     resolution: {integrity: sha512-q6tR3RPqIB1pMiTRMFcZwuG5T8vwp+vUvEG0vuI6B+Rikh5BfPp2fQ82c925FOs+b0lcFQ8CFrL+KbilfZFhOQ==}
 
@@ -6042,6 +6075,10 @@ packages:
 
   brace-expansion@2.1.4:
     resolution: {integrity: sha512-hGfVzPxthbf3+2yjg/RBs60cB0FhqBS/zvdV/4wn4/BmN0bNMMHPc4V/BbFieqf1TKAGGAHnY4eSjajCl0f2Xg==}
+
+  brace-expansion@5.0.12:
+    resolution: {integrity: sha512-YovQ3rzhaLMIrDjNDMkNS01tea93qhEhG5xy8f6+R0l+dw3Ki+5sCoIoI942iuLZTHWogWktgwVDhU09iNEimQ==}
+    engines: {node: 20 || >=22}
 
   brace-expansion@5.0.9:
     resolution: {integrity: sha512-ScQ4IuvIEF1TMlP7Zt+vjJ//9zlPb2SDcxWxM3bk8s6t6GGdJ7KO1dCcTidOPJKePW30LE/2cT7wCyPho9/Wxg==}
@@ -6507,6 +6544,7 @@ packages:
 
   core-js@2.6.12:
     resolution: {integrity: sha512-Kb2wC0fvsWfQrgk8HU5lW6U/Lcs8+9aaYcy4ZFc6DDlo4nZ7n70dEgE5rtR0oG6ufKDUnrwfWL1mXR5ljDatrQ==}
+    deprecated: core-js@<3.23.3 is no longer maintained and not recommended for usage due to the number of issues. Because of the V8 engine whims, feature detection in old core-js versions could cause a slowdown up to 100x even if nothing is polyfilled. Some versions have web compatibility issues. Please, upgrade your dependencies to the actual version of core-js.
 
   core-js@3.50.0:
     resolution: {integrity: sha512-BRWgOLKkFeCgRudR6zrs8p9XJZcE14grzKMMssoYrk6krtuEZ7MTKPIY5RzOnqsEKIR9kst7wNzphttraT+Yqw==}
@@ -6552,9 +6590,6 @@ packages:
 
   create-hmac@1.1.7:
     resolution: {integrity: sha512-MJG9liiZ+ogc4TzUwuvbER1JRdgvUFSB5+VR/g5h82fGaIRWMWddtKBHi7/sVhfjQZ6SehlyhvQYrcYkaUIpLg==}
-
-  create-require@1.1.1:
-    resolution: {integrity: sha512-dcKFX3jn0MpIaXjisoRvexIJVEKzaq7z2rZKxf+MSr9TkdmHmsU4m2lcLojrj/FHl8mk5VxMmYA+ftRkP/3oKQ==}
 
   cross-spawn@6.0.6:
     resolution: {integrity: sha512-VqCUuhcd1iB+dsv8gxPttb5iZh/D0iubSP21g36KXdEuf6I5JiioesUVjpCdHV9MZRUfVFlvwtIUyPfxo5trtw==}
@@ -6607,9 +6642,6 @@ packages:
     resolution: {integrity: sha512-7D2EPVltRrsTkhpQmksIu+LxeWAIEk6wRDMJ1qljlv+CKHJM+cJLlfhWIzNA44eAsHXSNe3+vO6DW1yCYx8SuQ==}
     engines: {node: '>=20'}
 
-  csv-parse@5.6.0:
-    resolution: {integrity: sha512-l3nz3euub2QMg5ouu5U09Ew9Wf6/wQ8I++ch1loQ0ljmzhmfZYrH9fflS22i/PQEvsPvxCwxgz5q7UB8K1JO4Q==}
-
   csv-parse@7.0.3:
     resolution: {integrity: sha512-YFd3QM/yo17vH91L1IOZuvl09zM0zEEtdfTcOCKWcMdM++MNaQSyp09slXyFCLaPXvHstQFx/xC8myiFHSMUvw==}
 
@@ -6630,10 +6662,6 @@ packages:
   data-uri-to-buffer@4.0.1:
     resolution: {integrity: sha512-0R9ikRb668HB7QDxT1vkpuUBtqc53YyAwMwGeUFKRojY/NWKvdZ+9UYtRfGmhqNbRkTSVpMbmyhXipFFv2cb/A==}
     engines: {node: '>= 12'}
-
-  data-uri-to-buffer@6.0.2:
-    resolution: {integrity: sha512-7hvf7/GW8e86rW0ptuwS3OcBGDjIi6SZva7hCyWC0yYry2cOPmLIjXAUHI6DK2HsnwJd9ifmt57i8eV2n4YNpw==}
-    engines: {node: '>= 14'}
 
   data-uri-to-buffer@8.0.0:
     resolution: {integrity: sha512-6UHfyCux51b8PTGDgveqtz1tvphBku5DrMKKJbFAZAJOI2zsjDpDoYE1+QGj7FOMS4BdTFNJsJiR3zEB0xH0yQ==}
@@ -6761,15 +6789,17 @@ packages:
     resolution: {integrity: sha512-8QmQKqEASLd5nx0U1B1okLElbUuuttJ/AnYmRXbbbGDWh6uS208EjD4Xqq/I9wK7u0v6O08XhTWnt5XtEbR6Dg==}
     engines: {node: '>= 0.4'}
 
-  degenerator@5.0.1:
-    resolution: {integrity: sha512-TllpMR/t0M5sqCXfj85i4XaAzxmS5tVA16dqvdkMwGmzI+dXLXnw3J+3Vdv7VKw+ThlTMboK6i9rnZ6Nntj5CQ==}
-    engines: {node: '>= 14'}
-
   degenerator@7.0.1:
     resolution: {integrity: sha512-ABErK0IefDSyHjlPH7WUEenIAX2rPPnrDcDM+TS3z3+zu9TfyKKi07BQM+8rmxpdE2y1v5fjjdoAS/x4D2U60w==}
     engines: {node: '>= 20'}
     peerDependencies:
       quickjs-wasi: ^2.2.0
+
+  degenerator@7.0.2:
+    resolution: {integrity: sha512-j47S7YEAqh4U3UR355ts14Ipq0Zgn+AaMRdJuoyF7Ry2eSazevFvaviLMp0iOXAq7/FiBs3/33UIkE7rWRoLWQ==}
+    engines: {node: '>= 20'}
+    peerDependencies:
+      quickjs-wasi: ^3.0.0
 
   delayed-stream@1.0.0:
     resolution: {integrity: sha512-ZySD7Nf91aLB0RxL4KGrKHBXl7Eds1DAmEdcoVawXnLD7SDhpNgtuII2aAkg7a7QS41jxPSZ17p4VdGnMHk3MQ==}
@@ -6831,10 +6861,6 @@ packages:
 
   diff3@0.0.3:
     resolution: {integrity: sha512-iSq8ngPOt0K53A6eVr4d5Kn6GNrM2nQZtC740pzIriHtn4pOQ2lyzEXQMBeVcWERN0ye7fhBsk9PbLLQOnUx/g==}
-
-  diff@4.0.4:
-    resolution: {integrity: sha512-X07nttJQkwkfKfvTPG/KSnE2OMdcUCao6+eXF3wmnIQRn2aPAHH3VxDbDOdegkd6JbPsXqShpvEOHfAT+nCNwQ==}
-    engines: {node: '>=0.3.1'}
 
   diff@5.2.2:
     resolution: {integrity: sha512-vtcDfH3TOjP8UekytvnHH1o1P4FcUdt4eQ1Y+Abap1tk/OB2MWQvcwS2ClCd1zuIhc3JKOx6p3kod8Vfys3E+A==}
@@ -6898,8 +6924,8 @@ packages:
   ee-first@1.1.1:
     resolution: {integrity: sha512-WMwm9LhRUo+WUaRN+vRuETqG89IgZphVSNkdFgeb6sS/E4OrDIN7t48CAewSHXc6C8lefD8KKfr5vY61brQlow==}
 
-  effect@3.22.2:
-    resolution: {integrity: sha512-fm1CQXCs7GTMwpadZxwU5rnAb2bN6mbQpknq/pXBGCzSKkosNYb9k0wsoL0TfB10rSa5xOEZJjo77u/KLXSANg==}
+  effect@3.22.4:
+    resolution: {integrity: sha512-RNshu7AXVxxDh6aS4lothhJ+QoZ4xSykbWNaaVdvDN72RMyVwhCGdALkyl1TbEydgAmRIdD1eTyJqBUGwSBGDA==}
 
   ejs@3.1.10:
     resolution: {integrity: sha512-UeJmFfOrAQS8OJWPZ4qtgHyWExa088/MtK5UEyoJGFH67cDEXkZSviOiKRCZ4Xij0zxI3JECgYs3oKx+AizQBA==}
@@ -7022,6 +7048,7 @@ packages:
 
   esbuild-plugin-polyfill-node@0.3.0:
     resolution: {integrity: sha512-SHG6CKUfWfYyYXGpW143NEZtcVVn8S/WHcEOxk62LuDXnY4Zpmc+WmxJKN6GMTgTClXJXhEM5KQlxKY6YjbucQ==}
+    deprecated: Package no longer supported. Contact Support at https://www.npmjs.com/support for more info.
     peerDependencies:
       esbuild: '*'
 
@@ -7506,8 +7533,15 @@ packages:
   fast-xml-builder@1.3.1:
     resolution: {integrity: sha512-pIM/1n3ntFXKYrUZwW7QCK0gAW7XY+wzj1YMIV3tLDvPj/V+zTGJK5e3/4WJfwj0qWw2ElNXiTixda/R+3YSug==}
 
+  fast-xml-builder@1.3.2:
+    resolution: {integrity: sha512-OX91VSlShLPDgRZV7tk/YQ4l8tT75QziF5Ixg8g4PFbCVPjuTWwN+yQfAxLJ0dufJpprdOd6HlM74Jhd39TcBQ==}
+
   fast-xml-parser@5.11.2:
     resolution: {integrity: sha512-R9iDuNrQYeQut46cn2r2wHKn4HYzVDvDm5J1wW+koZewykv0yuO2HChTYeZtrULyHIDM9cj9TUXloCsueCQUog==}
+    hasBin: true
+
+  fast-xml-parser@5.12.1:
+    resolution: {integrity: sha512-wR8dO/fx+z8C5exuem1e7BKOWvjsuzvjS/tvA/Xu3Z1zQqJGcXrPzXbcAiaMgp2KjreEROcTkmnnisrcmJ2hYQ==}
     hasBin: true
 
   fastest-levenshtein@1.0.16:
@@ -7762,17 +7796,18 @@ packages:
   get-tsconfig@4.14.3:
     resolution: {integrity: sha512-++QEw4DIY7WGoukz+/+A/8dGYPT9l9yIadnmSgZ8Rjr3YVSVDipQSO9CdnJo9ePqFqUUqh+wk9uIaoiAwsiPkA==}
 
-  get-uri@6.0.5:
-    resolution: {integrity: sha512-b1O07XYq8eRuVzBNgJLstU6FYc1tS6wnMtF1I1D9lE8LxZSOGZ7LhxN54yPP6mGw5f2CkXY2BQUL9Fx41qvcIg==}
-    engines: {node: '>= 14'}
-
   get-uri@8.0.1:
     resolution: {integrity: sha512-/5N/P4Lrh0p/mDwlDRi7Y1+P2o/OyzZI3l6Iz1Ov6XXwwm1y3RlZLuo3gVgML99djrEDtV980bBxSuOeHLk8ww==}
+    engines: {node: '>= 20'}
+
+  get-uri@8.0.2:
+    resolution: {integrity: sha512-H1sU7ppM+Hdb+FJgOTaQ7SHiV7ogUgnb+VgZ55Dz3YzLqZ4bMAClcdveHYt56npM9M7eclEg1j92ZnmSOP9uhA==}
     engines: {node: '>= 20'}
 
   git-raw-commits@4.0.0:
     resolution: {integrity: sha512-ICsMM1Wk8xSGMowkOmPrzo2Fgmfo4bMHLNX6ytHjajRJUqvHOw/TFapQ+QG75c3X/tTDDhOSRPGC52dDbNM8FQ==}
     engines: {node: '>=16'}
+    deprecated: Deprecated and no longer maintained. Use @conventional-changelog/git-client instead.
     hasBin: true
 
   github-from-package@0.0.0:
@@ -7792,13 +7827,21 @@ packages:
     peerDependencies:
       tslib: '2'
 
+  glob-to-regex.js@1.3.1:
+    resolution: {integrity: sha512-zhWhMRsgnOym+1txhUmYJGD6eUsbUdrZv55gCYKuJX8t2p3+M8My23PD09bEIsreGUs5pnSa/idmcfp2/IlqGg==}
+    engines: {node: '>=10.0'}
+    peerDependencies:
+      tslib: '2'
+
   glob@10.5.0:
     resolution: {integrity: sha512-DfXN8DfhJ7NH3Oe7cFmu3NCu1wKbkReJ8TorzSAFbSKrlNaQSKfIzqYqVY8zlbs2NLBbWpRiU52GX2PbaBVNkg==}
+    deprecated: Old versions of glob are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for old versions may be purchased (at exorbitant rates) by contacting i@izs.me
     hasBin: true
 
   glob@11.1.0:
     resolution: {integrity: sha512-vuNwKSaKiqm7g0THUBu2x7ckSs3XJLXE+2ssL7/MfTGPLLcrJQ/4Uq1CjPTtO5cCIiRxqvN6Twy1qOwhL0Xjcw==}
     engines: {node: 20 || >=22}
+    deprecated: Old versions of glob are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for old versions may be purchased (at exorbitant rates) by contacting i@izs.me
     hasBin: true
 
   glob@13.0.6:
@@ -7807,6 +7850,7 @@ packages:
 
   glob@7.2.3:
     resolution: {integrity: sha512-nFR0zLpU2YCaRxwoCJvL6UvCH2JFyFVIvwTLsIf21AuHlMskA1hhTdk+LlYJtOlYt9v6dvszD2BGRqBL+iQK9Q==}
+    deprecated: Old versions of glob are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for old versions may be purchased (at exorbitant rates) by contacting i@izs.me
 
   global-directory@4.0.1:
     resolution: {integrity: sha512-wHTUcDUoZ1H5/0iVqEudYW4/kAlN5cZ3j/bXn0Dpbizl9iaUVeWSHqiOjsgk6OW2bkLclbBjzewBz6weQ1zA2Q==}
@@ -7943,8 +7987,8 @@ packages:
     resolution: {integrity: sha512-eSmmWE5bZTK2Nou4g0AI3zZ9rswp7GRKoKXS1BLUkvPviOqs4YTN1djQIqrXy9k5gEtdLPy86JjRwsNM9tnDcA==}
     engines: {node: '>=0.10.0'}
 
-  hono@4.13.7:
-    resolution: {integrity: sha512-c8/gF9ac8Y78/agExVocyLevgR+JlpNB444Py0FSX8pJoPdYUfUzRcXtYEYGwt6l19qIlVZPN5Mfsw9jFShmQQ==}
+  hono@4.13.18:
+    resolution: {integrity: sha512-H9q/E1XizaWstJxUW881dmLxEj+t/TrGGnyxINkm4+sK0qUwsMtFdo2BWI9Vs3cIS19MU6b6iCijoUoEf4f3DA==}
     engines: {node: '>=16.9.0'}
 
   hookified@1.15.1:
@@ -8120,6 +8164,7 @@ packages:
 
   inflight@1.0.6:
     resolution: {integrity: sha512-k92I/b08q4wvFscXCLvqfsHCrjrF7yiXsQuIVvVE7N82W3+aqpzuUdBbfhWcy/FZR3/4IgflMgKLOsvPDrGCJA==}
+    deprecated: This module is not supported, and leaks memory. Do not use it. Check out lru-cache if you want a good and tested way to coalesce async requests by a key value, which is much more comprehensive and powerful.
 
   inherits@2.0.3:
     resolution: {integrity: sha512-x00IRNXNy63jwGkJmzPigoySHbaqpNuzKbBOmzK+g2OdZpQ9w+sxCN+VSB3ja7IAge2OP2qpfxTjeNcyjmW1uw==}
@@ -8401,6 +8446,9 @@ packages:
 
   is-unsafe@2.0.2:
     resolution: {integrity: sha512-HgbIHPBH0KHHCcjLfGsCvhtPTVxjaAZlXjwdz7/GQC40SjSe4sfQsar8J5VFo8JOSbarkpV0OLG95bbaNd9aAQ==}
+
+  is-unsafe@2.0.3:
+    resolution: {integrity: sha512-ZBllczCCO267vgdFb6Tq3pv+LhHaCiGMdr+ZsuL+OopruAg7S+3ZDs1vD0RPC0uSrkjzbraxaGjtX1YBxjPeFQ==}
 
   is-utf8@0.2.1:
     resolution: {integrity: sha512-rMYPYvCzsXywIsldgLaSoPlw5PfoB/ssr7hY4pLfcodrA5M/eArza1a9VmTiNIBNMjOGr1Ow9mTyU2o69U6U9Q==}
@@ -8774,8 +8822,8 @@ packages:
     engines: {node: '>=6'}
     hasBin: true
 
-  jsforce@3.10.25:
-    resolution: {integrity: sha512-QVo8RULJjXcQM1CMhROLuFa+KQIdzmyRHPBV5MugpWE1kkWMgOQeoP2/0E/oW8/QnyxM+L81XmHHi4l0HhxHCQ==}
+  jsforce@3.13.1:
+    resolution: {integrity: sha512-3c3bsc1up6EWibs57+cSDWNm7Licx/WZ4va0PxYDGS0pC7ezGBAcZ1DhNXtd/HHEazVpzaprb80Ska4N+2Jnfw==}
     engines: {node: '>=22'}
     hasBin: true
 
@@ -8804,10 +8852,6 @@ packages:
   json-stable-stringify-without-jsonify@1.0.1:
     resolution: {integrity: sha512-Bdboy+l7tA3OGW6FjyFHWkP5LuByj1Tk33Ljyq0axyzdk9//JSi2u3fP1QSmd1KNwq6VOKYGlAu87CisVir6Pw==}
 
-  json-stream-stringify@3.1.7:
-    resolution: {integrity: sha512-F4MWetLtY42YMaAKw5cV4e47zMD5aOT+tjjQWjX18ACtdkQ5Y/vrcfbcQ107Rh+MXjOCIx4KhW0wPmOvG8iQ5w==}
-    engines: {node: '>=7.10.1'}
-
   json-with-bigint@3.5.12:
     resolution: {integrity: sha512-uwbF/wSSuOgC7qqlq27Xp5B6a2MHVug3t0idZdTqu0JnlFvgJuH7ju+KAk/J06C7GfhoYy2gnb9wz2INqcne7w==}
 
@@ -8835,7 +8879,6 @@ packages:
 
   jsonparse@1.3.1:
     resolution: {integrity: sha512-POQXvpdL69+CluYsillJ7SUhKvytYjW9vG/GKpnf+xP8UWgYEM/RaMzHHofbALDiKbbP1W8UEYmgGl39WkPZsg==}
-    engines: {'0': node >= 0.2.0}
 
   jsonpath-plus@10.4.0:
     resolution: {integrity: sha512-T92WWatJXmhBbKsgH/0hl+jxjdXrifi5IKeMY02DWggRxX0UElcbVzPlmgLTbvsPeW1PasQ6xE2Q75stkhGbsA==}
@@ -9178,8 +9221,8 @@ packages:
   makeerror@1.0.12:
     resolution: {integrity: sha512-JmqCvUhmt43madlpFzG4BQzG2Z3m6tvQDNKdClZnO3VbIudJYmxsT0FNJMeiB2+JTSlTQTSbU8QdesVmwJcmLg==}
 
-  markdown-it@14.3.1:
-    resolution: {integrity: sha512-4Ej49aYTDFIQ+uBkfX8GBvJGccoARxxPep+7aWTs55ozbjQJpW9M26Fe53vnGgvLeVzva/amzjQQaQu9w0vMhA==}
+  markdown-it@14.3.3:
+    resolution: {integrity: sha512-L//tDAkjTjJCU6pBUSBTgs3Kg4InVaZuUZog/b6V12UKhcDQ7S78877ibbCanRExwPuYP1CZD7Gd2dxSy1GXRg==}
     hasBin: true
 
   markdown-link-check@3.15.0:
@@ -9226,12 +9269,11 @@ packages:
     resolution: {integrity: sha512-yz3xRaG20c6/BOzvYoDaGtPmGscs7YivItZEEqe6GbwNfHuxu9YNmvnEkMzKldAGY4/80pRcQRZSEnhquk9XuQ==}
     engines: {node: '>= 0.8'}
 
-  memfs@4.38.1:
-    resolution: {integrity: sha512-exfrOkkU3m0EpbQ0iQJP93HUbkprnIBU7IUnobSNAzHkBUzsklLwENGLEm8ZwJmMuLoFEfv1pYQ54wSpkay4kQ==}
-    engines: {node: '>= 4.0.0'}
-
   memfs@4.74.0:
     resolution: {integrity: sha512-/HEOwkFRJMYKNOdcS34i0+0NkkJlwCAOGOVH/Dr937i95C30UmxF7Izps30Ax3ec0WvHlh7ZQKsnsqx9b3E0MQ==}
+
+  memfs@4.80.0:
+    resolution: {integrity: sha512-N70W2isi44XdGn7uPo9NJ4zRukcdkwSFHlnYx42SWOH/+hzqNc8P7+tVoA2up4z7faHvNi1RSNCFjxoYQ71VPQ==}
 
   meow@12.1.1:
     resolution: {integrity: sha512-BhXM0Au22RwUneMPwSCnyhTOizdWoIEPU9sp0Aqa1PnDMR5Wv2FGXYDjuzJEIX+Eo2Rb8xuYe5jrnm5QowQFkw==}
@@ -9323,6 +9365,10 @@ packages:
     resolution: {integrity: sha512-vpLQEs+VLCr1nU0BXS07maYoFwlDAH0gngQuuttxIwutDFEMHq2blX+8vpgxDdK3J1PwjCJiep77OitTZ4Ll1A==}
     engines: {node: 18 || 20 || >=22}
 
+  minimatch@11.0.4:
+    resolution: {integrity: sha512-/UJ1dEoVQTjPNDh6SGlUo+ueLMmoHTas4q+8yaAR/5t6nLAIiBDJtoYUh20IYleix7ehiQkgczb84PE3uzHkxg==}
+    engines: {node: 20 || >=22}
+
   minimatch@3.1.5:
     resolution: {integrity: sha512-VgjWUsnnT6n+NUk6eZq77zeFdpW2LWDzP6zFGrCbHXiYNul5Dzqk2HHQ5uFH2DNW5Xbp8+jVzaeNt94ssEEl4w==}
 
@@ -9399,8 +9445,8 @@ packages:
   msgpackr@1.12.1:
     resolution: {integrity: sha512-4EUH9tQHnMmEgzW/MdAP0KIfa1T9AF+htl0ffe2n5vb2EKn9y2co8ccpgWko6S52Jy1PQZKwRnx5/KkYjtd9MQ==}
 
-  multipasta@0.2.8:
-    resolution: {integrity: sha512-ZPWuMKyv0cSO29f7hozp+k6+crZbQijV8ipMvxNxRf2SwtYGTX1ZX89Kd20VV4H9Znonx+EQn+iy1wGQsJ+b+Q==}
+  multipasta@0.2.9:
+    resolution: {integrity: sha512-kAovZHgxryqb0xTFz7OTCPxbas8UBTTwCDhfrlaNecp1/z6xcMfp5PVhDxsW7jONHyDF10/ccp30MxA2+66GJw==}
 
   multistream@3.1.0:
     resolution: {integrity: sha512-zBgD3kn8izQAN/TaL1PCMv15vYpf+Vcrsfub06njuYVYlzUldzpopTlrEZ53pZVEbfn3Shtv7vRFoOv6LOV87Q==}
@@ -9480,6 +9526,7 @@ packages:
   node-domexception@1.0.0:
     resolution: {integrity: sha512-/jKZoMpw0F8GRwl4/eLROPA3cfcXtLApP0QzLmUT/HuPCZWyB7IY9ZrMeKw2O/nFIqPQB3PVM9aYm0F312AXDQ==}
     engines: {node: '>=10.5.0'}
+    deprecated: Use your platform's native DOMException instead
 
   node-email-verifier@4.0.0:
     resolution: {integrity: sha512-W3ktpVPscUx43WSTm1Vf797cMQMsGwp0JO08ksRaZG8A8wcRUd/XAihL78FwYl2rfABa1m1nIsBtqOMxY9uekA==}
@@ -9755,23 +9802,25 @@ packages:
     resolution: {integrity: sha512-R4nPAVTAU0B9D35/Gk3uJf/7XYbQcyohSKdvAxIRSNghFl4e71hVoGnBNQz9cWaXxO2I10KTC+3jMdvvoKw6dQ==}
     engines: {node: '>=6'}
 
-  pac-proxy-agent@7.2.0:
-    resolution: {integrity: sha512-TEB8ESquiLMc0lV8vcd5Ql/JAKAoyzHFXaStwjkzpOpC5Yv+pIzLfHvjTSdf3vpa2bMiUQrg9i6276yn8666aA==}
-    engines: {node: '>= 14'}
-
   pac-proxy-agent@9.1.0:
     resolution: {integrity: sha512-1aU+1mpj3DrQPfo3gh+3Gap3G5x+axnMx1P/y0ZF2ch7kb2meyOCAH8K2k9d27ROsTE7TnAerzxqF9aon2jqnA==}
     engines: {node: '>= 20'}
 
-  pac-resolver@7.0.1:
-    resolution: {integrity: sha512-5NPgf87AT2STgwa2ntRMr45jTKrYBGkVU36yT0ig/n/GMAa3oPqhZfIQ2kMEimReg0+t9kZViDVZ83qfVUlckg==}
-    engines: {node: '>= 14'}
+  pac-proxy-agent@9.1.1:
+    resolution: {integrity: sha512-P30j9cFU4vcu9TKjSVAwdzb+tY8ktfAwsVvxFSXmsoe09I4yZV52JAO8Z/Fptpi9VWxFTluDgqzGfgvYJlTzjg==}
+    engines: {node: '>= 20'}
 
   pac-resolver@9.0.1:
     resolution: {integrity: sha512-lJbS008tmkj08VhoM8Hzuv/VE5tK9MS0OIQ/7+s0lIF+BYhiQWFYzkSpML7lXs9iBu2jfmzBTLzhe9n6BX+dYw==}
     engines: {node: '>= 20'}
     peerDependencies:
       quickjs-wasi: ^2.2.0
+
+  pac-resolver@9.0.2:
+    resolution: {integrity: sha512-FyLebKd2X1SzQAc6P+AAgWRGnAgEAYEwn1oJucBIdQivJ50dV3Lndjqso4mebnHiLaYeHtVaDfSL33BJYLi7QA==}
+    engines: {node: '>= 20'}
+    peerDependencies:
+      quickjs-wasi: ^3.0.0
 
   package-hash@4.0.0:
     resolution: {integrity: sha512-whdkPIooSu/bASggZ96BWVvZTRMOFxnyUG5PnTSGKoJE2gd5mbVNmR2Nj20QFzxYYgAXpoqC+AiXzl+UMRh7zQ==}
@@ -10031,6 +10080,7 @@ packages:
   prebuild-install@7.1.3:
     resolution: {integrity: sha512-8Mf2cbV7x1cXPUILADGI3wuhfqWvtiLA1iclTDbFRZkgRQS0NqsPZphna9V+HyTEadheuPmjaJMsbzKQFOzLug==}
     engines: {node: '>=10'}
+    deprecated: No longer maintained. Please contact the author of the relevant native addon; alternatives are available.
     hasBin: true
 
   prelude-ls@1.2.1:
@@ -10101,8 +10151,8 @@ packages:
     resolution: {integrity: sha512-M71sTMB146U3u0di3yup8iM+zv8yPRNQVr1KK4tyBitl3qFvEGucq/rGDRShD2rsJhtN02RJaJ7j5X5hmy8SJg==}
     engines: {node: '>=12.0.0'}
 
-  proxy-addr@2.0.7:
-    resolution: {integrity: sha512-llQsMLSUDUPT44jdrU/O37qlnifitDP+ZwrmmZcoSKyLKvtZxpyV0n2/bD/N4tBAAZ/gJEdZU7KMraoK1+XYAg==}
+  proxy-addr@2.0.8:
+    resolution: {integrity: sha512-5nnx0yGyVUcY6t9RnWcARWtwT9F1D8O9rt08htPvnd49W1IgZtmLkhu9WfMzQj1cFxjHIO6connUNVW5k7AVyQ==}
     engines: {node: '>= 0.10'}
 
   proxy-agent-negotiate@1.1.0:
@@ -10114,12 +10164,12 @@ packages:
       kerberos:
         optional: true
 
-  proxy-agent@6.5.0:
-    resolution: {integrity: sha512-TmatMXdr2KlRiA2CyDu8GqR8EjahTG3aY3nXjdzFyoZbmB8hrBsTyMezhULIXKnC0jpfjlmiZ3+EaCzoInSu/A==}
-    engines: {node: '>= 14'}
-
   proxy-agent@8.0.2:
     resolution: {integrity: sha512-idLLRewuemWd7GH/BDJzGiB0dWGfT2SQs3jy6NtZtGWU9uPTTSdeC1/cdbqLwgzhfv027daGFuXX426e2Eg20A==}
+    engines: {node: '>= 20'}
+
+  proxy-agent@8.0.3:
+    resolution: {integrity: sha512-SYjxPOWaz3CrRZxqgj3A/261L3ZSCcWzM0dFsxNP27m43/KiHWtUmtHZFsHvh7fn11E/SmBfcNsWcWqMhZ6fAw==}
     engines: {node: '>= 20'}
 
   proxy-from-env@1.1.0:
@@ -10221,6 +10271,9 @@ packages:
 
   quickjs-wasi@2.2.0:
     resolution: {integrity: sha512-zQxXmQMrEoD3S+jQdYsloq4qAuaxKFHZj6hHqOYGwB2iQZH+q9e/lf5zQPXCKOk0WJuAjzRFbO4KwHIp2D05Iw==}
+
+  quickjs-wasi@3.7.0:
+    resolution: {integrity: sha512-6nOShBtCglrQL6yH+hptIfEdA1WlSmvY/Mm5Ypn9IvtsaDsrYIg8x+xoIXQt02w66a0f1eLTAj1lhfgAbJ4WVw==}
 
   randombytes@2.1.0:
     resolution: {integrity: sha512-vYl3iOX+4CKUWuxGi9Ukhie6fsqXqS9FE2Zaic4tNFD2N2QQaXOMFbuKK4QmDHC0JO6B1Zp41J0LpT0oR68amQ==}
@@ -10631,6 +10684,7 @@ packages:
 
   sinon@17.0.2:
     resolution: {integrity: sha512-uihLiaB9FhzesElPDFZA7hDcNABzsVHwr3YfmM9sBllVwab3l0ltGlRV1XhpNfIacNDLGD1QRZNLs5nU5+hTuA==}
+    deprecated: There
 
   slash@2.0.0:
     resolution: {integrity: sha512-ZYKh3Wh2z1PpEXWr0MpSBZ0V6mZHAQfYevttO11c51CaWjGTaadiKZ+wVt1PbMlDV5qhMFslpZCemhwOK7C89A==}
@@ -10656,8 +10710,8 @@ packages:
     resolution: {integrity: sha512-RQsvleCbF8cVHEv+xuDGaA4pOizFqJ0GgjtMSRo6oP8pnN7WsigHgVGey6aILRBKv4W2YOMHLqbKdnB6hpB9fw==}
     engines: {node: '>=20.0.0'}
 
-  smol-toml@1.8.0:
-    resolution: {integrity: sha512-kCZr2V3ch9i00x8zXRhjUNVcjG9ijES5dDudkXvUVCT5QlJNQWElSJdZqyPemffHoLNUYwOcou0Fy+ojN0uHSQ==}
+  smol-toml@1.9.1:
+    resolution: {integrity: sha512-j7WyPdf0CJoutMzMoPLF/bVXHtKZIT9Rb4eGeEbWw8X2t5oirjPgpL+OpaENZrILYaXqYwnVH+qgUwVbl+pUJQ==}
     engines: {node: '>= 18'}
 
   snake-case@3.0.4:
@@ -10678,9 +10732,9 @@ packages:
   sonic-boom@4.2.1:
     resolution: {integrity: sha512-w6AxtubXa2wTXAUsZMMWERrsIRAdrK0Sc+FUytWvYAhBJLyuI4llrMIC1DtlNSdI99EI86KZum2MMq3EAZlF9Q==}
 
-  source-map-js@1.2.1:
-    resolution: {integrity: sha512-UXWMKhLOwVKb728IUtQPXxfYU+usdybtUrK/8uGE8CQMvrhOpwvzDBwj0QhSL7MQc7vIsISBG8VQ8+IDQxpfQA==}
-    engines: {node: '>=0.10.0'}
+  source-map-js@1.2.4:
+    resolution: {integrity: sha512-J7ZjMvHd9O1fcT/5V09QWaaSl2BbWx3F6O08spde82Namf9UB0GxRVIPiNbVsdKkoizHiSpTodo3vp2bAy91MA==}
+    engines: {node: '>=6.0.0'}
 
   source-map-support@0.5.13:
     resolution: {integrity: sha512-SHSKFHadjVA5oR4PPqhtAVdcBWwRYVd6g6cAXnIbRiIwc2EhPrTuKUBdSLvlEKyIP3GCf89fltvcZiP9MMFA1w==}
@@ -10847,6 +10901,9 @@ packages:
 
   strnum@2.4.2:
     resolution: {integrity: sha512-rDG3Ah4TV0k1hWvLSzkZtMmLN9+eS+h3knq4MP6A42Y3Yh5qGNnOUs1jJkoSr8FG5dsL28c7KgkIBzSEykqtuw==}
+
+  strnum@2.5.1:
+    resolution: {integrity: sha512-UM4nTLWzQiDBseVxUGxN0wJzIk0UU89Qi7pKXz9qISo+lhviJikTuikBsK/oFRlpvYHvSdz0TVoLyQ+sEpYwxA==}
 
   structured-source@4.0.0:
     resolution: {integrity: sha512-qGzRFNJDjFieQkl/sVOI2dUjHKRyL9dAJi2gCPGJLbJHBIkyOHxjuocpIEfbLioX+qSJpvbYdT49/YCdMznKxA==}
@@ -11138,20 +11195,6 @@ packages:
       jest-util:
         optional: true
 
-  ts-node@10.9.2:
-    resolution: {integrity: sha512-f0FFpIdcHgn8zcPSbf1dRevwt047YMnaiJM3u2w2RewrB+fob/zePZcrOyQoLMMO7aBIddLcQIEK5dYjkLnGrQ==}
-    hasBin: true
-    peerDependencies:
-      '@swc/core': '>=1.2.50'
-      '@swc/wasm': '>=1.2.50'
-      '@types/node': '*'
-      typescript: '>=2.7'
-    peerDependenciesMeta:
-      '@swc/core':
-        optional: true
-      '@swc/wasm':
-        optional: true
-
   ts-retry-promise@0.8.1:
     resolution: {integrity: sha512-+AHPUmAhr5bSRRK5CurE9kNH8gZlEHnCgusZ0zy2bjfatUBDX0h6vGQjiT0YrGwSDwRZmU+bapeX6mj55FOPvg==}
     engines: {node: '>=6'}
@@ -11377,9 +11420,6 @@ packages:
     resolution: {integrity: sha512-vIYxrBCC/N/K+Js3qSN88go7kIfNPssr/hHCesKCQNAjmgvYS2oqr69kIufEG+O4+PfezOH4EbIeHCfFov8ZgQ==}
     hasBin: true
 
-  v8-compile-cache-lib@3.0.1:
-    resolution: {integrity: sha512-wa7YjyUGfNZngI/vtK0UHAN+lgDCxBPCylVXGp0zu59Fz5aiGtNXaq3DhIov063MorB+VfufLh3JlF2KdTK3xg==}
-
   v8-to-istanbul@9.3.0:
     resolution: {integrity: sha512-kiGUalWN+rgBJ/1OHZsBtU4rXZOfj/7rKQxULKlIzwzQSvMJUUNgPwJEEh7gU6xEVxC0ahoOBvN2YI8GH6FNgA==}
     engines: {node: '>=10.12.0'}
@@ -11556,6 +11596,7 @@ packages:
   whatwg-encoding@3.1.1:
     resolution: {integrity: sha512-6qN4hJdMwfYBtE3YBTTHhoeuUrDBPZmbQaxWAqSALV/MeEnR5z1xd8UKud2RAkFoPkmB+hli1TZSnyi84xz1vQ==}
     engines: {node: '>=18'}
+    deprecated: Use @exodus/bytes instead for a more spec-conformant and faster implementation
 
   whatwg-mimetype@4.0.0:
     resolution: {integrity: sha512-QaKxh0eNIi2mE9p2vEdzfagOKHCcj1pJ56EEHGQOVxp8r9/iszLUUV7v89x9O1p/T+NlTM5W7jW6+cz4Fq1YVg==}
@@ -11731,6 +11772,11 @@ packages:
     engines: {node: '>= 14.6'}
     hasBin: true
 
+  yaml@2.9.1:
+    resolution: {integrity: sha512-3NxN8+78OdzbT7C/WjGsyfPAtJaN3FNDsWxv7Y7mcDsT/oOmgW8BpyQQFFBnvZE3j9Y2Sdz1ULFLezL7Eb2yFw==}
+    engines: {node: '>= 14.6'}
+    hasBin: true
+
   yargs-parser@18.1.3:
     resolution: {integrity: sha512-o50j0JeToy/4K6OZcaQmW6lyXXKhq7csREXcDwk2omFPJEwUNOVtJKvmDr9EI1fAJZUyZcRF7kxGBWmRXudrCQ==}
     engines: {node: '>=6'}
@@ -11765,10 +11811,6 @@ packages:
     resolution: {integrity: sha512-FemWD5/UqNm8ffj8oZIbjWXIF2KE0mZssggYpdaQkWDDgXBQ/35PNIxEuz6/YLn9o0kOxDBNJe8x8k9ljD7k/g==}
     engines: {node: '>=18.16.0'}
 
-  yn@3.1.1:
-    resolution: {integrity: sha512-Ux4ygGWsu2c7isFWe8Yu1YluJmqVhxqK2cLXNQA5AcC3QfbGNpM7fu0Y8b/z16pXLnFxZYvWhd3fhBY9DLmC6Q==}
-    engines: {node: '>=6'}
-
   yocto-queue@0.1.0:
     resolution: {integrity: sha512-rVksvsnNCdJ/ohGc6xgPwyN8eheCxsiLM8mxuE/t/mOVqJewPuO1miLpTHQiRgTKCLexL4MeAFVagts7HmNZ2Q==}
     engines: {node: '>=10'}
@@ -11782,11 +11824,11 @@ packages:
     peerDependencies:
       zod: ^3.25.28 || ^4
 
-  zod@3.25.76:
-    resolution: {integrity: sha512-gzUt/qt81nXsFGKIFcC3YnfEAx5NkunCfnDlvuBSSFS02bcXu4Lmea0AFIUwbLWxWPx3d9p8S5QoaujKcNQxcQ==}
-
   zod@4.6.1:
     resolution: {integrity: sha512-341aRWQsve0rvronKNTqZpjmzdbUDlFuzHaI/XLg/Ej82qffDJRRfBTCuv7+9q/rMjB6LSLyEBnW4InJeMtt/Q==}
+
+  zod@4.6.7:
+    resolution: {integrity: sha512-g8W2D2kU6a8untc053fX1uVBKzM7yqAxW/3zwk83+6RyF2+SKOuV+c0wBDhUwzV1PaGapmZH+rmcUzPf+3CGwg==}
 
 snapshots:
 
@@ -11936,18 +11978,19 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@azure/monitor-opentelemetry-exporter@1.0.0-beta.43(supports-color@8.1.1)':
+  '@azure/monitor-opentelemetry-exporter@1.0.0-beta.47(supports-color@8.1.1)':
     dependencies:
       '@azure-rest/core-client': 2.9.0(supports-color@8.1.1)
       '@azure/core-auth': 1.11.0(supports-color@8.1.1)
       '@azure/core-client': 1.11.1(supports-color@8.1.1)
+      '@azure/core-process': 1.0.0
       '@azure/core-rest-pipeline': 1.25.0(supports-color@8.1.1)
       '@azure/core-util': 1.14.0(supports-color@8.1.1)
       '@opentelemetry/api': 1.9.1
-      '@opentelemetry/api-logs': 0.219.0
-      '@opentelemetry/core': 2.8.0(@opentelemetry/api@1.9.1)
+      '@opentelemetry/api-logs': 0.221.0
+      '@opentelemetry/core': 2.12.0(@opentelemetry/api@1.9.1)
       '@opentelemetry/resources': 2.11.0(@opentelemetry/api@1.9.1)
-      '@opentelemetry/sdk-logs': 0.219.0(@opentelemetry/api@1.9.1)
+      '@opentelemetry/sdk-logs': 0.221.0(@opentelemetry/api@1.9.1)
       '@opentelemetry/sdk-metrics': 2.12.0(@opentelemetry/api@1.9.1)
       '@opentelemetry/sdk-trace-base': 2.10.0(@opentelemetry/api@1.9.1)
       '@opentelemetry/semantic-conventions': 1.43.0
@@ -12644,8 +12687,6 @@ snapshots:
 
   '@bcoe/v8-coverage@1.0.2': {}
 
-  '@bufbuild/protobuf@1.10.0': {}
-
   '@cacheable/memory@2.2.0':
     dependencies:
       '@cacheable/utils': 2.5.0
@@ -12811,19 +12852,6 @@ snapshots:
       picocolors: 1.1.1
     optional: true
 
-  '@connectrpc/connect-web@1.7.0(@bufbuild/protobuf@1.10.0)(@connectrpc/connect@1.7.0(@bufbuild/protobuf@1.10.0))':
-    dependencies:
-      '@bufbuild/protobuf': 1.10.0
-      '@connectrpc/connect': 1.7.0(@bufbuild/protobuf@1.10.0)
-
-  '@connectrpc/connect@1.7.0(@bufbuild/protobuf@1.10.0)':
-    dependencies:
-      '@bufbuild/protobuf': 1.10.0
-
-  '@cspotcode/source-map-support@0.8.1':
-    dependencies:
-      '@jridgewell/trace-mapping': 0.3.9
-
   '@csstools/color-helpers@6.1.2': {}
 
   '@csstools/css-calc@3.4.3(@csstools/css-parser-algorithms@4.0.2(@csstools/css-tokenizer@4.0.2))(@csstools/css-tokenizer@4.0.2)':
@@ -12848,46 +12876,17 @@ snapshots:
 
   '@csstools/css-tokenizer@4.0.2': {}
 
-  '@cursor/sdk-darwin-arm64@1.0.35':
-    optional: true
-
-  '@cursor/sdk-darwin-x64@1.0.35':
-    optional: true
-
-  '@cursor/sdk-linux-arm64@1.0.35':
-    optional: true
-
-  '@cursor/sdk-linux-x64@1.0.35':
-    optional: true
-
-  '@cursor/sdk-win32-x64@1.0.35':
-    optional: true
-
-  '@cursor/sdk@1.0.35':
-    dependencies:
-      '@bufbuild/protobuf': 1.10.0
-      '@connectrpc/connect': 1.7.0(@bufbuild/protobuf@1.10.0)
-      '@connectrpc/connect-web': 1.7.0(@bufbuild/protobuf@1.10.0)(@connectrpc/connect@1.7.0(@bufbuild/protobuf@1.10.0))
-      '@statsig/js-client': 3.31.0
-      zod: 3.25.76
-    optionalDependencies:
-      '@cursor/sdk-darwin-arm64': 1.0.35
-      '@cursor/sdk-darwin-x64': 1.0.35
-      '@cursor/sdk-linux-arm64': 1.0.35
-      '@cursor/sdk-linux-x64': 1.0.35
-      '@cursor/sdk-win32-x64': 1.0.35
-
   '@dprint/formatter@0.4.1': {}
 
   '@dprint/typescript@0.91.8': {}
 
-  '@effect/cluster@0.58.2(@effect/platform@0.96.1(effect@3.22.2))(@effect/rpc@0.75.1(@effect/platform@0.96.1(effect@3.22.2))(effect@3.22.2))(@effect/sql@0.51.1(@effect/experimental@0.60.0(@effect/platform@0.96.1(effect@3.22.2))(effect@3.22.2))(@effect/platform@0.96.1(effect@3.22.2))(effect@3.22.2))(@effect/workflow@0.18.2(@effect/experimental@0.60.0(@effect/platform@0.96.1(effect@3.22.2))(effect@3.22.2))(@effect/platform@0.96.1(effect@3.22.2))(@effect/rpc@0.75.1(@effect/platform@0.96.1(effect@3.22.2))(effect@3.22.2))(effect@3.22.2))(effect@3.22.2)':
+  '@effect/cluster@0.60.5(@effect/platform@0.97.3(effect@3.22.4))(@effect/rpc@0.76.4(@effect/platform@0.97.3(effect@3.22.4))(effect@3.22.4))(@effect/sql@0.52.2(@effect/experimental@0.61.2(@effect/platform@0.97.3(effect@3.22.4))(effect@3.22.4))(@effect/platform@0.97.3(effect@3.22.4))(effect@3.22.4))(@effect/workflow@0.19.1(@effect/experimental@0.61.2(@effect/platform@0.97.3(effect@3.22.4))(effect@3.22.4))(@effect/platform@0.97.3(effect@3.22.4))(@effect/rpc@0.76.4(@effect/platform@0.97.3(effect@3.22.4))(effect@3.22.4))(effect@3.22.4))(effect@3.22.4)':
     dependencies:
-      '@effect/platform': 0.96.1(effect@3.22.2)
-      '@effect/rpc': 0.75.1(@effect/platform@0.96.1(effect@3.22.2))(effect@3.22.2)
-      '@effect/sql': 0.51.1(@effect/experimental@0.60.0(@effect/platform@0.96.1(effect@3.22.2))(effect@3.22.2))(@effect/platform@0.96.1(effect@3.22.2))(effect@3.22.2)
-      '@effect/workflow': 0.18.2(@effect/experimental@0.60.0(@effect/platform@0.96.1(effect@3.22.2))(effect@3.22.2))(@effect/platform@0.96.1(effect@3.22.2))(@effect/rpc@0.75.1(@effect/platform@0.96.1(effect@3.22.2))(effect@3.22.2))(effect@3.22.2)
-      effect: 3.22.2
+      '@effect/platform': 0.97.3(effect@3.22.4)
+      '@effect/rpc': 0.76.4(@effect/platform@0.97.3(effect@3.22.4))(effect@3.22.4)
+      '@effect/sql': 0.52.2(@effect/experimental@0.61.2(@effect/platform@0.97.3(effect@3.22.4))(effect@3.22.4))(@effect/platform@0.97.3(effect@3.22.4))(effect@3.22.4)
+      '@effect/workflow': 0.19.1(@effect/experimental@0.61.2(@effect/platform@0.97.3(effect@3.22.4))(effect@3.22.4))(@effect/platform@0.97.3(effect@3.22.4))(@effect/rpc@0.76.4(@effect/platform@0.97.3(effect@3.22.4))(effect@3.22.4))(effect@3.22.4)
+      effect: 3.22.4
       kubernetes-types: 1.30.0
 
   '@effect/eslint-plugin@0.3.2':
@@ -12896,17 +12895,17 @@ snapshots:
       '@dprint/typescript': 0.91.8
       prettier-linter-helpers: 1.0.1
 
-  '@effect/experimental@0.60.0(@effect/platform@0.96.1(effect@3.22.2))(effect@3.22.2)':
+  '@effect/experimental@0.61.2(@effect/platform@0.97.3(effect@3.22.4))(effect@3.22.4)':
     dependencies:
-      '@effect/platform': 0.96.1(effect@3.22.2)
-      effect: 3.22.2
+      '@effect/platform': 0.97.3(effect@3.22.4)
+      effect: 3.22.4
       uuid: 11.1.1
 
   '@effect/language-service@0.87.2': {}
 
-  '@effect/opentelemetry@0.63.0(@effect/platform@0.96.1(effect@3.22.2))(@opentelemetry/api@1.9.1)(@opentelemetry/resources@2.11.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-logs@0.219.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-metrics@2.12.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-base@2.10.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-node@2.8.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-web@2.8.0(@opentelemetry/api@1.9.1))(@opentelemetry/semantic-conventions@1.43.0)(effect@3.22.2)':
+  '@effect/opentelemetry@0.64.0(@effect/platform@0.97.3(effect@3.22.4))(@opentelemetry/api@1.9.1)(@opentelemetry/resources@2.11.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-logs@0.219.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-metrics@2.12.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-base@2.10.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-node@2.8.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-web@2.8.0(@opentelemetry/api@1.9.1))(@opentelemetry/semantic-conventions@1.43.0)(effect@3.22.4)':
     dependencies:
-      '@effect/platform': 0.96.1(effect@3.22.2)
+      '@effect/platform': 0.97.3(effect@3.22.4)
       '@opentelemetry/api': 1.9.1
       '@opentelemetry/resources': 2.11.0(@opentelemetry/api@1.9.1)
       '@opentelemetry/sdk-logs': 0.219.0(@opentelemetry/api@1.9.1)
@@ -12915,11 +12914,11 @@ snapshots:
       '@opentelemetry/sdk-trace-node': 2.8.0(@opentelemetry/api@1.9.1)
       '@opentelemetry/sdk-trace-web': 2.8.0(@opentelemetry/api@1.9.1)
       '@opentelemetry/semantic-conventions': 1.43.0
-      effect: 3.22.2
+      effect: 3.22.4
 
-  '@effect/opentelemetry@0.63.0(@effect/platform@0.96.1(effect@3.22.2))(@opentelemetry/api@1.9.1)(@opentelemetry/resources@2.12.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-logs@0.219.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-metrics@2.12.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-base@2.10.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-node@2.8.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-web@2.8.0(@opentelemetry/api@1.9.1))(@opentelemetry/semantic-conventions@1.43.0)(effect@3.22.2)':
+  '@effect/opentelemetry@0.64.0(@effect/platform@0.97.3(effect@3.22.4))(@opentelemetry/api@1.9.1)(@opentelemetry/resources@2.12.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-logs@0.219.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-metrics@2.12.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-base@2.10.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-node@2.8.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-web@2.8.0(@opentelemetry/api@1.9.1))(@opentelemetry/semantic-conventions@1.43.0)(effect@3.22.4)':
     dependencies:
-      '@effect/platform': 0.96.1(effect@3.22.2)
+      '@effect/platform': 0.97.3(effect@3.22.4)
       '@opentelemetry/api': 1.9.1
       '@opentelemetry/resources': 2.12.0(@opentelemetry/api@1.9.1)
       '@opentelemetry/sdk-logs': 0.219.0(@opentelemetry/api@1.9.1)
@@ -12928,30 +12927,43 @@ snapshots:
       '@opentelemetry/sdk-trace-node': 2.8.0(@opentelemetry/api@1.9.1)
       '@opentelemetry/sdk-trace-web': 2.8.0(@opentelemetry/api@1.9.1)
       '@opentelemetry/semantic-conventions': 1.43.0
-      effect: 3.22.2
+      effect: 3.22.4
 
-  '@effect/platform-node-shared@0.59.0(@effect/cluster@0.58.2(@effect/platform@0.96.1(effect@3.22.2))(@effect/rpc@0.75.1(@effect/platform@0.96.1(effect@3.22.2))(effect@3.22.2))(@effect/sql@0.51.1(@effect/experimental@0.60.0(@effect/platform@0.96.1(effect@3.22.2))(effect@3.22.2))(@effect/platform@0.96.1(effect@3.22.2))(effect@3.22.2))(@effect/workflow@0.18.2(@effect/experimental@0.60.0(@effect/platform@0.96.1(effect@3.22.2))(effect@3.22.2))(@effect/platform@0.96.1(effect@3.22.2))(@effect/rpc@0.75.1(@effect/platform@0.96.1(effect@3.22.2))(effect@3.22.2))(effect@3.22.2))(effect@3.22.2))(@effect/platform@0.96.1(effect@3.22.2))(@effect/rpc@0.75.1(@effect/platform@0.96.1(effect@3.22.2))(effect@3.22.2))(@effect/sql@0.51.1(@effect/experimental@0.60.0(@effect/platform@0.96.1(effect@3.22.2))(effect@3.22.2))(@effect/platform@0.96.1(effect@3.22.2))(effect@3.22.2))(effect@3.22.2)':
+  '@effect/opentelemetry@0.64.0(@effect/platform@0.97.3(effect@3.22.4))(@opentelemetry/api@1.9.1)(@opentelemetry/resources@2.12.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-logs@0.221.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-metrics@2.12.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-base@2.10.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-node@2.8.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-web@2.8.0(@opentelemetry/api@1.9.1))(@opentelemetry/semantic-conventions@1.43.0)(effect@3.22.4)':
     dependencies:
-      '@effect/cluster': 0.58.2(@effect/platform@0.96.1(effect@3.22.2))(@effect/rpc@0.75.1(@effect/platform@0.96.1(effect@3.22.2))(effect@3.22.2))(@effect/sql@0.51.1(@effect/experimental@0.60.0(@effect/platform@0.96.1(effect@3.22.2))(effect@3.22.2))(@effect/platform@0.96.1(effect@3.22.2))(effect@3.22.2))(@effect/workflow@0.18.2(@effect/experimental@0.60.0(@effect/platform@0.96.1(effect@3.22.2))(effect@3.22.2))(@effect/platform@0.96.1(effect@3.22.2))(@effect/rpc@0.75.1(@effect/platform@0.96.1(effect@3.22.2))(effect@3.22.2))(effect@3.22.2))(effect@3.22.2)
-      '@effect/platform': 0.96.1(effect@3.22.2)
-      '@effect/rpc': 0.75.1(@effect/platform@0.96.1(effect@3.22.2))(effect@3.22.2)
-      '@effect/sql': 0.51.1(@effect/experimental@0.60.0(@effect/platform@0.96.1(effect@3.22.2))(effect@3.22.2))(@effect/platform@0.96.1(effect@3.22.2))(effect@3.22.2)
+      '@effect/platform': 0.97.3(effect@3.22.4)
+      '@opentelemetry/api': 1.9.1
+      '@opentelemetry/resources': 2.12.0(@opentelemetry/api@1.9.1)
+      '@opentelemetry/sdk-logs': 0.221.0(@opentelemetry/api@1.9.1)
+      '@opentelemetry/sdk-metrics': 2.12.0(@opentelemetry/api@1.9.1)
+      '@opentelemetry/sdk-trace-base': 2.10.0(@opentelemetry/api@1.9.1)
+      '@opentelemetry/sdk-trace-node': 2.8.0(@opentelemetry/api@1.9.1)
+      '@opentelemetry/sdk-trace-web': 2.8.0(@opentelemetry/api@1.9.1)
+      '@opentelemetry/semantic-conventions': 1.43.0
+      effect: 3.22.4
+
+  '@effect/platform-node-shared@0.61.2(@effect/cluster@0.60.5(@effect/platform@0.97.3(effect@3.22.4))(@effect/rpc@0.76.4(@effect/platform@0.97.3(effect@3.22.4))(effect@3.22.4))(@effect/sql@0.52.2(@effect/experimental@0.61.2(@effect/platform@0.97.3(effect@3.22.4))(effect@3.22.4))(@effect/platform@0.97.3(effect@3.22.4))(effect@3.22.4))(@effect/workflow@0.19.1(@effect/experimental@0.61.2(@effect/platform@0.97.3(effect@3.22.4))(effect@3.22.4))(@effect/platform@0.97.3(effect@3.22.4))(@effect/rpc@0.76.4(@effect/platform@0.97.3(effect@3.22.4))(effect@3.22.4))(effect@3.22.4))(effect@3.22.4))(@effect/platform@0.97.3(effect@3.22.4))(@effect/rpc@0.76.4(@effect/platform@0.97.3(effect@3.22.4))(effect@3.22.4))(@effect/sql@0.52.2(@effect/experimental@0.61.2(@effect/platform@0.97.3(effect@3.22.4))(effect@3.22.4))(@effect/platform@0.97.3(effect@3.22.4))(effect@3.22.4))(effect@3.22.4)':
+    dependencies:
+      '@effect/cluster': 0.60.5(@effect/platform@0.97.3(effect@3.22.4))(@effect/rpc@0.76.4(@effect/platform@0.97.3(effect@3.22.4))(effect@3.22.4))(@effect/sql@0.52.2(@effect/experimental@0.61.2(@effect/platform@0.97.3(effect@3.22.4))(effect@3.22.4))(@effect/platform@0.97.3(effect@3.22.4))(effect@3.22.4))(@effect/workflow@0.19.1(@effect/experimental@0.61.2(@effect/platform@0.97.3(effect@3.22.4))(effect@3.22.4))(@effect/platform@0.97.3(effect@3.22.4))(@effect/rpc@0.76.4(@effect/platform@0.97.3(effect@3.22.4))(effect@3.22.4))(effect@3.22.4))(effect@3.22.4)
+      '@effect/platform': 0.97.3(effect@3.22.4)
+      '@effect/rpc': 0.76.4(@effect/platform@0.97.3(effect@3.22.4))(effect@3.22.4)
+      '@effect/sql': 0.52.2(@effect/experimental@0.61.2(@effect/platform@0.97.3(effect@3.22.4))(effect@3.22.4))(@effect/platform@0.97.3(effect@3.22.4))(effect@3.22.4)
       '@parcel/watcher': 2.6.0
-      effect: 3.22.2
-      multipasta: 0.2.8
+      effect: 3.22.4
+      multipasta: 0.2.9
       ws: 8.21.3
     transitivePeerDependencies:
       - bufferutil
       - utf-8-validate
 
-  '@effect/platform-node@0.106.0(@effect/cluster@0.58.2(@effect/platform@0.96.1(effect@3.22.2))(@effect/rpc@0.75.1(@effect/platform@0.96.1(effect@3.22.2))(effect@3.22.2))(@effect/sql@0.51.1(@effect/experimental@0.60.0(@effect/platform@0.96.1(effect@3.22.2))(effect@3.22.2))(@effect/platform@0.96.1(effect@3.22.2))(effect@3.22.2))(@effect/workflow@0.18.2(@effect/experimental@0.60.0(@effect/platform@0.96.1(effect@3.22.2))(effect@3.22.2))(@effect/platform@0.96.1(effect@3.22.2))(@effect/rpc@0.75.1(@effect/platform@0.96.1(effect@3.22.2))(effect@3.22.2))(effect@3.22.2))(effect@3.22.2))(@effect/platform@0.96.1(effect@3.22.2))(@effect/rpc@0.75.1(@effect/platform@0.96.1(effect@3.22.2))(effect@3.22.2))(@effect/sql@0.51.1(@effect/experimental@0.60.0(@effect/platform@0.96.1(effect@3.22.2))(effect@3.22.2))(@effect/platform@0.96.1(effect@3.22.2))(effect@3.22.2))(effect@3.22.2)':
+  '@effect/platform-node@0.108.4(@effect/cluster@0.60.5(@effect/platform@0.97.3(effect@3.22.4))(@effect/rpc@0.76.4(@effect/platform@0.97.3(effect@3.22.4))(effect@3.22.4))(@effect/sql@0.52.2(@effect/experimental@0.61.2(@effect/platform@0.97.3(effect@3.22.4))(effect@3.22.4))(@effect/platform@0.97.3(effect@3.22.4))(effect@3.22.4))(@effect/workflow@0.19.1(@effect/experimental@0.61.2(@effect/platform@0.97.3(effect@3.22.4))(effect@3.22.4))(@effect/platform@0.97.3(effect@3.22.4))(@effect/rpc@0.76.4(@effect/platform@0.97.3(effect@3.22.4))(effect@3.22.4))(effect@3.22.4))(effect@3.22.4))(@effect/platform@0.97.3(effect@3.22.4))(@effect/rpc@0.76.4(@effect/platform@0.97.3(effect@3.22.4))(effect@3.22.4))(@effect/sql@0.52.2(@effect/experimental@0.61.2(@effect/platform@0.97.3(effect@3.22.4))(effect@3.22.4))(@effect/platform@0.97.3(effect@3.22.4))(effect@3.22.4))(effect@3.22.4)':
     dependencies:
-      '@effect/cluster': 0.58.2(@effect/platform@0.96.1(effect@3.22.2))(@effect/rpc@0.75.1(@effect/platform@0.96.1(effect@3.22.2))(effect@3.22.2))(@effect/sql@0.51.1(@effect/experimental@0.60.0(@effect/platform@0.96.1(effect@3.22.2))(effect@3.22.2))(@effect/platform@0.96.1(effect@3.22.2))(effect@3.22.2))(@effect/workflow@0.18.2(@effect/experimental@0.60.0(@effect/platform@0.96.1(effect@3.22.2))(effect@3.22.2))(@effect/platform@0.96.1(effect@3.22.2))(@effect/rpc@0.75.1(@effect/platform@0.96.1(effect@3.22.2))(effect@3.22.2))(effect@3.22.2))(effect@3.22.2)
-      '@effect/platform': 0.96.1(effect@3.22.2)
-      '@effect/platform-node-shared': 0.59.0(@effect/cluster@0.58.2(@effect/platform@0.96.1(effect@3.22.2))(@effect/rpc@0.75.1(@effect/platform@0.96.1(effect@3.22.2))(effect@3.22.2))(@effect/sql@0.51.1(@effect/experimental@0.60.0(@effect/platform@0.96.1(effect@3.22.2))(effect@3.22.2))(@effect/platform@0.96.1(effect@3.22.2))(effect@3.22.2))(@effect/workflow@0.18.2(@effect/experimental@0.60.0(@effect/platform@0.96.1(effect@3.22.2))(effect@3.22.2))(@effect/platform@0.96.1(effect@3.22.2))(@effect/rpc@0.75.1(@effect/platform@0.96.1(effect@3.22.2))(effect@3.22.2))(effect@3.22.2))(effect@3.22.2))(@effect/platform@0.96.1(effect@3.22.2))(@effect/rpc@0.75.1(@effect/platform@0.96.1(effect@3.22.2))(effect@3.22.2))(@effect/sql@0.51.1(@effect/experimental@0.60.0(@effect/platform@0.96.1(effect@3.22.2))(effect@3.22.2))(@effect/platform@0.96.1(effect@3.22.2))(effect@3.22.2))(effect@3.22.2)
-      '@effect/rpc': 0.75.1(@effect/platform@0.96.1(effect@3.22.2))(effect@3.22.2)
-      '@effect/sql': 0.51.1(@effect/experimental@0.60.0(@effect/platform@0.96.1(effect@3.22.2))(effect@3.22.2))(@effect/platform@0.96.1(effect@3.22.2))(effect@3.22.2)
-      effect: 3.22.2
+      '@effect/cluster': 0.60.5(@effect/platform@0.97.3(effect@3.22.4))(@effect/rpc@0.76.4(@effect/platform@0.97.3(effect@3.22.4))(effect@3.22.4))(@effect/sql@0.52.2(@effect/experimental@0.61.2(@effect/platform@0.97.3(effect@3.22.4))(effect@3.22.4))(@effect/platform@0.97.3(effect@3.22.4))(effect@3.22.4))(@effect/workflow@0.19.1(@effect/experimental@0.61.2(@effect/platform@0.97.3(effect@3.22.4))(effect@3.22.4))(@effect/platform@0.97.3(effect@3.22.4))(@effect/rpc@0.76.4(@effect/platform@0.97.3(effect@3.22.4))(effect@3.22.4))(effect@3.22.4))(effect@3.22.4)
+      '@effect/platform': 0.97.3(effect@3.22.4)
+      '@effect/platform-node-shared': 0.61.2(@effect/cluster@0.60.5(@effect/platform@0.97.3(effect@3.22.4))(@effect/rpc@0.76.4(@effect/platform@0.97.3(effect@3.22.4))(effect@3.22.4))(@effect/sql@0.52.2(@effect/experimental@0.61.2(@effect/platform@0.97.3(effect@3.22.4))(effect@3.22.4))(@effect/platform@0.97.3(effect@3.22.4))(effect@3.22.4))(@effect/workflow@0.19.1(@effect/experimental@0.61.2(@effect/platform@0.97.3(effect@3.22.4))(effect@3.22.4))(@effect/platform@0.97.3(effect@3.22.4))(@effect/rpc@0.76.4(@effect/platform@0.97.3(effect@3.22.4))(effect@3.22.4))(effect@3.22.4))(effect@3.22.4))(@effect/platform@0.97.3(effect@3.22.4))(@effect/rpc@0.76.4(@effect/platform@0.97.3(effect@3.22.4))(effect@3.22.4))(@effect/sql@0.52.2(@effect/experimental@0.61.2(@effect/platform@0.97.3(effect@3.22.4))(effect@3.22.4))(@effect/platform@0.97.3(effect@3.22.4))(effect@3.22.4))(effect@3.22.4)
+      '@effect/rpc': 0.76.4(@effect/platform@0.97.3(effect@3.22.4))(effect@3.22.4)
+      '@effect/sql': 0.52.2(@effect/experimental@0.61.2(@effect/platform@0.97.3(effect@3.22.4))(effect@3.22.4))(@effect/platform@0.97.3(effect@3.22.4))(effect@3.22.4)
+      effect: 3.22.4
       mime: 3.0.0
       undici: 7.29.1
       ws: 8.21.3
@@ -12959,32 +12971,32 @@ snapshots:
       - bufferutil
       - utf-8-validate
 
-  '@effect/platform@0.96.1(effect@3.22.2)':
+  '@effect/platform@0.97.3(effect@3.22.4)':
     dependencies:
-      effect: 3.22.2
+      effect: 3.22.4
       find-my-way-ts: 0.1.6
       msgpackr: 1.12.1
-      multipasta: 0.2.8
+      multipasta: 0.2.9
 
-  '@effect/rpc@0.75.1(@effect/platform@0.96.1(effect@3.22.2))(effect@3.22.2)':
+  '@effect/rpc@0.76.4(@effect/platform@0.97.3(effect@3.22.4))(effect@3.22.4)':
     dependencies:
-      '@effect/platform': 0.96.1(effect@3.22.2)
-      effect: 3.22.2
+      '@effect/platform': 0.97.3(effect@3.22.4)
+      effect: 3.22.4
       msgpackr: 1.12.1
 
-  '@effect/sql@0.51.1(@effect/experimental@0.60.0(@effect/platform@0.96.1(effect@3.22.2))(effect@3.22.2))(@effect/platform@0.96.1(effect@3.22.2))(effect@3.22.2)':
+  '@effect/sql@0.52.2(@effect/experimental@0.61.2(@effect/platform@0.97.3(effect@3.22.4))(effect@3.22.4))(@effect/platform@0.97.3(effect@3.22.4))(effect@3.22.4)':
     dependencies:
-      '@effect/experimental': 0.60.0(@effect/platform@0.96.1(effect@3.22.2))(effect@3.22.2)
-      '@effect/platform': 0.96.1(effect@3.22.2)
-      effect: 3.22.2
+      '@effect/experimental': 0.61.2(@effect/platform@0.97.3(effect@3.22.4))(effect@3.22.4)
+      '@effect/platform': 0.97.3(effect@3.22.4)
+      effect: 3.22.4
       uuid: 11.1.1
 
-  '@effect/workflow@0.18.2(@effect/experimental@0.60.0(@effect/platform@0.96.1(effect@3.22.2))(effect@3.22.2))(@effect/platform@0.96.1(effect@3.22.2))(@effect/rpc@0.75.1(@effect/platform@0.96.1(effect@3.22.2))(effect@3.22.2))(effect@3.22.2)':
+  '@effect/workflow@0.19.1(@effect/experimental@0.61.2(@effect/platform@0.97.3(effect@3.22.4))(effect@3.22.4))(@effect/platform@0.97.3(effect@3.22.4))(@effect/rpc@0.76.4(@effect/platform@0.97.3(effect@3.22.4))(effect@3.22.4))(effect@3.22.4)':
     dependencies:
-      '@effect/experimental': 0.60.0(@effect/platform@0.96.1(effect@3.22.2))(effect@3.22.2)
-      '@effect/platform': 0.96.1(effect@3.22.2)
-      '@effect/rpc': 0.75.1(@effect/platform@0.96.1(effect@3.22.2))(effect@3.22.2)
-      effect: 3.22.2
+      '@effect/experimental': 0.61.2(@effect/platform@0.97.3(effect@3.22.4))(effect@3.22.4)
+      '@effect/platform': 0.97.3(effect@3.22.4)
+      '@effect/rpc': 0.76.4(@effect/platform@0.97.3(effect@3.22.4))(effect@3.22.4)
+      effect: 3.22.4
 
   '@emnapi/core@1.10.0':
     dependencies:
@@ -13170,9 +13182,9 @@ snapshots:
       '@eslint/core': 1.2.1
       levn: 0.4.1
 
-  '@hono/node-server@2.1.1(hono@4.13.7)':
+  '@hono/node-server@2.1.9(hono@4.13.18)':
     dependencies:
-      hono: 4.13.7
+      hono: 4.13.18
 
   '@html-eslint/core@0.59.0':
     dependencies:
@@ -13372,6 +13384,8 @@ snapshots:
     dependencies:
       minipass: 7.1.3
 
+  '@isaacs/nonrecursive-glob-match@1.0.3': {}
+
   '@istanbuljs/load-nyc-config@1.1.0':
     dependencies:
       camelcase: 5.3.1
@@ -13391,7 +13405,7 @@ snapshots:
       jest-util: 30.4.1
       slash: 3.0.0
 
-  '@jest/core@30.4.2(supports-color@8.1.1)(ts-node@10.9.2(@types/node@24.19.2)(typescript@6.0.3))':
+  '@jest/core@30.4.2(supports-color@8.1.1)':
     dependencies:
       '@jest/console': 30.4.1
       '@jest/pattern': 30.4.0
@@ -13407,7 +13421,7 @@ snapshots:
       fast-json-stable-stringify: 2.1.0
       graceful-fs: 4.2.11
       jest-changed-files: 30.4.1
-      jest-config: 30.4.2(@types/node@24.19.2)(supports-color@8.1.1)(ts-node@10.9.2(@types/node@24.19.2)(typescript@6.0.3))
+      jest-config: 30.4.2(@types/node@24.19.2)(supports-color@8.1.1)
       jest-haste-map: 30.4.1
       jest-message-util: 30.4.1
       jest-regex-util: 30.4.0
@@ -13639,11 +13653,6 @@ snapshots:
       '@jridgewell/resolve-uri': 3.1.2
       '@jridgewell/sourcemap-codec': 1.6.0
 
-  '@jridgewell/trace-mapping@0.3.9':
-    dependencies:
-      '@jridgewell/resolve-uri': 3.1.2
-      '@jridgewell/sourcemap-codec': 1.6.0
-
   '@jscpd/badge-reporter@4.2.5':
     dependencies:
       badgen: 3.3.2
@@ -13690,7 +13699,7 @@ snapshots:
     dependencies:
       jsep: 1.4.0
 
-  '@jsforce/jsforce-node@3.10.29':
+  '@jsforce/jsforce-node@3.13.1':
     dependencies:
       '@sindresorhus/is': 4.6.0
       base64url: 3.0.1
@@ -13734,6 +13743,13 @@ snapshots:
       thingies: 2.6.1(tslib@2.8.1)
       tslib: 2.8.1
 
+  '@jsonjoy.com/fs-core@4.80.0(tslib@2.8.1)':
+    dependencies:
+      '@jsonjoy.com/fs-node-builtins': 4.80.0(tslib@2.8.1)
+      '@jsonjoy.com/fs-node-utils': 4.80.0(tslib@2.8.1)
+      thingies: 2.6.1(tslib@2.8.1)
+      tslib: 2.8.1
+
   '@jsonjoy.com/fs-fsa@4.74.0(tslib@2.8.1)':
     dependencies:
       '@jsonjoy.com/fs-core': 4.74.0(tslib@2.8.1)
@@ -13742,7 +13758,19 @@ snapshots:
       thingies: 2.6.1(tslib@2.8.1)
       tslib: 2.8.1
 
+  '@jsonjoy.com/fs-fsa@4.80.0(tslib@2.8.1)':
+    dependencies:
+      '@jsonjoy.com/fs-core': 4.80.0(tslib@2.8.1)
+      '@jsonjoy.com/fs-node-builtins': 4.80.0(tslib@2.8.1)
+      '@jsonjoy.com/fs-node-utils': 4.80.0(tslib@2.8.1)
+      thingies: 2.6.1(tslib@2.8.1)
+      tslib: 2.8.1
+
   '@jsonjoy.com/fs-node-builtins@4.74.0(tslib@2.8.1)':
+    dependencies:
+      tslib: 2.8.1
+
+  '@jsonjoy.com/fs-node-builtins@4.80.0(tslib@2.8.1)':
     dependencies:
       tslib: 2.8.1
 
@@ -13753,10 +13781,23 @@ snapshots:
       '@jsonjoy.com/fs-node-utils': 4.74.0(tslib@2.8.1)
       tslib: 2.8.1
 
+  '@jsonjoy.com/fs-node-to-fsa@4.80.0(tslib@2.8.1)':
+    dependencies:
+      '@jsonjoy.com/fs-fsa': 4.80.0(tslib@2.8.1)
+      '@jsonjoy.com/fs-node-builtins': 4.80.0(tslib@2.8.1)
+      '@jsonjoy.com/fs-node-utils': 4.80.0(tslib@2.8.1)
+      tslib: 2.8.1
+
   '@jsonjoy.com/fs-node-utils@4.74.0(tslib@2.8.1)':
     dependencies:
       '@jsonjoy.com/fs-node-builtins': 4.74.0(tslib@2.8.1)
       glob-to-regex.js: 1.2.0(tslib@2.8.1)
+      tslib: 2.8.1
+
+  '@jsonjoy.com/fs-node-utils@4.80.0(tslib@2.8.1)':
+    dependencies:
+      '@jsonjoy.com/fs-node-builtins': 4.80.0(tslib@2.8.1)
+      glob-to-regex.js: 1.3.1(tslib@2.8.1)
       tslib: 2.8.1
 
   '@jsonjoy.com/fs-node@4.74.0(tslib@2.8.1)':
@@ -13770,9 +13811,26 @@ snapshots:
       thingies: 2.6.1(tslib@2.8.1)
       tslib: 2.8.1
 
+  '@jsonjoy.com/fs-node@4.80.0(tslib@2.8.1)':
+    dependencies:
+      '@jsonjoy.com/fs-core': 4.80.0(tslib@2.8.1)
+      '@jsonjoy.com/fs-node-builtins': 4.80.0(tslib@2.8.1)
+      '@jsonjoy.com/fs-node-utils': 4.80.0(tslib@2.8.1)
+      '@jsonjoy.com/fs-print': 4.80.0(tslib@2.8.1)
+      '@jsonjoy.com/fs-snapshot': 4.80.0(tslib@2.8.1)
+      glob-to-regex.js: 1.3.1(tslib@2.8.1)
+      thingies: 2.6.1(tslib@2.8.1)
+      tslib: 2.8.1
+
   '@jsonjoy.com/fs-print@4.74.0(tslib@2.8.1)':
     dependencies:
       '@jsonjoy.com/fs-node-utils': 4.74.0(tslib@2.8.1)
+      tree-dump: 1.1.0(tslib@2.8.1)
+      tslib: 2.8.1
+
+  '@jsonjoy.com/fs-print@4.80.0(tslib@2.8.1)':
+    dependencies:
+      '@jsonjoy.com/fs-node-utils': 4.80.0(tslib@2.8.1)
       tree-dump: 1.1.0(tslib@2.8.1)
       tslib: 2.8.1
 
@@ -13780,6 +13838,14 @@ snapshots:
     dependencies:
       '@jsonjoy.com/buffers': 17.67.0(tslib@2.8.1)
       '@jsonjoy.com/fs-node-utils': 4.74.0(tslib@2.8.1)
+      '@jsonjoy.com/json-pack': 17.67.0(tslib@2.8.1)
+      '@jsonjoy.com/util': 17.67.0(tslib@2.8.1)
+      tslib: 2.8.1
+
+  '@jsonjoy.com/fs-snapshot@4.80.0(tslib@2.8.1)':
+    dependencies:
+      '@jsonjoy.com/buffers': 17.67.0(tslib@2.8.1)
+      '@jsonjoy.com/fs-node-utils': 4.80.0(tslib@2.8.1)
       '@jsonjoy.com/json-pack': 17.67.0(tslib@2.8.1)
       '@jsonjoy.com/util': 17.67.0(tslib@2.8.1)
       tslib: 2.8.1
@@ -14168,9 +14234,9 @@ snapshots:
     dependencies:
       '@nevware21/ts-utils': 0.16.0
 
-  '@modelcontextprotocol/sdk@1.32.0(supports-color@8.1.1)(zod@4.6.1)':
+  '@modelcontextprotocol/sdk@1.32.0(supports-color@8.1.1)(zod@4.6.7)':
     dependencies:
-      '@hono/node-server': 2.1.1(hono@4.13.7)
+      '@hono/node-server': 2.1.9(hono@4.13.18)
       ajv: 8.20.0
       ajv-formats: 3.0.1
       content-type: 1.0.5
@@ -14180,13 +14246,13 @@ snapshots:
       eventsource-parser: 3.1.1
       express: 5.2.1(supports-color@8.1.1)
       express-rate-limit: 8.7.0(express@5.2.1(supports-color@8.1.1))(supports-color@8.1.1)
-      hono: 4.13.7
+      hono: 4.13.18
       jose: 6.2.12
       json-schema-typed: 8.0.2
       pkce-challenge: 5.0.1
       raw-body: 3.0.2
-      zod: 4.6.1
-      zod-to-json-schema: 3.25.2(zod@4.6.1)
+      zod: 4.6.7
+      zod-to-json-schema: 3.25.2(zod@4.6.7)
     transitivePeerDependencies:
       - supports-color
 
@@ -14406,6 +14472,10 @@ snapshots:
     dependencies:
       '@opentelemetry/api': 1.9.1
 
+  '@opentelemetry/api-logs@0.221.0':
+    dependencies:
+      '@opentelemetry/api': 1.9.1
+
   '@opentelemetry/api@1.9.1': {}
 
   '@opentelemetry/context-async-hooks@2.8.0(@opentelemetry/api@1.9.1)':
@@ -14487,6 +14557,14 @@ snapshots:
       '@opentelemetry/api-logs': 0.219.0
       '@opentelemetry/core': 2.8.0(@opentelemetry/api@1.9.1)
       '@opentelemetry/resources': 2.8.0(@opentelemetry/api@1.9.1)
+      '@opentelemetry/semantic-conventions': 1.43.0
+
+  '@opentelemetry/sdk-logs@0.221.0(@opentelemetry/api@1.9.1)':
+    dependencies:
+      '@opentelemetry/api': 1.9.1
+      '@opentelemetry/api-logs': 0.221.0
+      '@opentelemetry/core': 2.10.0(@opentelemetry/api@1.9.1)
+      '@opentelemetry/resources': 2.10.0(@opentelemetry/api@1.9.1)
       '@opentelemetry/semantic-conventions': 1.43.0
 
   '@opentelemetry/sdk-metrics@2.12.0(@opentelemetry/api@1.9.1)':
@@ -14981,11 +15059,11 @@ snapshots:
 
   '@salesforce/apex@0.0.21': {}
 
-  '@salesforce/core@9.3.6':
+  '@salesforce/core@9.6.0':
     dependencies:
-      '@jsforce/jsforce-node': 3.10.29
-      '@salesforce/kit': 4.0.0
-      '@salesforce/ts-types': 3.2.0
+      '@jsforce/jsforce-node': 3.13.1
+      '@salesforce/kit': 4.0.10
+      '@salesforce/ts-types': 3.2.4
       ajv: 8.20.0
       change-case: 4.1.2
       fast-levenshtein: 3.0.0
@@ -14994,18 +15072,18 @@ snapshots:
       js2xmlparser: 4.0.2
       jsonwebtoken: 9.0.3
       jszip: 3.10.1
-      memfs: 4.38.1
+      memfs: 4.80.0
       pino: 9.14.0
       pino-abstract-transport: 1.2.0
       pino-pretty: 11.3.0
       proper-lockfile: 4.1.2
       semver: 7.8.5
       ts-retry-promise: 0.8.1
-      zod: 4.6.1
+      zod: 4.6.7
 
   '@salesforce/dev-config@4.3.3': {}
 
-  '@salesforce/eslint-config-lwc@4.1.2(36b0f383863031eead4017742c61b37b)':
+  '@salesforce/eslint-config-lwc@4.1.2(107e08d063f4899a7b654f3a416377a2)':
     dependencies:
       '@babel/core': 7.26.10(supports-color@8.1.1)
       '@babel/eslint-parser': 7.25.9(@babel/core@7.26.10(supports-color@8.1.1))(eslint@10.13.0(jiti@2.7.0)(supports-color@8.1.1))
@@ -15014,7 +15092,7 @@ snapshots:
       '@salesforce/eslint-plugin-lightning': 2.0.0(eslint@10.13.0(jiti@2.7.0)(supports-color@8.1.1))
       eslint: 10.13.0(jiti@2.7.0)(supports-color@8.1.1)
       eslint-plugin-import: 2.32.0(@typescript-eslint/parser@8.72.0(eslint@10.13.0(jiti@2.7.0)(supports-color@8.1.1))(supports-color@8.1.1)(typescript@6.0.3))(eslint@10.13.0(jiti@2.7.0)(supports-color@8.1.1))(supports-color@8.1.1)
-      eslint-plugin-jest: 29.17.0(@typescript-eslint/eslint-plugin@8.72.0(@typescript-eslint/parser@8.72.0(eslint@10.13.0(jiti@2.7.0)(supports-color@8.1.1))(supports-color@8.1.1)(typescript@6.0.3))(eslint@10.13.0(jiti@2.7.0)(supports-color@8.1.1))(supports-color@8.1.1)(typescript@6.0.3))(eslint@10.13.0(jiti@2.7.0)(supports-color@8.1.1))(jest@30.4.2(@types/node@24.19.2)(supports-color@8.1.1)(ts-node@10.9.2(@types/node@24.19.2)(typescript@6.0.3)))(supports-color@8.1.1)(typescript@6.0.3)
+      eslint-plugin-jest: 29.17.0(@typescript-eslint/eslint-plugin@8.72.0(@typescript-eslint/parser@8.72.0(eslint@10.13.0(jiti@2.7.0)(supports-color@8.1.1))(supports-color@8.1.1)(typescript@6.0.3))(eslint@10.13.0(jiti@2.7.0)(supports-color@8.1.1))(supports-color@8.1.1)(typescript@6.0.3))(eslint@10.13.0(jiti@2.7.0)(supports-color@8.1.1))(jest@30.4.2(@types/node@24.19.2)(supports-color@8.1.1))(supports-color@8.1.1)(typescript@6.0.3)
       eslint-restricted-globals: 0.2.0
       globals: 15.14.0
       semver: 7.8.5
@@ -15028,6 +15106,10 @@ snapshots:
   '@salesforce/kit@4.0.0':
     dependencies:
       '@salesforce/ts-types': 3.2.0
+
+  '@salesforce/kit@4.0.10':
+    dependencies:
+      '@salesforce/ts-types': 3.2.4
 
   '@salesforce/kit@4.0.8':
     dependencies:
@@ -15057,39 +15139,49 @@ snapshots:
       vscode-languageserver-protocol: 3.17.5
       vscode-languageserver-textdocument: 1.0.12
 
-  '@salesforce/source-deploy-retrieve@13.5.0(supports-color@8.1.1)':
+  '@salesforce/source-deploy-retrieve@13.14.1(supports-color@8.1.1)':
     dependencies:
-      '@salesforce/core': 9.3.6
-      '@salesforce/kit': 4.0.0
-      '@salesforce/ts-types': 3.2.0
-      '@salesforce/types': 1.8.0
+      '@salesforce/core': 9.6.0
+      '@salesforce/kit': 4.0.10
+      '@salesforce/ts-types': 3.2.4
+      '@salesforce/types': 1.9.0
       fast-levenshtein: 3.0.0
-      fast-xml-parser: 5.11.2
+      fast-xml-parser: 5.12.1
+      form-data: 4.0.6
       got: 11.8.6
       graceful-fs: 4.2.11
       ignore: 5.3.2
       jszip: 3.10.2
       mime: 2.6.0
-      minimatch: 9.0.9
-      proxy-agent: 6.5.0(supports-color@8.1.1)
-      yaml: 2.9.0
+      minimatch: 11.0.4
+      proxy-agent: 8.0.3(supports-color@8.1.1)
+      tar-stream: 3.2.1
+      yaml: 2.9.1
     transitivePeerDependencies:
+      - bare-abort-controller
+      - bare-buffer
+      - kerberos
+      - react-native-b4a
       - supports-color
 
-  '@salesforce/source-tracking@8.1.7(supports-color@8.1.1)':
+  '@salesforce/source-tracking@8.1.16(supports-color@8.1.1)':
     dependencies:
-      '@salesforce/core': 9.3.6
-      '@salesforce/kit': 4.0.0
-      '@salesforce/source-deploy-retrieve': 13.5.0(supports-color@8.1.1)
-      '@salesforce/ts-types': 3.2.0
+      '@salesforce/core': 9.6.0
+      '@salesforce/kit': 4.0.8
+      '@salesforce/source-deploy-retrieve': 13.14.1(supports-color@8.1.1)
+      '@salesforce/ts-types': 3.2.3
       fast-xml-parser: 5.11.2
       graceful-fs: 4.2.11
       isomorphic-git: 1.44.2
       ts-retry-promise: 0.8.1
     transitivePeerDependencies:
+      - bare-abort-controller
+      - bare-buffer
+      - kerberos
+      - react-native-b4a
       - supports-color
 
-  '@salesforce/templates@66.17.4':
+  '@salesforce/templates@66.19.0':
     dependencies:
       '@salesforce/kit': 4.0.8
       ejs: 3.1.10
@@ -15104,7 +15196,11 @@ snapshots:
 
   '@salesforce/ts-types@3.2.3': {}
 
+  '@salesforce/ts-types@3.2.4': {}
+
   '@salesforce/types@1.8.0': {}
+
+  '@salesforce/types@1.9.0': {}
 
   '@salesforce/vscode-service-provider@1.5.0': {}
 
@@ -15350,12 +15446,6 @@ snapshots:
 
   '@standard-schema/spec@1.1.0': {}
 
-  '@statsig/client-core@3.31.0': {}
-
-  '@statsig/js-client@3.31.0':
-    dependencies:
-      '@statsig/client-core': 3.31.0
-
   '@stoplight/better-ajv-errors@1.0.3(ajv@8.20.0)':
     dependencies:
       ajv: 8.20.0
@@ -15409,7 +15499,7 @@ snapshots:
       '@types/json-schema': 7.0.15
       ajv: 8.20.0
       ajv-errors: 3.0.0(ajv@8.20.0)
-      ajv-formats: 2.1.1(ajv@8.20.0)
+      ajv-formats: 2.1.1
       es-aggregate-error: 1.0.14
       expr-eval-fork: 3.0.3
       jsonpath-plus: 10.4.0
@@ -15443,7 +15533,7 @@ snapshots:
       ajv: 8.20.0
       ajv-draft-04: 1.0.0(ajv@8.20.0)
       ajv-errors: 3.0.0(ajv@8.20.0)
-      ajv-formats: 2.1.1(ajv@8.20.0)
+      ajv-formats: 2.1.1
       lodash: 4.18.1
       tslib: 2.8.1
     transitivePeerDependencies:
@@ -15479,7 +15569,7 @@ snapshots:
       '@stoplight/types': 13.20.0
       '@types/json-schema': 7.0.15
       ajv: 8.20.0
-      ajv-formats: 2.1.1(ajv@8.20.0)
+      ajv-formats: 2.1.1
       json-schema-traverse: 1.0.0
       leven: 3.1.0
       lodash: 4.18.1
@@ -15597,16 +15687,6 @@ snapshots:
     dependencies:
       eslint: 10.13.0(jiti@2.7.0)(supports-color@8.1.1)
 
-  '@tootallnate/quickjs-emscripten@0.23.0': {}
-
-  '@tsconfig/node10@1.0.13': {}
-
-  '@tsconfig/node12@1.0.11': {}
-
-  '@tsconfig/node14@1.0.3': {}
-
-  '@tsconfig/node16@1.0.4': {}
-
   '@tybys/wasm-util@0.10.3':
     dependencies:
       tslib: 2.8.1
@@ -15641,7 +15721,7 @@ snapshots:
     dependencies:
       '@types/http-cache-semantics': 4.2.0
       '@types/keyv': 3.1.4
-      '@types/node': 22.20.2
+      '@types/node': 24.19.2
       '@types/responselike': 1.0.3
 
   '@types/chai@5.2.3':
@@ -15651,7 +15731,7 @@ snapshots:
 
   '@types/conventional-commits-parser@5.0.2':
     dependencies:
-      '@types/node': 22.20.2
+      '@types/node': 24.19.2
 
   '@types/cross-spawn@6.0.6':
     dependencies:
@@ -15709,7 +15789,7 @@ snapshots:
 
   '@types/keyv@3.1.4':
     dependencies:
-      '@types/node': 22.20.2
+      '@types/node': 24.19.2
 
   '@types/node@22.20.2':
     dependencies:
@@ -15731,7 +15811,7 @@ snapshots:
 
   '@types/responselike@1.0.3':
     dependencies:
-      '@types/node': 22.20.2
+      '@types/node': 24.19.2
 
   '@types/sarif@2.1.7': {}
 
@@ -15772,6 +15852,10 @@ snapshots:
   '@types/yargs@17.0.35':
     dependencies:
       '@types/yargs-parser': 21.0.3
+
+  '@types/yauzl@3.4.0':
+    dependencies:
+      '@types/node': 24.19.2
 
   '@typescript-eslint/eslint-plugin@8.70.0(@typescript-eslint/parser@8.70.0(eslint@10.13.0(jiti@2.7.0)(supports-color@8.1.1))(supports-color@8.1.1)(typescript@6.0.3))(eslint@10.13.0(jiti@2.7.0)(supports-color@8.1.1))(supports-color@8.1.1)(typescript@6.0.3)':
     dependencies:
@@ -16286,7 +16370,7 @@ snapshots:
       hosted-git-info: 4.1.0
       jsonc-parser: 3.3.1
       leven: 3.1.0
-      markdown-it: 14.3.1
+      markdown-it: 14.3.3
       mime: 1.6.0
       minimatch: 3.1.5
       parse-semver: 1.1.1
@@ -16322,7 +16406,7 @@ snapshots:
       hosted-git-info: 4.1.0
       jsonc-parser: 3.3.1
       leven: 3.1.0
-      markdown-it: 14.3.1
+      markdown-it: 14.3.3
       mime: 1.6.0
       minimatch: 10.2.6
       parse-semver: 1.1.1
@@ -16379,10 +16463,6 @@ snapshots:
 
   acorn-walk@6.2.0: {}
 
-  acorn-walk@8.3.5:
-    dependencies:
-      acorn: 8.15.0
-
   acorn@6.4.2: {}
 
   acorn@7.4.1: {}
@@ -16412,8 +16492,8 @@ snapshots:
     dependencies:
       ajv: 8.20.0
 
-  ajv-formats@2.1.1(ajv@8.20.0):
-    optionalDependencies:
+  ajv-formats@2.1.1:
+    dependencies:
       ajv: 8.20.0
 
   ajv-formats@3.0.1:
@@ -16487,8 +16567,6 @@ snapshots:
   archy@1.0.0: {}
 
   are-docs-informative@0.0.2: {}
-
-  arg@4.1.3: {}
 
   argparse@1.0.10:
     dependencies:
@@ -16756,6 +16834,8 @@ snapshots:
 
   basic-ftp@5.3.1: {}
 
+  basic-ftp@6.2.6: {}
+
   before-after-hook@4.0.0: {}
 
   bidi-js@1.1.0:
@@ -16813,6 +16893,10 @@ snapshots:
   brace-expansion@2.1.4:
     dependencies:
       balanced-match: 1.0.2
+
+  brace-expansion@5.0.12:
+    dependencies:
+      balanced-match: 4.0.4
 
   brace-expansion@5.0.9:
     dependencies:
@@ -17396,8 +17480,6 @@ snapshots:
       safe-buffer: 5.2.1
       sha.js: 2.4.12
 
-  create-require@1.1.1: {}
-
   cross-spawn@6.0.6:
     dependencies:
       nice-try: 1.0.5
@@ -17444,17 +17526,17 @@ snapshots:
   css-tree@2.2.1:
     dependencies:
       mdn-data: 2.0.28
-      source-map-js: 1.2.1
+      source-map-js: 1.2.4
 
   css-tree@2.3.1:
     dependencies:
       mdn-data: 2.0.30
-      source-map-js: 1.2.1
+      source-map-js: 1.2.4
 
   css-tree@3.2.1:
     dependencies:
       mdn-data: 2.27.1
-      source-map-js: 1.2.1
+      source-map-js: 1.2.4
 
   css-what@6.2.2: {}
 
@@ -17470,8 +17552,6 @@ snapshots:
       '@csstools/css-syntax-patches-for-csstree': 1.1.15(css-tree@3.2.1)
       css-tree: 3.2.1
       lru-cache: 11.5.2
-
-  csv-parse@5.6.0: {}
 
   csv-parse@7.0.3: {}
 
@@ -17496,8 +17576,6 @@ snapshots:
   dargs@8.1.0: {}
 
   data-uri-to-buffer@4.0.1: {}
-
-  data-uri-to-buffer@6.0.2: {}
 
   data-uri-to-buffer@8.0.0: {}
 
@@ -17602,18 +17680,19 @@ snapshots:
       has-property-descriptors: 1.0.2
       object-keys: 1.1.1
 
-  degenerator@5.0.1:
-    dependencies:
-      ast-types: 0.13.4
-      escodegen: 2.1.0
-      esprima: 4.0.1
-
   degenerator@7.0.1(quickjs-wasi@2.2.0):
     dependencies:
       ast-types: 0.13.4
       escodegen: 2.1.0
       esprima: 4.0.1
       quickjs-wasi: 2.2.0
+
+  degenerator@7.0.2(quickjs-wasi@3.7.0):
+    dependencies:
+      ast-types: 0.13.4
+      escodegen: 2.1.0
+      esprima: 4.0.1
+      quickjs-wasi: 3.7.0
 
   delayed-stream@1.0.0: {}
 
@@ -17653,8 +17732,6 @@ snapshots:
   diff-sequences@27.5.1: {}
 
   diff3@0.0.3: {}
-
-  diff@4.0.4: {}
 
   diff@5.2.2: {}
 
@@ -17736,7 +17813,7 @@ snapshots:
 
   ee-first@1.1.1: {}
 
-  effect@3.22.2:
+  effect@3.22.4:
     dependencies:
       '@standard-schema/spec': 1.1.0
       fast-check: 3.23.2
@@ -18144,13 +18221,13 @@ snapshots:
       - eslint-import-resolver-webpack
       - supports-color
 
-  eslint-plugin-jest@29.17.0(@typescript-eslint/eslint-plugin@8.72.0(@typescript-eslint/parser@8.72.0(eslint@10.13.0(jiti@2.7.0)(supports-color@8.1.1))(supports-color@8.1.1)(typescript@6.0.3))(eslint@10.13.0(jiti@2.7.0)(supports-color@8.1.1))(supports-color@8.1.1)(typescript@6.0.3))(eslint@10.13.0(jiti@2.7.0)(supports-color@8.1.1))(jest@30.4.2(@types/node@24.19.2)(supports-color@8.1.1)(ts-node@10.9.2(@types/node@24.19.2)(typescript@6.0.3)))(supports-color@8.1.1)(typescript@6.0.3):
+  eslint-plugin-jest@29.17.0(@typescript-eslint/eslint-plugin@8.72.0(@typescript-eslint/parser@8.72.0(eslint@10.13.0(jiti@2.7.0)(supports-color@8.1.1))(supports-color@8.1.1)(typescript@6.0.3))(eslint@10.13.0(jiti@2.7.0)(supports-color@8.1.1))(supports-color@8.1.1)(typescript@6.0.3))(eslint@10.13.0(jiti@2.7.0)(supports-color@8.1.1))(jest@30.4.2(@types/node@24.19.2)(supports-color@8.1.1))(supports-color@8.1.1)(typescript@6.0.3):
     dependencies:
       '@typescript-eslint/utils': 8.72.0(eslint@10.13.0(jiti@2.7.0)(supports-color@8.1.1))(supports-color@8.1.1)(typescript@6.0.3)
       eslint: 10.13.0(jiti@2.7.0)(supports-color@8.1.1)
     optionalDependencies:
       '@typescript-eslint/eslint-plugin': 8.72.0(@typescript-eslint/parser@8.72.0(eslint@10.13.0(jiti@2.7.0)(supports-color@8.1.1))(supports-color@8.1.1)(typescript@6.0.3))(eslint@10.13.0(jiti@2.7.0)(supports-color@8.1.1))(supports-color@8.1.1)(typescript@6.0.3)
-      jest: 30.4.2(@types/node@24.19.2)(supports-color@8.1.1)(ts-node@10.9.2(@types/node@24.19.2)(typescript@6.0.3))
+      jest: 30.4.2(@types/node@24.19.2)(supports-color@8.1.1)
       typescript: 6.0.3
     transitivePeerDependencies:
       - supports-color
@@ -18443,7 +18520,7 @@ snapshots:
       on-finished: 2.4.1
       once: 1.4.0
       parseurl: 1.3.3
-      proxy-addr: 2.0.7
+      proxy-addr: 2.0.8
       qs: 6.16.0
       range-parser: 1.3.0
       router: 2.2.0(supports-color@8.1.1)
@@ -18506,6 +18583,11 @@ snapshots:
       path-expression-matcher: 1.6.2
       xml-naming: 0.3.0
 
+  fast-xml-builder@1.3.2:
+    dependencies:
+      path-expression-matcher: 1.6.2
+      xml-naming: 0.3.0
+
   fast-xml-parser@5.11.2:
     dependencies:
       '@nodable/entities': 3.1.0
@@ -18513,6 +18595,15 @@ snapshots:
       is-unsafe: 2.0.2
       path-expression-matcher: 1.6.2
       strnum: 2.4.2
+      xml-naming: 0.3.0
+
+  fast-xml-parser@5.12.1:
+    dependencies:
+      '@nodable/entities': 3.1.0
+      fast-xml-builder: 1.3.2
+      is-unsafe: 2.0.3
+      path-expression-matcher: 1.6.2
+      strnum: 2.5.1
       xml-naming: 0.3.0
 
   fastest-levenshtein@1.0.16: {}
@@ -18800,17 +18891,17 @@ snapshots:
     dependencies:
       resolve-pkg-maps: 1.0.0
 
-  get-uri@6.0.5(supports-color@8.1.1):
+  get-uri@8.0.1(supports-color@8.1.1):
     dependencies:
       basic-ftp: 5.3.1
-      data-uri-to-buffer: 6.0.2
+      data-uri-to-buffer: 8.0.0
       debug: 4.4.3(supports-color@8.1.1)
     transitivePeerDependencies:
       - supports-color
 
-  get-uri@8.0.1(supports-color@8.1.1):
+  get-uri@8.0.2(supports-color@8.1.1):
     dependencies:
-      basic-ftp: 5.3.1
+      basic-ftp: 6.2.6
       data-uri-to-buffer: 8.0.0
       debug: 4.4.3(supports-color@8.1.1)
     transitivePeerDependencies:
@@ -18834,6 +18925,10 @@ snapshots:
       is-glob: 4.0.3
 
   glob-to-regex.js@1.2.0(tslib@2.8.1):
+    dependencies:
+      tslib: 2.8.1
+
+  glob-to-regex.js@1.3.1(tslib@2.8.1):
     dependencies:
       tslib: 2.8.1
 
@@ -19031,7 +19126,7 @@ snapshots:
     dependencies:
       parse-passwd: 1.0.0
 
-  hono@4.13.7: {}
+  hono@4.13.18: {}
 
   hookified@1.15.1: {}
 
@@ -19489,6 +19584,8 @@ snapshots:
 
   is-unsafe@2.0.2: {}
 
+  is-unsafe@2.0.3: {}
+
   is-utf8@0.2.1: {}
 
   is-weakmap@2.0.2: {}
@@ -19653,15 +19750,15 @@ snapshots:
       - babel-plugin-macros
       - supports-color
 
-  jest-cli@30.4.2(@types/node@24.19.2)(supports-color@8.1.1)(ts-node@10.9.2(@types/node@24.19.2)(typescript@6.0.3)):
+  jest-cli@30.4.2(@types/node@24.19.2)(supports-color@8.1.1):
     dependencies:
-      '@jest/core': 30.4.2(supports-color@8.1.1)(ts-node@10.9.2(@types/node@24.19.2)(typescript@6.0.3))
+      '@jest/core': 30.4.2(supports-color@8.1.1)
       '@jest/test-result': 30.4.1
       '@jest/types': 30.4.1
       chalk: 4.1.2
       exit-x: 0.2.2
       import-local: 3.2.0
-      jest-config: 30.4.2(@types/node@24.19.2)(supports-color@8.1.1)(ts-node@10.9.2(@types/node@24.19.2)(typescript@6.0.3))
+      jest-config: 30.4.2(@types/node@24.19.2)(supports-color@8.1.1)
       jest-util: 30.4.1
       jest-validate: 30.4.1
       yargs: 17.7.3
@@ -19672,7 +19769,7 @@ snapshots:
       - supports-color
       - ts-node
 
-  jest-config@30.4.2(@types/node@24.19.2)(supports-color@8.1.1)(ts-node@10.9.2(@types/node@24.19.2)(typescript@6.0.3)):
+  jest-config@30.4.2(@types/node@24.19.2)(supports-color@8.1.1):
     dependencies:
       '@babel/core': 7.29.7(supports-color@8.1.1)
       '@jest/get-type': 30.1.0
@@ -19699,7 +19796,6 @@ snapshots:
       strip-json-comments: 3.1.1
     optionalDependencies:
       '@types/node': 24.19.2
-      ts-node: 10.9.2(@types/node@24.19.2)(typescript@6.0.3)
     transitivePeerDependencies:
       - babel-plugin-macros
       - supports-color
@@ -19859,14 +19955,14 @@ snapshots:
   jest-mock@30.4.1:
     dependencies:
       '@jest/types': 30.4.1
-      '@types/node': 22.20.2
+      '@types/node': 24.19.2
       jest-util: 30.4.1
 
   jest-mock@30.5.1:
     dependencies:
       '@jest/expect-utils': 30.5.1
       '@jest/types': 30.5.1
-      '@types/node': 22.20.2
+      '@types/node': 24.19.2
       jest-util: 30.5.1
 
   jest-pnp-resolver@1.2.3(jest-resolve@30.4.1):
@@ -20072,12 +20168,12 @@ snapshots:
       merge-stream: 2.0.0
       supports-color: 8.1.1
 
-  jest@30.4.2(@types/node@24.19.2)(supports-color@8.1.1)(ts-node@10.9.2(@types/node@24.19.2)(typescript@6.0.3)):
+  jest@30.4.2(@types/node@24.19.2)(supports-color@8.1.1):
     dependencies:
-      '@jest/core': 30.4.2(supports-color@8.1.1)(ts-node@10.9.2(@types/node@24.19.2)(typescript@6.0.3))
+      '@jest/core': 30.4.2(supports-color@8.1.1)
       '@jest/types': 30.4.1
       import-local: 3.2.0
-      jest-cli: 30.4.2(@types/node@24.19.2)(supports-color@8.1.1)(ts-node@10.9.2(@types/node@24.19.2)(typescript@6.0.3))
+      jest-cli: 30.4.2(@types/node@24.19.2)(supports-color@8.1.1)
     transitivePeerDependencies:
       - '@types/node'
       - babel-plugin-macros
@@ -20167,7 +20263,7 @@ snapshots:
 
   jsesc@3.1.0: {}
 
-  jsforce@3.10.25(@types/node@24.19.2):
+  jsforce@3.13.1(@types/node@24.19.2):
     dependencies:
       '@babel/runtime': 7.29.7
       '@babel/runtime-corejs3': 7.29.7
@@ -20175,9 +20271,10 @@ snapshots:
       base64url: 3.0.1
       commander: 4.1.1
       core-js: 3.50.0
-      csv-parse: 5.6.0
+      cross-spawn: 7.0.6
+      csv-parse: 7.0.3
       csv-stringify: 6.8.3
-      faye: 1.4.1
+      faye: 1.4.3
       form-data: 4.0.6
       inquirer: 8.2.7(@types/node@24.19.2)
       multistream: 3.1.0
@@ -20202,8 +20299,6 @@ snapshots:
   json-schema-typed@8.0.2: {}
 
   json-stable-stringify-without-jsonify@1.0.1: {}
-
-  json-stream-stringify@3.1.7: {}
 
   json-with-bigint@3.5.12: {}
 
@@ -20314,7 +20409,7 @@ snapshots:
       oxc-parser: 0.148.0
       oxc-resolver: 11.24.2
       picomatch: 4.0.7
-      smol-toml: 1.8.0
+      smol-toml: 1.9.1
       strip-json-comments: 5.0.3
       tinyglobby: 0.2.17
       unbash: 4.0.11
@@ -20596,7 +20691,7 @@ snapshots:
     dependencies:
       '@babel/parser': 7.29.8
       '@babel/types': 7.29.8
-      source-map-js: 1.2.1
+      source-map-js: 1.2.4
 
   make-dir@3.1.0:
     dependencies:
@@ -20628,7 +20723,7 @@ snapshots:
     dependencies:
       tmpl: 1.0.5
 
-  markdown-it@14.3.1:
+  markdown-it@14.3.3:
     dependencies:
       argparse: 2.0.1
       entities: 4.5.0
@@ -20685,15 +20780,6 @@ snapshots:
 
   media-typer@1.1.1: {}
 
-  memfs@4.38.1:
-    dependencies:
-      '@jsonjoy.com/json-pack': 1.21.0(tslib@2.8.1)
-      '@jsonjoy.com/util': 1.9.0(tslib@2.8.1)
-      glob-to-regex.js: 1.2.0(tslib@2.8.1)
-      thingies: 2.6.1(tslib@2.8.1)
-      tree-dump: 1.1.0(tslib@2.8.1)
-      tslib: 2.8.1
-
   memfs@4.74.0:
     dependencies:
       '@jsonjoy.com/fs-core': 4.74.0(tslib@2.8.1)
@@ -20707,6 +20793,23 @@ snapshots:
       '@jsonjoy.com/json-pack': 1.21.0(tslib@2.8.1)
       '@jsonjoy.com/util': 1.9.0(tslib@2.8.1)
       glob-to-regex.js: 1.2.0(tslib@2.8.1)
+      thingies: 2.6.1(tslib@2.8.1)
+      tree-dump: 1.1.0(tslib@2.8.1)
+      tslib: 2.8.1
+
+  memfs@4.80.0:
+    dependencies:
+      '@jsonjoy.com/fs-core': 4.80.0(tslib@2.8.1)
+      '@jsonjoy.com/fs-fsa': 4.80.0(tslib@2.8.1)
+      '@jsonjoy.com/fs-node': 4.80.0(tslib@2.8.1)
+      '@jsonjoy.com/fs-node-builtins': 4.80.0(tslib@2.8.1)
+      '@jsonjoy.com/fs-node-to-fsa': 4.80.0(tslib@2.8.1)
+      '@jsonjoy.com/fs-node-utils': 4.80.0(tslib@2.8.1)
+      '@jsonjoy.com/fs-print': 4.80.0(tslib@2.8.1)
+      '@jsonjoy.com/fs-snapshot': 4.80.0(tslib@2.8.1)
+      '@jsonjoy.com/json-pack': 1.21.0(tslib@2.8.1)
+      '@jsonjoy.com/util': 1.9.0(tslib@2.8.1)
+      glob-to-regex.js: 1.3.1(tslib@2.8.1)
       thingies: 2.6.1(tslib@2.8.1)
       tree-dump: 1.1.0(tslib@2.8.1)
       tslib: 2.8.1
@@ -20768,6 +20871,11 @@ snapshots:
   minimatch@10.2.6:
     dependencies:
       brace-expansion: 5.0.9
+
+  minimatch@11.0.4:
+    dependencies:
+      '@isaacs/nonrecursive-glob-match': 1.0.3
+      brace-expansion: 5.0.12
 
   minimatch@3.1.5:
     dependencies:
@@ -20863,7 +20971,7 @@ snapshots:
     optionalDependencies:
       msgpackr-extract: 3.0.4
 
-  multipasta@0.2.8: {}
+  multipasta@0.2.9: {}
 
   multistream@3.1.0:
     dependencies:
@@ -21340,19 +21448,6 @@ snapshots:
 
   p-try@2.2.0: {}
 
-  pac-proxy-agent@7.2.0(supports-color@8.1.1):
-    dependencies:
-      '@tootallnate/quickjs-emscripten': 0.23.0
-      agent-base: 7.1.4
-      debug: 4.4.3(supports-color@8.1.1)
-      get-uri: 6.0.5(supports-color@8.1.1)
-      http-proxy-agent: 7.0.2(supports-color@8.1.1)
-      https-proxy-agent: 7.0.6(supports-color@8.1.1)
-      pac-resolver: 7.0.1
-      socks-proxy-agent: 8.0.5(supports-color@8.1.1)
-    transitivePeerDependencies:
-      - supports-color
-
   pac-proxy-agent@9.1.0(supports-color@8.1.1):
     dependencies:
       agent-base: 9.0.0
@@ -21367,16 +21462,31 @@ snapshots:
       - kerberos
       - supports-color
 
-  pac-resolver@7.0.1:
+  pac-proxy-agent@9.1.1(supports-color@8.1.1):
     dependencies:
-      degenerator: 5.0.1
-      netmask: 2.1.1
+      agent-base: 9.0.0
+      debug: 4.4.3(supports-color@8.1.1)
+      get-uri: 8.0.2(supports-color@8.1.1)
+      http-proxy-agent: 9.1.0(supports-color@8.1.1)
+      https-proxy-agent: 9.1.0(supports-color@8.1.1)
+      pac-resolver: 9.0.2(quickjs-wasi@3.7.0)
+      quickjs-wasi: 3.7.0
+      socks-proxy-agent: 10.1.0(supports-color@8.1.1)
+    transitivePeerDependencies:
+      - kerberos
+      - supports-color
 
   pac-resolver@9.0.1(quickjs-wasi@2.2.0):
     dependencies:
       degenerator: 7.0.1(quickjs-wasi@2.2.0)
       netmask: 2.1.1
       quickjs-wasi: 2.2.0
+
+  pac-resolver@9.0.2(quickjs-wasi@3.7.0):
+    dependencies:
+      degenerator: 7.0.2(quickjs-wasi@3.7.0)
+      netmask: 2.1.1
+      quickjs-wasi: 3.7.0
 
   package-hash@4.0.0:
     dependencies:
@@ -21642,13 +21752,13 @@ snapshots:
     dependencies:
       nanoid: 3.3.19
       picocolors: 1.1.1
-      source-map-js: 1.2.1
+      source-map-js: 1.2.4
 
   postcss@8.5.28:
     dependencies:
       nanoid: 3.3.19
       picocolors: 1.1.1
-      source-map-js: 1.2.1
+      source-map-js: 1.2.4
 
   prebuild-install@7.1.3:
     dependencies:
@@ -21746,28 +21856,15 @@ snapshots:
       '@protobufjs/path': 1.1.2
       '@protobufjs/pool': 1.1.0
       '@protobufjs/utf8': 1.1.2
-      '@types/node': 22.20.2
+      '@types/node': 24.19.2
       long: 5.3.2
 
-  proxy-addr@2.0.7:
+  proxy-addr@2.0.8:
     dependencies:
       forwarded: 0.2.0
       ipaddr.js: 1.9.1
 
   proxy-agent-negotiate@1.1.0: {}
-
-  proxy-agent@6.5.0(supports-color@8.1.1):
-    dependencies:
-      agent-base: 7.1.4
-      debug: 4.4.3(supports-color@8.1.1)
-      http-proxy-agent: 7.0.2(supports-color@8.1.1)
-      https-proxy-agent: 7.0.6(supports-color@8.1.1)
-      lru-cache: 7.18.3
-      pac-proxy-agent: 7.2.0(supports-color@8.1.1)
-      proxy-from-env: 1.1.0
-      socks-proxy-agent: 8.0.5(supports-color@8.1.1)
-    transitivePeerDependencies:
-      - supports-color
 
   proxy-agent@8.0.2(supports-color@8.1.1):
     dependencies:
@@ -21777,6 +21874,20 @@ snapshots:
       https-proxy-agent: 9.1.0(supports-color@8.1.1)
       lru-cache: 7.18.3
       pac-proxy-agent: 9.1.0(supports-color@8.1.1)
+      proxy-from-env: 2.1.0
+      socks-proxy-agent: 10.1.0(supports-color@8.1.1)
+    transitivePeerDependencies:
+      - kerberos
+      - supports-color
+
+  proxy-agent@8.0.3(supports-color@8.1.1):
+    dependencies:
+      agent-base: 9.0.0
+      debug: 4.4.3(supports-color@8.1.1)
+      http-proxy-agent: 9.1.0(supports-color@8.1.1)
+      https-proxy-agent: 9.1.0(supports-color@8.1.1)
+      lru-cache: 7.18.3
+      pac-proxy-agent: 9.1.1(supports-color@8.1.1)
       proxy-from-env: 2.1.0
       socks-proxy-agent: 10.1.0(supports-color@8.1.1)
     transitivePeerDependencies:
@@ -21909,6 +22020,8 @@ snapshots:
   quick-lru@5.1.1: {}
 
   quickjs-wasi@2.2.0: {}
+
+  quickjs-wasi@3.7.0: {}
 
   randombytes@2.1.0:
     dependencies:
@@ -22444,7 +22557,7 @@ snapshots:
 
   smob@1.6.2: {}
 
-  smol-toml@1.8.0: {}
+  smol-toml@1.9.1: {}
 
   snake-case@3.0.4:
     dependencies:
@@ -22476,7 +22589,7 @@ snapshots:
     dependencies:
       atomic-sleep: 1.0.0
 
-  source-map-js@1.2.1: {}
+  source-map-js@1.2.4: {}
 
   source-map-support@0.5.13:
     dependencies:
@@ -22667,6 +22780,10 @@ snapshots:
   strip-json-comments@5.0.3: {}
 
   strnum@2.4.2:
+    dependencies:
+      anynum: 1.0.1
+
+  strnum@2.5.1:
     dependencies:
       anynum: 1.0.1
 
@@ -22987,12 +23104,12 @@ snapshots:
 
   ts-interface-checker@0.1.13: {}
 
-  ts-jest@29.4.11(@babel/core@7.29.7(supports-color@8.1.1))(@jest/transform@30.4.1(supports-color@8.1.1))(@jest/types@30.5.1)(babel-jest@30.4.1(@babel/core@7.29.7(supports-color@8.1.1))(supports-color@8.1.1))(esbuild@0.28.2)(jest-util@30.5.1)(jest@30.4.2(@types/node@24.19.2)(supports-color@8.1.1)(ts-node@10.9.2(@types/node@24.19.2)(typescript@6.0.3)))(typescript@6.0.3):
+  ts-jest@29.4.11(@babel/core@7.29.7(supports-color@8.1.1))(@jest/transform@30.4.1(supports-color@8.1.1))(@jest/types@30.5.1)(babel-jest@30.4.1(@babel/core@7.29.7(supports-color@8.1.1))(supports-color@8.1.1))(esbuild@0.28.2)(jest-util@30.5.1)(jest@30.4.2(@types/node@24.19.2)(supports-color@8.1.1))(typescript@6.0.3):
     dependencies:
       bs-logger: 0.2.6
       fast-json-stable-stringify: 2.1.0
       handlebars: 4.7.9
-      jest: 30.4.2(@types/node@24.19.2)(supports-color@8.1.1)(ts-node@10.9.2(@types/node@24.19.2)(typescript@6.0.3))
+      jest: 30.4.2(@types/node@24.19.2)(supports-color@8.1.1)
       json5: 2.2.3
       lodash.memoize: 4.1.2
       make-error: 1.3.6
@@ -23007,24 +23124,6 @@ snapshots:
       babel-jest: 30.4.1(@babel/core@7.29.7(supports-color@8.1.1))(supports-color@8.1.1)
       esbuild: 0.28.2
       jest-util: 30.5.1
-
-  ts-node@10.9.2(@types/node@24.19.2)(typescript@6.0.3):
-    dependencies:
-      '@cspotcode/source-map-support': 0.8.1
-      '@tsconfig/node10': 1.0.13
-      '@tsconfig/node12': 1.0.11
-      '@tsconfig/node14': 1.0.3
-      '@tsconfig/node16': 1.0.4
-      '@types/node': 24.19.2
-      acorn: 8.15.0
-      acorn-walk: 8.3.5
-      arg: 4.1.3
-      create-require: 1.1.1
-      diff: 4.0.4
-      make-error: 1.3.6
-      typescript: 6.0.3
-      v8-compile-cache-lib: 3.0.1
-      yn: 3.1.1
 
   ts-retry-promise@0.8.1: {}
 
@@ -23046,6 +23145,7 @@ snapshots:
       esbuild: 0.28.2
     optionalDependencies:
       fsevents: 2.3.3
+    optional: true
 
   ttf2eot@3.1.0:
     dependencies:
@@ -23268,8 +23368,6 @@ snapshots:
   utility-types@3.11.0: {}
 
   uuid@11.1.1: {}
-
-  v8-compile-cache-lib@3.0.1: {}
 
   v8-to-istanbul@9.3.0:
     dependencies:
@@ -23584,6 +23682,8 @@ snapshots:
 
   yaml@2.9.0: {}
 
+  yaml@2.9.1: {}
+
   yargs-parser@18.1.3:
     dependencies:
       camelcase: 5.3.1
@@ -23636,16 +23736,14 @@ snapshots:
 
   yerror@8.0.0: {}
 
-  yn@3.1.1: {}
-
   yocto-queue@0.1.0: {}
 
   yocto-queue@1.2.2: {}
 
-  zod-to-json-schema@3.25.2(zod@4.6.1):
+  zod-to-json-schema@3.25.2(zod@4.6.7):
     dependencies:
-      zod: 4.6.1
-
-  zod@3.25.76: {}
+      zod: 4.6.7
 
   zod@4.6.1: {}
+
+  zod@4.6.7: {}

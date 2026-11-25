@@ -5,6 +5,25 @@
 - **Question**: "How often is command X used?"
 - **Query**: `customEvents | where name endswith "/commandExecution" and customDimensions.commandName == "X" | summarize count()`
 
+## Web Console
+
+- `test-otel-effect`: real production App Insights store for Web Console telemetry despite the name; don't classify its events as test traffic. The Web exporter uses its fixed default connection string: [appInsights.ts](../../../../packages/salesforcedx-vscode-services/src/observability/appInsights.ts), [applicationInsightsWebExporter.ts](../../../../packages/salesforcedx-vscode-services/src/observability/applicationInsightsWebExporter.ts).
+- Web Console spans are in `customEvents`. Filter `tostring(customDimensions["service.platform"]) == "web"`; [spansWeb.ts](../../../../packages/salesforcedx-vscode-services/src/observability/spansWeb.ts) sets this field. Extension name: `customDimensions.common.extname`, not `cloud_RoleName`.
+- Distinct Web Console users: `dcount(tostring(customDimensions["webUserId"]))`, not App Insights `user_Id` or `customDimensions.userId`. `webUserId` is a one-way hash stable across org switches; `userId` is the org's Salesforce user ID. See [ADR-0019](../../../../docs/adr/0019-telemetry-ids.md).
+- **Question**: "Which Web Console commands are used most, and by how many users?"
+- **Query**:
+
+```kusto
+customEvents
+| where timestamp > ago(30d)
+| where tostring(customDimensions["service.platform"]) == "web"
+| where isnotempty(tostring(customDimensions["command"]))
+| summarize executions=count(), users=dcount(tostring(customDimensions["webUserId"])) by command=tostring(customDimensions["command"])
+| order by executions desc
+```
+
+- For total distinct Web Console users, use the same platform filter and `summarize users=dcount(tostring(customDimensions["webUserId"]))`.
+
 ## Most Used Commands (Legacy/v2)
 
 - **Question**: "What are the most used commands?"
@@ -62,7 +81,7 @@
 - **API connection failure**: Report the error message from the API
 - **Invalid query**: Show the KQL error message and suggest corrections
 - **No results**:
-  - If checking a command ID, remind user that telemetry uses executor names, not command IDs
-  - Suggest checking the source code to find the executor name
+  - For Legacy `/commandExecution`, check the executor name in `customDimensions.commandName`, not the VS Code command ID
+  - For Web OTEL spans, check `customDimensions.command` and the `service.platform == "web"` filter
   - Note that some commands don't send telemetry (simple functions)
   - Some commands send telemetry for sub-commands, not the main command

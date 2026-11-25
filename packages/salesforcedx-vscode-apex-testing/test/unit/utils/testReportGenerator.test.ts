@@ -21,10 +21,14 @@ vi.mock('../../../src/services/extensionProvider', async () => {
   const ManagedRuntime = await vi.importActual<typeof ManagedRuntimeModule>('effect/ManagedRuntime');
   const { ExtensionProviderService } = await vi.importActual<typeof EffectExtUtils>('@salesforce/effect-ext-utils');
   const vscodeApi = await import('vscode');
+  const { URI: VscodeUri } = await import('vscode-uri');
 
   const mockFsWrite = (pathOrUri: unknown, _content: string) =>
     Effect.promise(async () => {
-      const filePath = typeof pathOrUri === 'string' ? pathOrUri : ((pathOrUri as { fsPath?: string })?.fsPath ?? '');
+      const filePath =
+        typeof pathOrUri === 'string'
+          ? pathOrUri
+          : ((pathOrUri as { fsPath?: string; path?: string })?.fsPath ?? (pathOrUri as { path?: string })?.path ?? '');
       const mockUri = {
         fsPath: filePath,
         path: filePath,
@@ -37,18 +41,25 @@ vi.mock('../../../src/services/extensionProvider', async () => {
       await (global as any).__mockWriteFile(mockUri, new TextEncoder().encode(_content));
     });
 
-  const MockFsService = {
-    writeFile: mockFsWrite,
-    safeWriteFile: mockFsWrite,
+  const mockFsService = {
+    createDirectory: (_path: string) => Effect.void,
+    toUri: (pathOrUri: string | URI) =>
+      Effect.succeed(typeof pathOrUri === 'string' ? VscodeUri.parse(pathOrUri) : pathOrUri),
+    readFile: (_path: string | URI) => Effect.succeed(''),
+    fileOrFolderExists: (_path: string | URI) => Effect.succeed(false),
     showTextDocument: (uri: unknown, options?: unknown) =>
       Effect.promise(() =>
         vscodeApi.window.showTextDocument(uri as URI, options as vscode.TextDocumentShowOptions | undefined)
       ),
-    Default: Layer.succeed(Context.GenericTag('FsService'), {
-      writeFile: mockFsWrite,
-      safeWriteFile: mockFsWrite
-    })
+    writeFile: mockFsWrite,
+    safeWriteFile: mockFsWrite
   };
+  const FsServiceTag = Context.GenericTag<typeof mockFsService>('FsService');
+  const MockFsService = Object.assign(FsServiceTag, {
+    Default: Layer.succeed(FsServiceTag, mockFsService),
+    showTextDocument: (uri: unknown, options?: unknown) =>
+      Effect.flatMap(FsServiceTag, fsService => fsService.showTextDocument(uri, options))
+  });
   const MockChannelServiceInstance = {
     appendToChannel: (message: string) => Effect.sync(() => mockAppendToChannel(message)),
     getChannel: Effect.succeed({ appendLine: vi.fn(), show: vi.fn() })
@@ -74,13 +85,16 @@ vi.mock('../../../src/services/extensionProvider', async () => {
       SettingsService: Effect.succeed(mockSettingsService)
     }
   };
-  const MockAllServicesLayer = Layer.effect(
-    ExtensionProviderService,
-    Effect.sync(
-      () =>
-        ({
-          getServicesApi: Effect.succeed(mockServicesApi)
-        }) as unknown as EffectExtUtils.ExtensionProviderService
+  const MockAllServicesLayer = Layer.mergeAll(
+    MockFsService.Default,
+    Layer.effect(
+      ExtensionProviderService,
+      Effect.sync(
+        () =>
+          ({
+            getServicesApi: Effect.succeed(mockServicesApi)
+          }) as unknown as EffectExtUtils.ExtensionProviderService
+      )
     )
   );
 

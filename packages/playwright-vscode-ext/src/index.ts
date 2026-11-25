@@ -74,7 +74,13 @@ export {
   CODELENS_ITEM
 } from './utils/locators';
 
-export { CODE_BUILDER_WEB_SECTION, INSTANCE_URL_KEY, ACCESS_TOKEN_KEY, API_VERSION_KEY } from './constants';
+export {
+  CODE_BUILDER_WEB_SECTION,
+  INSTANCE_URL_KEY,
+  ACCESS_TOKEN_KEY,
+  API_VERSION_KEY,
+  SESSION_CONTEXT_KEY
+} from './constants';
 
 export { SPANS_DIR, readAllSpanRows, waitForSpanRows } from './utils/spanFiles';
 export type { SpanRow } from './utils/spanFiles';
@@ -116,6 +122,7 @@ export {
   goToFile,
   goToLineColumn,
   selectAll,
+  selectToBracket,
   paste,
   focusOnProblemsView,
   goToDefinition,
@@ -139,6 +146,7 @@ export {
   selectOutputChannel,
   clearOutputChannel,
   waitForOutputChannelText,
+  waitForOutputChannelPredicate,
   outputChannelContains,
   countOutputChannelOptions,
   captureOutputChannelDetails
@@ -160,11 +168,28 @@ export {
 export { clickCodeLens } from './pages/codeLens';
 
 export {
+  DEBUG_TOOLBAR,
+  DEBUG_CALL_STACK,
+  DEBUG_VARIABLES,
+  assertDebugToolbarVisible,
+  showRunAndDebugView,
+  getCallStackRows,
+  openVariablesView,
+  expandAllVariableScopes,
+  getVariableRow,
+  expandNestedVariable,
+  continueDebugSession,
+  stopDebugSession,
+  activateEditorTab
+} from './pages/debug';
+
+export {
   clickOrgPickerStatusBar,
   expectOrgPickerStatusBar,
   expectOrgPickerActionItems,
   expectOrgPickerListsOrg,
-  selectOrgInPicker
+  selectOrgInPicker,
+  switchDefaultOrgViaPicker
 } from './pages/statusBar';
 
 export { webviewActiveFrame, hasTitle, hasContent } from './pages/webview';
@@ -178,8 +203,11 @@ export {
   verifyNoTestRunInProgress
 } from './pages/testExplorer';
 
+export { resetContainerWorkbench } from './pages/containerWorkbench';
+
 // Shared
 export { saveScreenshot } from './shared/screenshotUtils';
+export { startVideoRecording } from './shared/videoUtils';
 
 // Fixtures
 export { createEmptyTestWorkspace, createTestWorkspace } from './fixtures/desktopWorkspace';
@@ -233,3 +261,5 @@ export { seedWorkspace, FIXTURE_MOUNT_PATH } from './codeBuilder/seed';
 export type { SeedOptions } from './codeBuilder/seed';
 export { defaultRunner } from './codeBuilder/runner';
 export type { CommandRunner } from './codeBuilder/runner';
+export { removePathsInContainer, deleteSourceInContainer, CONTAINER_USER } from './codeBuilder/fixtureCleanup';
+export type { RemovePathsInContainerOptions, DeleteSourceInContainerOptions } from './codeBuilder/fixtureCleanup';

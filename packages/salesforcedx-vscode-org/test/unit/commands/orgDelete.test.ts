@@ -43,10 +43,10 @@ const buildServices = (
   PromptService: Effect.succeed({
     confirmOrThrow: (_params: { message: string; confirmLabel: string }) =>
       confirm ? Effect.void : Effect.fail(userCancellationError),
-    withCancellableProgress:
-      <A, E>(_message: string, _location?: unknown) =>
-      (effect: Effect.Effect<A, E>) =>
-        effect
+    withProgress:
+      () =>
+      <A, E, R>(work: Effect.Effect<A, E, R>) =>
+        work
   }),
   TerminalService: Effect.succeed({ simpleExec }),
   ChannelService: Effect.succeed({
@@ -160,7 +160,7 @@ class TerminalServiceError extends Schema.TaggedError<TerminalServiceError>()('T
   message: Schema.String
 }) {}
 
-// Mirrors the real UserCancellationError (promptService.ts) that withCancellableProgress surfaces when the
+// Mirrors the real UserCancellationError (promptService.ts) that withProgress surfaces when the
 // user clicks Cancel. Unlike a TerminalServiceError it must NOT be caught per-org; it aborts the whole loop.
 class UserCancellationError extends Schema.TaggedError<UserCancellationError>()('UserCancellationError', {
   message: Schema.String
@@ -168,15 +168,15 @@ class UserCancellationError extends Schema.TaggedError<UserCancellationError>()(
 
 const appendToChannel = vi.fn<(_username: string) => Effect.Effect<void>>();
 
-// Mirrors the real withCancellableProgress (promptService.ts): a fiber interrupt (Cancel) is converted into a
+// Mirrors the real withProgress (promptService.ts): a fiber interrupt (Cancel) is converted into a
 // typed UserCancellationError. Modeling it this way lets the cancellation test interrupt mid-loop the same way
 // clicking Cancel does, instead of faking a typed failure out of simpleExec.
 const buildUsernameServices = (simpleExec: VitestMock) => ({
   PromptService: Effect.succeed({
-    withCancellableProgress:
-      <A, E>(_message: string, _location?: unknown) =>
-      (effect: Effect.Effect<A, E>) =>
-        effect.pipe(
+    withProgress:
+      () =>
+      <A, E, R>(work: Effect.Effect<A, E, R>) =>
+        work.pipe(
           Effect.catchAllCause(cause =>
             Cause.isInterruptedOnly(cause)
               ? Effect.fail<UserCancellationError | E>(
@@ -273,7 +273,7 @@ describe('orgDeleteUsernameCommand', () => {
 
   it('aborts the loop on cancellation (interrupt is not bucketed by partition)', async () => {
     mockGather.mockReturnValue(Effect.succeed({ orgs: [scratchOrg, sandboxOrg] }));
-    // Cancelling mid-delete: clicking Cancel interrupts the loop fiber. Because withCancellableProgress wraps the
+    // Cancelling mid-delete: clicking Cancel interrupts the loop fiber. Because withProgress wraps the
     // whole partition (not each org), the interrupt aborts the loop; partition's per-element Effect.either only
     // recovers typed failures, so it does NOT bucket the interrupt and continue. The progress wrapper then turns
     // the interrupt into a UserCancellationError. (A typed TerminalServiceError, by contrast, IS bucketed.)

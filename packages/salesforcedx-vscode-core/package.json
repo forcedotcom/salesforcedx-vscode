@@ -15,7 +15,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "68.9.5",
+  "version": "68.15.7",
   "publisher": "salesforce",
   "o11yUploadEndpoint": "https://794testsite.my.site.com/byolwr/webruntime/log/metrics",
   "enableO11y": "true",
@@ -28,11 +28,11 @@
     "Other"
   ],
   "dependencies": {
-    "@salesforce/core": "^9.3.0",
+    "@salesforce/core": "^9.4.1",
     "@salesforce/effect-ext-utils": "workspace:*",
     "@salesforce/salesforcedx-utils": "workspace:*",
     "@salesforce/vscode-i18n": "workspace:*",
-    "effect": "^3.21.2",
+    "effect": "^3.22.4",
     "fast-xml-parser": "^5.7.1",
     "vscode-uri": "^3.1.0"
   },
@@ -48,8 +48,8 @@
     "preinstall": "node ../../scripts/require-root-install.js",
     "vscode:bundle": "wireit",
     "vscode:package": "wireit",
-    "vscode:sha256": "node ../../scripts/generate-sha256.js >> ../../SHA256",
-    "vscode:publish": "node ../../scripts/publish-vsix.js",
+    "vscode:sha256": "node ../../scripts/generateSha256.mts >> ../../SHA256",
+    "vscode:publish": "node ../../scripts/publishVsix.mts",
     "compile": "wireit",
     "lint": "wireit",
     "check:circular-deps": "wireit",
@@ -209,7 +209,14 @@
     "test:container": {
       "command": "playwright test --config=test/playwright/playwright.config.container.ts",
       "env": {
+        "VSCODE_CONTAINER": "1",
         "CODE_BUILDER_URL": {
+          "external": true
+        },
+        "CB_GREP": {
+          "external": true
+        },
+        "CB_UNDER_TEST": {
           "external": true
         }
       },

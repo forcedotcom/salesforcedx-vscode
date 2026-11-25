@@ -6,6 +6,7 @@ import fs from 'node:fs';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 const emptyPolyfillsPath = join(__dirname, 'empty-polyfills.js');
+const modulePolyfillPath = join(__dirname, 'module-polyfill.mjs');
 const processGlobalPath = join(__dirname, 'process-global.js');
 const processPolyfillPath = join(__dirname, 'process-polyfill.js');
 const bufferGlobalPath = join(__dirname, 'buffer-global.js');
@@ -67,8 +68,12 @@ export const commonConfigBrowser = {
   },
   alias: {
     async_hooks: emptyPolyfillsPath,
+    module: modulePolyfillPath,
+    'node:module': modulePolyfillPath,
     // proper-lockfile and SDR use graceful-fs
     'graceful-fs': fsPolyfillPath,
+    // SDR's compute-app source bundling and PAC proxy config are Node-only in web builds.
+    'fs/promises': emptyPolyfillsPath,
     fs: fsPolyfillPath,
     'node:fs': fsPolyfillPath,
     'node:fs/promises': fsPolyfillPath,
@@ -88,6 +93,7 @@ export const commonConfigBrowser = {
     'node:os': 'os-browserify',
     'node:buffer': 'buffer',
     'node:stream': 'readable-stream',
+    'node:stream/consumers': emptyPolyfillsPath,
     'node:stream/promises': emptyPolyfillsPath,
     'readable-stream/promises': emptyPolyfillsPath,
     'node:util': 'util',
@@ -128,6 +134,7 @@ export const commonConfigBrowser = {
     querystring: 'querystring-es3',
     assert: 'assert',
     zlib: 'browserify-zlib',
+    'node:zlib': 'browserify-zlib',
     timers: 'timers-browserify',
     'node:timers': 'timers-browserify',
     'node:string_decoder': 'string_decoder'

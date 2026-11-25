@@ -15,5 +15,3 @@ const workspace = {
 };
 
 export { workspace };
-
-export { workspaceService } from './workspaceService';

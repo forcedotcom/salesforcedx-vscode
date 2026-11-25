@@ -6,10 +6,11 @@
  */
 
 /*
- * "SFDX: Stop Apex Debugger Session" against a real org.
+ * "SFDX: Stop Apex Debugger Session" against a real org. Runs on desktop (real Electron host, a fresh
+ * minimal scratch org) and, unchanged, against the Code Builder container's boot-authed org.
  *
- * Branch (a) — no active ApexDebuggerSession — is exercised here end-to-end: a fresh minimal scratch org
- * has no active session, so the command must report `debugger_stop_none_found_text`.
+ * Branch (a) — no active ApexDebuggerSession — is exercised here end-to-end: the org has no active
+ * session, so the command must report `debugger_stop_none_found_text`.
  *
  * Branch (b) — an active session detached via the tooling update — requires an ACTIVE ApexDebuggerSession
  * record, which only exists while an Apex Debugger session (an ISV-licensed / Debug-Only-licensed capability)
@@ -19,45 +20,57 @@
  */
 
 import {
+  clearAllNotifications,
   closeWelcomeTabs,
   ensureSecondarySideBarHidden,
   executeCommandWithCommandPalette,
-  saveScreenshot,
   setupConsoleMonitoring,
   setupNetworkMonitoring,
+  startVideoRecording,
   validateNoCriticalErrors,
   verifyCommandExists,
   waitForNotification,
   waitForVSCodeWorkbench,
   waitForWorkspaceReady
 } from '@salesforce/playwright-vscode-ext';
-import { debuggerDesktopTest as test } from '../fixtures';
+import { debuggerTest as test } from '../fixtures';
 import packageNls from '../../../package.nls.json';
 import { messages } from '../../../src/messages/i18n';
 
-test('Stop Apex Debugger Session: reports none found when no active session exists', async ({ page }) => {
+test('Stop Apex Debugger Session: reports none found when no active session exists', async ({ page }, testInfo) => {
   test.setTimeout(60_000);
 
   const consoleErrors = setupConsoleMonitoring(page);
   const networkErrors = setupNetworkMonitoring(page);
 
   await test.step('wait for workbench', async () => {
+    // No-op once ready (container's fixture already awaited it); the real wait on desktop.
     await waitForVSCodeWorkbench(page);
     await closeWelcomeTabs(page);
     await ensureSecondarySideBarHidden(page);
+    // Best-effort: only container's shared, persistent workbench can carry a notification over
+    // from a prior spec.
+    await clearAllNotifications(page);
     await waitForWorkspaceReady(page);
-    await saveScreenshot(page, 'debuggerStop.01-ready.png');
   });
 
-  await test.step('verify command exists and run it', async () => {
-    await verifyCommandExists(page, packageNls.debugger_stop_text, 30_000);
-    await executeCommandWithCommandPalette(page, packageNls.debugger_stop_text);
-  });
+  const videoName = [testInfo.project.name, ...testInfo.titlePath, 'stop-session', `retry-${testInfo.retry}`]
+    .join('-')
+    .replaceAll(/[^a-zA-Z0-9._-]+/g, '-')
+    .replaceAll(/^-+|-+$/g, '');
+  const stopRecording = await startVideoRecording(page, testInfo, videoName);
+  try {
+    await test.step('verify command exists and run it', async () => {
+      await verifyCommandExists(page, packageNls.debugger_stop_text, 30_000);
+      await executeCommandWithCommandPalette(page, packageNls.debugger_stop_text);
+    });
 
-  await test.step('verify the no-session-found notification appears', async () => {
-    await waitForNotification(page, new RegExp(messages.debugger_stop_none_found_text), { timeout: 15_000 });
-    await saveScreenshot(page, 'debuggerStop.02-none-found-verified.png');
-  });
+    await test.step('verify the no-session-found notification appears', async () => {
+      await waitForNotification(page, new RegExp(messages.debugger_stop_none_found_text), { timeout: 15_000 });
+    });
 
-  await validateNoCriticalErrors(test, consoleErrors, networkErrors);
+    await validateNoCriticalErrors(test, consoleErrors, networkErrors);
+  } finally {
+    await stopRecording();
+  }
 });

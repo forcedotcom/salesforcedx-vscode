@@ -92,10 +92,11 @@ Done: `Default(...)` in the layer; slot exists; `COMMAND` typed.
 ```typescript
 const COMMAND: ProgressAndSuccessCommandKey = messages.deploy_this_source_text;
 const notificationMode = yield* api.services.NotificationModeService;
-const location = yield* notificationMode.getProgressLocation(COMMAND);
-
-yield* work.pipe(
-  promptService.withProgress(nls.localize('working'), location),
+yield* work.pipe(promptService.withProgress({
+  command: COMMAND,
+  title: nls.localize('working'),
+  cancellable: false
+})).pipe(
   Effect.tap(() =>
     notificationMode.showSuccessNotification(
       COMMAND,
@@ -105,7 +106,15 @@ yield* work.pipe(
 );
 ```
 
-Cancellable: `promptService.withCancellableProgress(title, location)`.
+For work that doesn't need progress updates or the cancellation token, pipe its Effect through `withProgress`:
+
+```typescript
+yield* work.pipe(promptService.withProgress({ command: COMMAND, title: nls.localize('working'), cancellable: true }));
+```
+
+For progress updates or cooperative cancellation, use `withProgressReporting({ ... })(build)`. By default, Cancel
+interrupts the Effect and fails with `UserCancellationError`; use `interruptOnCancel: false` only when the callback
+handles the token itself and must settle with its real outcome.
 
 `forceShow: true` when the message must not be suppressed (request ID).
 

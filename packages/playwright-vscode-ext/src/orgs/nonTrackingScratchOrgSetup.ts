@@ -11,7 +11,7 @@ import * as os from 'node:os';
 import * as path from 'node:path';
 import { execAsync, env, tryUseExistingOrg, getOrgAuthFields, requireOrgInCI } from './shared';
 
-export const NON_TRACKING_ORG_ALIAS = 'nonTrackingTestOrg';
+export const NON_TRACKING_ORG_ALIAS = process.env.NON_TRACKING_ORG_ALIAS ?? 'nonTrackingTestOrg';
 export const HUB_ORG_ALIAS = 'hub';
 // Dedicated org for tests that LOG OUT of / delete their default org (apex-testing clear-on-logout).
 // Separate alias so destroying it never breaks the shared nonTrackingTestOrg other specs depend on.

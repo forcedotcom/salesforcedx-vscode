@@ -6,7 +6,6 @@
  */
 import { getOrgShape } from './workspaceOrgShape';
 
-export { WorkspaceContext } from './workspaceContext';
 export const workspaceContextUtils = {
   getOrgShape
 };

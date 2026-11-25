@@ -7,6 +7,8 @@
 
 // This is Node.js test infrastructure, not extension code
 import { resolveCliPathFromVSCodeExecutablePath } from '@vscode/test-electron';
+import * as Duration from 'effect/Duration';
+import * as Effect from 'effect/Effect';
 import { spawnSync } from 'node:child_process';
 import * as crypto from 'node:crypto';
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
@@ -308,7 +310,7 @@ const acquireCacheLock = async (lockDir: string): Promise<() => Promise<void>> =
         if (isFileSystemError(staleCheckError, 'ENOENT')) continue;
         throw staleCheckError;
       }
-      await new Promise(resolve => setTimeout(resolve, LOCK_RETRY_MS));
+      await Effect.sleep(Duration.millis(LOCK_RETRY_MS)).pipe(Effect.runPromise);
     }
   }
 };

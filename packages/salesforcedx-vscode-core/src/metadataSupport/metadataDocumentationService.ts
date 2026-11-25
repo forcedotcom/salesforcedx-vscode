@@ -4,10 +4,11 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import { ExtensionProviderService, getMessageFromError } from '@salesforce/effect-ext-utils';
+import * as Arr from 'effect/Array';
 import * as Cause from 'effect/Cause';
 import * as Effect from 'effect/Effect';
-import { isError, isString } from 'effect/Predicate';
+import { isString } from 'effect/Predicate';
 import { toEntries } from 'effect/Record';
 import * as Runtime from 'effect/Runtime';
 import * as Schema from 'effect/Schema';
@@ -81,7 +82,7 @@ const loadMetadataDocumentation = Effect.fn('MetadataDocumentationService.loadMe
               parseTagValue: false,
               trimValues: true
             }).parse(xsdContent),
-          catch: cause => new XsdParseError({ message: isError(cause) ? cause.message : String(cause) })
+          catch: cause => new XsdParseError({ message: getMessageFromError(cause) })
         })
       ),
       Effect.map(parsed => parsed['xsd:schema'])
@@ -92,9 +93,7 @@ const loadMetadataDocumentation = Effect.fn('MetadataDocumentationService.loadMe
       return;
     }
 
-    const complexTypes = Array.isArray(schema['xsd:complexType'])
-      ? schema['xsd:complexType']
-      : [schema['xsd:complexType']];
+    const complexTypes = Arr.ensure(schema['xsd:complexType']);
 
     for (const complexType of complexTypes) {
       if (!complexType['@_name']) continue;
@@ -263,9 +262,7 @@ export class MetadataDocumentationService {
         return fields;
       }
 
-      const elements = Array.isArray(elementsContainer['xsd:element'])
-        ? elementsContainer['xsd:element']
-        : [elementsContainer['xsd:element']];
+      const elements = Arr.ensure(elementsContainer['xsd:element']);
 
       for (const element of elements) {
         if (!element['@_name']) continue;

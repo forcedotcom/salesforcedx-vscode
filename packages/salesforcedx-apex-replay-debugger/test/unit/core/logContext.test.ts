@@ -19,7 +19,7 @@ import { type StackFrame } from '@vscode/debugadapter';
 import { ApexReplayDebug } from '../../../src/adapter/apexReplayDebug';
 import { type LaunchRequestArguments } from '../../../src/adapter/types';
 import { breakpointUtil } from '../../../src/breakpoints';
-import { type ApexExecutionOverlayResultCommandSuccess } from '../../../src/commands';
+import { type ApexExecutionOverlayResultCommandSuccess } from '../../../src/commands/apexExecutionOverlayResultCommand';
 import {
   EVENT_CODE_UNIT_FINISHED,
   EVENT_CODE_UNIT_STARTED,
@@ -35,17 +35,15 @@ import {
   EVENT_VF_APEX_CALL_START,
   EXEC_ANON_SIGNATURE
 } from '../../../src/constants';
-import { LogContext } from '../../../src/core';
+import { LogContext } from '../../../src/core/logContext';
 import * as logContextUtil from '../../../src/core/logContextUtil';
-import {
-  type DebugLogState,
-  FrameEntryState,
-  FrameExitState,
-  LogEntryState,
-  NoOpState,
-  StatementExecuteState,
-  UserDebugState
-} from '../../../src/states';
+import { type DebugLogState } from '../../../src/states/debugLogState';
+import { FrameEntryState } from '../../../src/states/frameEntryState';
+import { FrameExitState } from '../../../src/states/frameExitState';
+import { LogEntryState } from '../../../src/states/logEntryState';
+import { NoOpState } from '../../../src/states/noOpState';
+import { StatementExecuteState } from '../../../src/states/statementExecuteState';
+import { UserDebugState } from '../../../src/states/userDebugState';
 
 describe('LogContext', () => {
   let context: LogContext;

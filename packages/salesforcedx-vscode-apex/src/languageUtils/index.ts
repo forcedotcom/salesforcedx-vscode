@@ -39,6 +39,3 @@ export const createLanguageClient = Effect.fn('languageUtils.createLanguageClien
 ) {
   yield* languageClientManager.activateLanguageClient(extensionContext, languageServerStatusBarItem);
 });
-
-export { configureApexLanguage } from './apexLanguageConfiguration';
-export { languageClientManager } from './languageClientManager';

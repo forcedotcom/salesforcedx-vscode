@@ -5,11 +5,12 @@
 'use strict';
 
 import { getCSSLanguageService, type Stylesheet } from 'vscode-css-languageservice';
+import { type ColorInformation } from 'vscode-languageserver-protocol';
 import type { TextDocument } from 'vscode-languageserver-textdocument';
 import type { Position } from 'vscode-languageserver-types';
 import { getLanguageModelCache, type LanguageModelCache } from '../languageModelCache';
 import { CSS_STYLE_RULE, type HTMLDocumentRegions } from './embeddedSupport';
-import { type ColorInformation, type LanguageMode, type Settings } from './languageModes';
+import { type LanguageMode, type Settings } from './languageModes';
 
 export const getCSSMode = (documentRegions: LanguageModelCache<HTMLDocumentRegions>): LanguageMode => {
   const cssLanguageService = getCSSLanguageService();

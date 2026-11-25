@@ -37,5 +37,5 @@ Section markdown `toMarkdown` returns from decoded changelog sections: `## Added
 _Avoid_: version header, full changelog file, model-written markdown
 
 **Changelog judgment skill**:
-Cursor skill the script reads into the prompt with the changelog facts. SDK is the only consumer. Separate from the polish skill `changelog`.
-_Avoid_: slash invocation, Claude skill, polish skill
+OpenCode skill the script reads into the prompt with the changelog facts. The changelog body script is the only consumer. Separate from the polish skill `changelog`.
+_Avoid_: slash invocation, polish skill

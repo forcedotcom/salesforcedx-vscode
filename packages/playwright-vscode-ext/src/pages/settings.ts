@@ -4,10 +4,17 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import type { OrgAuthResult } from '../orgs/types';
 import { type Locator, type Page, expect } from '@playwright/test';
-import type { AuthFields } from '@salesforce/core';
-import { ACCESS_TOKEN_KEY, API_VERSION_KEY, CODE_BUILDER_WEB_SECTION, INSTANCE_URL_KEY } from '../constants';
-import { saveScreenshot } from '../shared/screenshotUtils';
+import { parse, printParseErrorCode, type ParseError } from 'jsonc-parser';
+import {
+  ACCESS_TOKEN_KEY,
+  API_VERSION_KEY,
+  CODE_BUILDER_WEB_SECTION,
+  INSTANCE_URL_KEY,
+  SESSION_CONTEXT_KEY
+} from '../constants';
+import { focusMonacoInput } from '../utils/focusMonacoInput';
 import {
   waitForVSCodeWorkbench,
   closeWelcomeTabs,
@@ -16,7 +23,8 @@ import {
   isMacDesktop,
   isDesktop
 } from '../utils/helpers';
-import { WORKBENCH, SETTINGS_SEARCH_INPUT } from '../utils/locators';
+import { WORKBENCH, SETTINGS_SEARCH_INPUT, EDITOR_WITH_URI, QUICK_INPUT_WIDGET } from '../utils/locators';
+import { executeCommandWithCommandPalette } from './commands';
 
 const settingsLocator = (page: Page): Locator => page.locator(SETTINGS_SEARCH_INPUT.join(','));
 
@@ -40,7 +48,7 @@ export const openSettingsUI = async (page: Page): Promise<void> => {
  * */
 export const upsertScratchOrgAuthFieldsToSettings = async (
   page: Page,
-  authFields: Required<Pick<AuthFields, 'instanceUrl' | 'accessToken' | 'instanceApiVersion'>>,
+  authFields: OrgAuthResult,
   waitForProject: () => Promise<void> = () => waitForWorkspaceReady(page)
 ): Promise<void> => {
   // Desktop uses real CLI auth files, so just wait for workbench (no navigation, no settings)
@@ -57,7 +65,10 @@ export const upsertScratchOrgAuthFieldsToSettings = async (
   if (waitForProject) {
     await waitForProject();
   }
+  // JSON-editor saves do not fire onDidChangeConfiguration in VS Code Web, so write the session metadata object
+  // first, then the three auth settings through the Settings UI, which triggers the auth watcher.
   await upsertSettings(page, {
+    [`${CODE_BUILDER_WEB_SECTION}.${SESSION_CONTEXT_KEY}`]: authFields.sessionContext,
     [`${CODE_BUILDER_WEB_SECTION}.${INSTANCE_URL_KEY}`]: authFields.instanceUrl,
     [`${CODE_BUILDER_WEB_SECTION}.${ACCESS_TOKEN_KEY}`]: authFields.accessToken,
     [`${CODE_BUILDER_WEB_SECTION}.${API_VERSION_KEY}`]: authFields.instanceApiVersion ?? '64.0'
@@ -90,13 +101,100 @@ const performSearch =
 
 /** Upsert settings using Settings (UI) search and fill of each id.
  * For checkbox settings, pass "true" or "false" as the value.
+ * Object settings are replaced through VS Code's JSON editor without replacing other settings.
  */
-export const upsertSettings = async (page: Page, settings: Record<string, string>): Promise<void> => {
+export const upsertSettings = async (
+  page: Page,
+  settings: Record<string, string | Record<string, unknown>>
+): Promise<void> => {
+  const objectSettings = Object.entries(settings).filter(([, value]) => typeof value === 'object');
+  if (objectSettings.length > 0) {
+    await closeWelcomeTabs(page);
+    await executeCommandWithCommandPalette(page, 'Preferences: Open User Settings (JSON)');
+    await page.locator(QUICK_INPUT_WIDGET).waitFor({ state: 'hidden' });
+    const editor = page.locator(`${EDITOR_WITH_URI}[data-uri$="settings.json"]`).last();
+    await editor.waitFor({ state: 'visible', timeout: 10_000 });
+    await focusMonacoInput(editor);
+    const document = (await editor.locator('.view-line').allTextContents()).join('\n').replaceAll('\u00a0', ' ');
+    const errors: ParseError[] = [];
+    const parsedDocument = (parse(document, errors) ?? {}) as Record<string, unknown>;
+    if (errors.length > 0)
+      throw new Error(
+        `Invalid workspace settings JSON: ${errors.map(error => printParseErrorCode(error.error)).join(', ')}`
+      );
+    const updatedSettings = parsedDocument;
+    for (const [settingId, value] of objectSettings) {
+      const settingPath = settingId.split('.');
+      const key = settingPath.pop();
+      if (!key) throw new Error(`Invalid setting ID: ${settingId}`);
+      let section = updatedSettings;
+      for (const sectionName of settingPath) {
+        const currentSection = section[sectionName];
+        if (
+          currentSection !== undefined &&
+          (typeof currentSection !== 'object' || currentSection === null || Array.isArray(currentSection))
+        ) {
+          throw new Error(`Cannot update ${settingId}: ${sectionName} is not a settings section.`);
+        }
+        section[sectionName] = (currentSection ?? {}) as Record<string, unknown>;
+        section = section[sectionName] as Record<string, unknown>;
+      }
+      section[key] = value;
+    }
+    // Monaco auto-indents each newline produced through keyboard.insertText, corrupting pretty-printed JSON.
+    // A one-line document avoids editor indentation rewriting the supplied settings text.
+    const replacement = JSON.stringify(updatedSettings);
+    await page.keyboard.press('Control+A');
+    await page.keyboard.press('Backspace');
+    await expect(editor.locator('.view-line')).toHaveText('', { timeout: 5000 });
+    await page.keyboard.insertText(replacement);
+    await expect(async () => {
+      const editedDocument = (await editor.locator('.view-line').allTextContents())
+        .join('\n')
+        .replaceAll('\u00a0', ' ');
+      const editedErrors: ParseError[] = [];
+      const parsedEditedDocument: unknown = parse(editedDocument, editedErrors);
+      expect(editedErrors).toEqual([]);
+      expect(editedDocument).toBe(replacement);
+      expect(parsedEditedDocument).toEqual(JSON.parse(replacement));
+    }).toPass({ timeout: 5000 });
+    await page.keyboard.press('Control+S');
+    await page.waitForTimeout(500);
+    const saveError = page.getByText(/Unable to write into .*settings/i);
+    if (await saveError.isVisible().catch(() => false)) {
+      throw new Error('VS Code rejected the workspace settings JSON update.');
+    }
+    await page.keyboard.press('Control+W');
+    await executeCommandWithCommandPalette(page, 'Preferences: Open User Settings (JSON)');
+    await page.locator(QUICK_INPUT_WIDGET).waitFor({ state: 'hidden' });
+    const savedEditor = page.locator(`${EDITOR_WITH_URI}[data-uri$="settings.json"]`).last();
+    await savedEditor.waitFor({ state: 'visible', timeout: 10_000 });
+    const savedDocument = (await savedEditor.locator('.view-line').allTextContents())
+      .join('\n')
+      .replaceAll('\u00a0', ' ');
+    const savedErrors: ParseError[] = [];
+    parse(savedDocument, savedErrors);
+    expect(savedErrors).toEqual([]);
+    expect(savedDocument).toBe(replacement);
+    for (const [id, value] of objectSettings) {
+      const actual = id.split('.').reduce<unknown>((section, key) => {
+        if (typeof section !== 'object' || section === null) return undefined;
+        return (section as Record<string, unknown>)[key];
+      }, updatedSettings);
+      expect(actual).toMatchObject(value as Record<string, unknown>);
+    }
+    await page.keyboard.press('Control+W');
+  }
+
+  const scalarSettings = Object.entries(settings).filter(([, value]) => typeof value !== 'object');
+  if (scalarSettings.length === 0) return;
+
   await openSettingsUI(page);
   const debugAria = process.env.E2E_ARIA_DEBUG === '1';
 
-  for (const [id, value] of Object.entries(settings)) {
-    // Debug visibility: take screenshot and aria snapshot before each search
+  for (const [id, value] of scalarSettings) {
+    if (typeof value !== 'string') continue;
+    // Debug visibility: log an aria snapshot before each search
     if (debugAria) {
       try {
         const aria = await page.locator('body').ariaSnapshot();
@@ -106,18 +204,8 @@ export const upsertSettings = async (page: Page, settings: Record<string, string
 
     await settingsLocator(page).first().waitFor({ timeout: 3000 });
 
-    // Screenshot search box state before clear+type (debug: is previous search still there?)
-    if (Object.keys(settings).length > 1) {
-      await saveScreenshot(page, `settings.beforeSearch.${id.replaceAll('.', '_')}.png`, false);
-    }
-
     // First try an exact search by full id (section.key)
     await performSearch(page)(id);
-
-    // Screenshot search box state after clear+type (debug: did clear work, is query correct?)
-    if (Object.keys(settings).length > 1) {
-      await saveScreenshot(page, `settings.afterSearch.${id.replaceAll('.', '_')}.png`, false);
-    }
 
     // Wait for search results to appear - wait for any search result element to indicate search completed
     await page.locator('[data-id^="searchResultModel_"]').first().waitFor({ state: 'attached', timeout: 15_000 });
@@ -219,8 +307,6 @@ export const upsertSettings = async (page: Page, settings: Record<string, string
       }
     }
 
-    // Capture after state
-    await saveScreenshot(page, `settings.afterSet.${id}.png`, false);
     if (debugAria) {
       try {
         const ariaAfter = await page.locator('body').ariaSnapshot();

@@ -1,0 +1,783 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`writeResultFiles - upstream apex-node 9.1.13 parity > base-all > arr.json 1`] = `"[1,"two",{"three":3},[4],null]"`;
+
+exports[`writeResultFiles - upstream apex-node 9.1.13 parity > base-all > emptyarr.json 1`] = `"[]"`;
+
+exports[`writeResultFiles - upstream apex-node 9.1.13 parity > base-all > emptyobj.json 1`] = `"{}"`;
+
+exports[`writeResultFiles - upstream apex-node 9.1.13 parity > base-all > file names 1`] = `
+[
+  "arr.json",
+  "emptyarr.json",
+  "emptyobj.json",
+  "obj.json",
+  "plain.txt",
+  "test-result-707000000000002AAA-junit.xml",
+  "test-result-707000000000002AAA-tap.txt",
+  "test-result-707000000000002AAA.json",
+  "test-result-707000000000002AAA.md",
+  "test-result-707000000000002AAA.txt",
+  "test-run-id.txt",
+]
+`;
+
+exports[`writeResultFiles - upstream apex-node 9.1.13 parity > base-all > obj.json 1`] = `"{"a":1,"b":[1,2,{"c":null}],"d":"x\\"y","e":{"f":[]},"h":"1970-01-01T00:00:00.000Z"}"`;
+
+exports[`writeResultFiles - upstream apex-node 9.1.13 parity > base-all > plain.txt 1`] = `
+"plain content
+second line ü 😀"
+`;
+
+exports[`writeResultFiles - upstream apex-node 9.1.13 parity > base-all > test-result-707000000000002AAA.json 1`] = `"{"summary":{"outcome":"Completed","testsRan":3,"passing":2,"failing":1,"skipped":0,"passRate":"67%","failRate":"33%","skipRate":"0%","testStartTime":"2023-01-01T12:00:00.000Z","testExecutionTimeInMs":1500,"testTotalTimeInMs":2500,"commandTimeInMs":3500,"hostname":"snapshot-test-host","orgId":"00D000000000000EAA","username":"snapshot@example.com","testRunId":"707000000000002AAA","userId":"005000000000000AAA"},"tests":[{"id":"07M000000001000","queueItemId":"709000000001000","stackTrace":null,"message":null,"asyncApexJobId":"707000000000001AAA","methodName":"testSnapshotMethod1","outcome":"Pass","apexLogId":null,"apexClass":{"id":"01p000000000001AAA","name":"SnapshotTestClass1","namespacePrefix":null,"fullName":"SnapshotTestClass1"},"runTime":750,"testTimestamp":"2023-01-01T12:00:00.500Z","fullName":"SnapshotTestClass1.testSnapshotMethod1"},{"id":"07M000000002000","queueItemId":"709000000002000","stackTrace":"System.AssertException: Snapshot test assertion failed","message":"Snapshot test failed with detailed error message","asyncApexJobId":"707000000000001AAA","methodName":"testSnapshotMethod2","outcome":"Fail","apexLogId":"07L000000000001AAA","apexClass":{"id":"01p000000000002AAA","name":"SnapshotTestClass2","namespacePrefix":"TestNamespace","fullName":"TestNamespace.SnapshotTestClass2"},"runTime":450,"testTimestamp":"2023-01-01T12:00:00.500Z","fullName":"TestNamespace.SnapshotTestClass2.testSnapshotMethod2"},{"id":"07M000000003000","queueItemId":"709000000003000","stackTrace":null,"message":null,"asyncApexJobId":"707000000000001AAA","methodName":"testSnapshotMethod3","outcome":"Pass","apexLogId":null,"apexClass":{"id":"01p000000000003AAA","name":"SnapshotTestClass3","namespacePrefix":null,"fullName":"SnapshotTestClass3"},"runTime":300,"testTimestamp":"2023-01-01T12:00:00.500Z","fullName":"SnapshotTestClass3.testSnapshotMethod3"}]}"`;
+
+exports[`writeResultFiles - upstream apex-node 9.1.13 parity > base-all > test-result-707000000000002AAA.md 1`] = `
+"# Apex Test Results
+**Run completed:** [TIMESTAMP]
+
+## Summary
+
+- **Total Tests:** 3
+- ✅ **Passed:** 2
+- ❌ **Failed:** 1
+- ⏱️ **Duration:** 0ms
+
+## ❌ Failures (1)
+
+### TestNamespace.SnapshotTestClass2.testSnapshotMethod2
+
+*Duration: 450ms*
+
+**Error Message**
+
+\`\`\`
+Snapshot test failed with detailed error message
+\`\`\`
+
+**Stack Trace**
+
+\`\`\`
+System.AssertException: Snapshot test assertion failed
+\`\`\`
+
+---
+
+## ✅ Passed Tests (2)
+
+- SnapshotTestClass1.testSnapshotMethod1 (750ms)
+- SnapshotTestClass3.testSnapshotMethod3 (300ms)
+
+"
+`;
+
+exports[`writeResultFiles - upstream apex-node 9.1.13 parity > base-all > test-result-707000000000002AAA.txt 1`] = `
+"Apex Test Results
+==================
+
+Run completed: [TIMESTAMP]
+
+Summary:
+  Passed:  2
+  Failed:  1
+  Skipped: 0
+  Total:   3
+  Duration: 0ms
+
+Failures:
+=========
+
+TestNamespace.SnapshotTestClass2.testSnapshotMethod2
+----------------------------------------------------
+Error:
+Snapshot test failed with detailed error message
+
+Stack Trace:
+System.AssertException: Snapshot test assertion failed
+
+Duration: 450ms
+
+
+Passed Tests:
+==============
+
+  - SnapshotTestClass1.testSnapshotMethod1 (750ms)
+  - SnapshotTestClass3.testSnapshotMethod3 (300ms)
+
+"
+`;
+
+exports[`writeResultFiles - upstream apex-node 9.1.13 parity > base-all > test-result-707000000000002AAA-junit.xml 1`] = `
+"<?xml version="1.0" encoding="UTF-8"?>
+<testsuites>
+    <testsuite name="force.apex" timestamp="2023-01-01T12:00:00.000Z" hostname="snapshot-test-host" tests="3" failures="1"  errors="0"  time="1.50">
+        <properties>
+            <property name="outcome" value="Completed"/>
+            <property name="testsRan" value="3"/>
+            <property name="passing" value="2"/>
+            <property name="failing" value="1"/>
+            <property name="skipped" value="0"/>
+            <property name="passRate" value="67%"/>
+            <property name="failRate" value="33%"/>
+            <property name="testStartTime" value="[TIMESTAMP]"/>
+            <property name="testExecutionTime" value="1.50 s"/>
+            <property name="testTotalTime" value="2.50 s"/>
+            <property name="commandTime" value="3.50 s"/>
+            <property name="hostname" value="snapshot-test-host"/>
+            <property name="orgId" value="00D000000000000EAA"/>
+            <property name="username" value="snapshot@example.com"/>
+            <property name="testRunId" value="707000000000002AAA"/>
+            <property name="userId" value="005000000000000AAA"/>
+        </properties>
+        <testcase name="testSnapshotMethod1" classname="SnapshotTestClass1" time="0.75">
+        </testcase>
+        <testcase name="testSnapshotMethod2" classname="TestNamespace.SnapshotTestClass2" time="0.45">
+            <failure message="Snapshot test failed with detailed error message"><![CDATA[System.AssertException: Snapshot test assertion failed]]></failure>
+        </testcase>
+        <testcase name="testSnapshotMethod3" classname="SnapshotTestClass3" time="0.30">
+        </testcase>
+    </testsuite>
+</testsuites>
+"
+`;
+
+exports[`writeResultFiles - upstream apex-node 9.1.13 parity > base-all > test-result-707000000000002AAA-tap.txt 1`] = `
+"1..3
+ok 1 SnapshotTestClass1.testSnapshotMethod1
+not ok 2 TestNamespace.SnapshotTestClass2.testSnapshotMethod2
+# Snapshot test failed with detailed error message
+# System.AssertException: Snapshot test assertion failed
+ok 3 SnapshotTestClass3.testSnapshotMethod3
+"
+`;
+
+exports[`writeResultFiles - upstream apex-node 9.1.13 parity > base-all > test-run-id.txt 1`] = `"707000000000002AAA"`;
+
+exports[`writeResultFiles - upstream apex-node 9.1.13 parity > coverage-all > arr.json 1`] = `"[1,"two",{"three":3},[4],null]"`;
+
+exports[`writeResultFiles - upstream apex-node 9.1.13 parity > coverage-all > emptyarr.json 1`] = `"[]"`;
+
+exports[`writeResultFiles - upstream apex-node 9.1.13 parity > coverage-all > emptyobj.json 1`] = `"{}"`;
+
+exports[`writeResultFiles - upstream apex-node 9.1.13 parity > coverage-all > file names 1`] = `
+[
+  "arr.json",
+  "emptyarr.json",
+  "emptyobj.json",
+  "obj.json",
+  "plain.txt",
+  "test-result-707000000000002AAA-codecoverage.json",
+  "test-result-707000000000002AAA-junit.xml",
+  "test-result-707000000000002AAA-tap.txt",
+  "test-result-707000000000002AAA.json",
+  "test-result-707000000000002AAA.md",
+  "test-result-707000000000002AAA.txt",
+  "test-run-id.txt",
+]
+`;
+
+exports[`writeResultFiles - upstream apex-node 9.1.13 parity > coverage-all > obj.json 1`] = `"{"a":1,"b":[1,2,{"c":null}],"d":"x\\"y","e":{"f":[]},"h":"1970-01-01T00:00:00.000Z"}"`;
+
+exports[`writeResultFiles - upstream apex-node 9.1.13 parity > coverage-all > plain.txt 1`] = `
+"plain content
+second line ü 😀"
+`;
+
+exports[`writeResultFiles - upstream apex-node 9.1.13 parity > coverage-all > test-result-707000000000002AAA.json 1`] = `"{"summary":{"outcome":"Completed","testsRan":3,"passing":2,"failing":1,"skipped":0,"passRate":"67%","failRate":"33%","skipRate":"0%","testStartTime":"2023-01-01T12:00:00.000Z","testExecutionTimeInMs":1500,"testTotalTimeInMs":2500,"commandTimeInMs":3500,"hostname":"snapshot-test-host","orgId":"00D000000000000EAA","username":"snapshot@example.com","testRunId":"707000000000002AAA","userId":"005000000000000AAA"},"tests":[{"id":"07M000000001000","queueItemId":"709000000001000","stackTrace":null,"message":null,"asyncApexJobId":"707000000000001AAA","methodName":"testSnapshotMethod1","outcome":"Pass","apexLogId":null,"apexClass":{"id":"01p000000000001AAA","name":"SnapshotTestClass1","namespacePrefix":null,"fullName":"SnapshotTestClass1"},"runTime":750,"testTimestamp":"2023-01-01T12:00:00.500Z","fullName":"SnapshotTestClass1.testSnapshotMethod1","perClassCoverage":[{"apexClassOrTriggerName":"SnapshotTestClass1","apexClassOrTriggerId":"01p000000000001AAA","apexTestClassId":"01p000000000002AAA","apexTestMethodName":"testMethod1","numLinesCovered":8,"numLinesUncovered":2,"percentage":"80%","coverage":{"apexId":"01p000000000001AAA","name":"SnapshotTestClass1","type":"ApexClass","numLinesCovered":8,"numLinesUncovered":2,"percentage":"80%","coveredLines":[1,2,3,4,5,6,7,8],"uncoveredLines":[9,10]}}]},{"id":"07M000000002000","queueItemId":"709000000002000","stackTrace":"System.AssertException: Snapshot test assertion failed","message":"Snapshot test failed with detailed error message","asyncApexJobId":"707000000000001AAA","methodName":"testSnapshotMethod2","outcome":"Fail","apexLogId":"07L000000000001AAA","apexClass":{"id":"01p000000000002AAA","name":"SnapshotTestClass2","namespacePrefix":"TestNamespace","fullName":"TestNamespace.SnapshotTestClass2"},"runTime":450,"testTimestamp":"2023-01-01T12:00:00.500Z","fullName":"TestNamespace.SnapshotTestClass2.testSnapshotMethod2"},{"id":"07M000000003000","queueItemId":"709000000003000","stackTrace":null,"message":null,"asyncApexJobId":"707000000000001AAA","methodName":"testSnapshotMethod3","outcome":"Pass","apexLogId":null,"apexClass":{"id":"01p000000000003AAA","name":"SnapshotTestClass3","namespacePrefix":null,"fullName":"SnapshotTestClass3"},"runTime":300,"testTimestamp":"2023-01-01T12:00:00.500Z","fullName":"SnapshotTestClass3.testSnapshotMethod3"}],"codecoverage":[{"apexId":"01p000000000001AAA","name":"SnapshotTestClass1","type":"ApexClass","numLinesCovered":8,"numLinesUncovered":2,"percentage":"80%","coveredLines":[1,2,3,4,5,6,7,8],"uncoveredLines":[9,10]}]}"`;
+
+exports[`writeResultFiles - upstream apex-node 9.1.13 parity > coverage-all > test-result-707000000000002AAA.md 1`] = `
+"# Apex Test Results
+**Run completed:** [TIMESTAMP]
+
+## Summary
+
+- **Total Tests:** 3
+- ✅ **Passed:** 2
+- ❌ **Failed:** 1
+- ⏱️ **Duration:** 0ms
+
+## ❌ Failures (1)
+
+### TestNamespace.SnapshotTestClass2.testSnapshotMethod2
+
+*Duration: 450ms*
+
+**Error Message**
+
+\`\`\`
+Snapshot test failed with detailed error message
+\`\`\`
+
+**Stack Trace**
+
+\`\`\`
+System.AssertException: Snapshot test assertion failed
+\`\`\`
+
+---
+
+## Test Results with Coverage
+
+*Note: Coverage shown is per-test coverage for the class being tested. Overall class coverage is shown in the "Code Coverage by Class" section below.*
+
+<table style="width: 100%; border-collapse: collapse;">
+<thead>
+<tr style="border-bottom: 2px solid;">
+<th style="text-align: left; padding: 8px; width: 45%;">Test Name</th>
+<th style="text-align: left; padding: 8px; width: 20%;">Class Being Tested</th>
+<th style="text-align: left; padding: 8px; width: 12%;">Outcome</th>
+<th style="text-align: left; padding: 8px; width: 10%;">Per-Test Coverage</th>
+<th style="text-align: left; padding: 8px; width: 13%;">Runtime</th>
+</tr>
+</thead>
+<tbody>
+<tr style="border-bottom: 1px solid #ddd;">
+<td style="padding: 8px;"><code>SnapshotTestClass1.testSnapshotMethod1</code></td>
+<td style="padding: 8px;">SnapshotTestClass1</td>
+<td style="padding: 8px;">✅ Pass</td>
+<td style="padding: 8px;">80%</td>
+<td style="padding: 8px;">750ms</td>
+</tr>
+<tr style="border-bottom: 1px solid #ddd;">
+<td style="padding: 8px;"><code>TestNamespace.SnapshotTestClass2.testSnapshotMethod2</code></td>
+<td style="padding: 8px;">TestNamespace.SnapshotTestClass2</td>
+<td style="padding: 8px;">❌ Fail</td>
+<td style="padding: 8px;">N/A</td>
+<td style="padding: 8px;">450ms</td>
+</tr>
+<tr style="border-bottom: 1px solid #ddd;">
+<td style="padding: 8px;"><code>SnapshotTestClass3.testSnapshotMethod3</code></td>
+<td style="padding: 8px;">SnapshotTestClass3</td>
+<td style="padding: 8px;">✅ Pass</td>
+<td style="padding: 8px;">N/A</td>
+<td style="padding: 8px;">300ms</td>
+</tr>
+</tbody>
+</table>
+
+## ✅ Passed Tests (2)
+
+- SnapshotTestClass1.testSnapshotMethod1 (750ms) - 80% coverage
+- SnapshotTestClass3.testSnapshotMethod3 (300ms)
+
+## Code Coverage by Class
+
+*This section shows the overall code coverage for each class after all tests have run. This may differ from per-test coverage shown in the table above.*
+
+<table style="width: 100%; border-collapse: collapse;">
+<thead>
+<tr style="border-bottom: 2px solid;">
+<th style="text-align: left; padding: 8px; width: 30%;">Class</th>
+<th style="text-align: left; padding: 8px; width: 15%;">Coverage</th>
+<th style="text-align: left; padding: 8px; width: 55%;">Uncovered Lines</th>
+</tr>
+</thead>
+<tbody>
+<tr style="border-bottom: 1px solid #ddd;">
+<td style="padding: 8px;"><code>SnapshotTestClass1</code></td>
+<td style="padding: 8px;">80%</td>
+<td style="padding: 8px;">9, 10</td>
+</tr>
+</tbody>
+</table>
+
+"
+`;
+
+exports[`writeResultFiles - upstream apex-node 9.1.13 parity > coverage-all > test-result-707000000000002AAA.txt 1`] = `
+"Apex Test Results
+==================
+
+Run completed: [TIMESTAMP]
+
+Summary:
+  Passed:  2
+  Failed:  1
+  Skipped: 0
+  Total:   3
+  Duration: 0ms
+
+Failures:
+=========
+
+TestNamespace.SnapshotTestClass2.testSnapshotMethod2
+----------------------------------------------------
+Error:
+Snapshot test failed with detailed error message
+
+Stack Trace:
+System.AssertException: Snapshot test assertion failed
+
+Duration: 450ms
+
+
+Passed Tests:
+==============
+
+  - SnapshotTestClass1.testSnapshotMethod1 (750ms)
+  - SnapshotTestClass3.testSnapshotMethod3 (300ms)
+
+Code Coverage by Class:
+=======================
+
+  SnapshotTestClass1: 80% (Uncovered: 9, 10)
+
+"
+`;
+
+exports[`writeResultFiles - upstream apex-node 9.1.13 parity > coverage-all > test-result-707000000000002AAA-codecoverage.json 1`] = `"[[{"apexClassOrTriggerName":"SnapshotTestClass1","apexClassOrTriggerId":"01p000000000001AAA","apexTestClassId":"01p000000000002AAA","apexTestMethodName":"testMethod1","numLinesCovered":8,"numLinesUncovered":2,"percentage":"80%","coverage":{"apexId":"01p000000000001AAA","name":"SnapshotTestClass1","type":"ApexClass","numLinesCovered":8,"numLinesUncovered":2,"percentage":"80%","coveredLines":[1,2,3,4,5,6,7,8],"uncoveredLines":[9,10]}}]]"`;
+
+exports[`writeResultFiles - upstream apex-node 9.1.13 parity > coverage-all > test-result-707000000000002AAA-junit.xml 1`] = `
+"<?xml version="1.0" encoding="UTF-8"?>
+<testsuites>
+    <testsuite name="force.apex" timestamp="2023-01-01T12:00:00.000Z" hostname="snapshot-test-host" tests="3" failures="1"  errors="0"  time="1.50">
+        <properties>
+            <property name="outcome" value="Completed"/>
+            <property name="testsRan" value="3"/>
+            <property name="passing" value="2"/>
+            <property name="failing" value="1"/>
+            <property name="skipped" value="0"/>
+            <property name="passRate" value="67%"/>
+            <property name="failRate" value="33%"/>
+            <property name="testStartTime" value="[TIMESTAMP]"/>
+            <property name="testExecutionTime" value="1.50 s"/>
+            <property name="testTotalTime" value="2.50 s"/>
+            <property name="commandTime" value="3.50 s"/>
+            <property name="hostname" value="snapshot-test-host"/>
+            <property name="orgId" value="00D000000000000EAA"/>
+            <property name="username" value="snapshot@example.com"/>
+            <property name="testRunId" value="707000000000002AAA"/>
+            <property name="userId" value="005000000000000AAA"/>
+        </properties>
+        <testcase name="testSnapshotMethod1" classname="SnapshotTestClass1" time="0.75">
+        </testcase>
+        <testcase name="testSnapshotMethod2" classname="TestNamespace.SnapshotTestClass2" time="0.45">
+            <failure message="Snapshot test failed with detailed error message"><![CDATA[System.AssertException: Snapshot test assertion failed]]></failure>
+        </testcase>
+        <testcase name="testSnapshotMethod3" classname="SnapshotTestClass3" time="0.30">
+        </testcase>
+    </testsuite>
+</testsuites>
+"
+`;
+
+exports[`writeResultFiles - upstream apex-node 9.1.13 parity > coverage-all > test-result-707000000000002AAA-tap.txt 1`] = `
+"1..3
+ok 1 SnapshotTestClass1.testSnapshotMethod1
+not ok 2 TestNamespace.SnapshotTestClass2.testSnapshotMethod2
+# Snapshot test failed with detailed error message
+# System.AssertException: Snapshot test assertion failed
+ok 3 SnapshotTestClass3.testSnapshotMethod3
+"
+`;
+
+exports[`writeResultFiles - upstream apex-node 9.1.13 parity > coverage-all > test-run-id.txt 1`] = `"707000000000002AAA"`;
+
+exports[`writeResultFiles - upstream apex-node 9.1.13 parity > empty-all > arr.json 1`] = `"[1,"two",{"three":3},[4],null]"`;
+
+exports[`writeResultFiles - upstream apex-node 9.1.13 parity > empty-all > emptyarr.json 1`] = `"[]"`;
+
+exports[`writeResultFiles - upstream apex-node 9.1.13 parity > empty-all > emptyobj.json 1`] = `"{}"`;
+
+exports[`writeResultFiles - upstream apex-node 9.1.13 parity > empty-all > file names 1`] = `
+[
+  "arr.json",
+  "emptyarr.json",
+  "emptyobj.json",
+  "obj.json",
+  "plain.txt",
+  "test-result-707000000000002AAA-junit.xml",
+  "test-result-707000000000002AAA-tap.txt",
+  "test-result-707000000000002AAA.json",
+  "test-result-707000000000002AAA.md",
+  "test-result-707000000000002AAA.txt",
+  "test-run-id.txt",
+]
+`;
+
+exports[`writeResultFiles - upstream apex-node 9.1.13 parity > empty-all > obj.json 1`] = `"{"a":1,"b":[1,2,{"c":null}],"d":"x\\"y","e":{"f":[]},"h":"1970-01-01T00:00:00.000Z"}"`;
+
+exports[`writeResultFiles - upstream apex-node 9.1.13 parity > empty-all > plain.txt 1`] = `
+"plain content
+second line ü 😀"
+`;
+
+exports[`writeResultFiles - upstream apex-node 9.1.13 parity > empty-all > test-result-707000000000002AAA.json 1`] = `"{"summary":{"outcome":"Completed","testsRan":0,"passing":0,"failing":0,"skipped":0,"passRate":"0%","failRate":"0%","skipRate":"0%","testStartTime":"2023-01-01T12:00:00.000Z","testExecutionTimeInMs":1500,"testTotalTimeInMs":2500,"commandTimeInMs":3500,"hostname":"snapshot-test-host","orgId":"00D000000000000EAA","username":"snapshot@example.com","testRunId":"707000000000002AAA","userId":"005000000000000AAA"},"tests":[]}"`;
+
+exports[`writeResultFiles - upstream apex-node 9.1.13 parity > empty-all > test-result-707000000000002AAA.md 1`] = `
+"# Apex Test Results
+**Run completed:** [TIMESTAMP]
+
+## Summary
+
+- **Total Tests:** 0
+- ✅ **Passed:** 0
+- ❌ **Failed:** 0
+- ⏱️ **Duration:** 0ms
+
+"
+`;
+
+exports[`writeResultFiles - upstream apex-node 9.1.13 parity > empty-all > test-result-707000000000002AAA.txt 1`] = `
+"Apex Test Results
+==================
+
+Run completed: [TIMESTAMP]
+
+Summary:
+  Passed:  0
+  Failed:  0
+  Skipped: 0
+  Total:   0
+  Duration: 0ms
+
+"
+`;
+
+exports[`writeResultFiles - upstream apex-node 9.1.13 parity > empty-all > test-result-707000000000002AAA-junit.xml 1`] = `
+"<?xml version="1.0" encoding="UTF-8"?>
+<testsuites>
+    <testsuite name="force.apex" timestamp="2023-01-01T12:00:00.000Z" hostname="snapshot-test-host" tests="0" failures="0"  errors="0"  time="1.50">
+        <properties>
+            <property name="outcome" value="Completed"/>
+            <property name="testsRan" value="0"/>
+            <property name="passing" value="0"/>
+            <property name="failing" value="0"/>
+            <property name="skipped" value="0"/>
+            <property name="passRate" value="0%"/>
+            <property name="failRate" value="0%"/>
+            <property name="testStartTime" value="[TIMESTAMP]"/>
+            <property name="testExecutionTime" value="1.50 s"/>
+            <property name="testTotalTime" value="2.50 s"/>
+            <property name="commandTime" value="3.50 s"/>
+            <property name="hostname" value="snapshot-test-host"/>
+            <property name="orgId" value="00D000000000000EAA"/>
+            <property name="username" value="snapshot@example.com"/>
+            <property name="testRunId" value="707000000000002AAA"/>
+            <property name="userId" value="005000000000000AAA"/>
+        </properties>
+    </testsuite>
+</testsuites>
+"
+`;
+
+exports[`writeResultFiles - upstream apex-node 9.1.13 parity > empty-all > test-result-707000000000002AAA-tap.txt 1`] = `
+"1..0
+"
+`;
+
+exports[`writeResultFiles - upstream apex-node 9.1.13 parity > empty-all > test-run-id.txt 1`] = `"707000000000002AAA"`;
+
+exports[`writeResultFiles - upstream apex-node 9.1.13 parity > large-all > arr.json 1`] = `"[1,"two",{"three":3},[4],null]"`;
+
+exports[`writeResultFiles - upstream apex-node 9.1.13 parity > large-all > emptyarr.json 1`] = `"[]"`;
+
+exports[`writeResultFiles - upstream apex-node 9.1.13 parity > large-all > emptyobj.json 1`] = `"{}"`;
+
+exports[`writeResultFiles - upstream apex-node 9.1.13 parity > large-all > file names 1`] = `
+[
+  "arr.json",
+  "emptyarr.json",
+  "emptyobj.json",
+  "obj.json",
+  "plain.txt",
+  "test-result-707000000000002AAA-codecoverage.json",
+  "test-result-707000000000002AAA-junit.xml",
+  "test-result-707000000000002AAA-tap.txt",
+  "test-result-707000000000002AAA.json",
+  "test-result-707000000000002AAA.md",
+  "test-result-707000000000002AAA.txt",
+  "test-run-id.txt",
+]
+`;
+
+exports[`writeResultFiles - upstream apex-node 9.1.13 parity > large-all > obj.json 1`] = `"{"a":1,"b":[1,2,{"c":null}],"d":"x\\"y","e":{"f":[]},"h":"1970-01-01T00:00:00.000Z"}"`;
+
+exports[`writeResultFiles - upstream apex-node 9.1.13 parity > large-all > plain.txt 1`] = `
+"plain content
+second line ü 😀"
+`;
+
+exports[`writeResultFiles - upstream apex-node 9.1.13 parity > large-all > test-result-707000000000002AAA.json 1`] = `
+{
+  "bytes": 804063,
+  "sha256": "ad4b0dbccb329dc1014cda448ec3bb1ad79e444828f7078f1e4045b9165e3331",
+}
+`;
+
+exports[`writeResultFiles - upstream apex-node 9.1.13 parity > large-all > test-result-707000000000002AAA.md 1`] = `
+{
+  "bytes": 601339,
+  "sha256": "1998da159478e05914ddbf24c54ed3cb9b412e04e29b9c0c42d34c8283d0238d",
+}
+`;
+
+exports[`writeResultFiles - upstream apex-node 9.1.13 parity > large-all > test-result-707000000000002AAA.txt 1`] = `
+{
+  "bytes": 71862,
+  "sha256": "080c5744fb5b704ff52916d0964fd62d323ecdf4ceab5c494f198b51a618b7c9",
+}
+`;
+
+exports[`writeResultFiles - upstream apex-node 9.1.13 parity > large-all > test-result-707000000000002AAA-codecoverage.json 1`] = `
+{
+  "bytes": 21800,
+  "sha256": "cfc43f8c075b9c6ff29ad66175eddbe227707a6187e0783029947c31ba4230bd",
+}
+`;
+
+exports[`writeResultFiles - upstream apex-node 9.1.13 parity > large-all > test-result-707000000000002AAA-junit.xml 1`] = `
+{
+  "bytes": 187676,
+  "sha256": "7733db7e4afb630415f6f5dd58af2d336b69dce732bd883bd980ec2a31c74426",
+}
+`;
+
+exports[`writeResultFiles - upstream apex-node 9.1.13 parity > large-all > test-result-707000000000002AAA-tap.txt 1`] = `
+{
+  "bytes": 59554,
+  "sha256": "879b1134eb77d458216fdc82ce642551505945776a2033764bf1913c2176f74d",
+}
+`;
+
+exports[`writeResultFiles - upstream apex-node 9.1.13 parity > large-all > test-run-id.txt 1`] = `"707000000000002AAA"`;
+
+exports[`writeResultFiles - upstream apex-node 9.1.13 parity > special-all > arr.json 1`] = `"[1,"two",{"three":3},[4],null]"`;
+
+exports[`writeResultFiles - upstream apex-node 9.1.13 parity > special-all > emptyarr.json 1`] = `"[]"`;
+
+exports[`writeResultFiles - upstream apex-node 9.1.13 parity > special-all > emptyobj.json 1`] = `"{}"`;
+
+exports[`writeResultFiles - upstream apex-node 9.1.13 parity > special-all > file names 1`] = `
+[
+  "arr.json",
+  "emptyarr.json",
+  "emptyobj.json",
+  "obj.json",
+  "plain.txt",
+  "test-result-707000000000002AAA-codecoverage.json",
+  "test-result-707000000000002AAA-junit.xml",
+  "test-result-707000000000002AAA-tap.txt",
+  "test-result-707000000000002AAA.json",
+  "test-result-707000000000002AAA.md",
+  "test-result-707000000000002AAA.txt",
+  "test-run-id.txt",
+]
+`;
+
+exports[`writeResultFiles - upstream apex-node 9.1.13 parity > special-all > obj.json 1`] = `"{"a":1,"b":[1,2,{"c":null}],"d":"x\\"y","e":{"f":[]},"h":"1970-01-01T00:00:00.000Z"}"`;
+
+exports[`writeResultFiles - upstream apex-node 9.1.13 parity > special-all > plain.txt 1`] = `
+"plain content
+second line ü 😀"
+`;
+
+exports[`writeResultFiles - upstream apex-node 9.1.13 parity > special-all > test-result-707000000000002AAA.json 1`] = `"{"summary":{"outcome":"Completed","testsRan":3,"passing":2,"failing":1,"skipped":0,"passRate":"67%","failRate":"33%","skipRate":"0%","testStartTime":"2023-01-01T12:00:00.000Z","testExecutionTimeInMs":1500,"testTotalTimeInMs":2500,"commandTimeInMs":3500,"hostname":"host <&> \\"quoted\\" 'apos'","orgId":"00D000000000000EAA","username":"üser@exämple.com","testRunId":"707000000000002AAA","userId":"005000000000000AAA"},"tests":[{"id":"07M000000001000","queueItemId":"709000000001000","stackTrace":"Class.method: line 1, column 1\\r\\nClass.other: line 2, column 2\\n  indented <tag> & more","message":"line one\\r\\nline two\\nline three\\rline four <b>bold</b> & \\"quotes\\" ]]> emoji 😀 日本語","asyncApexJobId":"707000000000001AAA","methodName":"testSpecial<&>\\"'","outcome":"Fail","apexLogId":"07L000000000001AAA","apexClass":{"id":"01p000000000001AAA","name":"Class1","namespacePrefix":null,"fullName":"Class1"},"runTime":101,"testTimestamp":"2023-01-01T12:00:00.500Z","fullName":"Class1.testSpecial<&>\\"'"},{"id":"07M000000002000","queueItemId":"709000000002000","stackTrace":null,"message":"skipped ]]>","asyncApexJobId":"707000000000001AAA","methodName":"testSkipped","outcome":"Skip","apexLogId":null,"apexClass":{"id":"01p000000000001AAA","name":"Class2","namespacePrefix":null,"fullName":"Class2"},"runTime":102,"testTimestamp":"2023-01-01T12:00:00.500Z","fullName":"Class2.testMethod2"},{"id":"07M000000003000","queueItemId":"709000000003000","stackTrace":null,"message":null,"asyncApexJobId":"707000000000001AAA","methodName":"testCompileFail","outcome":"CompileFail","apexLogId":null,"apexClass":{"id":"01p000000000001AAA","name":"Class3","namespacePrefix":null,"fullName":"Class3"},"runTime":103,"testTimestamp":"2023-01-01T12:00:00.500Z","fullName":"Class3.testMethod3"}],"codecoverage":[{"apexId":"01p000000000001AAA","name":"Special<Class>&","type":"ApexClass","numLinesCovered":3,"numLinesUncovered":1,"percentage":"75%","coveredLines":[1,2,3],"uncoveredLines":[4]}]}"`;
+
+exports[`writeResultFiles - upstream apex-node 9.1.13 parity > special-all > test-result-707000000000002AAA.md 1`] = `
+"# Apex Test Results
+**Run completed:** [TIMESTAMP]
+
+## Summary
+
+- **Total Tests:** 3
+- ✅ **Passed:** 2
+- ❌ **Failed:** 1
+- ⏱️ **Duration:** 0ms
+
+## ❌ Failures (1)
+
+### Class1.testSpecial<&>"'
+
+*Duration: 101ms*
+
+**Error Message**
+
+\`\`\`
+line one
+line two
+line three
+line four <b>bold</b> & "quotes" ]]> emoji 😀 日本語
+\`\`\`
+
+**Stack Trace**
+
+\`\`\`
+Class.method: line 1, column 1
+Class.other: line 2, column 2
+  indented <tag> & more
+\`\`\`
+
+---
+
+## Test Results with Coverage
+
+*Note: Coverage shown is per-test coverage for the class being tested. Overall class coverage is shown in the "Code Coverage by Class" section below.*
+
+<table style="width: 100%; border-collapse: collapse;">
+<thead>
+<tr style="border-bottom: 2px solid;">
+<th style="text-align: left; padding: 8px; width: 45%;">Test Name</th>
+<th style="text-align: left; padding: 8px; width: 20%;">Class Being Tested</th>
+<th style="text-align: left; padding: 8px; width: 12%;">Outcome</th>
+<th style="text-align: left; padding: 8px; width: 10%;">Per-Test Coverage</th>
+<th style="text-align: left; padding: 8px; width: 13%;">Runtime</th>
+</tr>
+</thead>
+<tbody>
+<tr style="border-bottom: 1px solid #ddd;">
+<td style="padding: 8px;"><code>Class3.testCompileFail</code></td>
+<td style="padding: 8px;">Class3</td>
+<td style="padding: 8px;">⏭️ CompileFail</td>
+<td style="padding: 8px;">N/A</td>
+<td style="padding: 8px;">103ms</td>
+</tr>
+<tr style="border-bottom: 1px solid #ddd;">
+<td style="padding: 8px;"><code>Class2.testSkipped</code></td>
+<td style="padding: 8px;">Class2</td>
+<td style="padding: 8px;">⏭️ Skip</td>
+<td style="padding: 8px;">N/A</td>
+<td style="padding: 8px;">102ms</td>
+</tr>
+<tr style="border-bottom: 1px solid #ddd;">
+<td style="padding: 8px;"><code>Class1.testSpecial&lt;&amp;&gt;&quot;&#39;</code></td>
+<td style="padding: 8px;">Class1</td>
+<td style="padding: 8px;">❌ Fail</td>
+<td style="padding: 8px;">N/A</td>
+<td style="padding: 8px;">101ms</td>
+</tr>
+</tbody>
+</table>
+
+## ⏭️ Skipped Tests (0)
+
+- Class2.testSkipped
+
+## Code Coverage by Class
+
+*This section shows the overall code coverage for each class after all tests have run. This may differ from per-test coverage shown in the table above.*
+
+<table style="width: 100%; border-collapse: collapse;">
+<thead>
+<tr style="border-bottom: 2px solid;">
+<th style="text-align: left; padding: 8px; width: 30%;">Class</th>
+<th style="text-align: left; padding: 8px; width: 15%;">Coverage</th>
+<th style="text-align: left; padding: 8px; width: 55%;">Uncovered Lines</th>
+</tr>
+</thead>
+<tbody>
+<tr style="border-bottom: 1px solid #ddd;">
+<td style="padding: 8px;"><code>Special&lt;Class&gt;&amp;</code></td>
+<td style="padding: 8px;">75%</td>
+<td style="padding: 8px;">4</td>
+</tr>
+</tbody>
+</table>
+
+"
+`;
+
+exports[`writeResultFiles - upstream apex-node 9.1.13 parity > special-all > test-result-707000000000002AAA.txt 1`] = `
+"Apex Test Results
+==================
+
+Run completed: [TIMESTAMP]
+
+Summary:
+  Passed:  2
+  Failed:  1
+  Skipped: 0
+  Total:   3
+  Duration: 0ms
+
+Failures:
+=========
+
+Class1.testSpecial<&>"'
+-----------------------
+Error:
+line one
+line two
+line three
+line four <b>bold</b> & "quotes" ]]> emoji 😀 日本語
+
+Stack Trace:
+Class.method: line 1, column 1
+Class.other: line 2, column 2
+  indented <tag> & more
+
+Duration: 101ms
+
+
+Skipped Tests:
+===============
+
+  - Class2.testSkipped
+
+Code Coverage by Class:
+=======================
+
+  Special&lt;Class&gt;&amp;: 75% (Uncovered: 4)
+
+"
+`;
+
+exports[`writeResultFiles - upstream apex-node 9.1.13 parity > special-all > test-result-707000000000002AAA-codecoverage.json 1`] = `"[]"`;
+
+exports[`writeResultFiles - upstream apex-node 9.1.13 parity > special-all > test-result-707000000000002AAA-junit.xml 1`] = `
+"<?xml version="1.0" encoding="UTF-8"?>
+<testsuites>
+    <testsuite name="force.apex" timestamp="2023-01-01T12:00:00.000Z" hostname="host &lt;&amp;&gt; &quot;quoted&quot; &apos;apos&apos;" tests="3" failures="1"  errors="0"  time="1.50">
+        <properties>
+            <property name="outcome" value="Completed"/>
+            <property name="testsRan" value="3"/>
+            <property name="passing" value="2"/>
+            <property name="failing" value="1"/>
+            <property name="skipped" value="0"/>
+            <property name="passRate" value="67%"/>
+            <property name="failRate" value="33%"/>
+            <property name="testStartTime" value="[TIMESTAMP]"/>
+            <property name="testExecutionTime" value="1.50 s"/>
+            <property name="testTotalTime" value="2.50 s"/>
+            <property name="commandTime" value="3.50 s"/>
+            <property name="hostname" value="host <&> "quoted" 'apos'"/>
+            <property name="orgId" value="00D000000000000EAA"/>
+            <property name="username" value="üser@exämple.com"/>
+            <property name="testRunId" value="707000000000002AAA"/>
+            <property name="userId" value="005000000000000AAA"/>
+        </properties>
+        <testcase name="testSpecial&lt;&amp;&gt;&quot;&apos;" classname="Class1" time="0.10">
+            <failure message="line one
+line two
+line three
+line four &lt;b&gt;bold&lt;/b&gt; &amp; &quot;quotes&quot; ]]&gt; emoji 😀 日本語"><![CDATA[Class.method: line 1, column 1
+Class.other: line 2, column 2
+  indented <tag> & more]]></failure>
+        </testcase>
+        <testcase name="testSkipped" classname="Class2" time="0.10">
+        </testcase>
+        <testcase name="testCompileFail" classname="Class3" time="0.10">
+            <failure message=""></failure>
+        </testcase>
+    </testsuite>
+</testsuites>
+"
+`;
+
+exports[`writeResultFiles - upstream apex-node 9.1.13 parity > special-all > test-result-707000000000002AAA-tap.txt 1`] = `
+"1..3
+not ok 1 Class1.testSpecial<&>"'
+# line one
+# line two
+# line three
+# line four <b>bold</b> & "quotes" ]]> emoji 😀 日本語
+# Class.method: line 1, column 1
+# Class.other: line 2, column 2
+#   indented <tag> & more
+not ok 2 Class2.testMethod2
+# skipped ]]>
+not ok 3 Class3.testMethod3
+# Unknown error
+"
+`;
+
+exports[`writeResultFiles - upstream apex-node 9.1.13 parity > special-all > test-run-id.txt 1`] = `"707000000000002AAA"`;

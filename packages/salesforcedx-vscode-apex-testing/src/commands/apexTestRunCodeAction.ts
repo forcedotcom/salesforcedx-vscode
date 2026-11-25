@@ -42,7 +42,6 @@ class NoCachedTestError extends Schema.TaggedError<NoCachedTestError>()('NoCache
 const apexTestRunCodeAction = Effect.fn('apexTestRunCodeAction.run')(function* (tests: string[]) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   yield* api.services.ProjectService.getSfProject();
-  const notificationMode = yield* api.services.NotificationModeService;
   const { promptService, channelService, executionName, appendEnded } = yield* getRunCommandContext();
 
   const { codeCoverage, concise, payload, outputDir } = yield* resolveRunInputs(
@@ -58,12 +57,11 @@ const apexTestRunCodeAction = Effect.fn('apexTestRunCodeAction.run')(function* (
     getTempFolder()
   );
 
-  const progressLocation = yield* notificationMode.getProgressLocation(COMMAND);
-
-  const { result, reportUri, outputFormat } = yield* promptService.withCancellableProgressReporting(
-    executionName,
-    progressLocation
-  )(progress =>
+  const { result, reportUri, outputFormat } = yield* promptService.withProgressReporting({
+    command: COMMAND,
+    title: executionName,
+    cancellable: true
+  })(progress =>
     runApexTests({
       payload,
       outputDir,

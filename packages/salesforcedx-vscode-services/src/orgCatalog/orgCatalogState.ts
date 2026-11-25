@@ -10,12 +10,14 @@ import type {
   MetadataListingObservation,
   MetadataTypeObservation,
   PersistedInventoryCache,
+  RemoteTrackingObservation,
   RemoteTrackingObservations,
   TypeInventory,
   WorkspaceTypeInventory
 } from './orgCatalogInternalTypes';
 import type { OrgSObjectDescription, OrgSObjectSummary } from './orgMetadataCatalogTypes';
 import * as Arr from 'effect/Array';
+import * as DateTime from 'effect/DateTime';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
 import { pipe } from 'effect/Function';
@@ -62,6 +64,9 @@ const toPersistedInventory = (xmlName: string, value: TypeInventory): PersistedT
                 fullName: isOrgMetadataComponentReference(component.reference)
                   ? component.reference.fullName
                   : component.name,
+                ...(component.provenance === 'data-api' || component.provenance === 'tooling-api'
+                  ? { provenance: component.provenance }
+                  : {}),
                 namespacePrefix: component.namespacePrefix,
                 manageableState: component.manageableState,
                 fileName: component.fileName,
@@ -132,7 +137,34 @@ export class OrgCatalogState extends Effect.Service<OrgCatalogState>()('OrgCatal
         (current, value, key) => {
           if (!key.startsWith(`${orgId}\0`)) return current;
           const xmlName = key.slice(orgId.length + 1);
-          return HashMap.set(current, xmlName, toPersistedInventory(xmlName, value));
+          const next = toPersistedInventory(xmlName, value);
+          const previous = Option.getOrUndefined(HashMap.get(current, xmlName));
+          if (!previous || value.complete) return HashMap.set(current, xmlName, next);
+          const nextIdentities = new Set(
+            next.components.map(component =>
+              componentIdentity(
+                { xmlName, fullName: component.fullName },
+                'namespacePrefix' in component ? (component.namespacePrefix ?? null) : null
+              )
+            )
+          );
+          return HashMap.set(current, xmlName, {
+            ...next,
+            complete: previous.complete !== false || next.complete,
+            components: [
+              ...previous.components.filter(
+                component =>
+                  !nextIdentities.has(
+                    componentIdentity(
+                      { xmlName, fullName: component.fullName },
+                      'namespacePrefix' in component ? (component.namespacePrefix ?? null) : null
+                    )
+                  )
+              ),
+              ...next.components
+            ],
+            folders: previous.folders
+          });
         }
       );
       const generation = yield* Ref.modify(persistedGenerations, generations => {
@@ -142,7 +174,7 @@ export class OrgCatalogState extends Effect.Service<OrgCatalogState>()('OrgCatal
       const snapshot: OrgMetadataCatalogSnapshot = {
         version: 2,
         orgId,
-        writtenAt: new Date().toISOString(),
+        writtenAt: DateTime.formatIso(yield* DateTime.now),
         generation,
         inventory: pipe(inventory, HashMap.toValues, Arr.sort(byXmlName)),
         sobjects: {
@@ -156,10 +188,7 @@ export class OrgCatalogState extends Effect.Service<OrgCatalogState>()('OrgCatal
           )
         },
         tracking: pipe(
-          Option.getOrElse(HashMap.get(trackingByOrg, orgId), () => ({
-            byIdentity: HashMap.empty(),
-            identityOrder: []
-          })).byIdentity,
+          Option.getOrElse(HashMap.get(trackingByOrg, orgId), () => HashMap.empty()),
           HashMap.toValues,
           Arr.map(observation => ({
             xmlName: observation.reference.xmlName,
@@ -249,8 +278,10 @@ export class OrgCatalogState extends Effect.Service<OrgCatalogState>()('OrgCatal
             )
           );
           yield* Ref.update(remoteTrackingCache, current =>
-            HashMap.set(current, orgId, {
-              byIdentity: HashMap.fromIterable(
+            HashMap.set(
+              current,
+              orgId,
+              HashMap.fromIterable(
                 snapshot.tracking.map(observation => [
                   componentIdentity({ xmlName: observation.xmlName, fullName: observation.fullName }),
                   {
@@ -258,11 +289,8 @@ export class OrgCatalogState extends Effect.Service<OrgCatalogState>()('OrgCatal
                     signature: observation.signature
                   }
                 ])
-              ),
-              identityOrder: snapshot.tracking.map(observation =>
-                componentIdentity({ xmlName: observation.xmlName, fullName: observation.fullName })
               )
-            })
+            )
           );
           yield* Ref.update(metadataTypeCache, current => HashMap.set(current, orgId, snapshot.metadataTypes));
           yield* Ref.update(metadataListingCache, current =>
@@ -355,7 +383,8 @@ export class OrgCatalogState extends Effect.Service<OrgCatalogState>()('OrgCatal
                 HashMap.filter(current, (_value, key) => !key.startsWith(`${orgId}\0`))
               ),
               Ref.update(persistedInventoryCache, current =>
-                HashMap.filter(current, (_value, key) => !key.startsWith(`${orgId}\0`))
+                // Keep exact, incomplete discoveries so a source read remains available after a broad invalidation.
+                HashMap.filter(current, (value, key) => !key.startsWith(`${orgId}\0`) || value.complete === false)
               ),
               Ref.update(workspaceTypeCache, current => HashMap.remove(current, orgId))
             ],
@@ -483,12 +512,7 @@ export class OrgCatalogState extends Effect.Service<OrgCatalogState>()('OrgCatal
     const getTracking = Effect.fn('OrgCatalogState.getTracking')((orgId: string) =>
       Ref.get(remoteTrackingCache).pipe(
         Effect.map(HashMap.get(orgId)),
-        Effect.map(
-          Option.getOrElse(() => ({
-            byIdentity: HashMap.empty(),
-            identityOrder: []
-          }))
-        )
+        Effect.map(Option.getOrElse(() => HashMap.empty<string, RemoteTrackingObservation>()))
       )
     );
     const setTracking = Effect.fn('OrgCatalogState.setTracking')(
@@ -533,13 +557,7 @@ export class OrgCatalogState extends Effect.Service<OrgCatalogState>()('OrgCatal
       yield* Ref.update(remoteTrackingCache, cache => {
         const observations = HashMap.get(cache, orgId);
         return Option.isSome(observations)
-          ? HashMap.set(cache, orgId, {
-              byIdentity: HashMap.filter(
-                observations.value.byIdentity,
-                (_value, identity) => !identities.has(identity)
-              ),
-              identityOrder: observations.value.identityOrder.filter(identity => !identities.has(identity))
-            })
+          ? HashMap.set(cache, orgId, HashMap.removeMany(observations.value, identities))
           : cache;
       });
     });

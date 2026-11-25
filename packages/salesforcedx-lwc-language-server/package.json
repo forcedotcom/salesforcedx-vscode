@@ -33,15 +33,18 @@
   },
   "wireit": {
     "compile": {
-      "command": "tsc -p . && node scripts/convert.js && node scripts/build.js",
+      "command": "tsc -p . && node scripts/convert.mts && node scripts/build.mts",
       "clean": "if-file-deleted",
       "dependencies": [
+        "../salesforcedx-utils:compile",
         "../salesforcedx-lightning-lsp-common:compile",
         "../salesforcedx-vscode-i18n:compile"
       ],
       "files": [
         "src/**/*.ts",
-        "scripts/**/*.js",
+        "scripts/**/*.mts",
+        "scripts/tsconfig.json",
+        "src/build-time-resources/lwc-standard.json",
         "tsconfig.json",
         "../../tsconfig.common.json"
       ],
@@ -58,6 +61,9 @@
       "files": [
         "src/**/*.ts",
         "test/**/*.ts",
+        "scripts/**/*.mts",
+        "scripts/tsconfig.json",
+        "../../scripts/tsconfig.native.json",
         "../../eslint.config.mjs"
       ],
       "output": []
@@ -93,6 +99,7 @@
     }
   },
   "dependencies": {
+    "@salesforce/salesforcedx-utils": "*",
     "@lwc/compiler": "9.0.3",
     "@lwc/errors": "9.0.3",
     "@lwc/metadata": "13.3.30",
@@ -105,9 +112,9 @@
     "babel-types": "^6.26.0",
     "change-case": "^4.1.1",
     "comment-parser": "^0.7.6",
-    "effect": "^3.21.2",
+    "effect": "^3.22.4",
     "ejs": "^3.1.10",
-    "minimatch": "^10.2.6",
+    "minimatch": "^11.0.1",
     "vscode-html-languageservice": "^5.5.1",
     "vscode-languageserver": "^9.0.1",
     "vscode-languageserver-textdocument": "^1.0.12",

@@ -41,5 +41,20 @@ describe('errorUtils', () => {
       expect(errorToString(true)).toBe('true');
       expect(errorToString(false)).toBe('false');
     });
+
+    it('does not unwrap object messages or nested errors', () => {
+      expect(errorToString({ message: 'object message' })).toBe('[object Object]');
+      expect(errorToString({ error: new Error('nested') })).toBe('[object Object]');
+    });
+
+    it('preserves object toString precedence over Symbol.toPrimitive', () => {
+      expect(errorToString({ toString: () => 'custom', [Symbol.toPrimitive]: () => 'primitive' })).toBe('custom');
+    });
+
+    it('uses custom toString for an Error with an empty message', () => {
+      const error = new Error();
+      error.toString = () => 'custom';
+      expect(errorToString(error)).toBe('custom');
+    });
   });
 });

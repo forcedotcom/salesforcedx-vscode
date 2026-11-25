@@ -36,7 +36,7 @@ import * as os from 'node:os';
 import * as path from 'node:path';
 import packageNls from '../../../package.nls.json';
 import { messages } from '../../../src/messages/i18n';
-import { desktopTest as test } from '../fixtures';
+import { desktopTest as test } from '../fixtures/desktopFixtures';
 
 // every key an `sf ` exec should carry once telemetry is off (the fixture sets telemetry.telemetryLevel: 'off')
 const GATHERED_ENV_KEYS = ['SF_LOG_LEVEL', 'SF_DISABLE_TELEMETRY', 'SF_JSON_TO_STDOUT', 'FORCE_COLOR', 'SFDX_TOOL'];

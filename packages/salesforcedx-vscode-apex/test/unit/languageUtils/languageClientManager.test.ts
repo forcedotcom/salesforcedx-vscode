@@ -14,8 +14,11 @@ import { URI, Utils } from 'vscode-uri';
 import { type ApexLanguageClient } from '../../../src/apexLanguageClient';
 import ApexLSPStatusBarItem from '../../../src/apexLspStatusBarItem';
 import { createLanguageServer } from '../../../src/languageServer';
-import { languageClientManager } from '../../../src/languageUtils';
-import { ClientStatus, toolsDirsToDelete } from '../../../src/languageUtils/languageClientManager';
+import {
+  languageClientManager,
+  ClientStatus,
+  toolsDirsToDelete
+} from '../../../src/languageUtils/languageClientManager';
 import { nls } from '../../../src/messages';
 import { getRuntime } from '../../../src/services/runtime';
 import { retrieveEnableSyncInitJobs } from '../../../src/settings';

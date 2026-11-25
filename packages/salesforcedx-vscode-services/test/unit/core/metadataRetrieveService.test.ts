@@ -15,7 +15,7 @@ import { URI } from 'vscode-uri';
 import type { NonEmptyComponentSet } from '../../../src/core/componentSetService';
 import { ConfigService } from '../../../src/core/configService';
 import { ConnectionService } from '../../../src/core/connectionService';
-import { MetadataRetrieveService } from '../../../src/core/metadataRetrieveService';
+import { MetadataRetrieveError, MetadataRetrieveService } from '../../../src/core/metadataRetrieveService';
 import { MetadataChangeNotificationService } from '../../../src/core/metadataChangeNotificationService';
 import { MetadataDescribeService } from '../../../src/core/metadataDescribeService';
 import { MetadataRegistryService } from '../../../src/core/metadataRegistryService';
@@ -25,19 +25,28 @@ import { redactingConsoleLoggerLayer } from '../../../src/observability/redactin
 import { OrgMetadataCatalogRecorder } from '../../../src/orgCatalog/orgMetadataCatalogRecorder';
 import { FsService } from '../../../src/vscode/fsService';
 import { WorkspaceService } from '../../../src/vscode/workspaceService';
+import { PromptService } from '../../../src/vscode/prompts/promptService';
+
+const { construct, start, cancel, pollStatus } = vi.hoisted(() => ({
+  construct: vi.fn<() => void>(),
+  start: vi.fn<() => Promise<void>>(),
+  cancel: vi.fn<() => Promise<void>>(),
+  pollStatus: vi.fn<() => Promise<never>>()
+}));
 
 vi.mock('@salesforce/source-deploy-retrieve', async () => {
   const actual = await vi.importActual<typeof sourceDeployRetrieve>('@salesforce/source-deploy-retrieve');
   return {
     ...actual,
     MetadataApiRetrieve: function metadataApiRetrieve(this: {
-      start: () => Promise<never>;
+      start: () => Promise<void>;
       cancel: () => Promise<void>;
       pollStatus: () => Promise<void>;
     }) {
-      this.start = () => Promise.reject(new Error('retrieve failed 00D000000000000!retrieve-secret'));
-      this.cancel = () => Promise.resolve();
-      this.pollStatus = () => Promise.resolve();
+      construct();
+      this.start = start;
+      this.cancel = cancel;
+      this.pollStatus = pollStatus;
     }
   };
 });
@@ -45,6 +54,7 @@ vi.mock('@salesforce/source-deploy-retrieve', async () => {
 const TOKEN = 'retrieve-secret';
 
 const deps = Layer.mergeAll(
+  PromptService.Default,
   Layer.succeed(WorkspaceService, {
     getWorkspaceInfoOrThrow: () => Effect.void
   } as never),
@@ -78,16 +88,59 @@ const loggedOutput = (): string =>
     .join('\n');
 
 describe('MetadataRetrieveService retrieve failure', () => {
+  let tokenSource: vscode.CancellationTokenSource;
+
   beforeEach(() => {
+    start.mockRejectedValue(new Error('retrieve failed 00D000000000000!retrieve-secret'));
+    cancel.mockResolvedValue(undefined);
     vi.spyOn(console, 'log').mockImplementation(() => undefined);
-    const tokenSource = new vscode.CancellationTokenSource();
+    tokenSource = new vscode.CancellationTokenSource();
     vi.spyOn(vscode.window, 'withProgress').mockImplementation((_opts, task) =>
       task({ report: () => undefined }, tokenSource.token)
     );
   });
 
   afterEach(() => {
+    tokenSource.dispose();
     vi.restoreAllMocks();
+  });
+
+  it('maps a synchronous retrieve constructor failure to MetadataRetrieveError', async () => {
+    const cause = new Error('invalid retrieve options');
+    construct.mockImplementation(() => {
+      throw cause;
+    });
+    const exit = await MetadataRetrieveService.retrieveComponentSetToDirectory(
+      { size: 1 } as NonEmptyComponentSet,
+      URI.parse('file:///tmp/out')
+    ).pipe(
+      Effect.provide(MetadataRetrieveService.DefaultWithoutDependencies.pipe(Layer.provide(deps))),
+      Effect.runPromiseExit
+    );
+
+    expect(exit).toEqual(Exit.fail(new MetadataRetrieveError({ cause })));
+    expect(start).not.toHaveBeenCalled();
+  });
+
+  it('cancels the server retrieve and surfaces UserCancellationError', async () => {
+    const { promise: polling, resolve: startedPolling } = Promise.withResolvers<void>();
+    start.mockResolvedValue(undefined);
+    pollStatus.mockImplementation(() => {
+      startedPolling();
+      return new Promise<never>(() => undefined);
+    });
+    const done = Effect.runPromiseExit(
+      MetadataRetrieveService.retrieveComponentSetToDirectory(
+        { size: 1 } as NonEmptyComponentSet,
+        URI.parse('file:///tmp/out')
+      ).pipe(Effect.provide(MetadataRetrieveService.DefaultWithoutDependencies.pipe(Layer.provide(deps))))
+    );
+    await polling;
+    tokenSource.cancel();
+    const exit = await done;
+    expect(cancel).toHaveBeenCalledOnce();
+    expect(Exit.isFailure(exit)).toBe(true);
+    expect(JSON.stringify(exit)).toContain('UserCancellationError');
   });
 
   it('logs the cause through the redacting logger', async () => {

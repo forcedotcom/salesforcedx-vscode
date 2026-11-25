@@ -7,4 +7,20 @@
 import { defineConfig } from '@playwright/test';
 import { createWebConfig } from '@salesforce/playwright-vscode-ext';
 
-export default defineConfig({ ...createWebConfig({ testDir: './specs' }), testIgnore: ['**/*.desktop.spec.ts'] });
+const config = createWebConfig({ testDir: './specs' });
+
+export default defineConfig({
+  ...config,
+  testIgnore: ['**/*.desktop.spec.ts'],
+  projects: config.projects?.map(project => ({
+    ...project,
+    // Desktop Chrome's device preset otherwise overrides the shared 1920×1080 viewport.
+    use: { ...project.use, viewport: config.use?.viewport }
+  })),
+  use: {
+    ...config.use,
+    video: 'off',
+    // Trace screencasts start before setup and would constrain the flow video's resolution.
+    trace: { mode: process.env.CI ? 'on' : 'on-first-retry', screenshots: false }
+  }
+});

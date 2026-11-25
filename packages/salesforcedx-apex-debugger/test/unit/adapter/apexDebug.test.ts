@@ -23,7 +23,9 @@ import {
   type SetExceptionBreakpointsArguments
 } from '../../../src/adapter/apexDebug';
 import { type LineBreakpointsInTyperef } from '../../../src/breakpoints/lineBreakpoint';
-import { RunCommand, StateCommand, StepIntoCommand, StepOutCommand, StepOverCommand } from '../../../src/commands';
+import { RunCommand } from '../../../src/commands/runCommand';
+import { StateCommand } from '../../../src/commands/stateCommand';
+import { StepIntoCommand, StepOutCommand, StepOverCommand } from '../../../src/commands/stepCommands';
 import {
   DEFAULT_CONNECTION_TIMEOUT_MS,
   DEFAULT_IDLE_TIMEOUT_MS,
@@ -41,14 +43,15 @@ import {
 } from '../../../src/constants';
 import {
   type ApexDebuggerEventType,
-  BreakpointService,
   type DebuggerMessage,
-  SessionService,
   StreamingClientInfo,
-  type StreamingEvent,
-  StreamingService
-} from '../../../src/core';
-import { type VscodeDebuggerMessage, VscodeDebuggerMessageType, type WorkspaceSettings } from '../../../src/index';
+  type StreamingEvent
+} from '../../../src/core/streamingClient';
+import { BreakpointService } from '../../../src/core/breakpointService';
+import { SessionService } from '../../../src/core/sessionService';
+import { StreamingService } from '../../../src/core/streamingService';
+import { type VscodeDebuggerMessage, VscodeDebuggerMessageType } from '../../../src/vscodeDebuggerMessage';
+import { type WorkspaceSettings } from '../../../src/workspaceSettings';
 import { nls } from '../../../src/messages';
 import { RequestService } from '../../../src/requestService/requestService';
 import { ApexDebugForTest } from './apexDebugForTest';
@@ -569,65 +572,55 @@ describe('Interactive debugger adapter - unit', () => {
       vi.useRealTimers();
     });
 
-    it('Should clear idle timers', () => {
-      adapter.getIdleTimers().push(
-        setTimeout(() => {
-          // Do nothing
-        }, 10_000)
-      );
-
-      adapter.clearIdleTimers();
-
-      expect(adapter.getIdleTimers()).toHaveLength(0);
-    });
-
-    it('Should create idle timers', () => {
+    it('Should clear idle timers', async () => {
       adapter.resetIdleTimer();
 
-      setTimeout(() => {
-        expect(adapter.getEvents()[0].event).toBe('output');
-        expect((adapter.getEvents()[0] as OutputEvent).body.output).toContain(
-          nls.localize(
-            'idle_warn_text',
-            DEFAULT_IDLE_WARN1_MS / 60_000,
-            (DEFAULT_IDLE_TIMEOUT_MS - DEFAULT_IDLE_WARN1_MS) / 60_000
-          )
-        );
-      }, DEFAULT_IDLE_WARN1_MS);
-      vi.advanceTimersByTime(DEFAULT_IDLE_WARN1_MS + 1);
+      adapter.clearIdleTimers();
+      await vi.advanceTimersByTimeAsync(DEFAULT_IDLE_TIMEOUT_MS);
 
-      setTimeout(() => {
-        expect(adapter.getEvents()[1].event).toBe('output');
-        expect((adapter.getEvents()[1] as OutputEvent).body.output).toContain(
-          nls.localize(
-            'idle_warn_text',
-            DEFAULT_IDLE_WARN2_MS / 60_000,
-            (DEFAULT_IDLE_TIMEOUT_MS - DEFAULT_IDLE_WARN2_MS) / 60_000
-          )
-        );
-      }, DEFAULT_IDLE_WARN2_MS);
-      vi.advanceTimersByTime(DEFAULT_IDLE_WARN2_MS + 1);
+      expect(adapter.getIdleTimers()).toHaveLength(0);
+      expect(adapter.getEvents()).toHaveLength(0);
+    });
 
-      setTimeout(() => {
-        expect(adapter.getEvents()[2].event).toBe('output');
-        expect((adapter.getEvents()[2] as OutputEvent).body.output).toContain(
-          nls.localize(
-            'idle_warn_text',
-            DEFAULT_IDLE_WARN3_MS / 60_000,
-            (DEFAULT_IDLE_TIMEOUT_MS - DEFAULT_IDLE_WARN3_MS) / 60_000
-          )
-        );
-      }, DEFAULT_IDLE_WARN3_MS);
-      vi.advanceTimersByTime(DEFAULT_IDLE_WARN3_MS + 1);
+    it('Should create idle timers', async () => {
+      adapter.resetIdleTimer();
 
-      setTimeout(() => {
-        expect(adapter.getEvents()[3].event).toBe('output');
-        expect((adapter.getEvents()[3] as OutputEvent).body.output).toContain(
-          nls.localize('idle_terminated_text', DEFAULT_IDLE_TIMEOUT_MS / 60_000)
-        );
-        expect(adapter.getEvents()[4].event).toBe('terminated');
-      }, DEFAULT_IDLE_TIMEOUT_MS);
-      vi.advanceTimersByTime(DEFAULT_IDLE_TIMEOUT_MS + 1);
+      await vi.advanceTimersByTimeAsync(DEFAULT_IDLE_WARN1_MS);
+      expect(adapter.getEvents()[0].event).toBe('output');
+      expect((adapter.getEvents()[0] as OutputEvent).body.output).toContain(
+        nls.localize(
+          'idle_warn_text',
+          DEFAULT_IDLE_WARN1_MS / 60_000,
+          (DEFAULT_IDLE_TIMEOUT_MS - DEFAULT_IDLE_WARN1_MS) / 60_000
+        )
+      );
+
+      await vi.advanceTimersByTimeAsync(DEFAULT_IDLE_WARN2_MS - DEFAULT_IDLE_WARN1_MS);
+      expect(adapter.getEvents()[1].event).toBe('output');
+      expect((adapter.getEvents()[1] as OutputEvent).body.output).toContain(
+        nls.localize(
+          'idle_warn_text',
+          DEFAULT_IDLE_WARN2_MS / 60_000,
+          (DEFAULT_IDLE_TIMEOUT_MS - DEFAULT_IDLE_WARN2_MS) / 60_000
+        )
+      );
+
+      await vi.advanceTimersByTimeAsync(DEFAULT_IDLE_WARN3_MS - DEFAULT_IDLE_WARN2_MS);
+      expect(adapter.getEvents()[2].event).toBe('output');
+      expect((adapter.getEvents()[2] as OutputEvent).body.output).toContain(
+        nls.localize(
+          'idle_warn_text',
+          DEFAULT_IDLE_WARN3_MS / 60_000,
+          (DEFAULT_IDLE_TIMEOUT_MS - DEFAULT_IDLE_WARN3_MS) / 60_000
+        )
+      );
+
+      await vi.advanceTimersByTimeAsync(DEFAULT_IDLE_TIMEOUT_MS - DEFAULT_IDLE_WARN3_MS);
+      expect(adapter.getEvents()[3].event).toBe('output');
+      expect((adapter.getEvents()[3] as OutputEvent).body.output).toContain(
+        nls.localize('idle_terminated_text', DEFAULT_IDLE_TIMEOUT_MS / 60_000)
+      );
+      expect(adapter.getEvents()[4].event).toBe('terminated');
     });
   });
 

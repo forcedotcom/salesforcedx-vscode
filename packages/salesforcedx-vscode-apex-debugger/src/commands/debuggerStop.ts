@@ -5,13 +5,13 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { AuthInfo, Connection } from '@salesforce/core';
-import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import { ExtensionProviderService, getMessageFromError } from '@salesforce/effect-ext-utils';
 import { SF_CONFIG_ISV_DEBUGGER_SID, SF_CONFIG_ISV_DEBUGGER_URL } from '@salesforce/salesforcedx-apex-debugger';
+
 import * as Array from 'effect/Array';
 import * as Chunk from 'effect/Chunk';
 import * as Effect from 'effect/Effect';
 import * as Option from 'effect/Option';
-import { isError } from 'effect/Predicate';
 import * as Schema from 'effect/Schema';
 import * as Stream from 'effect/Stream';
 import { nls } from '../messages';
@@ -50,7 +50,7 @@ const COMMAND: ProgressAndSuccessCommandKey = 'SFDX: Stop Apex Debugger Session'
 const SessionRow = Schema.Struct({ Id: Schema.String });
 const SESSION_SOQL = "SELECT Id FROM ApexDebuggerSession WHERE Status = 'Active' LIMIT 1";
 
-const queryError = (e: unknown) => new DebuggerSessionQueryError({ message: isError(e) ? e.message : String(e) });
+const queryError = (e: unknown) => new DebuggerSessionQueryError({ message: getMessageFromError(e) });
 
 export const debuggerStop = Effect.fn('debuggerStop')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
@@ -100,35 +100,29 @@ export const debuggerStop = Effect.fn('debuggerStop')(function* () {
           )
         );
 
-  yield* Effect.all({
-    progressLocation: notificationMode.getProgressLocation(COMMAND),
-    promptService: api.services.PromptService
-  }).pipe(
-    Effect.flatMap(({ progressLocation, promptService }) =>
-      sessionRecords.pipe(
-        // LIMIT 1 → Array.head is None (nothing to stop) or Some(the session to detach).
-        Effect.flatMap(records =>
-          Option.match(Array.head(records), {
-            onNone: () => Effect.succeed(false as const),
-            onSome: ({ Id }) =>
-              Effect.as(
-                Effect.tryPromise({
-                  try: () => conn.tooling.sobject('ApexDebuggerSession').update({ Id, Status: 'Detach' }),
-                  catch: e => new DebuggerSessionUpdateError({ message: isError(e) ? e.message : String(e) })
-                }),
-                true as const
-              )
-          })
-        ),
-        Effect.tap(stopped =>
-          notificationMode.showSuccessNotification(
-            COMMAND,
-            nls.localize(stopped ? 'debugger_stop_success_text' : 'debugger_stop_none_found_text'),
-            false
+  const promptService = yield* api.services.PromptService;
+  yield* sessionRecords.pipe(
+    // LIMIT 1 → Array.head is None (nothing to stop) or Some(the session to detach).
+    Effect.flatMap(records =>
+      Option.match(Array.head(records), {
+        onNone: () => Effect.succeed(false as const),
+        onSome: ({ Id }) =>
+          Effect.as(
+            Effect.tryPromise({
+              try: () => conn.tooling.sobject('ApexDebuggerSession').update({ Id, Status: 'Detach' }),
+              catch: e => new DebuggerSessionUpdateError({ message: getMessageFromError(e) })
+            }),
+            true as const
           )
-        ),
-        promptService.withProgress(nls.localize('debugger_stop_text'), progressLocation)
+      })
+    ),
+    Effect.tap(stopped =>
+      notificationMode.showSuccessNotification(
+        COMMAND,
+        nls.localize(stopped ? 'debugger_stop_success_text' : 'debugger_stop_none_found_text'),
+        false
       )
-    )
+    ),
+    promptService.withProgress({ command: COMMAND, title: nls.localize('debugger_stop_text'), cancellable: false })
   );
 });
