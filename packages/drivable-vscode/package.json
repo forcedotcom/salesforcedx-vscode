@@ -137,12 +137,12 @@
   },
   "dependencies": {
     "@salesforce/salesforcedx-utils": "*",
-    "@effect/platform": "0.97.3",
+    "@effect/platform": "0.97.4",
     "@effect/platform-node": "0.108.4",
     "@modelcontextprotocol/sdk": "1.32.0",
     "@playwright/test": "^1.64.1",
     "@salesforce/playwright-vscode-ext": "workspace:*",
     "@vscode/test-electron": "3.1.0",
-    "effect": "^3.22.4"
+    "effect": "^3.22.5"
   }
 }

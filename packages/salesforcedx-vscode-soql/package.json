@@ -44,7 +44,7 @@
     "@salesforce/vscode-i18n": "workspace:*",
     "antlr4ts": "^0.5.0-alpha.3",
     "debounce": "^2.2.0",
-    "effect": "^3.22.4",
+    "effect": "^3.22.5",
     "papaparse": "^5.3.0",
     "vscode-languageclient": "^9.0.1",
     "vscode-uri": "^3.1.0"

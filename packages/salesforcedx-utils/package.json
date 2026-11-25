@@ -9,6 +9,9 @@
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "main": "out/src",
+  "dependencies": {
+    "effect": "^3.22.5"
+  },
   "scripts": {
     "compile": "wireit",
     "lint": "wireit",
