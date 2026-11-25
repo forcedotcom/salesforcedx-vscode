@@ -36,6 +36,8 @@ import {
   closeWelcomeTabs,
   createDreamhouseOrg,
   upsertScratchOrgAuthFieldsToSettings,
+  upsertSettings,
+  isDesktop,
   executeCommandWithCommandPalette,
   createApexClass,
   editOpenFile,
@@ -53,6 +55,7 @@ import packageNls from '../../../package.nls.json';
 import { DEPLOY_TIMEOUT } from '../../constants';
 import { isContainer, sharedDreamhouseTest as test } from '../fixtures';
 import { cleanupContainerApexClasses } from '../utils/containerCleanup';
+import { CORE_CONFIG_SECTION, DEPLOY_ON_SAVE_ENABLED } from '../../../src/constants';
 
 // Status-bar refresh may arrive via the workspace file event (fast) or the ~60s poll (fallback).
 const COUNT_REFRESH_TIMEOUT = 90_000;
@@ -92,6 +95,9 @@ test('Source Tracking Status Bar: tracks remote and local changes through full d
     }
 
     await statusBarPage.waitForVisible(120_000);
+    if (!isDesktop() && !isContainer) {
+      await upsertSettings(page, { [`${CORE_CONFIG_SECTION}.${DEPLOY_ON_SAVE_ENABLED}`]: 'false' });
+    }
     await saveScreenshot(page, 'sourceTrackingStatusBar.01-ready.png');
   });
 

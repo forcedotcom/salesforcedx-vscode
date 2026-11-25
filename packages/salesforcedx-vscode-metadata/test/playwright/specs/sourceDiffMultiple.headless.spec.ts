@@ -27,6 +27,8 @@ import {
   closeWelcomeTabs,
   createMinimalOrg,
   upsertScratchOrgAuthFieldsToSettings,
+  upsertSettings,
+  isDesktop,
   createApexClass,
   editOpenFile,
   openFileByName,
@@ -48,6 +50,7 @@ import packageNls from '../../../package.nls.json';
 import { DEPLOY_TIMEOUT } from '../../constants';
 import { isContainer, sharedTest as test } from '../fixtures';
 import { cleanupContainerApexClasses } from '../utils/containerCleanup';
+import { CORE_CONFIG_SECTION, DEPLOY_ON_SAVE_ENABLED } from '../../../src/constants';
 
 // Container-only: throwaway classes this test created, deleted from the project and org after it (pass
 // or fail) so they don't pile up on the shared workbench — see utils/containerCleanup.
@@ -113,6 +116,9 @@ test('Source Diff (multiple files): opens first diff and populates conflict tree
     }
 
     await statusBarPage.waitForVisible(120_000);
+    if (!isDesktop() && !isContainer) {
+      await upsertSettings(page, { [`${CORE_CONFIG_SECTION}.${DEPLOY_ON_SAVE_ENABLED}`]: 'false' });
+    }
     initialLocalCount = (await statusBarPage.getCounts()).local;
     await saveScreenshot(page, 'sourceDiffMultiple.01-ready.png');
   });
