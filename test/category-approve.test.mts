@@ -27,7 +27,17 @@ import { classify } from '../scripts/categoryApprove.mts';
 import { commands, config as agentConfig, events, git, nodeCommand, tempDirectory } from './ciAiFixtures.mts';
 
 const withWorkingDirectory = (command: ChildProcess.StandardCommand, cwd: string) =>
-  ChildProcess.make(command.command, command.args, { ...command.options, cwd });
+  ChildProcess.make(command.command, command.args, {
+    ...command.options,
+    cwd,
+    // Git hooks set GIT_DIR/GIT_WORK_TREE, which would override the fixture repository selected by cwd.
+    env: Object.fromEntries(
+      [...Object.entries(process.env), ...Object.entries(command.options.env ?? {})].filter(
+        ([name]) => !name.toUpperCase().startsWith('GIT_')
+      )
+    ),
+    extendEnv: false
+  });
 
 const policy = readFileSync(new URL('../APPROVAL_POLICY.md', import.meta.url), 'utf8');
 const config = readFileSync(new URL('../.git2gus/config.json', import.meta.url), 'utf8');
