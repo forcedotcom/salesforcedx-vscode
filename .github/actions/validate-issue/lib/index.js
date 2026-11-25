@@ -290,7 +290,7 @@ const run = () => Effect.gen(function* () {
         yield* Effect.log('CLI versions found', { sfVersions, sfdxVersions, nodeVersions });
         const cliVersionsPresent = sfVersions.length > 0 || sfdxVersions.length > 0;
         const sfVersionsValid = sfVersions.length === 0 || sfVersions.some(version => semver.gte(version, '2.0.0'));
-        const sfdxVersionIsUnsupported = sfdxVersions.some(version => version.startsWith('7.')) &&
+        const sfdxVersionIsUnsupported = sfdxVersions.length > 0 &&
             !sfVersions.some(version => version.startsWith('2.'));
         if (sfVersions.length > 0 && !sfVersionsValid) {
             const sfV1 = getFile('../messages/deprecated-cli.md', {
@@ -302,7 +302,7 @@ const run = () => Effect.gen(function* () {
         if (sfdxVersionIsUnsupported) {
             const noOldSfdx = getFile('../messages/deprecated-cli.md', {
                 THE_AUTHOR: author,
-                OLD_CLI: '`sfdx` (v7)'
+                OLD_CLI: '`sfdx`'
             });
             yield* postComment(noOldSfdx);
         }
