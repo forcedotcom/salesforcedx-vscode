@@ -13,7 +13,7 @@ import {
   type PullFile,
   type PullReview
 } from '@salesforce/effect-octokit';
-import { preClassifyDecision } from '../scripts/shared/categoryGates.cjs';
+import { preClassifyDecision, REQUIRED_CHECKS } from '../scripts/shared/categoryGates.cjs';
 import {
   BOT_LOGIN,
   buildPrompt,
@@ -130,7 +130,7 @@ const base = {
   teamMembershipState: 'active',
   files: [file('README.md')],
   statuses: [],
-  checkRuns: [green],
+  checkRuns: REQUIRED_CHECKS.map(name => ({ ...green, name })),
   reviews: [],
   allowedCategories: allowed,
   botLogin: BOT_LOGIN
@@ -667,11 +667,21 @@ test('skips forks, drafts, dependabot, changes requested, and a failed check', (
   assert.equal(decideCategoryApprove({ ...base, checkRuns: [{ ...green, conclusion: 'failure' }] })._tag, 'Skip');
 });
 
-test('classifies while the rollup is still settling', () => {
-  assert.equal(decideCategoryApprove({ ...base, checkRuns: [] })._tag, 'Classify');
+test('skips while required CI is missing or any check is pending', () => {
+  assert.equal(decideCategoryApprove({ ...base, checkRuns: [] })._tag, 'Skip');
   assert.equal(
     decideCategoryApprove({ ...base, checkRuns: [{ ...green, status: 'in_progress', conclusion: null }] })._tag,
-    'Classify'
+    'Skip'
+  );
+  assert.equal(decideCategoryApprove({ ...base, checkRuns: base.checkRuns.slice(1) })._tag, 'Skip');
+  assert.equal(
+    decideCategoryApprove({ ...base, checkRuns: base.checkRuns.map(run => ({ ...run, head_sha: 'old' })) })._tag,
+    'Skip'
+  );
+  assert.equal(
+    decideCategoryApprove({ ...base, checkRuns: [...base.checkRuns, { ...green, status: 'queued', conclusion: null }] })
+      ._tag,
+    'Skip'
   );
 });
 
