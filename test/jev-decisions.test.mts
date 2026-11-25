@@ -4,7 +4,7 @@ import * as FetchHttpClient from '@effect/platform/FetchHttpClient';
 import { Effect, Option } from 'effect';
 import { readFileSync } from 'node:fs';
 import { classifyWithJev, categoryQuestions } from '../scripts/shared/categoryJev.mts';
-import { config } from './ciAiFixtures.mts';
+import { config, decisionResponse } from './ciAiFixtures.mts';
 
 const policy = readFileSync(new URL('../APPROVAL_POLICY.md', import.meta.url), 'utf8');
 const diff =
@@ -25,9 +25,19 @@ for (const status of [200, 404, 410, 429, 503, 400, 401, 500]) {
     const models: string[] = [];
     const result = await classifyWithJev({ policy, diff, hasCoveredHunks: false }).pipe(
       Effect.provideService(FetchHttpClient.Fetch, async (_url, init) => {
-        assert.equal(new Headers(init?.headers).get('authorization'), 'Bearer test-key');
-        models.push(JSON.parse(await new Response(init?.body).text()).model);
-        return models.length === 1 && status !== 200 ? new Response('', { status }) : Response.json(answer());
+        models.push(JSON.parse(await new Response(init?.body).text()).model.id);
+        return models.length === 1 && status !== 200
+          ? Response.json(
+              {
+                _tag: 'ProviderRequestError',
+                message: `HTTP ${status}`,
+                providerID: 'opencode',
+                reason: 'provider',
+                status
+              },
+              { status: 502 }
+            )
+          : decisionResponse(answer());
       }),
       Effect.withConfigProvider(config()),
       Effect.either,
@@ -39,20 +49,21 @@ for (const status of [200, 404, 410, 429, 503, 400, 401, 500]) {
   });
 }
 
-for (const body of [
+const invalidBodies: readonly (Parameters<typeof decisionResponse>[0] | string)[] = [
   answer('toString'),
   answer('uncovered'),
   answer('unknown'),
   { answers: {} },
   { answers: { 'hunk-0': { type: 'error' } } },
   'invalid'
-]) {
+];
+for (const body of invalidBodies) {
   test(`rejects uncovered, missing, or invalid answers without paid fallback: ${JSON.stringify(body)}`, async () => {
     let calls = 0;
     const result = await classifyWithJev({ policy, diff, hasCoveredHunks: false }).pipe(
       Effect.provideService(FetchHttpClient.Fetch, async () => {
         calls += 1;
-        return Response.json(body);
+        return typeof body === 'string' ? Response.json(body) : decisionResponse(body);
       }),
       Effect.withConfigProvider(config()),
       Effect.either,

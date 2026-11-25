@@ -65,7 +65,11 @@ export const classifyWithJev = Effect.fn('categoryApprove.classifyWithJev')(func
   if (Object.keys(answers).length !== Object.keys(request.questions).length) return Option.none<readonly string[]>();
   const choices = Object.entries(request.questions).map(([name, question]) => {
     const answer = answers[name];
-    return answer !== undefined && Object.hasOwn(question.criteria, answer.choice) ? answer.choice : 'uncovered';
+    return answer?.type === 'choice' &&
+      typeof answer.choice === 'string' &&
+      Object.hasOwn(question.criteria, answer.choice)
+      ? answer.choice
+      : 'uncovered';
   });
   const categories = Arr.dedupe(choices.filter(choice => choice !== 'package-version'));
   return categories.includes('uncovered') || (!input.hasCoveredHunks && categories.length === 0)

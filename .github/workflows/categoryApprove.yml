@@ -64,6 +64,18 @@ jobs:
         if: steps.preflight.outputs.result == 'true'
         working-directory: ${{ runner.temp }}/trusted-approver
         run: pnpm --filter @salesforce/effect-octokit compile
+      - name: Start decision server
+        if: steps.preflight.outputs.result == 'true'
+        env:
+          OPENCODE_API_KEY: ${{ secrets.OPENCODE_API_KEY }}
+        run: |
+          pnpm --dir "$RUNNER_TEMP/trusted-approver" --filter @salesforce/opencode-decisions compile
+          npm install --global --allow-scripts=@opencode/cli @opencode/cli@2.2.5
+          export OPENCODE_CONFIG_CONTENT='{"providers":{"opencode":{"settings":{"apiKey":"{env:OPENCODE_API_KEY}"}}}}'
+          mkdir -p "$RUNNER_TEMP/jev-opencode"
+          cd "$RUNNER_TEMP/jev-opencode"
+          opencode --standalone serve --hostname 127.0.0.1 --port 4096 > "$RUNNER_TEMP/jev-server.log" 2>&1 &
+          node --input-type=module -e 'for (let i = 0; i < 60; i++) { try { const r = await fetch("http://127.0.0.1:4096/api/info"); if (r.ok) process.exit(0); } catch {} await new Promise(resolve => setTimeout(resolve, 1000)); } process.exit(1);'
       - name: Decide and approve
         if: steps.preflight.outputs.result == 'true'
         env:

@@ -26,7 +26,7 @@ import {
   parseAgentResult
 } from '../scripts/shared/categoryDecision.mts';
 import { classify } from '../scripts/categoryApprove.mts';
-import { commands, config as agentConfig, git, tempDirectory } from './ciAiFixtures.mts';
+import { commands, config as agentConfig, decisionResponse, git, tempDirectory } from './ciAiFixtures.mts';
 
 const policy = readFileSync(new URL('../APPROVAL_POLICY.md', import.meta.url), 'utf8');
 const config = readFileSync(new URL('../.git2gus/config.json', import.meta.url), 'utf8');
@@ -366,7 +366,7 @@ for (const [choice, expected] of [
       Effect.provideService(FetchHttpClient.Fetch, async (_url, init) => {
         calls += 1;
         prompt = await new Response(init?.body).text();
-        return Response.json({
+        return decisionResponse({
           answers: { 'hunk-0': { type: 'choice', choice, confidence: 1, probabilities: { [choice]: 1 } } }
         });
       }),
@@ -407,7 +407,7 @@ test('uncovered production hunks reject the union, including renamed source file
     Effect.provideService(FetchHttpClient.Fetch, async (_url, init) => {
       prompt = await new Response(init?.body).text();
       const request = JSON.parse(prompt);
-      return Response.json({
+      return decisionResponse({
         answers: Object.fromEntries(
           Object.keys(request.questions).map(name => [
             name,
@@ -438,7 +438,7 @@ test('keeps covered version hunks when path-only hunks are omitted; version-only
         commands(command => command.pipe(Command.workingDirectory(cwd))).pipe(Layer.provideMerge(NodeContext.layer))
       ),
       Effect.provideService(FetchHttpClient.Fetch, async () =>
-        Response.json({
+        decisionResponse({
           answers: {
             'hunk-0': {
               type: 'choice',
