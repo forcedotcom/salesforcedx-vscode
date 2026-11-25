@@ -8,20 +8,23 @@
 /* eslint-disable @typescript-eslint/consistent-type-assertions */
 
 import { annotateRootSpan, code2ProtocolConverter, ExtensionProviderService } from '@salesforce/effect-ext-utils';
-import { breakpointUtil } from '@salesforce/salesforcedx-apex-replay-debugger';
-import { getErrorMessage } from '@salesforce/salesforcedx-utils';
+import {
+  canSetLineBreakpoint,
+  createBreakpointMappings,
+  getTopLevelTyperefForUri,
+  type BreakpointMappings
+} from '@salesforce/salesforcedx-apex-replay-debugger';
 import * as Arr from 'effect/Array';
 import * as Chunk from 'effect/Chunk';
 import * as Effect from 'effect/Effect';
 import * as Option from 'effect/Option';
-import { isUndefined } from 'effect/Predicate';
+import { isError, isUndefined } from 'effect/Predicate';
 import * as Schema from 'effect/Schema';
 import * as Stream from 'effect/Stream';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
 import * as vscode from 'vscode';
 import { type Event, EventEmitter, type TreeDataProvider, TreeItem, TreeItemCollapsibleState } from 'vscode';
-import { type URI } from 'vscode-uri';
-import { retrieveLineBreakpointInfo } from '../apexExtension';
+import { URI } from 'vscode-uri';
 import { writeToDebuggerOutputWindow } from '../channels';
 import {
   type ActionScriptType,
@@ -31,6 +34,7 @@ import {
 } from '../debuggerConstants';
 import { nls } from '../messages';
 import { type ProgressOnlyCommandKey } from '../utils/notificationMode';
+import { ensureLineBreakpointMetadata } from './lineBreakpointMetadata';
 
 const COMMAND: ProgressOnlyCommandKey = 'Update Checkpoints in Org';
 
@@ -513,13 +517,13 @@ const parseCheckpointInfoFromBreakpoint = (breakpoint: vscode.SourceBreakpoint):
   return checkpointOverlayAction;
 };
 
-const setTypeRefsForEnabledCheckpoints = (): boolean => {
+const setTypeRefsForEnabledCheckpoints = (mappings: BreakpointMappings): boolean => {
   let everythingSet = true;
   for (const cpNode of checkpointService.getChildren() as CheckpointNode[]) {
     if (cpNode.isCheckpointEnabled()) {
       const checkpointUri = cpNode.getCheckpointUri();
       const checkpointLine = cpNode.getCheckpointLineNumber();
-      if (!breakpointUtil.canSetLineBreakpoint(checkpointUri, checkpointLine)) {
+      if (!canSetLineBreakpoint(mappings, checkpointUri, checkpointLine)) {
         const errorMessage = nls.localize(
           'checkpoints_can_only_be_on_valid_apex_source',
           checkpointUri,
@@ -528,7 +532,7 @@ const setTypeRefsForEnabledCheckpoints = (): boolean => {
         writeToDebuggerOutputWindow(errorMessage, 'error');
         everythingSet = false;
       }
-      const typeRef = breakpointUtil.getTopLevelTyperefForUri(cpNode.getCheckpointUri());
+      const typeRef = getTopLevelTyperefForUri(mappings, cpNode.getCheckpointUri());
       cpNode.setCheckpointTypeRef(typeRef);
     }
   }
@@ -576,9 +580,12 @@ const uploadCheckpoints = Effect.fn('uploadCheckpoints')(
       20,
       nls.localize('checkpoint_creation_status_source_line_info')
     );
-    const sourceLineInfoRetrieved = yield* retrieveLineBreakpointInfo();
-    // If we didn't get the source line information that'll be reported at that time, just return
-    if (!sourceLineInfoRetrieved) return false;
+    const enabledCheckpointUris = (checkpointService.getChildren() as CheckpointNode[])
+      .filter(cpNode => cpNode.isCheckpointEnabled())
+      .map(cpNode => URI.parse(cpNode.getCheckpointUri()));
+    const mappings = yield* Effect.tryPromise(() => ensureLineBreakpointMetadata(enabledCheckpointUris)).pipe(
+      Effect.map(createBreakpointMappings)
+    );
 
     // There can be a max of five active checkpoints
     if (!checkpointService.hasFiveOrLessActiveCheckpoints()) return false;
@@ -590,7 +597,7 @@ const uploadCheckpoints = Effect.fn('uploadCheckpoints')(
       nls.localize('checkpoint_creation_status_setting_typeref')
     );
     // For the active checkpoints set the typeRefs using the source/line info
-    if (!setTypeRefsForEnabledCheckpoints()) return false;
+    if (!setTypeRefsForEnabledCheckpoints(mappings)) return false;
 
     yield* reportCheckpointStep(
       progress,
@@ -631,9 +638,8 @@ const createCheckpoints = Effect.fn('createCheckpoints')(function* () {
 
   // The status message isn't changing, localize it once and reuse it in the progress report.
   const localizedProgressMessage = nls.localize('sf_update_checkpoints_in_org');
-  const promptService = yield* (yield* ExtensionProviderService).getServicesApi.pipe(
-    Effect.flatMap(api => api.services.PromptService)
-  );
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const promptService = yield* api.services.PromptService;
 
   const succeeded = yield* Effect.zipRight(
     Effect.sync(() => writeToDebuggerOutputWindow(`${nls.localize('long_command_start')} ${localizedProgressMessage}`)),
@@ -681,8 +687,10 @@ export const annotateCheckpointUpload = (succeeded: boolean) =>
 export const sfCreateCheckpointsCommand = Effect.fn('sfCreateCheckpointsCommand')(function* () {
   const result = yield* checkpointOperationSemaphore.withPermitsIfAvailable(1)(
     createCheckpoints().pipe(
-      Effect.mapError(error => new CreateCheckpointsError({ message: getErrorMessage(error) })),
-      Effect.catchAllDefect(defect => Effect.fail(new CreateCheckpointsError({ message: getErrorMessage(defect) }))),
+      Effect.mapError(error => new CreateCheckpointsError({ message: isError(error) ? error.message : String(error) })),
+      Effect.catchAllDefect(defect =>
+        Effect.fail(new CreateCheckpointsError({ message: isError(defect) ? defect.message : String(defect) }))
+      ),
       Effect.tapBoth({
         onFailure: error => annotateRootSpan({ errorMessage: error.message }),
         onSuccess: annotateCheckpointUpload

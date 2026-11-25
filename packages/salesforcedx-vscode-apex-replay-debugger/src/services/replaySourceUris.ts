@@ -5,9 +5,9 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import type { LineBreakpointInfo } from '@salesforce/apex-language-server-extension-api';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import { extractSourceTypesFromLog, getSourceUri } from '@salesforce/salesforcedx-apex-replay-debugger';
-import type { LineBreakpointInfo } from '@salesforce/salesforcedx-utils';
 import * as Effect from 'effect/Effect';
 import type { OrgMetadataCatalogComponentReference } from 'salesforcedx-vscode-services';
 

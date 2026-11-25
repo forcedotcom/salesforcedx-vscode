@@ -97,7 +97,8 @@ export class MockExtensionContext implements ExtensionContext {
       onDidChange: {} as any,
       get: (key: string): Thenable<string | undefined> => Promise.resolve(undefined),
       store: (key: string, value: string): Thenable<void> => Promise.resolve(),
-      delete: (key: string): Thenable<void> => Promise.resolve()
+      delete: (key: string): Thenable<void> => Promise.resolve(),
+      keys: (): Thenable<string[]> => Promise.resolve([])
     };
     this.extension = {
       packageJSON: {
