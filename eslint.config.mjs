@@ -15,7 +15,6 @@ import eslintPluginJsdoc from 'eslint-plugin-jsdoc';
 import vitest from '@vitest/eslint-plugin';
 import eslintPluginPreferArrow from 'eslint-plugin-prefer-arrow';
 import eslintConfigPrettier from 'eslint-config-prettier/flat';
-import eslintPluginJest from 'eslint-plugin-jest';
 import eslintPluginPlaywright from 'eslint-plugin-playwright';
 import eslintPluginUnicorn from 'eslint-plugin-unicorn';
 import eslintPluginBarrelFiles from 'eslint-plugin-barrel-files';
@@ -593,6 +592,27 @@ export default [
     }
   },
   {
+    files: ['packages/**/*.{ts,tsx,mts,cts}'],
+    // Test configs intentionally compose the shared Vitest config by forwarding its default export.
+    ignores: ['packages/**/vitest.config.*'],
+    rules: {
+      // Standalone automation can run before workspace dependencies are built.
+      'local/no-duplicate-error-message-conversion': 'error',
+      'local/no-pass-through-exports': 'error'
+    }
+  },
+  {
+    files: ['**/*.{ts,tsx,mts,cts}'],
+    ignores: ['packages/**'],
+    plugins: {
+      'barrel-files': eslintPluginBarrelFiles
+    },
+    rules: {
+      'barrel-files/avoid-barrel-files': 'error',
+      'barrel-files/avoid-re-export-all': 'error'
+    }
+  },
+  {
     // Opt-in: steer `x instanceof Error` to isError(x) and `x == null` to the matching
     // isUndefined/isNull/isNullable guard, all from effect/Predicate.
     // Scoped to effect-enabled packages only — non-effect packages can't import
@@ -713,15 +733,6 @@ export default [
       'no-restricted-imports': 'off',
       'no-param-reassign': 'off',
       'local/no-duplicate-playwright-locators': 'error'
-    }
-  },
-  {
-    files: ['packages/**/test/integration/**/*.{ts,tsx}'],
-    ignores: ['packages/salesforcedx-apex-replay-debugger/test/integration/**/*'],
-    plugins: { jest: eslintPluginJest },
-    rules: {
-      'jest/no-deprecated-functions': 'error',
-      'jest/no-focused-tests': 'error'
     }
   },
   {

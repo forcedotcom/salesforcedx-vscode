@@ -2,6 +2,7 @@
 name: effect-best-practices
 description: Enforces Effect 4 patterns for services, errors, layers, atoms, and Effect.pipe composition. Use when writing Context.Service, Schema.TaggedError, Layer, effect-atom, Effect.fn/`.pipe`, or `yield*` pipelines.
 review: always
+review-complexity: high
 version: 2.0.0
 ---
 

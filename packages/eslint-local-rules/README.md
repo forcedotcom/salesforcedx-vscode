@@ -4,6 +4,12 @@ Custom ESLint rules for Salesforce VSCode extensions.
 
 ## Rules
 
+### no-duplicate-error-message-conversion
+
+Reports `isError(value) ? value.message : String(value)` and `value instanceof Error ? value.message : String(value)` for the same identifier or property chain. Like other syntax-only rules, the predicate matches the `isError` identifier. Calls and computed expressions with side effects are excluded.
+
+Recommends `getMessageFromError` from `@salesforce/effect-ext-utils` when the nearest package declares it in dependencies, devDependencies, or peerDependencies; otherwise recommends `getErrorMessage` from `@salesforce/salesforcedx-utils`. The canonical `salesforcedx-utils` helper implementation is exempt. Different formatting (stacks, JSON, custom messages) remains allowed. No autofix: the Effect helper formats non-Error values differently. Enabled as an error for workspace package code in `eslint.config.mjs`; standalone automation can run without built workspace dependencies.
+
 ### prefer-effect-array-ensure
 
 Reports `Array.isArray(value) ? value : [value]` and `!Array.isArray(value) ? [value] : value` when the nearest package declares `effect` in dependencies, devDependencies, or peerDependencies. Matches only the same identifier or property-access chain with identifier or literal keys; calls and other potentially side-effectful expressions are excluded.

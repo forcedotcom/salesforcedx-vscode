@@ -6,6 +6,7 @@
  */
 
 import { fs } from '@salesforce/core/fs';
+import { getErrorMessage } from '@salesforce/salesforcedx-utils';
 import * as Effect from 'effect/Effect';
 import * as Stream from 'effect/Stream';
 import { createWriteStream } from 'node:fs';
@@ -14,7 +15,7 @@ import { pipeline } from 'node:stream/promises';
 import { FileOutputError, type FileOutput } from './fileOutput.js';
 
 const toFileOutputError = (operation: string, filePath: string, cause: unknown) =>
-  new FileOutputError({ operation, path: filePath, message: cause instanceof Error ? cause.message : String(cause) });
+  new FileOutputError({ operation, path: filePath, message: getErrorMessage(cause) });
 
 /** Promise adapter used by the legacy TestService; the host's fs facade selects Node fs or web memfs. */
 export const CoreFileOutput: typeof FileOutput.Service = {

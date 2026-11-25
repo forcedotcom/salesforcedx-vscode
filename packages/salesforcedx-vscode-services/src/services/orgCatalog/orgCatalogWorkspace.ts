@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import type { WorkspaceTypeInventory } from './orgCatalogInternalTypes.js';
+import { getErrorMessage } from '@salesforce/salesforcedx-utils';
 import {
   ComponentSetService,
   FailedToBuildComponentSetError,
@@ -84,10 +85,7 @@ const makeOrgCatalogWorkspace = Effect.gen(function* () {
     const failure = Schema.is(FailedToBuildComponentSetError)(error) && error.cause ? error.cause : error;
     const message = missing
       ? messages.workspaceMissingContent(missing.metadataType, missing.metadataXmlPath, missing.contentPath)
-      : messages.workspaceScanFailed(
-          xmlName ?? 'workspace metadata',
-          isError(failure) ? failure.message : String(failure)
-        );
+      : messages.workspaceScanFailed(xmlName ?? 'workspace metadata', getErrorMessage(failure));
     const first = yield* Ref.modify(
       reported,
       previous => [!HashSet.has(previous, message), HashSet.add(previous, message)] as const

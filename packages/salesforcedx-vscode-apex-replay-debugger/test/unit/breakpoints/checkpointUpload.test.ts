@@ -6,7 +6,7 @@
  */
 
 import type { Connection } from '@salesforce/core';
-import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import { ExtensionProviderService, getMessageFromError } from '@salesforce/effect-ext-utils';
 import { breakpointUtil } from '@salesforce/salesforcedx-apex-replay-debugger';
 import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
@@ -53,7 +53,7 @@ describe('checkpoint upload Effects', () => {
         try: () => query(options),
         catch: error =>
           new SoqlError({
-            message: error instanceof Error ? error.message : String(error),
+            message: getMessageFromError(error),
             soql: options.soql,
             errorCode: 'QUERY_FAILED',
             statusCode: 500

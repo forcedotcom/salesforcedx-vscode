@@ -409,7 +409,7 @@ export abstract class BaseServer {
 
     if (
       normalizedPath.includes('/lwc/') &&
-      (normalizedPath.endsWith('.html') ?? normalizedPath.endsWith('.js') ?? normalizedPath.endsWith('.ts'))
+      ['.html', '.js', '.ts'].some(extension => normalizedPath.endsWith(extension))
     ) {
       this.context.clearNamespaceCache();
     }
@@ -439,6 +439,12 @@ export abstract class BaseServer {
   public async onDidChangeWatchedFiles(changeEvent: DidChangeWatchedFilesParams): Promise<void> {
     if (this.context.type === 'SFDX') {
       const { changes } = changeEvent;
+
+      // The first bundle can create an LWC root after initial discovery cached no roots.
+      // Directory-create events are not watched, so refresh before classifying file creates.
+      if (changes.some(event => event.type === FileChangeType.Created && event.uri.includes('/lwc/'))) {
+        this.context.updateNamespaceRootTypeCache();
+      }
 
       const lwcRootCreated = isLWCRootDirectoryCreated(this.context, changes);
       const lwcDeleted = await containsDeletedLwcWatchedDirectory(this.context, changes);

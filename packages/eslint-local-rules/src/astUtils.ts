@@ -10,6 +10,32 @@ import { type RuleCreator } from '@typescript-eslint/utils/eslint-utils';
 
 export type RuleContext = Parameters<Parameters<typeof RuleCreator.withoutDocs>[0]['create']>[0];
 
+const sameKey = (left: TSESTree.Node, right: TSESTree.Node): boolean =>
+  (left.type === AST_NODE_TYPES.Identifier && right.type === AST_NODE_TYPES.Identifier && left.name === right.name) ||
+  (left.type === AST_NODE_TYPES.Literal &&
+    right.type === AST_NODE_TYPES.Literal &&
+    !('regex' in left) &&
+    !('regex' in right) &&
+    left.value === right.value);
+
+/** Match only identifiers and property chains, never calls or computed expressions with side effects. */
+export const sameReference = (left: TSESTree.Node, right: TSESTree.Node): boolean => {
+  if (left.type === AST_NODE_TYPES.Identifier && right.type === AST_NODE_TYPES.Identifier) {
+    return left.name === right.name;
+  }
+  if (left.type === AST_NODE_TYPES.ChainExpression && right.type === AST_NODE_TYPES.ChainExpression) {
+    return sameReference(left.expression, right.expression);
+  }
+  return (
+    left.type === AST_NODE_TYPES.MemberExpression &&
+    right.type === AST_NODE_TYPES.MemberExpression &&
+    left.optional === right.optional &&
+    left.computed === right.computed &&
+    sameKey(left.property, right.property) &&
+    sameReference(left.object, right.object)
+  );
+};
+
 /** Type predicate: node is a `nls.localize(...)` CallExpression */
 export const isNlsLocalizeCall = (node: TSESTree.Node): node is TSESTree.CallExpression =>
   node.type === AST_NODE_TYPES.CallExpression &&

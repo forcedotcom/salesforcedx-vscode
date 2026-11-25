@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { OrgConfigProperties } from '@salesforce/core';
+import { getErrorMessage } from '@salesforce/salesforcedx-utils';
 import * as SfTemplates from '@salesforce/templates';
 import {
   ConfigService,
@@ -18,7 +19,7 @@ import {
 import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
 import * as Option from 'effect/Option';
-import { isError, isNullish } from 'effect/Predicate';
+import { isNullish } from 'effect/Predicate';
 import * as Ref from 'effect/Ref';
 import * as Schema from 'effect/Schema';
 import * as Semaphore from 'effect/Semaphore';
@@ -38,7 +39,6 @@ class MissingProjectSourceApiVersionError extends Schema.TaggedError<MissingProj
   { message: Schema.String }
 ) {}
 const TemplateManifestSchema = Schema.String.pipe(Schema.Array, Schema.fromJsonString);
-const causeMessage = (cause: unknown) => (isError(cause) ? cause.message : String(cause));
 const ProjectTemplateTypeSchema = Schema.Literal(SfTemplates.TemplateType.Project);
 const isProjectParams = (params: CreateParams): params is CreateParams<SfTemplates.TemplateType.Project> =>
   Schema.is(ProjectTemplateTypeSchema)(params.templateType);
@@ -80,7 +80,7 @@ export const TemplateServiceLayer = Layer.effect(
       const manifest = yield* Effect.tryPromise({
         try: () => vscode.workspace.fs.readFile(Utils.joinPath(templatesRootUri, 'manifest.json')),
         catch: cause =>
-          new TemplatesManifestLoadError({ message: messages.manifestLoadFailed(causeMessage(cause)), cause })
+          new TemplatesManifestLoadError({ message: messages.manifestLoadFailed(getErrorMessage(cause)), cause })
       });
       const paths = yield* Schema.decodeUnknownEffect(TemplateManifestSchema)(Buffer.from(manifest).toString()).pipe(
         Effect.mapError(cause => new TemplatesManifestLoadError({ message: messages.manifestParseFailed, cause }))
@@ -97,7 +97,7 @@ export const TemplateServiceLayer = Layer.effect(
               },
               catch: cause =>
                 new TemplatesManifestLoadError({
-                  message: messages.fileCopyFailed(relativePath, causeMessage(cause)),
+                  message: messages.fileCopyFailed(relativePath, getErrorMessage(cause)),
                   cause
                 })
             }).pipe(
@@ -166,7 +166,7 @@ export const TemplateServiceLayer = Layer.effect(
           const cause = error.cause;
           return cause instanceof vscode.FileSystemError && (cause.code === 'FileNotFound' || cause.code === 'ENOENT')
             ? Effect.succeed<[string, vscode.FileType][]>([])
-            : Effect.logWarning(`Failed to read custom templates from ${uri.fsPath}: ${causeMessage(cause)}`).pipe(
+            : Effect.logWarning(`Failed to read custom templates from ${uri.fsPath}: ${getErrorMessage(cause)}`).pipe(
                 Effect.as<[string, vscode.FileType][]>([])
               );
         })
