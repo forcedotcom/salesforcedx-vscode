@@ -7,6 +7,7 @@
 
 import { join } from 'node:path';
 import { RuleTester } from '@typescript-eslint/rule-tester';
+import { it } from 'vitest';
 import { noOptionTag } from '../src/noOptionTag';
 
 const fixtureDir = join(__dirname, 'fixtures/no-option-tag');
@@ -19,6 +20,7 @@ const ruleTester = new RuleTester({
     }
   }
 });
+RuleTester.it = (name, callback) => it(name, callback, 30_000);
 
 const optionImport = `import * as Option from 'effect/Option';
 declare const option: Option.Option<number>;

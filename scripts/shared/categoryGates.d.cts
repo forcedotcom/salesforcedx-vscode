@@ -13,7 +13,7 @@ export type PreClassifyFacts = {
   readonly botLogin: string;
 };
 
-export declare const deniedFile: (files: ReadonlyArray<PullFile>) => string | undefined;
+export declare const deniedFile: (files: ReadonlyArray<Pick<PullFile, 'filename'>>) => string | undefined;
 export declare const preClassifyPull: (
   pull: PreClassifyFacts['pull'],
   teamMembershipState: string

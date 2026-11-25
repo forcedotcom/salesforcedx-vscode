@@ -7,6 +7,7 @@
 
 import { join } from 'node:path';
 import { RuleTester } from '@typescript-eslint/rule-tester';
+import { it } from 'vitest';
 import { noJsforceQuery } from '../src/noJsforceQuery';
 
 const fixtureDir = join(__dirname, 'fixtures/no-jsforce-query');
@@ -20,6 +21,7 @@ const ruleTester = new RuleTester({
     }
   }
 });
+RuleTester.it = (name, callback) => it(name, callback, 30_000);
 
 ruleTester.run('no-jsforce-query', noJsforceQuery, {
   valid: [

@@ -4,29 +4,44 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { test } from '../fixtures';
 import { expect } from '@playwright/test';
-import { OrgBrowserPage } from '../pages/orgBrowserPage';
 import {
   closeWelcomeTabs,
   createDreamhouseOrg,
   ensureSecondarySideBarHidden,
+  resetContainerWorkbench,
+  setupConsoleMonitoring,
+  setupNetworkMonitoring,
   upsertScratchOrgAuthFieldsToSettings,
+  validateNoCriticalErrors,
   waitForVSCodeWorkbench
 } from '@salesforce/playwright-vscode-ext';
+import { OrgBrowserPage } from '../pages/orgBrowserPage';
+import { isContainer, sharedTest as test } from '../fixtures';
+import { normalizeOrgBrowserFilters } from './container/containerHelpers';
 
 test.setTimeout(10 * 60 * 1000);
 
 test.beforeEach(async ({ page }) => {
-  const createResult = await createDreamhouseOrg();
-  await waitForVSCodeWorkbench(page);
-  await closeWelcomeTabs(page);
   const orgBrowserPage = new OrgBrowserPage(page);
-  await upsertScratchOrgAuthFieldsToSettings(page, createResult, () => orgBrowserPage.waitForProject());
-  await ensureSecondarySideBarHidden(page);
+  if (isContainer) {
+    // Shared, persistent workbench: reset editors, notifications, and the persisted Org Browser
+    // filter state rather than assuming a clean slate. No per-test org setup — the container's
+    // boot-authed org is shared across the whole spec file.
+    await resetContainerWorkbench(page);
+    await normalizeOrgBrowserFilters(orgBrowserPage);
+  } else {
+    const createResult = await createDreamhouseOrg();
+    await waitForVSCodeWorkbench(page);
+    await closeWelcomeTabs(page);
+    await upsertScratchOrgAuthFieldsToSettings(page, createResult, () => orgBrowserPage.waitForProject());
+    await ensureSecondarySideBarHidden(page);
+  }
 });
 
 test('Org Browser high-level validation: a few types from describe', async ({ page }) => {
+  const consoleErrors = setupConsoleMonitoring(page);
+  const networkErrors = setupNetworkMonitoring(page);
   const orgBrowserPage = new OrgBrowserPage(page);
   await orgBrowserPage.openOrgBrowser();
   await test.step('validate CustomObject', async () => {
@@ -49,4 +64,6 @@ test('Org Browser high-level validation: a few types from describe', async ({ pa
     await expect(tabType.locator('[aria-label="Refresh Type"]')).toBeVisible();
     await expect(tabType.locator('[aria-label="Retrieve Metadata"]')).toBeVisible();
   });
+
+  await validateNoCriticalErrors(test, consoleErrors, networkErrors);
 });
