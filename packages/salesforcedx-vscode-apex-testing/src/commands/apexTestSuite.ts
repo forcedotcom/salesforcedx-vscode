@@ -114,20 +114,13 @@ type EditableSuiteClassItem = ApexTestQuickPickItem & { membershipId?: string; p
 
 /** Gather suite options for creating a new suite. */
 const gatherCreateOptions = Effect.fn('apexTestSuite.gatherCreateOptions')(function* () {
-  return yield* Effect.all({
-    suitename: Effect.flatMap(ExtensionProviderService, provider => provider.getServicesApi).pipe(
-      Effect.flatMap(api => api.services.PromptService),
-      Effect.flatMap(promptService =>
-        Effect.flatMap(
-          Effect.promise(() =>
-            vscode.window.showInputBox({ prompt: nls.localize('apex_test_suite_name_input_prompt') })
-          ),
-          value => promptService.considerUndefinedAsCancellation(value)
-        )
-      )
-    ),
-    tests: gatherApexClasses(messages.apex_test_suite_create_text)
-  });
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const promptService = yield* api.services.PromptService;
+  const suitename = yield* Effect.promise(() =>
+    vscode.window.showInputBox({ prompt: nls.localize('apex_test_suite_name_input_prompt') })
+  ).pipe(Effect.flatMap(value => promptService.considerUndefinedAsCancellation(value)));
+  const tests = yield* gatherApexClasses(messages.apex_test_suite_create_text);
+  return { suitename, tests };
 });
 
 /** Gather edit options: pick suite, show all classes with current members pre-checked. Returns diff to apply. */
