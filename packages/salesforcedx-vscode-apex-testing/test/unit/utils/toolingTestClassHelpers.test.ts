@@ -7,7 +7,7 @@
 
 import * as Option from 'effect/Option';
 import type { ToolingTestClass } from '../../../src/testDiscovery/schemas';
-import { getFullClassName, isFlowTest } from '../../../src/utils/toolingTestClassHelpers';
+import { getCatalogFullClassName, getFullClassName, isFlowTest } from '../../../src/utils/toolingTestClassHelpers';
 
 const classWith = (namespacePrefix: Option.Option<string>, name = 'MyClass'): ToolingTestClass => ({
   id: Option.none(),
@@ -41,5 +41,15 @@ describe('getFullClassName', () => {
 
   it('returns the bare class name when the namespace is absent', () => {
     expect(getFullClassName(classWith(Option.none(), 'Acct'))).toBe('Acct');
+  });
+});
+
+describe('getCatalogFullClassName', () => {
+  it('uses SDR namespace syntax when present', () => {
+    expect(getCatalogFullClassName(classWith(Option.some('MyNs'), 'Acct'))).toBe('MyNs__Acct');
+  });
+
+  it('returns the bare class name when the namespace is absent', () => {
+    expect(getCatalogFullClassName(classWith(Option.none(), 'Acct'))).toBe('Acct');
   });
 });

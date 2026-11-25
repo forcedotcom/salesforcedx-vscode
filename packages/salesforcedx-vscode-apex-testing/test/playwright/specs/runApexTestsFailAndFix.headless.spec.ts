@@ -19,6 +19,7 @@ import {
   NOTIFICATION_LIST_ITEM,
   openFileByName,
   replaceLineInOpenFile,
+  resetContainerWorkbench,
   saveScreenshot,
   selectOutputChannel,
   selectQuickInputOptionByTyping,
@@ -33,10 +34,10 @@ import {
 } from '@salesforce/playwright-vscode-ext';
 
 import packageNls from '../../../package.nls.json';
-import { test } from '../fixtures';
+import { isContainer, sharedTest as test } from '../fixtures';
 import { TEST_RUN_TIMEOUT, TEST_SETUP_TIMEOUT } from '../constants';
 import { CMD_TOGGLE_MAXIMIZED_PANEL } from '../helpers/testExplorerHelpers';
-import { waitForApexRunOutputLine } from '../helpers/waitForApexRunOutputLine';
+import { waitForApexMethodPassLine, waitForApexRunOutputLine } from '../helpers/waitForApexRunOutputLine';
 
 const ACCOUNT_SERVICE_CONTENT = [
   'public with sharing class AccountService {',
@@ -83,6 +84,15 @@ const runAccountServiceTestViaPalette = async (page: Page, testClassName: string
   await selectQuickInputOptionByTyping(page, testClassName);
 };
 
+test.beforeEach(async ({ page }) => {
+  if (isContainer) {
+    await resetContainerWorkbench(page);
+    await ensureOutputPanelOpen(page);
+    await selectOutputChannel(page, 'Apex Testing');
+    await clearOutputChannel(page);
+  }
+});
+
 // Drives the Apex test runner via Command Palette and asserts the failing run shows the failure
 // notification, then the passing run shows the success notification with an "Open Report" action button
 // on both desktop and web.
@@ -93,8 +103,11 @@ test('Run Apex Tests: fail then fix via deploy and redeploy', async ({ page }) =
   const className = `AccountService${Date.now()}`;
   const testClassName = `${className}Test`;
 
-  await test.step('setup non-tracking org', async () => {
-    await setupNonTrackingOrgAndAuth(page);
+  await test.step('setup', async () => {
+    // The container uses its boot org, already authed at startup.
+    if (!isContainer) {
+      await setupNonTrackingOrgAndAuth(page);
+    }
     await ensureSecondarySideBarHidden(page);
   });
 
@@ -114,6 +127,12 @@ test('Run Apex Tests: fail then fix via deploy and redeploy', async ({ page }) =
       ACCOUNT_SERVICE_TEST_CONTENT.replaceAll('AccountService', className)
     );
     await saveScreenshot(page, 'setup.account-service-test-deployed.png');
+  });
+
+  await test.step('clear Apex Testing output before failing run', async () => {
+    await ensureOutputPanelOpen(page);
+    await selectOutputChannel(page, 'Apex Testing');
+    await clearOutputChannel(page);
   });
 
   await test.step('run AccountServiceTest via Command Palette (expected to fail)', async () => {
@@ -156,7 +175,8 @@ test('Run Apex Tests: fail then fix via deploy and redeploy', async ({ page }) =
   });
 
   await test.step('redeploy fixed AccountService.cls', async () => {
-    if (isDesktop()) {
+    if (isDesktop() || isContainer) {
+      // Desktop and the container (no push-or-deploy-on-save) both need an explicit redeploy.
       await deployCurrentSourceToOrg(page, { waitViaOutputChannel: true });
     } else {
       // Web: save-on-deploy already triggered by replaceLineInOpenFile's File: Save.
@@ -167,6 +187,12 @@ test('Run Apex Tests: fail then fix via deploy and redeploy', async ({ page }) =
       await waitForOutputChannelText(page, { expectedText: 'Deployed Source', timeout: TEST_RUN_TIMEOUT });
     }
     await saveScreenshot(page, 'step.fix.redeployed.png');
+  });
+
+  await test.step('clear Apex Testing output before passing run', async () => {
+    await ensureOutputPanelOpen(page);
+    await selectOutputChannel(page, 'Apex Testing');
+    await clearOutputChannel(page);
   });
 
   await test.step('rerun AccountServiceTest (expected to pass)', async () => {
@@ -198,7 +224,7 @@ test('Run Apex Tests: fail then fix via deploy and redeploy', async ({ page }) =
     await waitForApexRunOutputLine(page, 'Outcome              Passed');
     await waitForApexRunOutputLine(page, 'Tests Ran            1');
     await waitForApexRunOutputLine(page, 'Pass Rate            100%');
-    await waitForApexRunOutputLine(page, `${testClassName}.should_create_account  Pass`);
+    await waitForApexMethodPassLine(page, `${testClassName}.should_create_account`);
     await waitForApexRunOutputLine(page, 'Ended SFDX: Run Apex Tests');
     await verifyNoTestRunInProgress(page);
     await saveScreenshot(page, 'step.pass.results-visible.png');

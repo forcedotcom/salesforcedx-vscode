@@ -10,8 +10,10 @@ import {
   clearOutputChannel,
   createAndDeployApexTestClass,
   ensureOutputPanelOpen,
+  ensureSecondarySideBarHidden,
   executeCommandWithCommandPalette,
   QUICK_INPUT_WIDGET,
+  resetContainerWorkbench,
   saveScreenshot,
   selectOutputChannel,
   selectQuickInputOptionByTyping,
@@ -27,7 +29,7 @@ import {
 } from '@salesforce/playwright-vscode-ext';
 
 import packageNls from '../../../package.nls.json';
-import { test } from '../fixtures';
+import { isContainer, sharedTest as test } from '../fixtures';
 import { TEST_RUN_TIMEOUT, TEST_SETUP_TIMEOUT } from '../constants';
 import {
   CMD_TOGGLE_MAXIMIZED_PANEL,
@@ -68,6 +70,15 @@ const selectTestClassInQuickPick = async (page: Page, testClassName: string): Pr
   await page.keyboard.press('Enter');
 };
 
+test.beforeEach(async ({ page }) => {
+  if (isContainer) {
+    await resetContainerWorkbench(page);
+    await ensureOutputPanelOpen(page);
+    await selectOutputChannel(page, 'Apex Testing');
+    await clearOutputChannel(page);
+  }
+});
+
 test('Apex Test Suite: create, verify creation, edit tests, run suite', async ({ page }) => {
   test.setTimeout(TEST_SETUP_TIMEOUT + TEST_RUN_TIMEOUT);
   const consoleErrors = setupConsoleMonitoring(page);
@@ -77,8 +88,12 @@ test('Apex Test Suite: create, verify creation, edit tests, run suite', async ({
   let testClassName2: string;
   let testSuiteName: string;
 
-  await test.step('setup non-tracking org with two Apex test classes', async () => {
-    await setupNonTrackingOrgAndAuth(page);
+  await test.step('setup two Apex test classes', async () => {
+    // The container uses its boot org, already authed at startup.
+    if (!isContainer) {
+      await setupNonTrackingOrgAndAuth(page);
+    }
+    await ensureSecondarySideBarHidden(page);
 
     testClassName1 = `SuiteTestClass1${Date.now()}`;
     const testClassContent1 = [
@@ -181,6 +196,10 @@ test('Apex Test Suite: create, verify creation, edit tests, run suite', async ({
     await verifyNoTestRunInProgress(page);
     await saveScreenshot(page, 'step.verify-run.done.png');
     await clearOutputChannel(page);
+    if (isContainer) {
+      // Restore panel before next step
+      await executeCommandWithCommandPalette(page, CMD_TOGGLE_MAXIMIZED_PANEL);
+    }
   });
 
   await test.step('edit suite to remove second test class', async () => {

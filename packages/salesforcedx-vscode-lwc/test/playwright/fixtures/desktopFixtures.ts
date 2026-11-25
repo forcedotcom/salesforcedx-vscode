@@ -7,11 +7,7 @@
 
 import { createDesktopTest, createTestWorkspace } from '@salesforce/playwright-vscode-ext';
 
-import {
-  seedLwcHeadlessWorkspaceSupplement,
-  seedLwcJestWorkspace,
-  seedSnippetsE2eEmptyBundle
-} from '../utils/createLwcTestWorkspace';
+import { seedLwcHeadlessWorkspaceSupplement, seedLwcJestWorkspace } from '../utils/createLwcTestWorkspace';
 
 export const desktopTest = createDesktopTest({
   fixturesDir: __dirname,
@@ -21,7 +17,6 @@ export const desktopTest = createDesktopTest({
   workspaceDir: async ({}, use) => {
     const dir = await createTestWorkspace(undefined);
     await seedLwcHeadlessWorkspaceSupplement(dir);
-    await seedSnippetsE2eEmptyBundle(dir);
     await use(dir);
   }
 });

@@ -168,11 +168,28 @@ export {
 export { clickCodeLens } from './pages/codeLens';
 
 export {
+  DEBUG_TOOLBAR,
+  DEBUG_CALL_STACK,
+  DEBUG_VARIABLES,
+  assertDebugToolbarVisible,
+  showRunAndDebugView,
+  getCallStackRows,
+  openVariablesView,
+  expandAllVariableScopes,
+  getVariableRow,
+  expandNestedVariable,
+  continueDebugSession,
+  stopDebugSession,
+  activateEditorTab
+} from './pages/debug';
+
+export {
   clickOrgPickerStatusBar,
   expectOrgPickerStatusBar,
   expectOrgPickerActionItems,
   expectOrgPickerListsOrg,
-  selectOrgInPicker
+  selectOrgInPicker,
+  switchDefaultOrgViaPicker
 } from './pages/statusBar';
 
 export { webviewActiveFrame, hasTitle, hasContent } from './pages/webview';
@@ -185,6 +202,8 @@ export {
   clearFilter,
   verifyNoTestRunInProgress
 } from './pages/testExplorer';
+
+export { resetContainerWorkbench } from './pages/containerWorkbench';
 
 // Shared
 export { saveScreenshot } from './shared/screenshotUtils';
@@ -242,3 +261,5 @@ export { seedWorkspace, FIXTURE_MOUNT_PATH } from './codeBuilder/seed';
 export type { SeedOptions } from './codeBuilder/seed';
 export { defaultRunner } from './codeBuilder/runner';
 export type { CommandRunner } from './codeBuilder/runner';
+export { removePathsInContainer, deleteSourceInContainer, CONTAINER_USER } from './codeBuilder/fixtureCleanup';
+export type { RemovePathsInContainerOptions, DeleteSourceInContainerOptions } from './codeBuilder/fixtureCleanup';
