@@ -25,7 +25,7 @@ import { ExecuteAnonymousOptionsSchema, type ExecuteAnonymousOptions } from './s
 import {
   executeAnonymousAction,
   executionResultSchema,
-  isInvalidSessionError,
+  invalidSessionErrorSchema,
   soapBody,
   soapEnv,
   soapHeader,
@@ -102,7 +102,7 @@ const sendRequest = (connection: Connection, code: string) =>
   Effect.tryPromise({
     try: () => connection.request<unknown>(buildRequest(connection, code)),
     catch: cause =>
-      isInvalidSessionError(cause)
+      Schema.is(invalidSessionErrorSchema)(cause)
         ? new InvalidSessionError({ message: getErrorMessage(cause) })
         : new ApexRequestError({ message: getErrorMessage(cause) })
   });

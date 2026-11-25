@@ -15,8 +15,6 @@ import * as vscode from 'vscode';
 import { URI, Utils } from 'vscode-uri';
 import { nls } from '../messages';
 
-const isNonEmptyTrimmedString = Schema.is(Schema.NonEmptyTrimmedString);
-
 type ProjectGenerateArgs = {
   readonly projectTemplate?: ProjectTemplate;
   readonly projectName?: string;
@@ -123,7 +121,7 @@ const promptForProjectName = Effect.fn('projectGenerate.promptForProjectName')(f
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const promptService = yield* api.services.PromptService;
   return yield* (
-    isNonEmptyTrimmedString(initialProjectName)
+    Schema.is(Schema.NonEmptyTrimmedString)(initialProjectName)
       ? Effect.succeed(initialProjectName)
       : Effect.promise(() =>
           vscode.window.showInputBox({
@@ -138,7 +136,7 @@ const promptForParentFolder = Effect.fn('projectGenerate.promptForParentFolder')
 ) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const promptService = yield* api.services.PromptService;
-  return yield* isNonEmptyTrimmedString(initialProjectUri)
+  return yield* Schema.is(Schema.NonEmptyTrimmedString)(initialProjectUri)
     ? Effect.succeed(URI.file(initialProjectUri))
     : Effect.promise(() =>
         vscode.window.showOpenDialog({

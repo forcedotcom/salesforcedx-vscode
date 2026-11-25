@@ -7,8 +7,11 @@
 /// <reference types="vitest/globals" />
 /// <reference types="node" />
 
+import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
 import { join } from 'node:path';
+import { runInNewContext } from 'node:vm';
+import { isSeq, parseDocument } from 'yaml';
 
 const SCRIPT = join(process.cwd(), 'scripts', 'rerunPushE2EGate.mts');
 const WORKFLOW = join(process.cwd(), '.github', 'workflows', 'rerunPushE2E.yml');
@@ -519,6 +522,80 @@ describe('rerunPushE2EGate', () => {
 });
 
 describe('rerunPushE2E workflow', () => {
+  const jobContext = {
+    repository: baseEnv.REPO,
+    headRepository: baseEnv.REPO,
+    event: 'push',
+    conclusion: 'failure',
+    runAttempt: 1
+  };
+
+  test.each([
+    ...['failure', 'timed_out', 'cancelled'].flatMap(conclusion =>
+      [1, 2, 3].map(runAttempt => ({
+        name: `${conclusion} attempt ${runAttempt} remains eligible`,
+        overrides: { conclusion, runAttempt },
+        eligible: true
+      }))
+    ),
+    ...['success', 'neutral', 'skipped'].map(conclusion => ({
+      name: `${conclusion} skips before runner allocation`,
+      overrides: { conclusion },
+      eligible: false
+    })),
+    ...['pull_request', 'schedule', 'workflow_dispatch'].map(event => ({
+      name: `${event} skips before runner allocation`,
+      overrides: { event },
+      eligible: false
+    })),
+    ...[4, 5].map(runAttempt => ({
+      name: `attempt ${runAttempt} skips before runner allocation`,
+      overrides: { runAttempt },
+      eligible: false
+    })),
+    {
+      name: 'foreign workflow repository skips before runner allocation',
+      overrides: { repository: 'octocat/salesforcedx-vscode' },
+      eligible: false
+    },
+    {
+      name: 'foreign original head repository skips before runner allocation',
+      overrides: { headRepository: 'octocat/salesforcedx-vscode' },
+      eligible: false
+    }
+  ])('$name', ({ overrides, eligible }) => {
+    const { repository, headRepository, event, conclusion, runAttempt } = { ...jobContext, ...overrides };
+    const condition = parseDocument(readText(WORKFLOW)).getIn(['jobs', 'rerun', 'if']);
+    assert(typeof condition === 'string');
+    // This condition uses only comparisons and boolean operators shared by Actions expressions and JavaScript.
+    expect(
+      runInNewContext(condition, {
+        github: {
+          repository,
+          event: {
+            workflow_run: {
+              head_repository: { full_name: headRepository },
+              event,
+              conclusion,
+              run_attempt: runAttempt
+            }
+          }
+        }
+      })
+    ).toBe(eligible);
+  });
+
+  test('approval listens to actual E2E completions, not the rerun helper', () => {
+    const workflow = parseDocument(readText(join(process.cwd(), '.github', 'workflows', 'aiAutoApprove.yml')));
+    const workflows = workflow.getIn(['on', 'workflow_run', 'workflows']);
+    const types = workflow.getIn(['on', 'workflow_run', 'types']);
+    assert(isSeq(workflows));
+    assert(isSeq(types));
+    expect(workflows.toJSON()).not.toContain('Rerun Push E2E');
+    expect(workflows.toJSON()).toEqual(expect.arrayContaining([...pushE2ENames]));
+    expect(types.toJSON()).toEqual(['completed']);
+  });
+
   test('lists the push Playwright workflow names', () => {
     const text = readText(WORKFLOW);
     const workflowItemPrefix = '      - ';
