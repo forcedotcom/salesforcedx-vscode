@@ -111,13 +111,8 @@ export const ensureSecondarySideBarHidden = async (page: Page): Promise<void> =>
   if (isVisible) {
     // Focus workbench before opening palette (avoids F1/keystrokes going to auxiliary bar chat input)
     await page.locator(WORKBENCH).focus();
-    // Use the explicit Hide command (not Toggle) to ensure we're hiding
+    // The wrapper checks visibility before toggling and verifies the sidebar is hidden.
     await hideSecondarySideBar(page);
-
-    // Wait for it to actually hide
-    await auxiliaryBar.waitFor({ state: 'hidden', timeout: 5000 }).catch(() => {
-      // Ignore error - may have been already hidden or command not available
-    });
   }
 };
 

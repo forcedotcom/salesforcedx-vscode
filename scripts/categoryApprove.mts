@@ -7,6 +7,7 @@
  */
 
 import * as Command from '@effect/platform/Command';
+import * as FileSystem from '@effect/platform/FileSystem';
 import * as NodeContext from '@effect/platform-node/NodeContext';
 import {
   actionsEnvironment,
@@ -18,6 +19,7 @@ import {
 } from '@salesforce/effect-octokit';
 import * as Arr from 'effect/Array';
 import * as Cause from 'effect/Cause';
+import * as Config from 'effect/Config';
 import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
 import * as Match from 'effect/Match';
@@ -112,7 +114,39 @@ export const classify = Effect.fn('categoryApprove.classify')(function* (input: 
       diff.trim().length === 0
         ? Effect.succeed(Option.none<readonly string[]>())
         : openCodePrompt({ prompt: buildPrompt(policy, diff, categories.length > 0) }).pipe(
-            Effect.map(parseAgentResult)
+            Effect.map(parseAgentResult),
+            Effect.catchTag('OpenCodeRunFailed', error =>
+              Effect.logWarning(
+                'Automatic approval skipped: AI classification unavailable. Human approval remains available.',
+                {
+                  reason: error.message
+                }
+              ).pipe(
+                Effect.andThen(Config.option(Config.string('GITHUB_STEP_SUMMARY'))),
+                Effect.flatMap(
+                  Option.match({
+                    onNone: () => Effect.void,
+                    onSome: summaryPath =>
+                      FileSystem.FileSystem.pipe(
+                        Effect.flatMap(fs =>
+                          fs.writeFileString(
+                            summaryPath,
+                            'Automatic approval skipped: AI classification unavailable. Human approval remains available.\n',
+                            { flag: 'a' }
+                          )
+                        ),
+                        Effect.catchTag('SystemError', summaryError =>
+                          Effect.logWarning('Could not write automatic approval skip summary', summaryError.message)
+                        ),
+                        Effect.catchTag('BadArgument', summaryError =>
+                          Effect.logWarning('Could not write automatic approval skip summary', summaryError.message)
+                        )
+                      )
+                  })
+                ),
+                Effect.as(Option.none<readonly string[]>())
+              )
+            )
           )
     ),
     Effect.map(

@@ -12,7 +12,7 @@ import {
   type FileResponse,
   type RetrieveResult
 } from '@salesforce/source-deploy-retrieve';
-import { type ChangeResult, type SourceTracking } from '@salesforce/source-tracking';
+import { type SourceTracking } from '@salesforce/source-tracking';
 import * as Data from 'effect/Data';
 import * as Effect from 'effect/Effect';
 import * as HashSet from 'effect/HashSet';
@@ -55,10 +55,20 @@ export class SourceTrackingConflictError extends Schema.TaggedError<SourceTracki
 ) {}
 const toSourceTrackingError = (error: unknown) => new SourceTrackingError({ cause: unknownToErrorCause(error).cause });
 
-const ResolvedChangeResultSchema = Schema.Struct({ name: Schema.String, type: Schema.String });
-type SourceTrackingRemoteChange = ChangeResult & Schema.Schema.Type<typeof ResolvedChangeResultSchema>;
-const isResolvedChangeResult = (c: ChangeResult): c is SourceTrackingRemoteChange =>
-  Schema.is(ResolvedChangeResultSchema)(c);
+const ResolvedChangeResultSchema = Schema.Struct({
+  name: Schema.String,
+  type: Schema.String,
+  origin: Schema.Literal('local', 'remote'),
+  deleted: Schema.optional(Schema.Boolean),
+  modified: Schema.optional(Schema.Boolean),
+  changedBy: Schema.optional(Schema.String),
+  revisionCounter: Schema.optional(Schema.Number),
+  lastModifiedDate: Schema.optional(Schema.String),
+  memberIdOrName: Schema.optional(Schema.String),
+  filenames: Schema.String.pipe(Schema.Array, Schema.mutable, Schema.optional),
+  ignored: Schema.optional(Schema.Boolean)
+});
+type SourceTrackingRemoteChange = Schema.Schema.Type<typeof ResolvedChangeResultSchema>;
 
 export class SourceTrackingService extends Effect.Service<SourceTrackingService>()('SourceTrackingService', {
   accessors: true,
@@ -238,7 +248,9 @@ export class SourceTrackingService extends Effect.Service<SourceTrackingService>
             Effect.map(
               changeResults =>
                 new ComponentSet(
-                  changeResults.filter(isResolvedChangeResult).map(c => ({ type: c.type, fullName: c.name })),
+                  changeResults
+                    .filter(Schema.is(ResolvedChangeResultSchema))
+                    .map(c => ({ type: c.type, fullName: c.name })),
                   registry
                 )
             ),
@@ -290,7 +302,7 @@ export class SourceTrackingService extends Effect.Service<SourceTrackingService>
                 })
               ],
               { concurrency: 1 }
-            ).pipe(Effect.map(changes => changes.flat().filter(isResolvedChangeResult)))
+            ).pipe(Effect.map(changes => changes.flat().filter(Schema.is(ResolvedChangeResultSchema))))
           : Effect.succeed<SourceTrackingRemoteChange[]>([]);
         yield* Effect.annotateCurrentSpan({ remoteChangeRows: remoteChanges.length, statusRows: status.length });
         return { remoteChanges, status };
@@ -365,7 +377,7 @@ export class SourceTrackingService extends Effect.Service<SourceTrackingService>
         );
 
         const unhandled = allRemoteDeletes
-          .filter(isResolvedChangeResult)
+          .filter(Schema.is(ResolvedChangeResultSchema))
           .filter(c => !HashSet.has(handledTypeNames, Data.struct({ type: c.type, fullName: c.name })));
 
         if (unhandled.length > 0) {
