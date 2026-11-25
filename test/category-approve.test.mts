@@ -339,6 +339,59 @@ test('rejects forbidden paths and non-Markdown root plans files without OpenCode
   }
 });
 
+for (const failure of ['rate-limited', 'invalid credentials', 'missing credentials', 'unwritable summary']) {
+  test(`skips approval without failing when AI has ${failure}`, async t => {
+    const cwd = classificationRepo(t, { 'test/example.ts': 'before\n' }, { 'test/example.ts': 'after\n' });
+    const summaryPath = join(cwd, failure === 'unwritable summary' ? 'missing/summary.md' : 'summary.md');
+    const categories = await classify({
+      policy,
+      files: [file('README.md'), file('test/example.ts')],
+      baseRef: 'base',
+      headSha: 'head'
+    }).pipe(
+      Effect.provide(
+        commands(command =>
+          command.command === 'git'
+            ? command.pipe(Command.workingDirectory(cwd))
+            : nodeCommand(
+                command,
+                `process.stderr.write(${JSON.stringify(failure === 'rate-limited' ? 'HTTP 429' : 'Invalid API key')}); process.exit(1);`
+              )
+        ).pipe(Layer.provideMerge(NodeContext.layer))
+      ),
+      Effect.withConfigProvider(
+        ConfigProvider.fromMap(
+          new Map([
+            ...(failure === 'missing credentials' ? [] : [['OPENCODE_API_KEY', 'test-key'] as const]),
+            ['OPENCODE_MODELS', '["opencode/first"]'],
+            ['PATH', process.env.PATH ?? ''],
+            ['GITHUB_STEP_SUMMARY', summaryPath]
+          ])
+        )
+      ),
+      Effect.runPromise
+    );
+    assert.deepEqual(categories, []);
+    assert.equal(decideCategoryApprove({ ...base, categories })._tag, 'Skip');
+    if (failure !== 'unwritable summary') {
+      assert.match(readFileSync(summaryPath, 'utf8'), /Automatic approval skipped: AI classification unavailable/);
+    }
+  });
+}
+
+test('Git failures still fail classification', async () => {
+  const result = await classify({ policy, files: [file('test/example.ts')], baseRef: 'base', headSha: 'head' }).pipe(
+    Effect.provide(
+      commands(command => nodeCommand(command, 'process.stderr.write("git failed"); process.exit(1);')).pipe(
+        Layer.provideMerge(NodeContext.layer)
+      )
+    ),
+    Effect.flip,
+    Effect.runPromise
+  );
+  assert.equal(result._tag, 'GitError');
+});
+
 for (const [reply, expected] of [
   [{ covered: true, categories: ['tests-only'] }, ['prose', 'tests-only']],
   [{ covered: false, categories: ['tests-only'] }, []],
