@@ -79,8 +79,6 @@ const parseDocumentUriFromPath = (uri: URI, extension: string | undefined): OrgM
   return Schema.is(OrgMetadataDocumentLocation)(location) ? location : undefined;
 };
 
-export const isOrgMetadataComponentReference = Schema.is(OrgMetadataComponentReference);
-
 export const getTypeSuffix = Effect.fn('OrgMetadataReferenceService.typeSuffix')(function* (xmlName: string) {
   return yield* (yield* MetadataRegistryService)
     .getRegistryAccess()

@@ -69,9 +69,8 @@ const filterErrors = (errors: ValidationError[], waitStepPaths: readonly string[
 const filterState = (result: ValidationState): ValidationError[] =>
   filterErrors(result.errors, collectWaitStepPaths(result.errors));
 
-const isStringList = Schema.is(Schema.Array(Schema.String));
-
-const asStringList = (value: unknown): readonly string[] | undefined => (isStringList(value) ? value : undefined);
+const asStringList = (value: unknown): readonly string[] | undefined =>
+  Schema.is(Schema.Array(Schema.String))(value) ? value : undefined;
 
 const sameStrings = Equivalence.array(Equivalence.string);
 

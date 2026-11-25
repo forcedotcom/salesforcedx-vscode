@@ -16,6 +16,12 @@ Reports direct `_tag` reads on Effect Options, including computed properties and
 
 Use `Option.isNone` or `Option.isSome` for case checks, and `Option.match` when handling both cases. Enabled as an error in `eslint.config.mjs`.
 
+### no-schema-is-wrapper
+
+Reports named bindings such as `const isItem = Schema.is(Item)` and functions whose only operation is returning `Schema.is(Item)(value)` or a fixed `Schema.is(Item)` predicate. Use `Schema.is(Item)(value)` directly, or pass `Schema.is(Item)` directly to a filter or other callback consumer. Functions with additional validation logic and schema factories remain allowed.
+
+Like other AST-only Effect rules, it matches the `Schema` identifier. Enabled as an error in `eslint.config.mjs`. No autofix: removing a wrapper may require updating imports and callers in other modules.
+
 ### no-schema-is-throw-guard
 
 Reports `if (!Schema.is(Id)(value)) { throw ... }` and success checks with a throwing `else`, including checks of an unchanged boolean initialized from `Schema.is(Id)(value)`. Ordinary predicates, filters, and non-throwing branches remain allowed. Like other AST-only Effect rules, it matches the `Schema` identifier.

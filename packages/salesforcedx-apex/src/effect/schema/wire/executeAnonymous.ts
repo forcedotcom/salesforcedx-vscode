@@ -46,11 +46,10 @@ export const executionResultSchema = Schema.Union(
   })
 );
 
-const invalidSessionErrorSchema = Schema.Struct({
+export const invalidSessionErrorSchema = Schema.Struct({
   name: Schema.Literal('ERROR_HTTP_500'),
   message: Schema.String.pipe(Schema.pattern(/INVALID_SESSION_ID/))
 });
-export const isInvalidSessionError = Schema.is(invalidSessionErrorSchema);
 
 /** SOAP response as parsed by Salesforce Core's generic Connection.request. */
 export const soapResponseSchema = Schema.Struct({
