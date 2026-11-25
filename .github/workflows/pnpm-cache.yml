@@ -1,0 +1,42 @@
+name: Populate pnpm dependency caches
+
+on:
+  push:
+    branches: [develop]
+    paths:
+      - 'pnpm-lock.yaml'
+      - 'pnpm-workspace.yaml'
+      - '.npmrc'
+      - 'package.json'
+      - '.github/actions/setup-pnpm/**'
+      - '.github/workflows/pnpm-cache.yml'
+  pull_request:
+    paths:
+      - '.github/actions/setup-pnpm/**'
+      - '.github/workflows/pnpm-cache.yml'
+  schedule:
+    - cron: '17 3 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pnpm-cache-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  install:
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    steps:
+      - uses: actions/checkout@v4
+      # Scheduled runs refresh develop's stores even without dependency changes.
+      # PR runs verify all platforms but cannot save dependency caches.
+      - uses: ./.github/actions/setup-pnpm
+        with:
+          node-version: ${{ vars.NODE_VERSION || 'lts/*' }}
