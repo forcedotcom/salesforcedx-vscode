@@ -16,6 +16,7 @@ import {
   type CheckEvent,
   withoutWorkflowRun
 } from '@salesforce/effect-octokit';
+import * as Arr from 'effect/Array';
 import * as Cause from 'effect/Cause';
 import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
@@ -31,10 +32,13 @@ import {
   type Decision,
   type Facts,
   buildPrompt,
+  categoryForPath,
   categoryIdsFromPolicy,
   classifyGit2GusConfig,
   decideCategoryApprove,
-  parseAgentResult
+  parseAgentResult,
+  pathsForFile,
+  rejectedPath
 } from './shared/categoryDecision.mts';
 import { openCodePrompt } from './shared/openCode.mts';
 import { GitError } from './shared/scriptErrors.mts';
@@ -76,9 +80,49 @@ const listChecks = Effect.fn('categoryApprove.listChecks')(function* (
   return { statuses: status.statuses, checkRuns: withoutWorkflowRun(runs, runId) };
 });
 
-const classify = Effect.fn('categoryApprove.classify')((policy: string, diff: string) =>
-  openCodePrompt({ prompt: buildPrompt(policy, diff) }).pipe(Effect.map(parseAgentResult))
-);
+export const classify = Effect.fn('categoryApprove.classify')(function* (input: {
+  readonly policy: string;
+  readonly files: Facts['files'];
+  readonly baseRef: string;
+  readonly headSha: string;
+}) {
+  const { policy, files, baseRef, headSha } = input;
+  // GitHub caps pull-request files at 3,000; a list at that limit may omit uncovered files.
+  if (files.length >= 3000) return [];
+  if (files.length === 1 && files[0]?.filename === '.git2gus/config.json' && files[0].status === 'modified') {
+    return yield* Effect.all([
+      gitText(['show', `${baseRef}:.git2gus/config.json`]),
+      gitText(['show', `${headSha}:.git2gus/config.json`])
+    ]).pipe(Effect.map(([before, after]) => classifyGit2GusConfig(files, before, after)));
+  }
+  const paths = Arr.dedupe(files.flatMap(pathsForFile));
+  if (paths.some(rejectedPath)) return [];
+  const categories = Arr.dedupe(Arr.filterMap(paths, categoryForPath));
+  const remainingPaths = paths.filter(filename => Option.isNone(categoryForPath(filename)));
+  if (remainingPaths.length === 0) return categories;
+  // Literal pathspecs and --no-renames keep covered files out, including either side of a rename.
+  return yield* gitText([
+    'diff',
+    '--no-renames',
+    `${baseRef}...${headSha}`,
+    '--',
+    ...remainingPaths.map(filename => `:(top,literal)${filename}`)
+  ]).pipe(
+    Effect.flatMap(diff =>
+      diff.trim().length === 0
+        ? Effect.succeed(Option.none<readonly string[]>())
+        : openCodePrompt({ prompt: buildPrompt(policy, diff, categories.length > 0) }).pipe(
+            Effect.map(parseAgentResult)
+          )
+    ),
+    Effect.map(
+      Option.match({
+        onNone: () => [],
+        onSome: classified => Arr.dedupe([...categories, ...classified])
+      })
+    )
+  );
+});
 
 const approve = Effect.fn('categoryApprove.approve')(function* (
   owner: string,
@@ -182,28 +226,7 @@ const onePull = Effect.fn('categoryApprove.onePull')(function* (
   const baseRef = pull.baseRefName;
   yield* gitText(['fetch', 'origin', baseRef]);
   const policy = yield* gitText(['show', `origin/${baseRef}:APPROVAL_POLICY.md`]);
-  yield* Match.value(files).pipe(
-    Match.when(
-      changedFiles =>
-        changedFiles.length === 1 &&
-        changedFiles[0]?.filename === '.git2gus/config.json' &&
-        changedFiles[0].status === 'modified',
-      () =>
-        Effect.all([
-          gitText(['show', `origin/${baseRef}:.git2gus/config.json`]),
-          gitText(['show', `${headSha}:.git2gus/config.json`])
-        ]).pipe(Effect.map(([before, after]) => classifyGit2GusConfig(files, before, after)))
-    ),
-    Match.when(
-      changedFiles =>
-        changedFiles.some(
-          file => file.filename === '.git2gus/config.json' || file.previous_filename === '.git2gus/config.json'
-        ),
-      () => Effect.succeed([])
-    ),
-    Match.orElse(() =>
-      gitText(['diff', `origin/${baseRef}...${headSha}`]).pipe(Effect.flatMap(diff => classify(policy, diff)))
-    ),
+  yield* classify({ policy, files, baseRef: `origin/${baseRef}`, headSha }).pipe(
     Effect.flatMap(categories =>
       listChecks(owner, repo, headSha, runId).pipe(
         Effect.map(freshChecks =>
@@ -263,9 +286,10 @@ const categoryApprove = Effect.fn('categoryApprove')(function* () {
   });
 });
 
-const program = categoryApprove().pipe(Effect.provide(Layer.mergeAll(GitHub.Default, NodeContext.layer)));
-
-await program.pipe(
-  Effect.tapErrorCause(cause => Effect.logError(Cause.pretty(cause))),
-  Effect.runPromise
-);
+if (import.meta.main) {
+  await categoryApprove().pipe(
+    Effect.provide(Layer.mergeAll(GitHub.Default, NodeContext.layer)),
+    Effect.tapErrorCause(cause => Effect.logError(Cause.pretty(cause))),
+    Effect.runPromise
+  );
+}

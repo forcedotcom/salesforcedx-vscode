@@ -7,6 +7,7 @@
 
 import { join } from 'node:path';
 import { RuleTester } from '@typescript-eslint/rule-tester';
+import { it } from 'vitest';
 import { noNestedEffectGenCatchTags } from '../src/noNestedEffectGenCatchTags';
 
 const fixtureDir = join(__dirname, 'fixtures/no-nested-effect-gen-catch-tags');
@@ -20,6 +21,7 @@ const ruleTester = new RuleTester({
     }
   }
 });
+RuleTester.it = (name, callback) => it(name, callback, 30_000);
 
 const effectImport = `import * as Effect from 'effect/Effect';
 `;

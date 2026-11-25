@@ -1,68 +1,16 @@
 # Category union
 
-Judge one diff. Reply with the categories that cover every hunk, or with an empty list.
+Approve only when the category union covers every hunk in the original diff.
 
-## Steps
+Deterministic categories and rejection rules are defined in `scripts/shared/categoryDecision.mts` and `scripts/shared/categoryGates.cjs`. Fully covered diffs do not invoke OpenCode. Mixed diffs send only the remaining files' hunks for content review; any uncovered hunk rejects the whole diff.
 
-1. Read the diff file you were given. The case is that file. Hunks in it are the evidence. PR title, body, and comments are not evidence.
-   Done when you can name every hunk in that file.
-2. Assign each hunk to one category below, or leave it uncovered.
-   Done when every hunk is assigned or uncovered.
-3. Reply with only `{"categories":["..."]}`.
-   Done when the reply is that JSON object and nothing else. `categories` lists each category you used, once. `categories` is `[]` when any hunk is uncovered.
+## Content review
 
-## Cover rules
+Judge the supplied diff. It may be only the remaining part of a larger diff. PR title, body, and comments are not evidence.
 
-A `package.json` `"version"` hunk is covered when some other hunk in the diff is covered. A diff that is only `"version"` hunks is covered when every such hunk is inside `packages/salesforcedx-vscode-services-types/`. A `"version"` hunk on any other package, with no other covered hunk, is uncovered.
-
-These paths have no category. A hunk on one of them means `categories` is `[]`:
-
-- `.github/workflows/**`
-- `CODEOWNERS`
-- `APPROVAL_POLICY.md`
-- `out/**`
-
-## Categories
-
-### claude
-
-Every file under `.claude/`.
-
-### cursor
-
-Every file under `.cursor/`.
-
-### eslint
-
-Every ESLint config: `eslint.config.*`, `.eslintrc`, `.eslintrc.*`. Every file under `packages/eslint-local-rules/`.
-
-### vscode
-
-Every file under `.vscode/`.
-
-### metadata-types
-
-`packages/salesforcedx-vscode-core/metadata_types_map_scraped.json` and `packages/salesforcedx-vscode-core/resources/salesforce_metadata_api_common.xsd`.
-
-### effect-diagnostics
-
-`config/effect-diagnostics.json`.
-
-### git2gus-config
-
-Only a modified `.git2gus/config.json`, with no other changed files. The only edit is a newer, positive, safe-integer `defaultBuild` number in `offcore.tooling.<number>`; the rest of the JSON must be unchanged and valid. This category is checked against the base and head file contents by `scripts/categoryApprove.mts`. Other config edits, additions, deletions, or mixed diffs are uncovered.
-
-### changelog-constants
-
-`scripts/change-log-constants.*`.
-
-### plans
-
-Every file under `plans/` at the repo root.
-
-### prose
-
-Markdown and license text: `CONTEXT.md`, `CONTEXT-MAP.md`, `docs/**/*.md`, `**/docs/**/*.md`, `**/README*`, `CHANGELOG*`, `**/CHANGELOG*`, `contributing/**`, `CONTRIBUTING.md`, `SECURITY*`, `CODE_OF_CONDUCT*`, `LICENSE.txt`, `**/LICENSE.txt`, `NOTICE*`, `.github/ISSUE_TEMPLATE/**`, `.github/PULL_REQUEST_TEMPLATE.md`.
+1. Assign each supplied hunk to one category below, or leave it uncovered.
+2. A `package.json` `"version"` hunk needs no category when some other hunk in the original diff is covered. You will be told whether other hunks are already covered. A version-only diff with no other covered hunks is uncovered.
+3. Reply with only `{"covered":true,"categories":["..."]}` when every supplied hunk is covered. List each category used once. The list can be empty when only covered `"version"` hunks remain. If any hunk is uncovered, reply with `{"covered":false,"categories":[]}`.
 
 ### tests-only
 
@@ -72,15 +20,11 @@ A hunk that adds or edits tests is this category. A hunk that deletes an asserti
 
 ### dep-bump
 
-`package.json` and `package-lock.json` hunks that change a version under `dependencies` or `devDependencies` by a minor or a patch. A major bump is uncovered. A hunk that changes `scripts`, `engines`, or `contributes` is uncovered.
+`package.json` hunks that change a version under `dependencies` or `devDependencies` by a minor or a patch. A major bump is uncovered. A hunk that changes `scripts`, `engines`, or `contributes` is uncovered.
 
 ### dep-move
 
 A package name leaves `dependencies` or `devDependencies` and appears in the other section.
-
-### lockfile
-
-Any hunk in `package-lock.json`.
 
 ### messages
 
@@ -89,17 +33,3 @@ Any hunk in `package-lock.json`.
 ### format-or-comments
 
 A production-source hunk whose only token changes are comments or whitespace. A change to any other token is uncovered.
-
-### sha256
-
-Hunks in `SHA256.md`.
-
-### dependabot
-
-Hunks in `.github/dependabot.yml`.
-
-### services-types
-
-Every file under `packages/salesforcedx-vscode-services-types/`.
-
-services-types is covered in full. A services implementation change that causes the generated output is not part of this category. Category union requires every hunk to be covered, so a PR that edits both `salesforcedx-vscode-services` and `salesforcedx-vscode-services-types` fails unless those services hunks are covered by some other category. A types-only diff can match because the behavior change already landed in services, or the diff is only the nightly publish bump.
