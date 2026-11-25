@@ -134,7 +134,7 @@ jobs:
   ctc-open:
     needs: [prepare]
     if: always() && needs.prepare.result == 'success' && (github.event_name == 'release' || inputs.do-ctc == true) && inputs.dry-run != true
-    uses: salesforcecli/github-workflows/.github/workflows/ctcOpen.yml@fix/ctc-explicit-secrets
+    uses: salesforcecli/github-workflows/.github/workflows/ctcOpen.yml@main
     secrets:
       SF_CHANGE_CASE_SFDX_AUTH_URL: ${{ secrets.SF_CHANGE_CASE_SFDX_AUTH_URL }}
       SF_CHANGE_CASE_TEMPLATE_ID: ${{ secrets.SF_CHANGE_CASE_TEMPLATE_ID }}
@@ -222,7 +222,7 @@ jobs:
   ctcCloseSuccess:
     needs: [ctc-open, verify-published]
     if: needs.ctc-open.result == 'success' && needs.verify-published.result == 'success' && needs.ctc-open.outputs.changeCaseId
-    uses: salesforcecli/github-workflows/.github/workflows/ctcClose.yml@fix/ctc-explicit-secrets
+    uses: salesforcecli/github-workflows/.github/workflows/ctcClose.yml@main
     secrets:
       SF_CHANGE_CASE_SFDX_AUTH_URL: ${{ secrets.SF_CHANGE_CASE_SFDX_AUTH_URL }}
       SF_CHANGE_CASE_TEMPLATE_ID: ${{ secrets.SF_CHANGE_CASE_TEMPLATE_ID }}
@@ -233,7 +233,7 @@ jobs:
   ctcCloseFail:
     needs: [ctc-open, verify-published]
     if: always() && needs.ctc-open.result == 'success' && needs.ctc-open.outputs.changeCaseId && needs.verify-published.result != 'success'
-    uses: salesforcecli/github-workflows/.github/workflows/ctcClose.yml@fix/ctc-explicit-secrets
+    uses: salesforcecli/github-workflows/.github/workflows/ctcClose.yml@main
     secrets:
       SF_CHANGE_CASE_SFDX_AUTH_URL: ${{ secrets.SF_CHANGE_CASE_SFDX_AUTH_URL }}
       SF_CHANGE_CASE_TEMPLATE_ID: ${{ secrets.SF_CHANGE_CASE_TEMPLATE_ID }}
