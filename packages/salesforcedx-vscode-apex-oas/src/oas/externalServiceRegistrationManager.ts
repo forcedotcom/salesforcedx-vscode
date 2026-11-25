@@ -183,7 +183,7 @@ export const pathExists = Effect.fn('ApexOas.Esr.pathExists')(function* (filenam
       return yield* new EsrPathResolutionFailed({ message: nls.localize('operation_cancelled') });
     }
     if (whatToDo === nls.localize('merge')) {
-      const currentTimestamp = getCurrentTimestamp();
+      const currentTimestamp = yield* getCurrentTimestamp();
       const namePart = path.basename(filename, '.externalServiceRegistration-meta.xml');
       const newFileName = `${namePart}_${currentTimestamp}.externalServiceRegistration-meta.xml`;
       const workspaceInfo = yield* api.services.WorkspaceService.getWorkspaceInfoOrThrow().pipe(
