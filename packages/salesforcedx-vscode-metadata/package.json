@@ -15,7 +15,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "68.15.6",
+  "version": "68.15.7",
   "publisher": "salesforce",
   "o11yUploadEndpoint": "https://794testsite.my.site.com/byolwr/webruntime/log/metrics",
   "enableO11y": "true",
@@ -35,7 +35,7 @@
   },
   "devDependencies": {
     "@salesforce/templates": "^66.19.0",
-    "@salesforce/source-deploy-retrieve": "^13.13.0",
+    "@salesforce/source-deploy-retrieve": "^13.14.1",
     "@salesforce/source-tracking": "^8.1.16",
     "@salesforce/types": "^1.8.0",
     "@salesforce/playwright-vscode-ext": "workspace:*",
@@ -52,6 +52,9 @@
     "test:web:conflicts": "wireit",
     "test:web:ui": "DEBUG_MODE=1 pnpm --dir ../.. --filter ./packages/salesforcedx-vscode-metadata test:web --headed",
     "test:web:debug": "pnpm --dir ../.. --filter ./packages/salesforcedx-vscode-metadata test:web --debug",
+    "test:container": "wireit",
+    "test:container:noproject": "wireit",
+    "test:container:nofolder": "wireit",
     "test:desktop": "wireit",
     "test:desktop:debug": "pnpm --dir ../.. --filter ./packages/salesforcedx-vscode-metadata test:desktop --debug",
     "test:desktop:conflicts": "wireit",
@@ -213,6 +216,75 @@
         "test/playwright/**/*.{ts,mts}",
         "package*.json",
         "../../.github/**"
+      ],
+      "output": []
+    },
+    "test:container": {
+      "command": "playwright test --config=test/playwright/playwright.config.container.ts",
+      "env": {
+        "CODE_BUILDER_URL": {
+          "external": true
+        },
+        "CB_GREP": {
+          "external": true
+        },
+        "VSCODE_CONTAINER": "1",
+        "CB_UNDER_TEST": {
+          "external": true
+        }
+      },
+      "dependencies": [
+        "../playwright-vscode-ext:compile"
+      ],
+      "files": [
+        "test/playwright/**",
+        "package*.json"
+      ],
+      "output": []
+    },
+    "test:container:noproject": {
+      "command": "playwright test --config=test/playwright/playwright.config.container.noproject.ts",
+      "env": {
+        "CODE_BUILDER_URL": {
+          "external": true
+        },
+        "CB_GREP": {
+          "external": true
+        },
+        "VSCODE_CONTAINER": "1",
+        "CB_UNDER_TEST": {
+          "external": true
+        }
+      },
+      "dependencies": [
+        "../playwright-vscode-ext:compile"
+      ],
+      "files": [
+        "test/playwright/**",
+        "package*.json"
+      ],
+      "output": []
+    },
+    "test:container:nofolder": {
+      "command": "playwright test --config=test/playwright/playwright.config.container.nofolder.ts",
+      "env": {
+        "CODE_BUILDER_URL": {
+          "external": true
+        },
+        "CB_GREP": {
+          "external": true
+        },
+        "VSCODE_CONTAINER": "1",
+        "CB_UNDER_TEST": {
+          "external": true
+        }
+      },
+      "dependencies": [
+        "../playwright-vscode-ext:compile"
+      ],
+      "files": [
+        "test/playwright/**",
+        "package*.json"
       ],
       "output": []
     },

@@ -8,6 +8,8 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import type { TestContext } from 'node:test';
 
+const gitEnv = Object.fromEntries(Object.entries(process.env).filter(([name]) => !name.startsWith('GIT_')));
+
 export const tempDirectory = (t: TestContext) => {
   const directory = mkdtempSync(join(tmpdir(), 'ci-ai-test-'));
   t.after(() => rmSync(directory, { recursive: true, force: true }));
@@ -21,7 +23,10 @@ export const commands = (replace: (command: Command.StandardCommand) => Command.
       Effect.map(executor =>
         CommandExecutor.makeExecutor(command => {
           if (command._tag !== 'StandardCommand') throw new Error('Unexpected pipeline');
-          return executor.start(replace(command));
+          const replacement = replace(command);
+          const isolated =
+            command.command === 'git' ? replacement.pipe(Command.env(gitEnv, { extendEnv: false })) : replacement;
+          return executor.start(isolated);
         })
       )
     )
@@ -48,7 +53,6 @@ export const config = (models = '["opencode/first","opencode/second"]') =>
     ])
   );
 
-const gitEnv = Object.fromEntries(Object.entries(process.env).filter(([name]) => !name.startsWith('GIT_')));
 export const git = (cwd: string, ...args: string[]) =>
   execFileSync('git', args, {
     cwd,

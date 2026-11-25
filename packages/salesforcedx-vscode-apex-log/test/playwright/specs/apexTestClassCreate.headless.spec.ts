@@ -7,11 +7,10 @@
 
 import { expect } from '@playwright/test';
 import {
-  closeWelcomeTabs,
   EDITOR_WITH_URI,
-  ensureSecondarySideBarHidden,
   executeCommandWithCommandPalette,
   QUICK_INPUT_WIDGET,
+  resetContainerWorkbench,
   saveScreenshot,
   selectQuickInputOption,
   setupConsoleMonitoring,
@@ -25,18 +24,17 @@ import { messages } from '../../../src/messages/i18n';
 import packageNls from '../../../package.nls.json';
 import { test } from '../fixtures';
 
+test.beforeEach(async ({ page }) => {
+  await waitForVSCodeWorkbench(page);
+  await resetContainerWorkbench(page);
+  await saveScreenshot(page, 'setup.after-workbench.png');
+});
+
 test('Create Apex Unit Test Class via command palette', async ({ page }) => {
   test.setTimeout(180_000);
   const consoleErrors = setupConsoleMonitoring(page);
   const networkErrors = setupNetworkMonitoring(page);
   const className = `CreateTestClass${Date.now()}`;
-
-  await test.step('setup with no org', async () => {
-    await waitForVSCodeWorkbench(page);
-    await closeWelcomeTabs(page);
-    await ensureSecondarySideBarHidden(page);
-    await saveScreenshot(page, 'setup.after-workbench.png');
-  });
 
   await test.step('command is present', async () => {
     await verifyCommandExists(page, packageNls.apex_generate_class_text, 120_000);
