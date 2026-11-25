@@ -379,5 +379,8 @@ test('workflows keep trusted approval execution and share the OpenCode key and m
     steps.find((step: { name?: string }) => step.name === 'Decide and approve').run,
     /runWithJevServer\.mts/
   );
-  assert.match(steps.at(-1).run, /node "\$RUNNER_TEMP\/trusted-approver\/scripts\/categoryApprove.mts"/);
+  assert.match(
+    steps.at(-1).run,
+    /node "\$RUNNER_TEMP\/trusted-approver\/scripts\/runWithJevServer.mts" "\$RUNNER_TEMP\/trusted-approver\/scripts\/categoryApprove.mts"/
+  );
 });
