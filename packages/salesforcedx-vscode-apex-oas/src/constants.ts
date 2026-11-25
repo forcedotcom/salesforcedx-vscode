@@ -6,4 +6,3 @@
  */
 
 export const EXTENSION_NAME = 'salesforcedx-vscode-apex-oas';
-export const OAS_EXTENSION_ID = `salesforce.${EXTENSION_NAME}`;

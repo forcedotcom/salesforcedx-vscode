@@ -28,7 +28,7 @@
     "Debuggers"
   ],
   "dependencies": {
-    "@salesforce/core": "^9.4.1",
+    "@salesforce/core": "^9.6.0",
     "@salesforce/effect-ext-utils": "workspace:*",
     "@salesforce/salesforcedx-apex-debugger": "workspace:*",
     "@salesforce/vscode-i18n": "workspace:*",

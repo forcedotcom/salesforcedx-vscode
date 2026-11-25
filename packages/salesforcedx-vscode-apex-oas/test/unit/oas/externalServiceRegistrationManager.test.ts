@@ -116,7 +116,7 @@ const buildCtx = (overrides: Partial<EsrContext> = {}): EsrContext => ({
   overwrite: false,
   originalPath: baseFullPath[0],
   newPath: baseFullPath[1],
-  providerType: 'ApexRest',
+  providerType: 'AuraEnabled',
   ...overrides
 });
 
@@ -215,7 +215,7 @@ describe('externalServiceRegistrationManager', () => {
         schema: 'safeSpec',
         schemaType: 'OpenApi3',
         registrationProviderAsset: 'TestClass',
-        registrationProviderType: 'ApexRest'
+        registrationProviderType: 'AuraEnabled'
       });
     });
 
@@ -240,7 +240,7 @@ describe('externalServiceRegistrationManager', () => {
       const parsed = parser.parse(result);
       expect(parsed.ExternalServiceRegistration.label).toBe('test');
       expect(parsed.ExternalServiceRegistration.description).toBe('oas description');
-      expect(parsed.ExternalServiceRegistration.registrationProviderType).toBe('ApexRest');
+      expect(parsed.ExternalServiceRegistration.registrationProviderType).toBe('AuraEnabled');
     });
 
     it('adds operations when merging into existing XML', async () => {
@@ -259,6 +259,17 @@ describe('externalServiceRegistrationManager', () => {
       const parser = new XMLParser({ ignoreAttributes: false });
       const parsed = parser.parse(result);
       expect(parsed.ExternalServiceRegistration.operations).toEqual({ name: 'getPets', active: true });
+    });
+
+    it('replaces an existing ApexRest provider type with AuraEnabled', async () => {
+      const existingXml = `<?xml version="1.0" encoding="UTF-8"?>
+<ExternalServiceRegistration xmlns="http://soap.sforce.com/2006/04/metadata">
+  <schema>existing schema</schema>
+  <registrationProviderType>ApexRest</registrationProviderType>
+</ExternalServiceRegistration>`;
+      const result = await runBuild(buildCtx(), existingXml);
+      const parsed = new XMLParser({ ignoreAttributes: false }).parse(result);
+      expect(parsed.ExternalServiceRegistration.registrationProviderType).toBe('AuraEnabled');
     });
 
     it('preserves the existing schema when present', async () => {

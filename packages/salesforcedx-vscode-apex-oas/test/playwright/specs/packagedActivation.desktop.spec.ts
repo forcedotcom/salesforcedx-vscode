@@ -11,11 +11,7 @@ import { join, sep } from 'node:path';
 import { messages } from '../../../src/messages/i18n';
 import { oasVsixSmokeTest as test } from '../fixtures/packagedActivationFixtures';
 
-test('Packaged Apex OAS activates and handles validation without A4V', async ({
-  page,
-  workspaceDir,
-  installedExtensionsDir
-}) => {
+test('Packaged Apex OAS activates and handles validation', async ({ page, workspaceDir, installedExtensionsDir }) => {
   await test.step('verify installed artifact, activation, and command registration', async () => {
     await expect(async () => {
       const result = JSON.parse(await readFile(join(workspaceDir, '.oas-vsix-activation.json'), 'utf8'));

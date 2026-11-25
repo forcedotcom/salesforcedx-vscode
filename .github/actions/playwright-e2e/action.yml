@@ -188,6 +188,18 @@ runs:
             sf org create scratch -y 1 -d -f config/project-scratch-def.json -a "$NON_TRACKING_ORG_ALIAS" --json --wait 30 --no-track-source)
         fi
 
+    - name: Verify requested scratch orgs
+      if: steps.try-run.outcome == 'failure' && inputs.scratch-orgs != ''
+      shell: bash
+      env:
+        SCRATCH_ORGS: ${{ inputs.scratch-orgs }}
+      run: |
+        set -e
+        has_org() { [[ " $SCRATCH_ORGS " == *" $1 "* ]]; }
+
+        if has_org minimal; then sf org display -o "$MINIMAL_ORG_ALIAS" --json; fi
+        if has_org non-tracking; then sf org display -o "$NON_TRACKING_ORG_ALIAS" --json; fi
+
     - name: Run E2E tests
       if: steps.try-run.outcome == 'failure'
       id: test-run

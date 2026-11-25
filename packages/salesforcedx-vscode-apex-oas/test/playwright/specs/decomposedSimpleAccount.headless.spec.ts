@@ -29,11 +29,11 @@ import {
   getSfdxProjectJson
 } from '../testData/oasDocs';
 import {
-  assertGenerationOrSkipOnRateLimit,
   confirmEsrFolderPrompt,
   pushSource,
+  reopenApexClass,
   setupWorkbenchAndAuth,
-  waitForA4VAndOasCommands,
+  waitForOasCommands,
   writeWorkspaceFile
 } from '../utils/oasHelpers';
 
@@ -52,8 +52,8 @@ test('OAS: decomposed mode opens YAML+XML, validates, deploys', async ({ page, w
     await reloadWindow(page);
   });
 
-  await test.step('wait for A4V + OAS commands available after reload', async () => {
-    await waitForA4VAndOasCommands(page);
+  await test.step('wait for OAS commands available after reload', async () => {
+    await waitForOasCommands(page);
   });
 
   await test.step('create SimpleAccountResource class and push', async () => {
@@ -62,7 +62,7 @@ test('OAS: decomposed mode opens YAML+XML, validates, deploys', async ({ page, w
   });
 
   await test.step('generate decomposed OAS doc via command palette', async () => {
-    await openFileByName(page, 'SimpleAccountResource.cls');
+    await reopenApexClass(page, 'SimpleAccountResource.cls');
     await executeCommandWithCommandPalette(page, 'SFDX: Create OpenAPI Document from This Class');
     await confirmEsrFolderPrompt(page);
 
@@ -70,8 +70,7 @@ test('OAS: decomposed mode opens YAML+XML, validates, deploys', async ({ page, w
       .locator(NOTIFICATION_LIST_ITEM)
       .filter({ hasText: /OpenAPI Document created for class: SimpleAccountResource\./ })
       .first();
-    // A monthly A4V quota outage surfaces a rate-limit notification instead — skip, don't fail.
-    await assertGenerationOrSkipOnRateLimit(test, page, expect(successNotification).toBeVisible({ timeout: 180_000 }));
+    await expect(successNotification).toBeVisible({ timeout: 180_000 });
   });
 
   await test.step('verify YAML + XML tabs both open', async () => {

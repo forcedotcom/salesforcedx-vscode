@@ -6,9 +6,12 @@
  */
 import { createDesktopTest } from '@salesforce/playwright-vscode-ext';
 
+const APEX_LANGUAGE_SERVER_EXTENSION_ID = 'salesforce.apex-language-server-extension';
+
 export const oasVsixSmokeTest = createDesktopTest({
   fixturesDir: __dirname,
   useVsix: true,
-  additionalExtensionDirs: ['salesforcedx-vscode-apex'],
+  marketplaceExtensions: [APEX_LANGUAGE_SERVER_EXTENSION_ID],
+  minimumMarketplaceExtensionVersions: { [APEX_LANGUAGE_SERVER_EXTENSION_ID]: '0.12.0' },
   testExtensionPaths: ['test/playwright/fixtureExtensions/packagedActivation']
 });

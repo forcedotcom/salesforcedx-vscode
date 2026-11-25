@@ -11,18 +11,17 @@ import {
   executeCommandWithCommandPalette,
   executeExplorerContextMenuCommand,
   isMacDesktop,
-  openFileByName,
   setupConsoleMonitoring,
   setupNetworkMonitoring,
   validateNoCriticalErrors
 } from '@salesforce/playwright-vscode-ext';
 import { caseManagerClassText } from '../testData/sampleClassData';
 import {
-  assertGenerationOrSkipOnRateLimit,
   confirmEsrFolderPrompt,
   pushSource,
+  reopenApexClass,
   setupWorkbenchAndAuth,
-  waitForA4VAndOasCommands,
+  waitForOasCommands,
   waitForEsrFile
 } from '../utils/oasHelpers';
 
@@ -37,8 +36,8 @@ test('OAS: explorer context menu generates OAS doc', async ({ page, workspaceDir
     await setupWorkbenchAndAuth(page);
   });
 
-  await test.step('wait for A4V + OAS commands available', async () => {
-    await waitForA4VAndOasCommands(page);
+  await test.step('wait for OAS commands available', async () => {
+    await waitForOasCommands(page);
   });
 
   await test.step('create CaseManager class and push', async () => {
@@ -47,15 +46,14 @@ test('OAS: explorer context menu generates OAS doc', async ({ page, workspaceDir
   });
 
   await test.step('invoke OAS via explorer context menu (palette fallback on macOS)', async () => {
+    await reopenApexClass(page, 'CaseManager.cls');
     if (isMacDesktop()) {
-      await openFileByName(page, 'CaseManager.cls');
       await executeCommandWithCommandPalette(page, 'SFDX: Create OpenAPI Document from This Class');
     } else {
       await executeExplorerContextMenuCommand(page, 'CaseManager.cls', 'SFDX: Create OpenAPI Document from This Class');
     }
     await confirmEsrFolderPrompt(page);
-    // A monthly A4V quota outage surfaces a rate-limit notification instead of an ESR — skip, don't fail.
-    await assertGenerationOrSkipOnRateLimit(test, page, waitForEsrFile(workspaceDir, 'CaseManager'));
+    await waitForEsrFile(workspaceDir, 'CaseManager');
   });
 
   await validateNoCriticalErrors(test, consoleErrors, networkErrors);
