@@ -28,10 +28,8 @@ export type SoqlBuilderView = {
   readonly removeEventListener: (type: string, listener: EventListener) => void;
 };
 
-const isSoqlBuilderAction = Schema.is(SoqlBuilderActionSchema);
-
 const isSoqlBuilderActionEvent = (event: Event): event is Event & { readonly detail: SoqlBuilderAction } =>
-  event.type === SOQL_BUILDER_ACTION_EVENT && 'detail' in event && isSoqlBuilderAction(event.detail);
+  event.type === SOQL_BUILDER_ACTION_EVENT && 'detail' in event && Schema.is(SoqlBuilderActionSchema)(event.detail);
 
 export class SoqlBuilderApplication {
   private sessionFiber: Fiber.RuntimeFiber<void, never> | undefined;

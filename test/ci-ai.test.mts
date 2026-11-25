@@ -2,6 +2,7 @@
 // @effect-diagnostics effect/strictEffectProvide:off
 import * as NodeContext from '@effect/platform-node/NodeContext';
 import { ConfigProvider, Effect, Either, Layer } from 'effect';
+import * as Option from 'effect/Option';
 import assert from 'node:assert/strict';
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
@@ -62,7 +63,7 @@ test('category judgment uses the first configured model with isolated stdin and 
         process.stdin.on('data', chunk => prompt += chunk);
         process.stdin.on('end', () => {
           fs.writeFileSync(${JSON.stringify(capturePath)}, JSON.stringify({ prompt, cwd: process.cwd(), home: fs.realpathSync(process.env.HOME), env: process.env, config: JSON.parse(fs.readFileSync('opencode.json', 'utf8')) }));
-          process.stdout.write(${JSON.stringify(events('{"categories":["prose"]}'))});
+          process.stdout.write(${JSON.stringify(events('{"covered":true,"categories":["tests-only"]}'))});
         });
       `
         );
@@ -71,7 +72,7 @@ test('category judgment uses the first configured model with isolated stdin and 
     Effect.withConfigProvider(config()),
     Effect.runPromise
   );
-  assert.deepEqual(parseAgentResult(result), ['prose']);
+  assert.deepEqual(parseAgentResult(result), Option.some(['tests-only']));
   const captured = JSON.parse(readFileSync(capturePath, 'utf8'));
   assert.match(captured.prompt, /Diff:\n\+untrusted diff/);
   assert.equal(captured.home, captured.cwd);
