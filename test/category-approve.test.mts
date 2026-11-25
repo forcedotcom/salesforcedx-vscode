@@ -13,7 +13,7 @@ import {
   type PullFile,
   type PullReview
 } from '@salesforce/effect-octokit';
-import { preClassifyDecision } from '../scripts/shared/categoryGates.cjs';
+import { preClassifyDecision, REQUIRED_CHECKS } from '../scripts/shared/categoryGates.cjs';
 import {
   BOT_LOGIN,
   buildPrompt,
@@ -130,7 +130,7 @@ const base = {
   teamMembershipState: 'active',
   files: [file('README.md')],
   statuses: [],
-  checkRuns: [green],
+  checkRuns: REQUIRED_CHECKS.map(name => ({ ...green, name })),
   reviews: [],
   allowedCategories: allowed,
   botLogin: BOT_LOGIN
@@ -337,6 +337,59 @@ test('rejects forbidden paths and non-Markdown root plans files without OpenCode
       );
     }
   }
+});
+
+for (const failure of ['rate-limited', 'invalid credentials', 'missing credentials', 'unwritable summary']) {
+  test(`skips approval without failing when AI has ${failure}`, async t => {
+    const cwd = classificationRepo(t, { 'test/example.ts': 'before\n' }, { 'test/example.ts': 'after\n' });
+    const summaryPath = join(cwd, failure === 'unwritable summary' ? 'missing/summary.md' : 'summary.md');
+    const categories = await classify({
+      policy,
+      files: [file('README.md'), file('test/example.ts')],
+      baseRef: 'base',
+      headSha: 'head'
+    }).pipe(
+      Effect.provide(
+        commands(command =>
+          command.command === 'git'
+            ? command.pipe(Command.workingDirectory(cwd))
+            : nodeCommand(
+                command,
+                `process.stderr.write(${JSON.stringify(failure === 'rate-limited' ? 'HTTP 429' : 'Invalid API key')}); process.exit(1);`
+              )
+        ).pipe(Layer.provideMerge(NodeContext.layer))
+      ),
+      Effect.withConfigProvider(
+        ConfigProvider.fromMap(
+          new Map([
+            ...(failure === 'missing credentials' ? [] : [['OPENCODE_API_KEY', 'test-key'] as const]),
+            ['OPENCODE_MODELS', '["opencode/first"]'],
+            ['PATH', process.env.PATH ?? ''],
+            ['GITHUB_STEP_SUMMARY', summaryPath]
+          ])
+        )
+      ),
+      Effect.runPromise
+    );
+    assert.deepEqual(categories, []);
+    assert.equal(decideCategoryApprove({ ...base, categories })._tag, 'Skip');
+    if (failure !== 'unwritable summary') {
+      assert.match(readFileSync(summaryPath, 'utf8'), /Automatic approval skipped: AI classification unavailable/);
+    }
+  });
+}
+
+test('Git failures still fail classification', async () => {
+  const result = await classify({ policy, files: [file('test/example.ts')], baseRef: 'base', headSha: 'head' }).pipe(
+    Effect.provide(
+      commands(command => nodeCommand(command, 'process.stderr.write("git failed"); process.exit(1);')).pipe(
+        Layer.provideMerge(NodeContext.layer)
+      )
+    ),
+    Effect.flip,
+    Effect.runPromise
+  );
+  assert.equal(result._tag, 'GitError');
 });
 
 for (const [reply, expected] of [
@@ -614,11 +667,21 @@ test('skips forks, drafts, dependabot, changes requested, and a failed check', (
   assert.equal(decideCategoryApprove({ ...base, checkRuns: [{ ...green, conclusion: 'failure' }] })._tag, 'Skip');
 });
 
-test('classifies while the rollup is still settling', () => {
-  assert.equal(decideCategoryApprove({ ...base, checkRuns: [] })._tag, 'Classify');
+test('skips while required CI is missing or any check is pending', () => {
+  assert.equal(decideCategoryApprove({ ...base, checkRuns: [] })._tag, 'Skip');
   assert.equal(
     decideCategoryApprove({ ...base, checkRuns: [{ ...green, status: 'in_progress', conclusion: null }] })._tag,
-    'Classify'
+    'Skip'
+  );
+  assert.equal(decideCategoryApprove({ ...base, checkRuns: base.checkRuns.slice(1) })._tag, 'Skip');
+  assert.equal(
+    decideCategoryApprove({ ...base, checkRuns: base.checkRuns.map(run => ({ ...run, head_sha: 'old' })) })._tag,
+    'Skip'
+  );
+  assert.equal(
+    decideCategoryApprove({ ...base, checkRuns: [...base.checkRuns, { ...green, status: 'queued', conclusion: null }] })
+      ._tag,
+    'Skip'
   );
 });
 

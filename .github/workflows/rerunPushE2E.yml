@@ -31,6 +31,14 @@ concurrency:
 
 jobs:
   rerun:
+    if: >-
+      github.repository == 'forcedotcom/salesforcedx-vscode'
+      && github.event.workflow_run.head_repository.full_name == 'forcedotcom/salesforcedx-vscode'
+      && github.event.workflow_run.event == 'push'
+      && (github.event.workflow_run.conclusion == 'failure'
+          || github.event.workflow_run.conclusion == 'timed_out'
+          || github.event.workflow_run.conclusion == 'cancelled')
+      && github.event.workflow_run.run_attempt < 4
     runs-on: ubuntu-latest
     timeout-minutes: 5
     env:

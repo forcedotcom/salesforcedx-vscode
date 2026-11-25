@@ -14,6 +14,7 @@ import { pipe } from 'effect/Function';
 import * as HashMap from 'effect/HashMap';
 import * as Option from 'effect/Option';
 import * as Ref from 'effect/Ref';
+import * as Schema from 'effect/Schema';
 import * as vscode from 'vscode';
 import { MetadataDescribeService } from '../core/metadataDescribeService';
 import { MetadataRegistryService } from '../core/metadataRegistryService';
@@ -23,7 +24,7 @@ import { findInventoryComponent } from './orgCatalogKeys';
 import { projectChildren } from './orgCatalogProjection';
 import { OrgCatalogState } from './orgCatalogState';
 import { makeOrgCatalogWorkspace } from './orgCatalogWorkspace';
-import { documentUri, isOrgMetadataComponentReference, type OrgMetadataReference } from './orgMetadataReference';
+import { documentUri, OrgMetadataComponentReference, type OrgMetadataReference } from './orgMetadataReference';
 
 const loadedChildrenKey = (orgId: string, reference: OrgMetadataReference): string =>
   `${orgId}\0${reference.xmlName ?? ''}\0${reference.fullName ?? ''}`;
@@ -57,7 +58,7 @@ export const makeOrgCatalogTreeProjection = Effect.gen(function* () {
     objectEntry: OrgMetadataCatalogEntry,
     cacheOnly = false
   ) {
-    if (!isOrgMetadataComponentReference(objectEntry.reference)) return [];
+    if (!Schema.is(OrgMetadataComponentReference)(objectEntry.reference)) return [];
     const objectApiName = objectEntry.namespacePrefix
       ? `${objectEntry.namespacePrefix}__${objectEntry.reference.fullName}`
       : objectEntry.reference.fullName;
@@ -108,7 +109,7 @@ export const makeOrgCatalogTreeProjection = Effect.gen(function* () {
         : cachedDescription;
     const parentNames = new Set([objectEntry.reference.fullName, objectApiName]);
     const inventoryFields = HashMap.toValues(fieldInventory.components).filter(entry => {
-      if (!isOrgMetadataComponentReference(entry.reference)) return false;
+      if (!Schema.is(OrgMetadataComponentReference)(entry.reference)) return false;
       const separator = entry.reference.fullName.lastIndexOf('.');
       return separator > 0 && parentNames.has(entry.reference.fullName.slice(0, separator));
     });

@@ -45,10 +45,8 @@ const drainRun = (connection: Connection, polling: { interval?: Duration.Duratio
 
 describe('Effect asynchronous tests', () => {
   it('validates queued IDs as ApexTestQueueItem IDs', () => {
-    const isValidQueueRecord = Schema.is(queueRecordSchema);
-
-    expect(isValidQueueRecord({ Id: '709000000000001AAA', Status: 'Queued' })).toBe(true);
-    expect(isValidQueueRecord({ Id: '01p000000000001AAA', Status: 'Queued' })).toBe(false);
+    expect(Schema.is(queueRecordSchema)({ Id: '709000000000001AAA', Status: 'Queued' })).toBe(true);
+    expect(Schema.is(queueRecordSchema)({ Id: '01p000000000001AAA', Status: 'Queued' })).toBe(false);
   });
 
   it('decodes comma-separated class and suite IDs as prefixed ID arrays', () => {
