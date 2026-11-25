@@ -583,8 +583,9 @@ const uploadCheckpoints = Effect.fn('uploadCheckpoints')(
     const enabledCheckpointUris = (checkpointService.getChildren() as CheckpointNode[])
       .filter(cpNode => cpNode.isCheckpointEnabled())
       .map(cpNode => URI.parse(cpNode.getCheckpointUri()));
-    const lineBreakpointInfo = yield* Effect.tryPromise(() => ensureLineBreakpointMetadata(enabledCheckpointUris));
-    const mappings = createBreakpointMappings(lineBreakpointInfo);
+    const mappings = yield* Effect.tryPromise(() => ensureLineBreakpointMetadata(enabledCheckpointUris)).pipe(
+      Effect.map(createBreakpointMappings)
+    );
 
     // There can be a max of five active checkpoints
     if (!checkpointService.hasFiveOrLessActiveCheckpoints()) return false;

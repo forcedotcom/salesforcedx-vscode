@@ -1160,7 +1160,7 @@ importers:
     dependencies:
       '@salesforce/apex-language-server-extension-api':
         specifier: ^0.11.86-nightly.20261123
-        version: 0.11.86-nightly.20261123(effect@3.22.4)
+        version: 0.11.86-nightly.20261123(effect@3.22.5)
       '@salesforce/apex-node':
         specifier: workspace:*
         version: link:../salesforcedx-apex
@@ -1195,6 +1195,9 @@ importers:
       '@salesforce/playwright-vscode-ext':
         specifier: workspace:*
         version: link:../playwright-vscode-ext
+      salesforcedx-vscode-apex:
+        specifier: workspace:*
+        version: link:../salesforcedx-vscode-apex
       salesforcedx-vscode-apex-testing:
         specifier: workspace:*
         version: link:../salesforcedx-vscode-apex-testing
