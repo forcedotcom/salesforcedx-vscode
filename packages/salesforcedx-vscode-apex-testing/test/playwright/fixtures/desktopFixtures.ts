@@ -19,6 +19,8 @@ const sharedExtensionDirs = [
   'salesforcedx-vscode-apex'
 ];
 
+const marketplaceExtensions = ['salesforce.apex-language-server-extension'];
+
 const sharedUserSettings = {
   'git.terminalAuthentication': false,
   'git.autofetch': false,
@@ -34,6 +36,7 @@ export const desktopTest = createDesktopTest({
   fixturesDir: __dirname,
   orgAlias: NON_TRACKING_ORG_ALIAS,
   additionalExtensionDirs: sharedExtensionDirs,
+  marketplaceExtensions,
   disableOtherExtensions: false,
   userSettings: sharedUserSettings
 });
@@ -44,6 +47,7 @@ export const trackingDesktopTest = createDesktopTest({
   fixturesDir: __dirname,
   orgAlias: MINIMAL_ORG_ALIAS,
   additionalExtensionDirs: sharedExtensionDirs,
+  marketplaceExtensions,
   disableOtherExtensions: false,
   userSettings: sharedUserSettings
 });
