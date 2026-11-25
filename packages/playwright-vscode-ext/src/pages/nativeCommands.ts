@@ -101,9 +101,14 @@ export const insertSnippet = (page: Page, options?: OpenCommandPaletteOptions): 
 export const showRunningExtensions = (page: Page, options?: OpenCommandPaletteOptions): Promise<void> =>
   executeCommandWithCommandPalette(page, 'Developer: Show Running Extensions', undefined, options);
 
-/** `View: Hide Secondary Side Bar` */
-export const hideSecondarySideBar = (page: Page, options?: OpenCommandPaletteOptions): Promise<void> =>
-  executeCommandWithCommandPalette(page, 'View: Hide Secondary Side Bar', undefined, options);
+/** Hide the secondary sidebar if visible; the Toggle command is available across VS Code versions. */
+export const hideSecondarySideBar = async (page: Page, options?: OpenCommandPaletteOptions): Promise<void> => {
+  const auxiliaryBar = page.locator('.part.auxiliarybar');
+  if (await auxiliaryBar.isVisible()) {
+    await executeCommandWithCommandPalette(page, 'View: Toggle Secondary Side Bar Visibility', undefined, options);
+  }
+  await auxiliaryBar.waitFor({ state: 'hidden', timeout: 5000 });
+};
 
 /** `Workspaces: Close Workspace` */
 export const closeWorkspace = (page: Page, options?: OpenCommandPaletteOptions): Promise<void> =>

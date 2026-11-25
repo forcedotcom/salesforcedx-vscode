@@ -1205,6 +1205,46 @@ describe('lwcServerNode', () => {
     });
   });
 
+  describe('namespace discovery after bundle creation', () => {
+    const initializeParams: InitializeParams = {
+      processId: 0,
+      rootUri: '',
+      capabilities: {},
+      workspaceFolders: [{ uri: URI.file(SFDX_WORKSPACE_ROOT).toString(), name: SFDX_WORKSPACE_ROOT }],
+      initializationOptions: { workspaceType: 'SFDX' }
+    };
+    it('indexes a created JS bundle after namespace discovery cached no LWC roots', async () => {
+      const testServer = new Server();
+      testServer.fileSystemAccessor = sfdxFileSystemAccessor;
+      await testServer.onInitialize(initializeParams);
+      await setupServerForTest([], testServer);
+
+      const discovery = vi.spyOn(testServer.fileSystemAccessor, 'findFilesWithGlobAsync').mockResolvedValue([]);
+      testServer.context.updateNamespaceRootTypeCache();
+      expect(await testServer.context.isFileInsideModulesRoots(jsFilename)).toBe(false);
+      discovery.mockRestore();
+      testServer.componentIndexer.tags.clear();
+
+      await testServer.onDidChangeWatchedFiles({
+        changes: [{ uri: jsUri, type: FileChangeType.Created }]
+      });
+
+      expect(testServer.componentIndexer.findTagByURI(jsUri)?.file).toBe(normalizePath(jsFilename));
+    });
+
+    it.each(['.html', '.js', '.ts'])('opening %s clears cached LWC namespace discovery', async extension => {
+      const testServer = new Server();
+      testServer.fileSystemAccessor = sfdxFileSystemAccessor;
+      await testServer.onInitialize(initializeParams);
+      const clearCache = vi.spyOn(testServer.context, 'clearNamespaceCache');
+      await setupServerForTest(
+        [TextDocument.create(URI.file(jsFilename.replace(/\.js$/, extension)).toString(), 'javascript', 0, '')],
+        testServer
+      );
+      expect(clearCache).toHaveBeenCalled();
+    });
+  });
+
   describe('#capabilities', () => {
     it('returns what the server can do', () => {
       expect(server.capabilities).toEqual({
