@@ -35,6 +35,8 @@ import {
   setupConsoleMonitoring,
   setupNetworkMonitoring,
   upsertScratchOrgAuthFieldsToSettings,
+  upsertSettings,
+  isDesktop,
   validateNoCriticalErrors,
   waitForOutputChannelText,
   waitForVSCodeWorkbench
@@ -44,6 +46,7 @@ import packageNls from '../../../package.nls.json';
 import { DEPLOY_TIMEOUT } from '../../constants';
 import { isContainer, sharedTest as test } from '../fixtures';
 import { cleanupContainerApexClasses } from '../utils/containerCleanup';
+import { CORE_CONFIG_SECTION, DEPLOY_ON_SAVE_ENABLED } from '../../../src/constants';
 
 const verifyDiffCompleted = async (page: Page, className: string, screenshot: string) => {
   // Wait for retrieving message
@@ -134,6 +137,9 @@ test('Source Diff: diff shows diff editor', async ({ page }) => {
     }
 
     await statusBarPage.waitForVisible(120_000);
+    if (!isDesktop() && !isContainer) {
+      await upsertSettings(page, { [`${CORE_CONFIG_SECTION}.${DEPLOY_ON_SAVE_ENABLED}`]: 'false' });
+    }
     initialLocalCount = (await statusBarPage.getCounts()).local;
     await saveScreenshot(page, 'sourceDiff.01-ready.png');
   });
