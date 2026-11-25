@@ -32,7 +32,7 @@
     "@salesforce/effect-ext-utils": "workspace:*",
     "@salesforce/salesforcedx-utils": "workspace:*",
     "@salesforce/vscode-i18n": "workspace:*",
-    "effect": "^3.22.4",
+    "effect": "^3.22.5",
     "find-java-home": "1.2.2",
     "vscode-languageclient": "^9.0.1",
     "vscode-languageserver-protocol": "^3.17.5",
@@ -370,7 +370,7 @@
             "enabled",
             "disabled"
           ],
-          "default": "enabled",
+          "default": "disabled",
           "description": "%apex_capability_code_lenses_description%"
         },
         "salesforcedx-vscode-apex.advanced.capabilities.completions": {

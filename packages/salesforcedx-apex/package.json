@@ -18,12 +18,12 @@
     }
   },
   "dependencies": {
-    "@effect/platform": "^0.97.3",
+    "@effect/platform": "^0.97.4",
     "@effect/platform-node": "0.108.4",
     "@salesforce/core": "^9.4.1",
     "@salesforce/kit": "^4.0.0",
     "@salesforce/salesforcedx-utils": "*",
-    "effect": "^3.22.4",
+    "effect": "^3.22.5",
     "faye": "1.4.1",
     "istanbul-lib-coverage": "^3.2.2",
     "istanbul-lib-report": "^3.0.1",

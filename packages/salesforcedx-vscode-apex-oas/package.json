@@ -31,7 +31,7 @@
   "dependencies": {
     "@salesforce/effect-ext-utils": "workspace:*",
     "@salesforce/vscode-i18n": "workspace:*",
-    "effect": "^3.22.4",
+    "effect": "^3.22.5",
     "@salesforce/vscode-service-provider": "^1.5.0",
     "@stoplight/spectral-core": "1.23.1",
     "@stoplight/spectral-functions": "1.10.5",
