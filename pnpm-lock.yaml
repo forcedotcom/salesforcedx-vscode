@@ -165,6 +165,7 @@ settings:
 overrides:
   '@salesforce/core': 9.6.0
   '@azure/monitor-opentelemetry-exporter': 1.0.0-beta.47
+  '@jsforce/jsforce-node': 3.13.1
   '@vscode/test-web>playwright': ^1.64.1
   '@vscode/test-web>@playwright/browser-chromium': ^1.64.1
   jest: 30.4.2
@@ -683,8 +684,8 @@ importers:
         version: 0.2.17
     devDependencies:
       '@jsforce/jsforce-node':
-        specifier: ^3.13.1
-        version: 3.13.4
+        specifier: 3.13.1
+        version: 3.13.1
       '@types/istanbul-lib-coverage':
         specifier: ^2.0.6
         version: 2.0.6
@@ -1101,13 +1102,16 @@ importers:
     dependencies:
       '@salesforce/apex-language-server-extension-api':
         specifier: ^0.11.86-nightly.20261123
-        version: 0.11.86-nightly.20261123(effect@3.22.4)
+        version: 0.11.86-nightly.20261123(effect@3.22.5)
       '@salesforce/effect-ext-utils':
         specifier: workspace:*
         version: link:../effect-ext-utils
       '@salesforce/vscode-i18n':
         specifier: workspace:*
         version: link:../salesforcedx-vscode-i18n
+      '@salesforce/vscode-service-provider':
+        specifier: ^1.5.0
+        version: 1.5.0
       '@stoplight/spectral-core':
         specifier: 1.23.1
         version: 1.23.1(encoding@0.1.13)
@@ -1142,9 +1146,15 @@ importers:
       '@salesforce/playwright-vscode-ext':
         specifier: workspace:*
         version: link:../playwright-vscode-ext
+      '@types/ejs':
+        specifier: 3.1.5
+        version: 3.1.5
       openapi-types:
         specifier: 12.1.3
         version: 12.1.3
+      salesforcedx-vscode-apex:
+        specifier: workspace:*
+        version: link:../salesforcedx-vscode-apex
       salesforcedx-vscode-services:
         specifier: workspace:*
         version: link:../salesforcedx-vscode-services
@@ -1483,8 +1493,8 @@ importers:
         specifier: 0.61.2
         version: 0.61.2(@effect/cluster@0.60.5(@effect/platform@0.97.4(effect@3.22.5))(@effect/rpc@0.76.4(@effect/platform@0.97.4(effect@3.22.5))(effect@3.22.5))(@effect/sql@0.52.2(@effect/experimental@0.61.3(@effect/platform@0.97.4(effect@3.22.5))(effect@3.22.5))(@effect/platform@0.97.4(effect@3.22.5))(effect@3.22.5))(@effect/workflow@0.19.1(@effect/experimental@0.61.3(@effect/platform@0.97.4(effect@3.22.5))(effect@3.22.5))(@effect/platform@0.97.4(effect@3.22.5))(@effect/rpc@0.76.4(@effect/platform@0.97.4(effect@3.22.5))(effect@3.22.5))(effect@3.22.5))(effect@3.22.5))(@effect/platform@0.97.4(effect@3.22.5))(@effect/rpc@0.76.4(@effect/platform@0.97.4(effect@3.22.5))(effect@3.22.5))(@effect/sql@0.52.2(@effect/experimental@0.61.3(@effect/platform@0.97.4(effect@3.22.5))(effect@3.22.5))(@effect/platform@0.97.4(effect@3.22.5))(effect@3.22.5))(effect@3.22.5)
       '@jsforce/jsforce-node':
-        specifier: ^3.13.1
-        version: 3.13.4
+        specifier: 3.13.1
+        version: 3.13.1
       '@opentelemetry/api':
         specifier: 1.9.1
         version: 1.9.1
@@ -1632,8 +1642,8 @@ importers:
   packages/salesforcedx-vscode-soql:
     dependencies:
       '@jsforce/jsforce-node':
-        specifier: ^3.13.1
-        version: 3.13.4
+        specifier: 3.13.1
+        version: 3.13.1
       '@salesforce/effect-ext-utils':
         specifier: workspace:*
         version: link:../effect-ext-utils
@@ -3136,6 +3146,10 @@ packages:
     peerDependencies:
       jsep: ^0.4.0||^1.0.0
 
+  '@jsforce/jsforce-node@3.13.1':
+    resolution: {integrity: sha512-vpHhwc+Wcufk9vARzL4oxYSzg8ndNButSn88D6pMImjns7/NTkwPZ9qQwD2F/P4c+A0lwTyDl4Alry0BMgFsTg==}
+    engines: {node: '>=22'}
+
   '@jsforce/jsforce-node@3.13.4':
     resolution: {integrity: sha512-qAaK03OwByrCfSNj4Rz/1kLOZtHFaLujqvlEMCG+I+8ypT3FcBKX/1xNnYCp399ThrmSIyKk+LRwwpCJSXNe1Q==}
     engines: {node: '>=22'}
@@ -4600,14 +4614,6 @@ packages:
 
   '@rviscomi/capo.js@2.3.0':
     resolution: {integrity: sha512-qY3QRtKdq//Z8jDENSUCAaSE76sUwHgN6pzoRXj6e5cSwQqxFLjm8B+GDkbtUr/WGWJRzoAMtz0I60TM1KrOBg==}
-
-  '@salesforce/apex-language-server-extension-api@0.11.86-nightly.20261123':
-    resolution: {integrity: sha512-13brZZFi9ZuCJXLvkAkGIpjkrFJ49zzJIVb3KDXSWZgdEffonXbvyUsKC7PUpDU3ZiOehebOIRUBL/rZGS+tfw==}
-    peerDependencies:
-      effect: ^3.22.4
-    peerDependenciesMeta:
-      effect:
-        optional: true
 
   '@salesforce/apex-language-server-extension-api@0.11.86-nightly.20261123':
     resolution: {integrity: sha512-13brZZFi9ZuCJXLvkAkGIpjkrFJ49zzJIVb3KDXSWZgdEffonXbvyUsKC7PUpDU3ZiOehebOIRUBL/rZGS+tfw==}
@@ -13576,6 +13582,19 @@ snapshots:
     dependencies:
       jsep: 1.4.0
 
+  '@jsforce/jsforce-node@3.13.1':
+    dependencies:
+      '@sindresorhus/is': 4.6.0
+      base64url: 3.0.1
+      cross-spawn: 7.0.6
+      csv-parse: 7.0.3
+      csv-stringify: 6.8.3
+      faye: 1.4.3
+      form-data: 4.0.6
+      multistream: 3.1.0
+      undici: 8.12.1
+      xml2js: 0.6.2
+
   '@jsforce/jsforce-node@3.13.4':
     dependencies:
       '@sindresorhus/is': 4.6.0
@@ -14881,19 +14900,13 @@ snapshots:
     optionalDependencies:
       effect: 3.22.5
 
-  '@salesforce/apex-language-server-extension-api@0.11.86-nightly.20261123(effect@3.22.4)':
-    dependencies:
-      vscode-languageserver-protocol: 3.17.5
-    optionalDependencies:
-      effect: 3.22.4
-
   '@salesforce/apex-tmlanguage@2.0.3': {}
 
   '@salesforce/apex@0.0.21': {}
 
   '@salesforce/core@9.6.0':
     dependencies:
-      '@jsforce/jsforce-node': 3.13.4
+      '@jsforce/jsforce-node': 3.13.1
       '@salesforce/kit': 4.0.10
       '@salesforce/ts-types': 3.2.4
       ajv: 8.20.0
