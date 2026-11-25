@@ -576,7 +576,7 @@ describe('ApexTestTreeService', () => {
         Effect.succeed({ classes: [toolingClass('NamespacedTest', ['t1'], '01p_ns', Option.some('pkg'))] })
       );
 
-      await run(ApexTestTreeService.incrementalUpdate(ctx, new Map([['pkg.NamespacedTest', 'created']]), false));
+      await run(treeService.incrementalUpdate(ctx, new Map([['pkg.NamespacedTest', 'created']]), false));
 
       expect(resolvedCatalogReferences).toEqual([{ type: 'ApexClass', fullName: 'pkg__NamespacedTest' }]);
     });

@@ -18,7 +18,6 @@ import {
   executeCommandWithCommandPalette,
   resetContainerWorkbench,
   saveScreenshot,
-  focusAndTypeInFilter,
   selectOutputChannel,
   setupConsoleMonitoring,
   setupNonTrackingOrgAndAuth,
