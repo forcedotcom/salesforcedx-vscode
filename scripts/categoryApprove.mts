@@ -7,6 +7,7 @@
  */
 
 import * as Command from '@effect/platform/Command';
+import * as FileSystem from '@effect/platform/FileSystem';
 import * as NodeContext from '@effect/platform-node/NodeContext';
 import {
   actionsEnvironment,
@@ -18,6 +19,7 @@ import {
 } from '@salesforce/effect-octokit';
 import * as Arr from 'effect/Array';
 import * as Cause from 'effect/Cause';
+import * as Config from 'effect/Config';
 import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
 import * as Match from 'effect/Match';

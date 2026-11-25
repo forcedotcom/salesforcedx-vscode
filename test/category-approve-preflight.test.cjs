@@ -6,7 +6,13 @@ const { join } = require('node:path');
 const test = require('node:test');
 const { parse } = require('yaml');
 const preflight = require('../scripts/category-approve-preflight.cjs');
-const { BOT_LOGIN, preClassifyDecision } = require('../scripts/shared/categoryGates.cjs');
+const { BOT_LOGIN, REQUIRED_CHECKS, preClassifyDecision } = require('../scripts/shared/categoryGates.cjs');
+const greenChecks = REQUIRED_CHECKS.map(name => ({
+  name,
+  head_sha: 'abc123',
+  status: 'completed',
+  conclusion: 'success'
+}));
 
 const pull = {
   reviewDecision: 'REVIEW_REQUIRED',
@@ -28,7 +34,7 @@ const facts = {
   teamMembershipState: 'active',
   files: [{ filename: 'README.md' }],
   statuses: [],
-  checkRuns: [],
+  checkRuns: greenChecks,
   reviews: [],
   botLogin: BOT_LOGIN
 };
@@ -41,7 +47,7 @@ const fixture = (overrides = {}) => {
       calls.push(route);
       if (route.endsWith('/files')) return overrides.files ?? [{ filename: 'README.md' }];
       if (route.endsWith('/reviews')) return overrides.reviews ?? [];
-      if (route.endsWith('/check-runs')) return overrides.runs ?? [];
+      if (route.endsWith('/check-runs')) return overrides.runs ?? greenChecks;
       if (route.endsWith('/pulls')) return overrides.pulls ?? [];
       throw new Error(`unexpected route ${route}`);
     },
@@ -84,7 +90,9 @@ test('shared pre-classify policy decides from facts without GitHub calls', () =>
     [{ reviews: [approved] }, 'Skip'],
     [{ reviews: [approved], checkRuns: [{ conclusion: 'failure' }] }, 'Dismiss'],
     [{ reviews: [{ ...approved, commit_id: 'old-head' }] }, 'Classify'],
-    [{ checkRuns: [{ conclusion: null, status: 'in_progress' }] }, 'Classify'],
+    [{ checkRuns: [{ conclusion: null, status: 'in_progress' }] }, 'Skip'],
+    [{ checkRuns: [] }, 'Skip'],
+    [{ statuses: [{ context: 'external', state: 'pending' }] }, 'Skip'],
     [{}, 'Classify']
   ];
   for (const [changes, expected] of cases) {
@@ -102,6 +110,20 @@ test('a failed check after approval must run the approver to dismiss', async () 
     reviews: [{ user: { login: BOT_LOGIN }, state: 'APPROVED', commit_id: 'abc123' }],
     runs: [{ conclusion: 'failure' }]
   });
+  assert.equal(await preflight({ github, context }), true);
+});
+
+test('preflight does not start the approver until required CI is present and green', async () => {
+  for (const runs of [
+    [],
+    greenChecks.slice(1),
+    [...greenChecks, { name: 'other CI', status: 'in_progress', conclusion: null }],
+    greenChecks.map(run => ({ ...run, head_sha: 'old-head' }))
+  ]) {
+    const { github } = fixture({ runs });
+    assert.equal(await preflight({ github, context }), false);
+  }
+  const { github } = fixture();
   assert.equal(await preflight({ github, context }), true);
 });
 

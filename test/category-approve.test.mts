@@ -14,7 +14,7 @@ import {
   type PullFile,
   type PullReview
 } from '@salesforce/effect-octokit';
-import { preClassifyDecision } from '../scripts/shared/categoryGates.cjs';
+import { preClassifyDecision, REQUIRED_CHECKS } from '../scripts/shared/categoryGates.cjs';
 import {
   BOT_LOGIN,
   buildPrompt,
@@ -131,7 +131,7 @@ const base = {
   teamMembershipState: 'active',
   files: [file('README.md')],
   statuses: [],
-  checkRuns: [green],
+  checkRuns: REQUIRED_CHECKS.map(name => ({ ...green, name })),
   reviews: [],
   allowedCategories: allowed,
   botLogin: BOT_LOGIN
@@ -382,6 +382,19 @@ for (const [choice, expected] of [
   });
 }
 
+test('Git failures still fail classification', async () => {
+  const result = await classify({ policy, files: [file('test/example.ts')], baseRef: 'base', headSha: 'head' }).pipe(
+    Effect.provide(
+      commands(() => Command.make(process.execPath, '-e', 'process.stderr.write("git failed"); process.exit(1);')).pipe(
+        Layer.provideMerge(NodeContext.layer)
+      )
+    ),
+    Effect.flip,
+    Effect.runPromise
+  );
+  assert.equal(result._tag, 'GitError');
+});
+
 test('uncovered production hunks reject the union, including renamed source files', async t => {
   const source = 'packages/foo/src/example.ts';
   const cwd = classificationRepo(
@@ -609,11 +622,21 @@ test('skips forks, drafts, dependabot, changes requested, and a failed check', (
   assert.equal(decideCategoryApprove({ ...base, checkRuns: [{ ...green, conclusion: 'failure' }] })._tag, 'Skip');
 });
 
-test('classifies while the rollup is still settling', () => {
-  assert.equal(decideCategoryApprove({ ...base, checkRuns: [] })._tag, 'Classify');
+test('skips while required CI is missing or any check is pending', () => {
+  assert.equal(decideCategoryApprove({ ...base, checkRuns: [] })._tag, 'Skip');
   assert.equal(
     decideCategoryApprove({ ...base, checkRuns: [{ ...green, status: 'in_progress', conclusion: null }] })._tag,
-    'Classify'
+    'Skip'
+  );
+  assert.equal(decideCategoryApprove({ ...base, checkRuns: base.checkRuns.slice(1) })._tag, 'Skip');
+  assert.equal(
+    decideCategoryApprove({ ...base, checkRuns: base.checkRuns.map(run => ({ ...run, head_sha: 'old' })) })._tag,
+    'Skip'
+  );
+  assert.equal(
+    decideCategoryApprove({ ...base, checkRuns: [...base.checkRuns, { ...green, status: 'queued', conclusion: null }] })
+      ._tag,
+    'Skip'
   );
 });
 

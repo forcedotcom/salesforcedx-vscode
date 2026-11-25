@@ -8,10 +8,11 @@
 
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
+import * as Schema from 'effect/Schema';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
-import { isDiffFilePair, type DiffFilePair } from '../shared/diff/diffTypes';
+import { DiffFilePairSchema, type DiffFilePair } from '../shared/diff/diffTypes';
 import { detectConflictsFromTracking } from './conflictDetection';
 import { type ConflictTreeItem } from './conflictTreeItem';
 import {
@@ -45,8 +46,8 @@ export const ensureConflictView = Effect.fn('ensureConflictView')(function* () {
 });
 
 export const conflictDiffCommandEffect = (entry: DiffFilePair | ConflictTreeItem) => {
-  const pair = isDiffFilePair(entry) ? entry : entry?.pair;
-  return pair && isDiffFilePair(pair)
+  const pair = Schema.is(DiffFilePairSchema)(entry) ? entry : entry?.pair;
+  return pair && Schema.is(DiffFilePairSchema)(pair)
     ? Effect.sync(() => {
         const title = nls.localize('conflict_detect_diff_title', 'remote', pair.fileName, pair.fileName);
         void vscode.commands.executeCommand('vscode.diff', pair.remoteUri.uri, pair.localUri.uri, title);
