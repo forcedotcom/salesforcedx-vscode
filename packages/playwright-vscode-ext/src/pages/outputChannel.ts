@@ -157,8 +157,12 @@ const waitForOutputChannelTextCommon = async (
   page: Page,
   expectedText: string,
   timeout: number,
-  failIfChannelIncludes?: readonly string[]
+  failIfChannelIncludes?: readonly string[],
+  expectedPattern?: RegExp
 ): Promise<void> => {
+  const matches = (text: string): boolean =>
+    text.includes(expectedText) && (expectedPattern === undefined || expectedPattern.test(text));
+  const expectedDescription = expectedPattern === undefined ? `"${expectedText}"` : `${expectedPattern}`;
   const channelFailure: { sample?: string } = {};
   // Return from `toPass` on a marker hit; throwing inside its callback would retry until timeout.
   const checkChannelFailure = (text: string): boolean => {
@@ -169,16 +173,15 @@ const waitForOutputChannelTextCommon = async (
   };
 
   if (isDesktop()) {
-    // The filter does not reliably work on Electron for streamed content.
     await sweepOutputChannel(
       page,
       async () => {
         const text = await getAllOutputText(page);
-        return checkChannelFailure(text) || text.includes(expectedText);
+        return checkChannelFailure(text) || matches(text);
       },
       timeout,
       async () =>
-        `Expected "${expectedText}" in output. Last visible content: ${channelSample(await getAllOutputText(page)) || '(empty)'}`
+        `Expected ${expectedDescription} in output. Last visible content: ${channelSample(await getAllOutputText(page)) || '(empty)'}`
     );
   } else {
     // Web: use filter input (works reliably on web)
@@ -196,8 +199,8 @@ const waitForOutputChannelTextCommon = async (
         const combinedText = await getAllOutputText(page);
         const sample = channelSample(combinedText);
         expect(
-          combinedText.includes(expectedText),
-          `Expected "${expectedText}" in output. Last visible content: ${sample || '(empty)'}`
+          matches(combinedText),
+          `Expected ${expectedDescription} in output. Last visible content: ${sample || '(empty)'}`
         ).toBe(true);
       }).toPass({ timeout });
     } finally {
@@ -342,12 +345,16 @@ export const clearOutputChannel = async (page: Page): Promise<void> => {
   }).toPass({ timeout: 2000 });
 };
 
-/** Wait for output channel text, checking failure markers before expected text in each visible sample. */
+/**
+ * Wait for output channel text, checking failure markers before expected text in each visible sample.
+ * `expectedPattern`, when set, must also match: `expectedText` stays the plain substring the web filter
+ * narrows by, while the pattern can assert what a filter string can't (e.g. a variable column gap).
+ */
 export const waitForOutputChannelText = async (
   page: Page,
-  opts: { expectedText: string; timeout?: number; failIfChannelIncludes?: readonly string[] }
+  opts: { expectedText: string; expectedPattern?: RegExp; timeout?: number; failIfChannelIncludes?: readonly string[] }
 ): Promise<void> => {
-  const { expectedText, timeout = 30_000, failIfChannelIncludes } = opts;
+  const { expectedText, expectedPattern, timeout = 30_000, failIfChannelIncludes } = opts;
 
   if (!(await waitForOutputContent(page, Math.min(timeout, 60_000)))) {
     throw new Error(`Output channel did not have content within ${timeout}ms`);
@@ -357,7 +364,7 @@ export const waitForOutputChannelText = async (
   const shouldRestorePanel = isDesktop();
   if (shouldRestorePanel) await maximizeOutputPanel(page);
   try {
-    await waitForOutputChannelTextCommon(page, expectedText, timeout, failIfChannelIncludes);
+    await waitForOutputChannelTextCommon(page, expectedText, timeout, failIfChannelIncludes, expectedPattern);
   } finally {
     if (shouldRestorePanel) await restoreOutputPanel(page);
   }

@@ -13,6 +13,7 @@ import {
 } from '@salesforce/playwright-vscode-ext';
 import { deployApexClass } from '../utils/helperProject';
 import { SourceTrackingStatusBarPage } from '../pages/sourceTrackingStatusBarPage';
+import type { ProjectTarget } from './projectTarget';
 import * as fs from 'node:fs/promises';
 import * as path from 'node:path';
 import * as os from 'node:os';
@@ -53,6 +54,13 @@ export const emptyWorkspaceDesktopTest = createDesktopTest({
   userSettings: {
     'salesforcedx-vscode-core.useMetadataExtensionCommands': true,
     'files.simpleDialog.enable': true
+  }
+});
+/** emptyWorkspaceDesktopTest plus a `projectTarget` beside the throwaway temp workspace. */
+export const projectTargetDesktopTest = emptyWorkspaceDesktopTest.extend<{ projectTarget: ProjectTarget }>({
+  projectTarget: async ({ workspaceDir }, use) => {
+    const targetDir = path.dirname(workspaceDir);
+    await use({ dialogDir: targetDir, dialogSep: path.sep, hostDir: targetDir, removeProject: () => {} });
   }
 });
 

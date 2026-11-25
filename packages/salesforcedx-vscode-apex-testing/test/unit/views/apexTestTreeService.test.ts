@@ -55,6 +55,7 @@ vi.mock('../../../src/testDiscovery/packageResolution', async () => {
   return { PackageResolutionService: { resolve: () => EffectLib.succeed(new Map()) } };
 });
 let mockClassNameToUri = new Map<string, URI>();
+let resolvedCatalogReferences: readonly { type: string; fullName: string }[] = [];
 import type { Mock as VitestMock } from 'vitest';
 import type * as ApexNode from '@salesforce/apex-node';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
@@ -110,10 +111,11 @@ const mockServicesApi = {
     QueryService: Effect.succeed({ query: () => queryImpl() }),
     OrgMetadataCatalog: Effect.succeed({
       resolveComponents: (references: readonly { type: string; fullName: string }[]) => {
+        resolvedCatalogReferences = references;
         if (!mockOrgInfo.orgId) return Effect.fail(new Error('No default org'));
         return Effect.succeed(
           references.map(reference => {
-            const baseName = reference.fullName.split('.').at(-1) ?? reference.fullName;
+            const baseName = reference.fullName.split('__').at(-1) ?? reference.fullName;
             const workspaceUri = mockClassNameToUri.get(baseName);
             const orgUri = URI.parse(`sf-org-metadata:/orgs/org123/ApexClass/${reference.fullName}.cls`);
             return {
@@ -195,10 +197,15 @@ const makeMutationContext = (overrides: Partial<TreeMutationContext> = {}) => {
   return { ctx, invalidateTestResults, topItems };
 };
 
-const toolingClass = (name: string, methods: string[], id = `01p_${name}`): unknown => ({
+const toolingClass = (
+  name: string,
+  methods: string[],
+  id = `01p_${name}`,
+  namespacePrefix: Option.Option<string> = Option.none()
+): unknown => ({
   id: Option.some(id),
   name,
-  namespacePrefix: Option.none(),
+  namespacePrefix,
   testMethods: methods.map((m, i) => ({ name: m, line: i + 1, column: 0 }))
 });
 
@@ -234,6 +241,7 @@ describe('ApexTestTreeService', () => {
     activeTestService = { retrieveAllSuites: () => Promise.resolve([]) };
     mockOrgInfo = { orgId: 'org123', username: 'user@example.com' };
     mockClassNameToUri = new Map<string, URI>();
+    resolvedCatalogReferences = [];
   });
 
   describe('reset', () => {
@@ -507,6 +515,18 @@ describe('ApexTestTreeService', () => {
       // A namespace node was created under controller.items for the added class.
       expect(topItems.size).toBeGreaterThan(0);
       expect(retrieveAllSuites).not.toHaveBeenCalled();
+    });
+
+    it('uses canonical SDR names when resolving namespaced classes through the catalog', async () => {
+      withTooling();
+      const { ctx } = makeMutationContext();
+      mockDiscoverTests.mockReturnValue(
+        Effect.succeed({ classes: [toolingClass('NamespacedTest', ['t1'], '01p_ns', Option.some('pkg'))] })
+      );
+
+      await run(ApexTestTreeService.incrementalUpdate(ctx, new Map([['pkg.NamespacedTest', 'created']]), false));
+
+      expect(resolvedCatalogReferences).toEqual([{ type: 'ApexClass', fullName: 'pkg__NamespacedTest' }]);
     });
 
     it('replaces an org-only class when download creates its local source', async () => {

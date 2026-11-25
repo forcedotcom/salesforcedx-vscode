@@ -1,5 +1,6 @@
 import * as NodeContext from '@effect/platform-node/NodeContext';
 import { Effect, Schema } from 'effect';
+import * as Option from 'effect/Option';
 import assert from 'node:assert/strict';
 import { readFileSync, realpathSync, writeFileSync } from 'node:fs';
 import { createServer } from 'node:http';
@@ -84,7 +85,7 @@ test(
                       ? '{"_tag":"Nothing"}'
                       : changelog
                         ? JSON.stringify(sections)
-                        : '{"categories":["prose"]}'
+                        : '{"covered":true,"categories":["tests-only"]}'
                 };
           if (toolReplies.length === 1) assert.match(JSON.stringify(toolReply?.content), /packages/);
           if (toolReplies.length === 2) assert.match(JSON.stringify(toolReply?.content), /export const feature = true/);
@@ -142,8 +143,13 @@ test(
       const body = yield* changelogBody({ cwd, from: 'from', to: 'HEAD' });
       assert.match(body, /We added a feature\./);
       assert.match(body, /issues\/42/);
-      const categories = yield* openCodePrompt({ prompt: buildPrompt('Return categories JSON.', '+a line of prose') });
-      assert.deepEqual(parseAgentResult(categories), ['prose']);
+      const categories = yield* openCodePrompt({
+        prompt: buildPrompt(
+          readFileSync(new URL('../APPROVAL_POLICY.md', import.meta.url), 'utf8'),
+          '+assert.ok(true);'
+        )
+      });
+      assert.deepEqual(parseAgentResult(categories), Option.some(['tests-only']));
       const manual = yield* manualTestPlanPrompt(cwd, {
         skill: readFileSync(new URL('../.opencode/skills/manual-test-plan-judgment/SKILL.md', import.meta.url), 'utf8'),
         diff: '+export const feature = true;'
