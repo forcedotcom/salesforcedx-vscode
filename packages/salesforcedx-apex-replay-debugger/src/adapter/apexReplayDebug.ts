@@ -5,7 +5,6 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import type { LineBreakpointInfo } from '@salesforce/salesforcedx-utils';
 import {
   DebugSession,
   BreakpointEvent,
@@ -53,8 +52,10 @@ const LineBreakpointInfoSchema = Schema.Struct({
   lines: Schema.Array(Schema.Number)
 });
 
-const isLineBreakpointInfo = (value: unknown): value is LineBreakpointInfo =>
-  Schema.is(LineBreakpointInfoSchema)(value);
+const LineBreakpointInfoUpdateSchema = Schema.Struct({
+  uri: Schema.String,
+  lineBreakpointInfo: Schema.Array(LineBreakpointInfoSchema)
+});
 
 export class ApexReplayDebug extends LoggingDebugSession {
   public static THREAD_ID = 1;
@@ -477,7 +478,7 @@ export class ApexReplayDebug extends LoggingDebugSession {
   }
 
   protected customRequest(command: string, response: DebugProtocol.Response, args: unknown): void {
-    if (command === 'apexReplayDebugger/updateLineBreakpointInfo' && isLineBreakpointInfoUpdate(args)) {
+    if (command === 'apexReplayDebugger/updateLineBreakpointInfo' && Schema.is(LineBreakpointInfoUpdateSchema)(args)) {
       this.breakpointMappings = replaceBreakpointMappingsForUri(
         this.breakpointMappings,
         args.uri,
@@ -530,16 +531,5 @@ export class ApexReplayDebug extends LoggingDebugSession {
     this.printToDebugConsole(msg, sourceFile, sourceLine, 'stderr');
   }
 }
-
-const isLineBreakpointInfoUpdate = (
-  args: unknown
-): args is { readonly uri: string; readonly lineBreakpointInfo: LineBreakpointInfo[] } =>
-  typeof args === 'object' &&
-  args !== null &&
-  'uri' in args &&
-  typeof args.uri === 'string' &&
-  'lineBreakpointInfo' in args &&
-  Array.isArray(args.lineBreakpointInfo) &&
-  args.lineBreakpointInfo.every(isLineBreakpointInfo);
 
 DebugSession.run(ApexReplayDebug);
