@@ -41,7 +41,10 @@ const ruleTester = new RuleTester({
 ruleTester.run('no-duplicate-error-message-conversion', noDuplicateErrorMessageConversion, {
   valid: [
     { code: fs.readFileSync(canonicalHelper, 'utf8'), filename: canonicalHelper },
-    { code: fs.readFileSync(canonicalHelper, 'utf8'), filename: canonicalHelper.replaceAll('/', '\\') },
+    {
+      code: fs.readFileSync(canonicalHelper, 'utf8'),
+      filename: path.win32.join('C:\\repo', 'packages', 'salesforcedx-utils', 'src', 'helpers', 'getErrorMessage.ts')
+    },
     'getMessageFromError(error)',
     'getErrorMessage(error)',
     // Intentionally different formatting must not be replaced.
