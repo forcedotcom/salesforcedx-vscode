@@ -28,6 +28,7 @@ import { noPassThroughExports } from './noPassThroughExports';
 import { noRawDuration } from './noRawDuration';
 import { noRuntimeVscodeImport } from './noRuntimeVscodeImport';
 import { noSchemaIsThrowGuard } from './noSchemaIsThrowGuard';
+import { noSchemaIsWrapper } from './noSchemaIsWrapper';
 import { noSelfBarrelImport } from './noSelfBarrelImport';
 import { noStandalonePipeableValue } from './noStandalonePipeableValue';
 import { noSuccessiveAnnotateCurrentSpan } from './noSuccessiveAnnotateCurrentSpan';
@@ -87,6 +88,7 @@ const plugin: TSESLint.FlatConfig.Plugin = {
     'no-pass-through-exports': noPassThroughExports,
     'no-raw-duration': noRawDuration,
     'no-schema-is-throw-guard': noSchemaIsThrowGuard,
+    'no-schema-is-wrapper': noSchemaIsWrapper,
     'no-standalone-pipeable-value': noStandalonePipeableValue,
     'no-unused-i18n-messages': noUnusedI18nMessages,
     'prefer-effect-array-ensure': preferEffectArrayEnsure,

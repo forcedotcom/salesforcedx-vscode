@@ -1,6 +1,14 @@
 // Dependency-free gates shared by the preflight and the trusted approver.
 const BASE_BRANCH = 'develop';
 const BOT_LOGIN = 'svc-idee-bot';
+// Required develop checks; require their presence, not just an absence of failures.
+const REQUIRED_CHECKS = [
+  'pr-validation / pr-validation',
+  'build-and-test / build-all / build-all',
+  'build-and-test / unit-tests / windows-unit-tests / windows-unit-tests',
+  'build-and-test / unit-tests / linux-unit-tests / linux-unit-tests',
+  'code-quality'
+];
 const DENYLIST = [/(^|\/)CODEOWNERS$/, /^APPROVAL_POLICY\.md$/, /^\.github\/workflows\/.+/, /(^|\/)out\//];
 const failed = new Set(['failure', 'cancelled', 'timed_out', 'error', 'action_required', 'startup_failure']);
 
@@ -45,7 +53,29 @@ const preClassifyDecision = input => {
   if (checkFailed && approved) return { _tag: 'Dismiss', reason: 'a check failed after approval' };
   if (checkFailed) return skip('a check failed');
   if (approved) return skip('bot already approved this head');
+  const checks = [...input.statuses, ...input.checkRuns];
+  if (checks.some(check => check.conclusion == null && check.state !== 'success')) {
+    return skip('CI is still pending');
+  }
+  const missing = REQUIRED_CHECKS.find(
+    name =>
+      !checks.some(
+        check =>
+          (check.name ?? check.context) === name &&
+          (check.conclusion ?? check.state) === 'success' &&
+          (check.head_sha === undefined || check.head_sha === input.pull.headRefOid)
+      )
+  );
+  if (missing) return skip(`required CI check is not successful: ${missing}`);
   return { _tag: 'Classify', reason: 'gates passed' };
 };
 
-module.exports = { BASE_BRANCH, BOT_LOGIN, deniedFile, preClassifyPull, preClassifyFiles, preClassifyDecision };
+module.exports = {
+  BASE_BRANCH,
+  BOT_LOGIN,
+  REQUIRED_CHECKS,
+  deniedFile,
+  preClassifyPull,
+  preClassifyFiles,
+  preClassifyDecision
+};

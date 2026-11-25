@@ -11,16 +11,25 @@ import {
   deployCurrentSourceToOrg,
   openFileByName,
   editOpenFile,
-  executeCommandWithCommandPalette,
+  clearOutputChannel,
+  ensureOutputPanelOpen,
+  selectOutputChannel,
   saveScreenshot,
   upsertSettings
 } from '@salesforce/playwright-vscode-ext';
 import { expect } from '@playwright/test';
-import { waitForDeployProgressNotificationToAppear } from '../../pages/notifications';
 import { DEPLOY_TIMEOUT } from '../../../constants';
 
 test.describe('Disabled Conflict Detection', () => {
-  test('should skip conflict detection when setting is enabled', async ({ page, helperProject, statusBarPage }) => {
+  test.beforeEach(async () => {
+    // Each scenario performs three real deployments plus source-tracking polling.
+    test.setTimeout(4 * 60 * 1000);
+  });
+  test('re-enabling conflict detection detects existing remote and local changes', async ({
+    page,
+    helperProject,
+    statusBarPage
+  }) => {
     const className = `DisabledCD${Date.now().toString(36).slice(-6).toUpperCase()}`;
 
     await test.step('0. Disable conflict detection via setting', async () => {
@@ -34,9 +43,7 @@ test.describe('Disabled Conflict Detection', () => {
       await createApexClass(page, className, `public class ${className} { /* v1 */ }`);
       await saveScreenshot(page, 'disabled-cd-1-created.png');
 
-      await deployCurrentSourceToOrg(page);
-      // Give it time to complete
-      await page.waitForTimeout(5000);
+      await deployCurrentSourceToOrg(page, { waitViaOutputChannel: true, deployCompleteTimeoutMs: DEPLOY_TIMEOUT });
       await saveScreenshot(page, 'disabled-cd-2-deployed.png');
     });
 
@@ -52,9 +59,6 @@ test.describe('Disabled Conflict Detection', () => {
     });
 
     await test.step('4. Verify status bar shows disabled state', async () => {
-      // Wait a reasonable time for setting to take effect
-      await page.waitForTimeout(2000);
-
       // Status bar should show disabled state - use a direct locator since the page object
       // expects the arrow-down/arrow-up pattern which won't match disabled state
       const disabledStatusBar = page.getByRole('button', { name: /Conflict Detection Disabled/ });
@@ -63,33 +67,16 @@ test.describe('Disabled Conflict Detection', () => {
       await saveScreenshot(page, 'disabled-cd-5-disabled-state.png');
     });
 
-    await test.step('5. Deploy without conflict detection', async () => {
-      await openFileByName(page, `${className}.cls`);
-      await executeCommandWithCommandPalette(page, 'SFDX: Deploy This Source to Org');
-
-      // No conflict modal should appear - deploy should proceed directly
-      const deployingNotification = await waitForDeployProgressNotificationToAppear(page, 30_000);
-
-      await expect(deployingNotification, 'Deploy should complete without conflict modal').not.toBeVisible({
-        timeout: DEPLOY_TIMEOUT
-      });
-
-      await saveScreenshot(page, 'disabled-cd-6-deployed-without-conflict-check.png');
-    });
-
     await test.step('6. Re-enable conflict detection and verify it works', async () => {
       // Re-enable conflict detection
       await upsertSettings(page, {
         'salesforcedx-vscode-metadata.sourceTracking.enableConflictDetection': 'true'
       });
+      await expect(page.getByRole('button', { name: /Conflict Detection Disabled/ })).toBeHidden();
       await saveScreenshot(page, 'disabled-cd-7-setting-enabled.png');
 
-      // Make another remote change
-      await helperProject(className, `public class ${className} { /* remote v3 */ }`);
-
-      // Modify locally again
+      // The existing remote/local changes should become conflicts once detection resumes.
       await openFileByName(page, `${className}.cls`);
-      await editOpenFile(page, 'local v3 modification');
 
       // Now conflicts should be detected
       await statusBarPage.waitForCounts({ conflicts: 1 }, 60_000);
@@ -113,12 +100,12 @@ test.describe('Disabled Conflict Detection', () => {
       await upsertSettings(page, {
         'salesforcedx-vscode-metadata.sourceTracking.enableConflictDetection': 'false'
       });
+      await expect(page.getByRole('button', { name: /Conflict Detection Disabled/ })).toBeVisible();
     });
 
     await test.step('Create baseline and create conflict', async () => {
       await createApexClass(page, className, `public class ${className} { /* v1 */ }`);
-      await deployCurrentSourceToOrg(page);
-      await page.waitForTimeout(5000);
+      await deployCurrentSourceToOrg(page, { waitViaOutputChannel: true, deployCompleteTimeoutMs: DEPLOY_TIMEOUT });
 
       // Create remote conflict
       await helperProject(className, `public class ${className} { /* remote */ }`);
@@ -129,14 +116,12 @@ test.describe('Disabled Conflict Detection', () => {
     });
 
     await test.step('Deploy should succeed without conflict modal', async () => {
+      // Remove the baseline success line so this assertion must observe the new deployment.
+      await ensureOutputPanelOpen(page);
+      await selectOutputChannel(page, 'Salesforce Metadata');
+      await clearOutputChannel(page);
       await openFileByName(page, `${className}.cls`);
-      await executeCommandWithCommandPalette(page, 'SFDX: Deploy This Source to Org');
-
-      // Deploy should proceed and complete successfully
-      const deployingNotification = await waitForDeployProgressNotificationToAppear(page, 30_000);
-      await expect(deployingNotification, 'Deploy should complete').not.toBeVisible({
-        timeout: DEPLOY_TIMEOUT
-      });
+      await deployCurrentSourceToOrg(page, { waitViaOutputChannel: true, deployCompleteTimeoutMs: DEPLOY_TIMEOUT });
 
       await saveScreenshot(page, 'no-cd-deployed-successfully.png');
     });

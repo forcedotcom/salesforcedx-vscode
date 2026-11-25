@@ -16,6 +16,7 @@ export const desktopTest = createDesktopTest({
   additionalExtensionDirs: ['salesforcedx-vscode-metadata'],
   disableOtherExtensions: false,
   userSettings: {
+    'chat.disableAIFeatures': true,
     'git.terminalAuthentication': false,
     'git.autofetch': false
   }
@@ -26,6 +27,7 @@ export const noOrgDesktopTest = createDesktopTest({
   additionalExtensionDirs: ['salesforcedx-vscode-metadata'],
   disableOtherExtensions: false,
   userSettings: {
+    'chat.disableAIFeatures': true,
     'git.terminalAuthentication': false,
     'git.autofetch': false
   }
@@ -37,6 +39,7 @@ export const emptyWorkspaceDesktopTest = createDesktopTest({
   additionalExtensionDirs: ['salesforcedx-vscode-metadata'],
   disableOtherExtensions: false,
   userSettings: {
+    'chat.disableAIFeatures': true,
     'git.terminalAuthentication': false,
     'git.autofetch': false
   }
