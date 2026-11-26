@@ -70,6 +70,7 @@ const userSettings = {
 // them up.
 const baseTest = createDesktopTest({
   fixturesDir: __dirname,
+  recordVideo: false,
   disableOtherExtensions: false,
   userSettings
 });
@@ -80,6 +81,7 @@ const baseTest = createDesktopTest({
 // the default `--disable-extensions` would block the marketplace ext from loading.
 const snippetBaseTest = createDesktopTest({
   fixturesDir: __dirname,
+  recordVideo: false,
   marketplaceExtensions: ['salesforce.apex-language-server-extension'],
   disableOtherExtensions: false,
   userSettings

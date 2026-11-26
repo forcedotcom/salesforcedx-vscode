@@ -10,6 +10,7 @@ import {
   closeWelcomeTabs,
   openFileFromExplorerTree,
   setupConsoleMonitoring,
+  startVideoRecording,
   validateNoCriticalErrors,
   waitForVSCodeWorkbench,
   waitForWorkspaceReady
@@ -21,7 +22,7 @@ import { outlineTest as test } from '../fixtures';
 /** Outline populates when the external TS Apex LS has published document symbols. */
 const OUTLINE_READY_TIMEOUT = Duration.seconds(120);
 
-test('Apex Outline shows class and method symbols', async ({ page }) => {
+test('Apex Outline shows class and method symbols', async ({ page }, testInfo) => {
   const consoleErrors = setupConsoleMonitoring(page);
 
   await test.step('open seeded ExampleClass.cls', async () => {
@@ -31,19 +32,28 @@ test('Apex Outline shows class and method symbols', async ({ page }) => {
     await openFileFromExplorerTree(page, 'ExampleClass.cls', ['force-app', 'main', 'default', 'classes']);
   });
 
-  await test.step('Outline view shows the class and method', async () => {
-    const outlineHeader = page.getByRole('button', { name: 'Outline Section', exact: true });
-    await expect(outlineHeader).toBeVisible({ timeout: Duration.toMillis(Duration.seconds(30)) });
-    await ((await outlineHeader.getAttribute('aria-expanded')) === 'true' ? undefined : outlineHeader.click());
+  const videoName = [testInfo.project.name, ...testInfo.titlePath, 'outline-symbols', `retry-${testInfo.retry}`]
+    .join('-')
+    .replaceAll(/[^a-zA-Z0-9._-]+/g, '-')
+    .replaceAll(/^-+|-+$/g, '');
+  const stopRecording = await startVideoRecording(page, testInfo, videoName);
+  try {
+    await test.step('Outline view shows the class and method', async () => {
+      const outlineHeader = page.getByRole('button', { name: 'Outline Section', exact: true });
+      await expect(outlineHeader).toBeVisible({ timeout: Duration.toMillis(Duration.seconds(30)) });
+      await ((await outlineHeader.getAttribute('aria-expanded')) === 'true' ? undefined : outlineHeader.click());
 
-    const outline = page.locator('.outline-pane');
-    await expect(async () => {
-      const classItem = outline.getByRole('treeitem', { name: /ExampleClass/ }).first();
-      await expect(classItem).toBeVisible();
-      await ((await classItem.getAttribute('aria-expanded')) === 'false' ? classItem.click() : undefined);
-      await expect(outline.getByRole('treeitem', { name: /SayHello/ }).first()).toBeVisible();
-    }).toPass({ timeout: Duration.toMillis(OUTLINE_READY_TIMEOUT) });
-  });
+      const outline = page.locator('.outline-pane');
+      await expect(async () => {
+        const classItem = outline.getByRole('treeitem', { name: /ExampleClass/ }).first();
+        await expect(classItem).toBeVisible();
+        await ((await classItem.getAttribute('aria-expanded')) === 'false' ? classItem.click() : undefined);
+        await expect(outline.getByRole('treeitem', { name: /SayHello/ }).first()).toBeVisible();
+      }).toPass({ timeout: Duration.toMillis(OUTLINE_READY_TIMEOUT) });
+    });
 
-  await validateNoCriticalErrors(test, consoleErrors);
+    await validateNoCriticalErrors(test, consoleErrors);
+  } finally {
+    await stopRecording();
+  }
 });

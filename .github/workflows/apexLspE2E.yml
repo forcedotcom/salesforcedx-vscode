@@ -47,6 +47,8 @@ jobs:
         with:
           workspace: packages/salesforcedx-vscode-apex
           npm-script: test:web
+          # Keep all flow videos in one run; Playwright already retries individual tests.
+          retry-failed: 'false'
           report-name: playwright-report-apex-web
           results-name: playwright-test-results-apex-web
           node-version: ${{ vars.NODE_VERSION || 'lts/*' }}
@@ -69,6 +71,8 @@ jobs:
         with:
           workspace: packages/salesforcedx-vscode-apex
           npm-script: test:desktop
+          # A second --last-failed run would delete videos from tests that already passed.
+          retry-failed: 'false'
           report-name: playwright-report-apex-desktop-${{ matrix.os }}
           results-name: playwright-test-results-apex-desktop-${{ matrix.os }}
           node-version: ${{ vars.NODE_VERSION || 'lts/*' }}
