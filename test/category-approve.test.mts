@@ -171,7 +171,13 @@ test('prompt contains only the policy and diff, not a pull request body', () => 
 });
 
 const pathCases = {
-  claude: ['.claude/settings.json', '.claude/skills/example/SKILL.md'],
+  claude: [
+    '.claude/settings.json',
+    '.claude/skills/example/SKILL.md',
+    '.agents/skills/vscode-extension-launch/SKILL.md',
+    '.agents/skills/example/references/guide.md',
+    '.agents/skills/example/scripts/check.mts'
+  ],
   cursor: ['.cursor/rules/example.mdc'],
   eslint: [
     'eslint.config.mjs',
@@ -229,8 +235,8 @@ for (const [category, paths] of Object.entries(pathCases)) {
       Effect.withConfigProvider(ConfigProvider.fromMap(new Map())),
       Effect.runPromise
     );
-    assert.deepEqual(result, [category]);
-    assert.equal(decideCategoryApprove({ ...base, files: paths.map(file), categories: result })._tag, 'Approve');
+    assert.deepEqual(result, { categories: [category], uncoveredFiles: [] });
+    assert.equal(decideCategoryApprove({ ...base, files: paths.map(file), ...result })._tag, 'Approve');
   });
 }
 
@@ -239,6 +245,11 @@ test('does not match neighboring paths or content-reviewed categories by path', 
     'src/example.ts',
     'packages/foo/.claude/settings.json',
     '.claude-other/file',
+    '.agents/settings.json',
+    '.agents/commands/example.md',
+    '.agents/skills-other/example/SKILL.md',
+    '.agents/skills.md',
+    'packages/foo/.agents/skills/example/SKILL.md',
     'packages/foo/.vscode/settings.json',
     'packages/eslint-local-rules-other/index.ts',
     'config/nested/effect-diagnostics.json',
@@ -278,13 +289,98 @@ test('combines deterministic categories without OpenCode for additions, deletion
       ),
       Effect.runPromise
     ),
-    ['prose', 'plans', 'claude', 'vscode']
+    { categories: ['prose', 'plans', 'claude', 'vscode'], uncoveredFiles: [] }
   );
+});
+
+test('covers mixed skill and contributing changes, including renames between skill directories', async () => {
+  const files: PullFile[] = [
+    { ...file('.agents/skills/vscode-extension-launch/SKILL.md'), status: 'added' },
+    { ...file('.agents/skills/old/SKILL.md'), status: 'removed' },
+    {
+      ...file('.agents/skills/new/references/example.md'),
+      previous_filename: '.claude/skills/new/references/example.md',
+      status: 'renamed'
+    },
+    file('.claude/skills/vscode-extension-launch/SKILL.md'),
+    file('contributing/extension-launch.md')
+  ];
+  const classification = await classify({ policy, files, baseRef: 'base', headSha: 'head' }).pipe(
+    Effect.provide(
+      commands(() => assert.fail('Skill and prose paths need no commands')).pipe(Layer.provideMerge(NodeContext.layer))
+    ),
+    Effect.provideService(FetchHttpClient.Fetch, async () => assert.fail('Skill and prose paths need no Jev')),
+    Effect.runPromise
+  );
+  assert.deepEqual(classification, { categories: ['claude', 'prose'], uncoveredFiles: [] });
+  assert.equal(decideCategoryApprove({ ...base, files, ...classification })._tag, 'Approve');
+});
+
+test('reports only files with uncovered hunks in mixed path and content classifications', async t => {
+  const skill = '.agents/skills/vscode-extension-launch/SKILL.md';
+  const source = '.agents/settings "é"[1].json';
+  const testPath = 'test/example.test.ts';
+  const before = {
+    [skill]: 'old skill\n',
+    'contributing/launch.md': 'old prose\n',
+    [testPath]: 'assert.equal(1, 1);\n',
+    [source]: `{"enabled": false}\n${'\n'.repeat(10)}{"other": false}\n`
+  };
+  const cwd = classificationRepo(t, before, {
+    ...before,
+    [skill]: 'new skill\n',
+    'contributing/launch.md': 'new prose\n',
+    [testPath]: 'assert.equal(2, 2);\n',
+    [source]: `{"enabled": true}\n${'\n'.repeat(10)}{"other": true}\n`
+  });
+  const files = Object.keys(before).map(file);
+  const classification = await classify({ policy, files, baseRef: 'base', headSha: 'head' }).pipe(
+    Effect.provide(
+      commands(command => command.pipe(Command.workingDirectory(cwd))).pipe(Layer.provideMerge(NodeContext.layer))
+    ),
+    Effect.provideService(FetchHttpClient.Fetch, async (_url, init) => {
+      const body = await new Response(init?.body).text();
+      assert.doesNotMatch(body, /new skill|new prose/);
+      return decisionResponse({
+        answers: {
+          'hunk-0': { type: 'choice', choice: 'tests-only', confidence: 1, probabilities: { 'tests-only': 1 } },
+          'hunk-1': { type: 'choice', choice: 'uncovered', confidence: 1, probabilities: { uncovered: 1 } },
+          'hunk-2': { type: 'choice', choice: 'uncovered', confidence: 1, probabilities: { uncovered: 1 } }
+        }
+      });
+    }),
+    Effect.runPromise
+  );
+  assert.deepEqual(classification, { categories: ['claude', 'prose', 'tests-only'], uncoveredFiles: [source] });
+  assert.deepEqual(decideCategoryApprove({ ...base, files, ...classification }), {
+    _tag: 'Skip',
+    reason: `uncovered files: ${source}`
+  });
+});
+
+test('reports Jev request failures separately from uncovered content', async t => {
+  const filename = 'src/example.ts';
+  const cwd = classificationRepo(t, { [filename]: 'old\n' }, { [filename]: 'new\n' });
+  const classification = await classify({ policy, files: [file(filename)], baseRef: 'base', headSha: 'head' }).pipe(
+    Effect.provide(
+      commands(command => command.pipe(Command.workingDirectory(cwd))).pipe(Layer.provideMerge(NodeContext.layer))
+    ),
+    Effect.provideService(FetchHttpClient.Fetch, async () =>
+      Response.json({ message: 'unavailable' }, { status: 500 })
+    ),
+    Effect.runPromise
+  );
+  assert.deepEqual(classification.categories, []);
+  assert.deepEqual(classification.uncoveredFiles, []);
+  const decision = decideCategoryApprove({ ...base, ...classification });
+  assert.equal(decision._tag, 'Skip');
+  assert.match(decision.reason, /^classification failed:/);
+  assert.doesNotMatch(decision.reason, /uncovered files|no covering categories/);
 });
 
 for (const count of [2999, 3000, 3001]) {
   test(`fails closed at the GitHub file-list cap: ${count} files`, async () => {
-    const categories = await classify({
+    const classification = await classify({
       policy,
       files: Array.from({ length: count }, (_, index) => file(`docs/${index}.md`)),
       baseRef: 'base',
@@ -297,8 +393,8 @@ for (const count of [2999, 3000, 3001]) {
       ),
       Effect.runPromise
     );
-    assert.deepEqual(categories, count < 3000 ? ['prose'] : []);
-    assert.equal(decideCategoryApprove({ ...base, categories })._tag, count < 3000 ? 'Approve' : 'Skip');
+    assert.deepEqual(classification, { categories: count < 3000 ? ['prose'] : [], uncoveredFiles: [] });
+    assert.equal(decideCategoryApprove({ ...base, ...classification })._tag, count < 3000 ? 'Approve' : 'Skip');
   });
 }
 
@@ -333,18 +429,14 @@ test('rejects forbidden paths and non-Markdown root plans files without OpenCode
           ),
           Effect.runPromise
         ),
-        [],
+        { categories: [], uncoveredFiles: [filename] },
         filename
       );
     }
   }
 });
 
-for (const [choice, expected] of [
-  ['tests-only', ['prose', 'tests-only']],
-  ['uncovered', []],
-  ['prose', []]
-] as const) {
+for (const choice of ['tests-only', 'uncovered', 'prose'] as const) {
   test(`reviews only remaining hunks and fails closed: ${choice}`, async t => {
     const testPath = 'test/unit/example[1].test.ts';
     const cwd = classificationRepo(
@@ -374,7 +466,21 @@ for (const [choice, expected] of [
       Effect.runPromise
     );
     assert.equal(calls, 1);
-    assert.deepEqual(result, expected);
+    const decision = decideCategoryApprove({ ...base, ...result });
+    if (choice === 'prose') {
+      assert.deepEqual(result.categories, []);
+      assert.deepEqual(result.uncoveredFiles, []);
+      assert.equal(decision._tag, 'Skip');
+      assert.match(decision.reason, /^classification failed:/);
+      assert.doesNotMatch(decision.reason, /uncovered files|no covering categories/);
+    } else {
+      assert.deepEqual(result, {
+        categories: choice === 'tests-only' ? ['prose', 'tests-only'] : ['prose'],
+        uncoveredFiles: choice === 'uncovered' ? [testPath] : []
+      });
+      assert.equal(decision._tag, choice === 'tests-only' ? 'Approve' : 'Skip');
+      if (choice === 'uncovered') assert.equal(decision.reason, `uncovered files: ${testPath}`);
+    }
     assert.ok(requestBody);
     assert.match(requestBody, /already covered: true/);
     assert.match(requestBody, /assert.equal\(2, 2\)/);
@@ -423,7 +529,7 @@ test('uncovered production hunks reject the union, including renamed source file
       const request = JSON.parse(requestBody);
       return decisionResponse({
         answers: Object.fromEntries(
-          Object.keys(request.questions).map(name => [
+          request.questions.map(({ name }: { name: string }) => [
             name,
             { type: 'choice', choice: 'uncovered', confidence: 1, probabilities: { uncovered: 1 } }
           ])
@@ -433,8 +539,11 @@ test('uncovered production hunks reject the union, including renamed source file
     Effect.withConfigProvider(agentConfig()),
     Effect.runPromise
   );
-  assert.deepEqual(result, []);
-  assert.equal(decideCategoryApprove({ ...base, categories: result })._tag, 'Skip');
+  assert.deepEqual(result, { categories: ['prose'], uncoveredFiles: [source, 'packages/foo/src/other.ts'] });
+  assert.deepEqual(decideCategoryApprove({ ...base, ...result }), {
+    _tag: 'Skip',
+    reason: `uncovered files: ${source}, packages/foo/src/other.ts`
+  });
   assert.ok(requestBody);
   assert.match(requestBody, /deleted file mode/);
   assert.match(requestBody, /export const enabled = true/);
@@ -448,7 +557,7 @@ test('keeps covered version hunks when path-only hunks are omitted; version-only
     { 'README.md': 'new\n', 'package.json': '{"version":"1.0.1"}\n' }
   );
   for (const files of [[file('README.md'), file('package.json')], [file('package.json')]]) {
-    const categories = await classify({ policy, files, baseRef: 'base', headSha: 'head' }).pipe(
+    const classification = await classify({ policy, files, baseRef: 'base', headSha: 'head' }).pipe(
       Effect.provide(
         commands(command => command.pipe(Command.workingDirectory(cwd))).pipe(Layer.provideMerge(NodeContext.layer))
       ),
@@ -467,13 +576,19 @@ test('keeps covered version hunks when path-only hunks are omitted; version-only
       Effect.withConfigProvider(agentConfig()),
       Effect.runPromise
     );
-    assert.deepEqual(categories, files.length === 2 ? ['prose'] : []);
+    assert.deepEqual(classification, {
+      categories: files.length === 2 ? ['prose'] : [],
+      uncoveredFiles: files.length === 2 ? [] : ['package.json']
+    });
+    const decision = decideCategoryApprove({ ...base, files, ...classification });
+    assert.equal(decision._tag, files.length === 2 ? 'Approve' : 'Skip');
+    if (files.length === 1) assert.equal(decision.reason, 'uncovered files: package.json');
   }
 });
 
 test('checks git2gus base and head contents without invoking OpenCode', async t => {
   const cwd = classificationRepo(t, { '.git2gus/config.json': config }, { '.git2gus/config.json': nextConfig });
-  const categories = await classify({
+  const classification = await classify({
     policy,
     files: [file('.git2gus/config.json')],
     baseRef: 'base',
@@ -489,7 +604,7 @@ test('checks git2gus base and head contents without invoking OpenCode', async t 
     Effect.withConfigProvider(ConfigProvider.fromMap(new Map())),
     Effect.runPromise
   );
-  assert.deepEqual(categories, ['git2gus-config']);
+  assert.deepEqual(classification, { categories: ['git2gus-config'], uncoveredFiles: [] });
 });
 
 test('classifies when the gates pass', () => {

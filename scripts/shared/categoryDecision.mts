@@ -25,6 +25,8 @@ export type Decision = ReturnType<typeof preClassifyDecision> | typeof Approve.T
 type GatedFacts = PreClassifyFacts & {
   readonly categories: readonly string[];
   readonly allowedCategories: readonly string[];
+  readonly uncoveredFiles?: readonly string[];
+  readonly classificationFailure?: string;
 };
 
 export type Facts = (PreClassifyFacts & { readonly categories?: undefined }) | GatedFacts;
@@ -35,7 +37,7 @@ export const categoryIdsFromPolicy = (markdown: string) =>
   [...markdown.matchAll(/^### ([a-z0-9-]+)\s*$/gm)].map(match => match[1] ?? '');
 
 const pathCategories = {
-  claude: ['.claude/**'],
+  claude: ['.claude/**', '.agents/skills/**'],
   cursor: ['.cursor/**'],
   eslint: ['**/eslint.config.*', '**/.eslintrc', '**/.eslintrc.*', 'packages/eslint-local-rules/**'],
   vscode: ['.vscode/**'],
@@ -129,6 +131,10 @@ export const decideCategoryApprove = (input: Facts): Decision => {
   const gated = preClassifyDecision(input);
   if (gated._tag !== 'Classify') return gated;
   if (!isGated(input)) return gated;
+  if (!isUndefined(input.classificationFailure))
+    return Skip.make({ reason: `classification failed: ${input.classificationFailure}` });
+  const uncoveredFiles = input.uncoveredFiles ?? [];
+  if (uncoveredFiles.length > 0) return Skip.make({ reason: `uncovered files: ${uncoveredFiles.join(', ')}` });
   const allowed = new Set([...Object.keys(pathCategories), 'git2gus-config', ...input.allowedCategories]);
   if (input.categories.length === 0) return Skip.make({ reason: 'no covering categories' });
   if (
