@@ -7,6 +7,8 @@ on:
       - 'scripts/categoryApprove.mts'
       - 'scripts/shared/openCode.mts'
       - 'scripts/shared/category*.mts'
+      - 'scripts/shared/jevDecisions.mts'
+      - 'test/jev-decisions.test.mts'
       - 'test/ci-ai*.mts'
       - 'test/ciAiFixtures.mts'
       - '.opencode/skills/changelog-judgment/**'
@@ -32,7 +34,13 @@ jobs:
           node-version: 24
       - uses: ./.github/actions/setup-opencode
       - run: pnpm --filter @salesforce/effect-octokit compile
+      - run: pnpm --filter @salesforce/opencode-decisions compile
       - run: pnpm test:ci-ai
       - run: pnpm test:ai-safeguards
       - run: pnpm test:manual-test-plan
       - run: node --test test/ci-ai-smoke.test.mts
+      - name: Verify live Jev classification (manual runs only)
+        if: github.event_name == 'workflow_dispatch'
+        env:
+          OPENCODE_API_KEY: ${{ secrets.OPENCODE_API_KEY }}
+        run: node scripts/runWithJevServer.mts scripts/jevSmoke.mts

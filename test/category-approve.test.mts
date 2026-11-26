@@ -3,6 +3,7 @@ import test, { type TestContext } from 'node:test';
 import { mkdirSync, readFileSync, unlinkSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import * as Command from '@effect/platform/Command';
+import * as FetchHttpClient from '@effect/platform/FetchHttpClient';
 import * as NodeContext from '@effect/platform-node/NodeContext';
 import { ConfigProvider, Effect, Layer } from 'effect';
 import * as Option from 'effect/Option';
@@ -25,7 +26,7 @@ import {
   parseAgentResult
 } from '../scripts/shared/categoryDecision.mts';
 import { classify } from '../scripts/categoryApprove.mts';
-import { commands, config as agentConfig, events, git, nodeCommand, tempDirectory } from './ciAiFixtures.mts';
+import { commands, config as agentConfig, decisionResponse, git, tempDirectory } from './ciAiFixtures.mts';
 
 const policy = readFileSync(new URL('../APPROVAL_POLICY.md', import.meta.url), 'utf8');
 const config = readFileSync(new URL('../.git2gus/config.json', import.meta.url), 'utf8');
@@ -339,50 +340,52 @@ test('rejects forbidden paths and non-Markdown root plans files without OpenCode
   }
 });
 
-for (const failure of ['rate-limited', 'invalid credentials', 'missing credentials', 'unwritable summary']) {
-  test(`skips approval without failing when AI has ${failure}`, async t => {
-    const cwd = classificationRepo(t, { 'test/example.ts': 'before\n' }, { 'test/example.ts': 'after\n' });
-    const summaryPath = join(cwd, failure === 'unwritable summary' ? 'missing/summary.md' : 'summary.md');
-    const categories = await classify({
+for (const [choice, expected] of [
+  ['tests-only', ['prose', 'tests-only']],
+  ['uncovered', []],
+  ['prose', []]
+] as const) {
+  test(`reviews only remaining hunks and fails closed: ${choice}`, async t => {
+    const testPath = 'test/unit/example[1].test.ts';
+    const cwd = classificationRepo(
+      t,
+      { 'README.md': 'old prose\n', [testPath]: 'assert.equal(1, 1);\n' },
+      { 'README.md': 'new prose\n', [testPath]: 'assert.equal(2, 2);\n' }
+    );
+    let calls = 0;
+    let requestBody: string | undefined;
+    const result = await classify({
       policy,
-      files: [file('README.md'), file('test/example.ts')],
+      files: [file('README.md'), file(testPath)],
       baseRef: 'base',
-      headSha: 'head'
+      headSha: 'HEAD'
     }).pipe(
       Effect.provide(
-        commands(command =>
-          command.command === 'git'
-            ? command.pipe(Command.workingDirectory(cwd))
-            : nodeCommand(
-                command,
-                `process.stderr.write(${JSON.stringify(failure === 'rate-limited' ? 'HTTP 429' : 'Invalid API key')}); process.exit(1);`
-              )
-        ).pipe(Layer.provideMerge(NodeContext.layer))
+        commands(command => command.pipe(Command.workingDirectory(cwd))).pipe(Layer.provideMerge(NodeContext.layer))
       ),
-      Effect.withConfigProvider(
-        ConfigProvider.fromMap(
-          new Map([
-            ...(failure === 'missing credentials' ? [] : [['OPENCODE_API_KEY', 'test-key'] as const]),
-            ['OPENCODE_MODELS', '["opencode/first"]'],
-            ['PATH', process.env.PATH ?? ''],
-            ['GITHUB_STEP_SUMMARY', summaryPath]
-          ])
-        )
-      ),
+      Effect.provideService(FetchHttpClient.Fetch, async (_url, init) => {
+        calls += 1;
+        requestBody = await new Response(init?.body).text();
+        return decisionResponse({
+          answers: { 'hunk-0': { type: 'choice', choice, confidence: 1, probabilities: { [choice]: 1 } } }
+        });
+      }),
+      Effect.withConfigProvider(agentConfig()),
       Effect.runPromise
     );
-    assert.deepEqual(categories, []);
-    assert.equal(decideCategoryApprove({ ...base, categories })._tag, 'Skip');
-    if (failure !== 'unwritable summary') {
-      assert.match(readFileSync(summaryPath, 'utf8'), /Automatic approval skipped: AI classification unavailable/);
-    }
+    assert.equal(calls, 1);
+    assert.deepEqual(result, expected);
+    assert.ok(requestBody);
+    assert.match(requestBody, /already covered: true/);
+    assert.match(requestBody, /assert.equal\(2, 2\)/);
+    assert.doesNotMatch(requestBody, /README\.md|new prose|old prose/);
   });
 }
 
 test('Git failures still fail classification', async () => {
   const result = await classify({ policy, files: [file('test/example.ts')], baseRef: 'base', headSha: 'head' }).pipe(
     Effect.provide(
-      commands(command => nodeCommand(command, 'process.stderr.write("git failed"); process.exit(1);')).pipe(
+      commands(() => Command.make(process.execPath, '-e', 'process.stderr.write("git failed"); process.exit(1);')).pipe(
         Layer.provideMerge(NodeContext.layer)
       )
     ),
@@ -391,58 +394,6 @@ test('Git failures still fail classification', async () => {
   );
   assert.equal(result._tag, 'GitError');
 });
-
-for (const [reply, expected] of [
-  [{ covered: true, categories: ['tests-only'] }, ['prose', 'tests-only']],
-  [{ covered: false, categories: ['tests-only'] }, []],
-  [{ covered: true, categories: ['prose'] }, []],
-  [{ categories: ['tests-only'] }, []],
-  ['invalid JSON', []]
-] as const) {
-  test(`reviews only remaining hunks and fails closed: ${JSON.stringify(reply)}`, async t => {
-    const testPath = 'test/unit/example[1].test.ts';
-    const cwd = classificationRepo(
-      t,
-      { 'README.md': 'old prose\n', [testPath]: 'assert.equal(1, 1);\n' },
-      { 'README.md': 'new prose\n', [testPath]: 'assert.equal(2, 2);\n' }
-    );
-    let calls = 0;
-    const promptPath = join(cwd, 'prompt.txt');
-    const result = await classify({
-      policy,
-      files: [file('README.md'), file(testPath)],
-      baseRef: 'base',
-      headSha: 'HEAD'
-    }).pipe(
-      Effect.provide(
-        commands(command => {
-          if (command.command === 'git') return command.pipe(Command.workingDirectory(cwd));
-          assert.equal(command.command, 'opencode');
-          calls += 1;
-          return nodeCommand(
-            command,
-            `
-          let prompt = '';
-          process.stdin.on('data', chunk => prompt += chunk);
-          process.stdin.on('end', () => {
-            require('node:fs').writeFileSync(${JSON.stringify(promptPath)}, prompt);
-            process.stdout.write(${JSON.stringify(events(typeof reply === 'string' ? reply : JSON.stringify(reply)))});
-          });
-        `
-          );
-        }).pipe(Layer.provideMerge(NodeContext.layer))
-      ),
-      Effect.withConfigProvider(agentConfig()),
-      Effect.runPromise
-    );
-    assert.equal(calls, 1);
-    assert.deepEqual(result, expected);
-    const prompt = readFileSync(promptPath, 'utf8');
-    assert.match(prompt, /already covered: true/);
-    assert.match(prompt, /assert.equal\(2, 2\)/);
-    assert.doesNotMatch(prompt, /README\.md|new prose|old prose/);
-  });
-}
 
 test('uncovered production hunks reject the union, including renamed source files', async t => {
   const source = 'packages/foo/src/example.ts';
@@ -454,7 +405,7 @@ test('uncovered production hunks reject the union, including renamed source file
       'packages/foo/src/other.ts': 'export const enabled = true;\n'
     }
   );
-  const promptPath = join(cwd, 'prompt.txt');
+  let requestBody: string | undefined;
   const result = await classify({
     policy,
     baseRef: 'base',
@@ -465,30 +416,29 @@ test('uncovered production hunks reject the union, including renamed source file
     ]
   }).pipe(
     Effect.provide(
-      commands(command => {
-        if (command.command === 'git') return command.pipe(Command.workingDirectory(cwd));
-        return nodeCommand(
-          command,
-          `
-        let prompt = '';
-        process.stdin.on('data', chunk => prompt += chunk);
-        process.stdin.on('end', () => {
-          require('node:fs').writeFileSync(${JSON.stringify(promptPath)}, prompt);
-          process.stdout.write(${JSON.stringify(events('{"covered":false,"categories":[]}'))});
-        });
-      `
-        );
-      }).pipe(Layer.provideMerge(NodeContext.layer))
+      commands(command => command.pipe(Command.workingDirectory(cwd))).pipe(Layer.provideMerge(NodeContext.layer))
     ),
+    Effect.provideService(FetchHttpClient.Fetch, async (_url, init) => {
+      requestBody = await new Response(init?.body).text();
+      const request = JSON.parse(requestBody);
+      return decisionResponse({
+        answers: Object.fromEntries(
+          Object.keys(request.questions).map(name => [
+            name,
+            { type: 'choice', choice: 'uncovered', confidence: 1, probabilities: { uncovered: 1 } }
+          ])
+        )
+      });
+    }),
     Effect.withConfigProvider(agentConfig()),
     Effect.runPromise
   );
   assert.deepEqual(result, []);
   assert.equal(decideCategoryApprove({ ...base, categories: result })._tag, 'Skip');
-  const prompt = readFileSync(promptPath, 'utf8');
-  assert.match(prompt, /deleted file mode/);
-  assert.match(prompt, /export const enabled = true/);
-  assert.doesNotMatch(prompt, /README\.md|rename from|rename to/);
+  assert.ok(requestBody);
+  assert.match(requestBody, /deleted file mode/);
+  assert.match(requestBody, /export const enabled = true/);
+  assert.doesNotMatch(requestBody, /README\.md|rename from|rename to/);
 });
 
 test('keeps covered version hunks when path-only hunks are omitted; version-only diffs still skip', async t => {
@@ -500,14 +450,19 @@ test('keeps covered version hunks when path-only hunks are omitted; version-only
   for (const files of [[file('README.md'), file('package.json')], [file('package.json')]]) {
     const categories = await classify({ policy, files, baseRef: 'base', headSha: 'head' }).pipe(
       Effect.provide(
-        commands(command =>
-          command.command === 'git'
-            ? command.pipe(Command.workingDirectory(cwd))
-            : nodeCommand(
-                command,
-                `process.stdout.write(${JSON.stringify(events('{"covered":true,"categories":[]}'))});`
-              )
-        ).pipe(Layer.provideMerge(NodeContext.layer))
+        commands(command => command.pipe(Command.workingDirectory(cwd))).pipe(Layer.provideMerge(NodeContext.layer))
+      ),
+      Effect.provideService(FetchHttpClient.Fetch, async () =>
+        decisionResponse({
+          answers: {
+            'hunk-0': {
+              type: 'choice',
+              choice: 'package-version',
+              confidence: 1,
+              probabilities: { 'package-version': 1 }
+            }
+          }
+        })
       ),
       Effect.withConfigProvider(agentConfig()),
       Effect.runPromise

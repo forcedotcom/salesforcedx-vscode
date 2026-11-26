@@ -1,0 +1,53 @@
+{
+  "name": "@salesforce/opencode-decisions",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "out/decisions.js",
+  "types": "out/decisions.d.ts",
+  "scripts": {
+    "compile": "wireit",
+    "lint": "wireit",
+    "test": "wireit"
+  },
+  "wireit": {
+    "compile": {
+      "command": "tsc -p tsconfig.json",
+      "files": [
+        "src/**/*.ts",
+        "tsconfig.json",
+        "../../tsconfig.common.json",
+        "package.json"
+      ],
+      "output": [
+        "out/**"
+      ]
+    },
+    "lint": {
+      "command": "eslint src",
+      "dependencies": [
+        "compile",
+        "../eslint-local-rules:compile"
+      ],
+      "files": [
+        "src/**/*.ts",
+        "../../eslint.config.mjs"
+      ],
+      "output": []
+    },
+    "test": {
+      "command": "node --test test/*.test.mjs",
+      "dependencies": [
+        "compile"
+      ],
+      "files": [
+        "test/*.test.mjs"
+      ],
+      "output": []
+    }
+  },
+  "dependencies": {
+    "@opencode/client": "2.2.5",
+    "effect": "4.0.6"
+  }
+}
