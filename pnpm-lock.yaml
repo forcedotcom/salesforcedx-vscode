@@ -675,9 +675,6 @@ importers:
       effect:
         specifier: ^3.22.4
         version: 3.22.4
-      faye:
-        specifier: 1.4.1
-        version: 1.4.1
       istanbul-lib-coverage:
         specifier: ^3.2.2
         version: 3.2.2

@@ -9,27 +9,21 @@ import type { Connection } from '@salesforce/core';
 import { getErrorMessage } from '@salesforce/salesforcedx-utils';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
-import * as HashSet from 'effect/HashSet';
 import * as Ref from 'effect/Ref';
 import * as Schedule from 'effect/Schedule';
 import * as Schema from 'effect/Schema';
 import * as Stream from 'effect/Stream';
 import { TestRunId } from '../schemas/salesforceId';
 import { queryRecordPages } from './records';
-import {
-  AsyncTestProgressSchema,
-  AsyncTestResultSchema,
-  type AsyncTestProgress,
-  type AsyncTestRunEvent
-} from './schema/asyncTests';
+import { AsyncTestResultSchema, type AsyncTestRunEvent } from './schema/asyncTests';
 import { ApexOperationError, ApexResponseDecodeError } from './schema/errors';
 import {
   AsyncTestOptionsSchema,
   queueRecordSchema,
-  summariesSchema,
   updateResultsSchema,
   type AsyncTestOptions
 } from './schema/wire/asyncTests';
+import { getTestRunProgress, isTestRunFinished } from './testRunProgress';
 
 const operation = 'runTestAsynchronous';
 
@@ -38,7 +32,6 @@ export type AsyncTestPollingOptions = {
   interval?: Duration.DurationInput;
 };
 
-const finishedStatuses = HashSet.make('Aborted', 'Failed', 'Completed', 'Passed', 'Skipped');
 const DEFAULT_POLL_INTERVAL = Duration.seconds(2);
 
 /** The accepted Salesforce run ID and its lazy progress/result stream. */
@@ -98,7 +91,7 @@ const abortTestRun = Effect.fn('Apex.abortTestRun')(function* (
         )
     }),
     Stream.flatMap(Stream.fromIterable),
-    Stream.filter(record => !HashSet.has(finishedStatuses, record.Status)),
+    Stream.filter(record => !isTestRunFinished(record.Status)),
     Stream.runCollect,
     Effect.map(records => Array.from(records)),
     Effect.flatMap(records =>
@@ -143,27 +136,13 @@ const pollTestRun = (
   pending: Ref.Ref<boolean>
 ): AsyncTestRun['stream'] =>
   Stream.repeatEffectWithSchedule(
-    request(() =>
-      connection.tooling.query(
-        `SELECT Status, ClassesCompleted, ClassesEnqueued FROM ApexTestRunResult WHERE AsyncApexJobId = '${testRunId}'`
-      )
-    ).pipe(
-      Effect.flatMap(response => decode(summariesSchema, response)),
-      Effect.map(
-        ({ records: [summary] }): AsyncTestProgress =>
-          AsyncTestProgressSchema.make({
-            status: summary.Status,
-            classesCompleted: summary.ClassesCompleted,
-            classesEnqueued: summary.ClassesEnqueued
-          })
-      )
-    ),
+    getTestRunProgress(connection, testRunId),
     Schedule.spaced(polling.interval ?? DEFAULT_POLL_INTERVAL)
   ).pipe(
-    Stream.takeUntil(event => HashSet.has(finishedStatuses, event.status)),
+    Stream.takeUntil(event => isTestRunFinished(event.status)),
     Stream.flatMap(
       (event): Stream.Stream<AsyncTestRunEvent, ApexOperationError | ApexResponseDecodeError> =>
-        HashSet.has(finishedStatuses, event.status)
+        isTestRunFinished(event.status)
           ? Stream.fromEffect(
               Ref.set(pending, false).pipe(
                 Effect.as(

@@ -45,7 +45,7 @@ export const AsyncTestOptionsSchema = Schema.Struct({
 }).annotations({ identifier: 'AsyncTestOptions' });
 export type AsyncTestOptions = typeof AsyncTestOptionsSchema.Type;
 
-export const ApexTestRunSummarySchema = Schema.Struct({
+const ApexTestRunSummarySchema = Schema.Struct({
   Status: AsyncTestRunStatusSchema,
   ClassesCompleted: Schema.optionalWith(Schema.Number, { default: () => 0, nullable: true }),
   ClassesEnqueued: Schema.optionalWith(Schema.Number, { default: () => 0, nullable: true })
