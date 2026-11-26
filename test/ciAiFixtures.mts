@@ -44,6 +44,25 @@ export const events = (text: string, reason = 'stop') =>
     .map(event => JSON.stringify(event))
     .join('\n') + '\n';
 
+export const decisionResponse = (body: {
+  answers: Record<
+    string,
+    { type: string; choice?: string | boolean; confidence?: number; probabilities?: Record<string, number> }
+  >;
+}) =>
+  Response.json({
+    data: {
+      answers: Object.entries(body.answers).map(([name, answer]) => ({
+        ...answer,
+        name,
+        probabilities: Object.entries(answer.probabilities ?? {}).map(([value, probability]) => ({
+          value,
+          probability
+        }))
+      }))
+    }
+  });
+
 export const config = (models = '["opencode/first","opencode/second"]') =>
   ConfigProvider.fromMap(
     new Map([

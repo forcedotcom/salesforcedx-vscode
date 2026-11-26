@@ -21,6 +21,7 @@ import { createDesktopTest, MINIMAL_ORG_ALIAS } from '@salesforce/playwright-vsc
 // spans to ~/.sf/vscode-spans/*.jsonl.
 export const telemetryDesktopTest = createDesktopTest({
   fixturesDir: __dirname,
+  recordVideo: false,
   orgAlias: MINIMAL_ORG_ALIAS,
   additionalExtensionDirs: ['salesforcedx-vscode-core'],
   disableOtherExtensions: false,

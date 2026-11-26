@@ -10,6 +10,7 @@ import { commandMustBeInPackageJson } from './commandMustBeInPackageJson';
 import { effectFnCatchMiddlewareLast } from './effectFnCatchMiddlewareLast';
 import { inlineSingleUseYieldBinding } from './inlineSingleUseYieldBinding';
 import { noDirectServicesImports } from './noDirectServicesImports';
+import { noDuplicateErrorMessageConversion } from './noDuplicateErrorMessageConversion';
 import { noDuplicateI18nValues } from './noDuplicateI18nValues';
 import { noDuplicatePlaywrightLocators } from './noDuplicatePlaywrightLocators';
 import { noEffectFnWrapper } from './noEffectFnWrapper';
@@ -63,6 +64,7 @@ const plugin: TSESLint.FlatConfig.Plugin = {
   rules: {
     'command-must-be-in-package-json': commandMustBeInPackageJson,
     'inline-single-use-yield-binding': inlineSingleUseYieldBinding,
+    'no-duplicate-error-message-conversion': noDuplicateErrorMessageConversion,
     'no-duplicate-i18n-values': noDuplicateI18nValues,
     'no-duplicate-playwright-locators': noDuplicatePlaywrightLocators,
     'no-direct-services-imports': noDirectServicesImports,

@@ -64,17 +64,19 @@ jobs:
         if: steps.preflight.outputs.result == 'true'
         working-directory: ${{ runner.temp }}/trusted-approver
         run: pnpm --filter @salesforce/effect-octokit compile
-      - name: Install OpenCode CLI
+      - name: Compile decision client
         if: steps.preflight.outputs.result == 'true'
-        run: npm install --global --allow-scripts=@opencode/cli @opencode/cli@2.2.5
+        working-directory: ${{ runner.temp }}/trusted-approver
+        run: pnpm --filter @salesforce/opencode-decisions compile
+      - uses: ./.github/actions/setup-opencode
+        if: steps.preflight.outputs.result == 'true'
       - name: Decide and approve
         if: steps.preflight.outputs.result == 'true'
         env:
           IDEE_GH_TOKEN: ${{ secrets.IDEE_GH_TOKEN }}
           OPENCODE_API_KEY: ${{ secrets.OPENCODE_API_KEY }}
-          OPENCODE_MODELS: ${{ vars.OPENCODE_MODELS }}
           GITHUB_REPOSITORY: ${{ github.repository }}
           GITHUB_RUN_ID: ${{ github.run_id }}
         run: |
           export GITHUB_EVENT_PATH="$RUNNER_TEMP/category-approve-event.json"
-          node "$RUNNER_TEMP/trusted-approver/scripts/categoryApprove.mts"
+          node "$RUNNER_TEMP/trusted-approver/scripts/runWithJevServer.mts" "$RUNNER_TEMP/trusted-approver/scripts/categoryApprove.mts"
