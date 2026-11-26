@@ -46,6 +46,7 @@ import {
   ensureSecondarySideBarHidden,
   executeCommandWithCommandPalette,
   reloadWindow,
+  startVideoRecording,
   verifyCommandExists,
   waitForQuickInputFirstOption,
   waitForVSCodeWorkbench,
@@ -107,7 +108,7 @@ const readTelemetryFileEvents = async (
 test('telemetry output: o11y spans + AppInsights-shape events from a core-dependent command', async ({
   page,
   workspaceDir
-}) => {
+}, testInfo) => {
   test.setTimeout(360_000);
 
   await test.step('workbench ready', async () => {
@@ -117,108 +118,117 @@ test('telemetry output: o11y spans + AppInsights-shape events from a core-depend
     await waitForWorkspaceReady(page);
   });
 
-  await test.step('run a core-backed command (Create Aura Component)', async () => {
-    const command = packageNls.lightning_generate_aura_component_text;
-    await verifyCommandExists(page, command, 60_000);
-    await executeCommandWithCommandPalette(page, command);
+  const videoName = [testInfo.project.name, ...testInfo.titlePath, 'telemetry-output', `retry-${testInfo.retry}`]
+    .join('-')
+    .replaceAll(/[^a-zA-Z0-9._-]+/g, '-')
+    .replaceAll(/^-+|-+$/g, '');
+  const stopRecording = await startVideoRecording(page, testInfo, videoName);
+  try {
+    await test.step('run a core-backed command (Create Aura Component)', async () => {
+      const command = packageNls.lightning_generate_aura_component_text;
+      await verifyCommandExists(page, command, 60_000);
+      await executeCommandWithCommandPalette(page, command);
 
-    const quickInput = page.locator(QUICK_INPUT_WIDGET);
-    await quickInput.waitFor({ state: 'visible', timeout: 30_000 });
-    await page.keyboard.type('TelemetryProbeCmp');
-    await page.keyboard.press('Enter');
-    await waitForQuickInputFirstOption(page);
-    await page.keyboard.press('Enter');
+      const quickInput = page.locator(QUICK_INPUT_WIDGET);
+      await quickInput.waitFor({ state: 'visible', timeout: 30_000 });
+      await page.keyboard.type('TelemetryProbeCmp');
+      await page.keyboard.press('Enter');
+      await waitForQuickInputFirstOption(page);
+      await page.keyboard.press('Enter');
 
-    await page.locator(EDITOR_WITH_URI).first().waitFor({ state: 'visible', timeout: 30_000 });
-  });
+      await page.locator(EDITOR_WITH_URI).first().waitFor({ state: 'visible', timeout: 30_000 });
+    });
 
-  await test.step('settle: let the AppInsights batch flush the command span while extension is live', async () => {
-    // The AppInsights network exporter batches on BatchSpanProcessor's default scheduledDelay (5s) and
-    // an immediate reload tears the extension host down before that fires, dropping the async POST to
-    // localhost:3003 (the SYNCHRONOUS file exporter still captures). Wait out ~2x the batch delay so
-    // the command span is exported to a live capture server. (Diagnostic only; CI runs with no listener.)
-    await page.waitForTimeout(10_000);
-  });
+    await test.step('settle: let the AppInsights batch flush the command span while extension is live', async () => {
+      // The AppInsights network exporter batches on BatchSpanProcessor's default scheduledDelay (5s) and
+      // an immediate reload tears the extension host down before that fires, dropping the async POST to
+      // localhost:3003 (the SYNCHRONOUS file exporter still captures). Wait out ~2x the batch delay so
+      // the command span is exported to a live capture server. (Diagnostic only; CI runs with no listener.)
+      await page.waitForTimeout(10_000);
+    });
 
-  await test.step('reload to flush buffered spans + class-telemetry (deactivationEvent)', async () => {
-    // Reload ends the extension scopes: services flushes its BatchSpanProcessor buffer to
-    // ~/.sf/vscode-spans/*.jsonl, and core's deactivate() calls sendExtensionDeactivationEvent() +
-    // dispose(), flushing TelemetryFile's buffer to {workspace}/salesforcedx-vscode-core-telemetry.json.
-    await reloadWindow(page);
-    await waitForVSCodeWorkbench(page);
-  });
+    await test.step('reload to flush buffered spans + class-telemetry (deactivationEvent)', async () => {
+      // Reload ends the extension scopes: services flushes its BatchSpanProcessor buffer to
+      // ~/.sf/vscode-spans/*.jsonl, and core's deactivate() calls sendExtensionDeactivationEvent() +
+      // dispose(), flushing TelemetryFile's buffer to {workspace}/salesforcedx-vscode-core-telemetry.json.
+      await reloadWindow(page);
+      await waitForVSCodeWorkbench(page);
+    });
 
-  await test.step('dump o11y spans + org-identity attributes', async () => {
-    // The default-org ref that stamps org-identity is populated asynchronously (maybeUpdateDefaultOrgRef
-    // runs in a forkDaemon after the first connection), and only core's SDK ever connects to the org —
-    // lightning's command span never carries orgId. So wait for the orgId-bearing root span (a core span
-    // like workspaceOrgShape.getOrgShape) to flush, not merely for any span.
-    // Also require telemetryTag 'e2e-test': the union covers every *.jsonl in SPANS_DIR, including
-    // spanRedaction.desktop.spec.ts's spans, which plant a different tag on purpose.
-    const isThisSpec = (s: SpanRow): boolean =>
-      s.attributes?.orgId !== undefined && s.attributes?.telemetryTag === 'e2e-test';
-    const rows = await waitFor(
-      () => readAllSpanRows(),
-      r => r.some(isThisSpec),
-      'no orgId-enriched o11y span flushed yet'
-    );
+    await test.step('dump o11y spans + org-identity attributes', async () => {
+      // The default-org ref that stamps org-identity is populated asynchronously (maybeUpdateDefaultOrgRef
+      // runs in a forkDaemon after the first connection), and only core's SDK ever connects to the org —
+      // lightning's command span never carries orgId. So wait for the orgId-bearing root span (a core span
+      // like workspaceOrgShape.getOrgShape) to flush, not merely for any span.
+      // Also require telemetryTag 'e2e-test': the union covers every *.jsonl in SPANS_DIR, including
+      // spanRedaction.desktop.spec.ts's spans, which plant a different tag on purpose.
+      const isThisSpec = (s: SpanRow): boolean =>
+        s.attributes?.orgId !== undefined && s.attributes?.telemetryTag === 'e2e-test';
+      const rows = await waitFor(
+        () => readAllSpanRows(),
+        r => r.some(isThisSpec),
+        'no orgId-enriched o11y span flushed yet'
+      );
 
-    const spanNames = [...new Set(rows.map(s => s.name))].toSorted();
-    console.log('=== O11Y SPAN NAMES THIS SESSION ===');
-    console.log(JSON.stringify(spanNames, null, 2));
+      const spanNames = [...new Set(rows.map(s => s.name))].toSorted();
+      console.log('=== O11Y SPAN NAMES THIS SESSION ===');
+      console.log(JSON.stringify(spanNames, null, 2));
 
-    // Org-identity is enriched ONLY onto ROOT spans by spanTransformProcessor (`!span.parentSpanContext`).
-    // Child spans carry no orgId. So target a span that actually has orgId — prefer the command span.
-    const orgAttrKeys = [
-      'orgId',
-      'devHubOrgId',
-      'isScratch',
-      'isSandbox',
-      'tracksSource',
-      'orgEdition',
-      'telemetryTag',
-      'cliId',
-      'webUserId'
-    ];
-    const commandSpan = rows.find(
-      s => s.name === 'sf.lightning.generate.aura.component' && s.attributes?.telemetryTag === 'e2e-test'
-    );
-    // Prefer the command span IF it carries orgId (it does once the default-org ref is populated), else
-    // fall back to any orgId-bearing root span of THIS spec (e.g. core's workspaceOrgShape.getOrgShape).
-    const enriched = commandSpan?.attributes?.orgId !== undefined ? commandSpan : rows.find(isThisSpec);
-    const orgAttrs: Record<string, unknown> = Object.fromEntries(
-      orgAttrKeys.map(k => [k, enriched?.attributes?.[k]] as const).filter(([, v]) => v !== undefined)
-    );
-    console.log('=== O11Y ORG-IDENTITY ATTRIBUTES (from span:', enriched?.name, ') ===');
-    console.log(JSON.stringify(orgAttrs, null, 2));
+      // Org-identity is enriched ONLY onto ROOT spans by spanTransformProcessor (`!span.parentSpanContext`).
+      // Child spans carry no orgId. So target a span that actually has orgId — prefer the command span.
+      const orgAttrKeys = [
+        'orgId',
+        'devHubOrgId',
+        'isScratch',
+        'isSandbox',
+        'tracksSource',
+        'orgEdition',
+        'telemetryTag',
+        'cliId',
+        'webUserId'
+      ];
+      const commandSpan = rows.find(
+        s => s.name === 'sf.lightning.generate.aura.component' && s.attributes?.telemetryTag === 'e2e-test'
+      );
+      // Prefer the command span IF it carries orgId (it does once the default-org ref is populated), else
+      // fall back to any orgId-bearing root span of THIS spec (e.g. core's workspaceOrgShape.getOrgShape).
+      const enriched = commandSpan?.attributes?.orgId !== undefined ? commandSpan : rows.find(isThisSpec);
+      const orgAttrs: Record<string, unknown> = Object.fromEntries(
+        orgAttrKeys.map(k => [k, enriched?.attributes?.[k]] as const).filter(([, v]) => v !== undefined)
+      );
+      console.log('=== O11Y ORG-IDENTITY ATTRIBUTES (from span:', enriched?.name, ') ===');
+      console.log(JSON.stringify(orgAttrs, null, 2));
 
-    // The FULL attribute set on this enriched span is exactly what the downstream exporters send. The
-    // O11y exporter AND the AppInsights exporter (ApplicationInsightsNodeExporter) both consume the
-    // same enriched span (see spansNode.ts); the common.* keys exist for the AppInsights side. In
-    // dev/test AppInsights diverts over HTTP to localhost:3003 — run `npm run spans:server
-    // -w salesforcedx-vscode-services` to capture the actual Breeze envelopes to ~/.sf/vscode-appinsights/.
-    console.log('=== FULL ENRICHED SPAN ATTRIBUTES (what O11y AND AppInsights receive) ===');
-    console.log(JSON.stringify(enriched?.attributes, null, 2));
+      // The FULL attribute set on this enriched span is exactly what the downstream exporters send. The
+      // O11y exporter AND the AppInsights exporter (ApplicationInsightsNodeExporter) both consume the
+      // same enriched span (see spansNode.ts); the common.* keys exist for the AppInsights side. In
+      // dev/test AppInsights diverts over HTTP to localhost:3003 — run `npm run spans:server
+      // -w salesforcedx-vscode-services` to capture the actual Breeze envelopes to ~/.sf/vscode-appinsights/.
+      console.log('=== FULL ENRICHED SPAN ATTRIBUTES (what O11y AND AppInsights receive) ===');
+      console.log(JSON.stringify(enriched?.attributes, null, 2));
 
-    console.log('=== O11Y COMMAND SPAN (sf.lightning.generate.aura.component) ===');
-    console.log(commandSpan ? JSON.stringify(commandSpan, null, 2) : 'not flushed to file this run');
+      console.log('=== O11Y COMMAND SPAN (sf.lightning.generate.aura.component) ===');
+      console.log(commandSpan ? JSON.stringify(commandSpan, null, 2) : 'not flushed to file this run');
 
-    expect(enriched?.attributes?.telemetryTag, 'e2e spans should carry the telemetry-tag').toBe('e2e-test');
-    expect(orgAttrs.orgId, 'org-identity should populate on the enriched root span').toBeDefined();
-  });
+      expect(enriched?.attributes?.telemetryTag, 'e2e spans should carry the telemetry-tag').toBe('e2e-test');
+      expect(orgAttrs.orgId, 'org-identity should populate on the enriched root span').toBeDefined();
+    });
 
-  await test.step('dump legacy class-reporter events (TelemetryFile), if any', async () => {
-    // The legacy class-based reporters (AppInsights/O11yReporter/TelemetryFile in utils-vscode) are
-    // INERT in dev/test: determineReporters returns only TelemetryFile, gated on localTelemetryLogging,
-    // and even that setting is undeclared in package.json. So this file is usually absent. Best-effort
-    // dump — do NOT fail the run on its absence; the span pipeline above is the source of truth.
-    const events = await readTelemetryFileEvents(workspaceDir);
-    console.log('=== LEGACY TelemetryFile EVENTS (salesforcedx-vscode-core-telemetry.json) ===');
-    console.log(
-      events.length > 0 ? JSON.stringify(events, null, 2) : 'none — legacy class reporters inert in test mode'
-    );
-  });
+    await test.step('dump legacy class-reporter events (TelemetryFile), if any', async () => {
+      // The legacy class-based reporters (AppInsights/O11yReporter/TelemetryFile in utils-vscode) are
+      // INERT in dev/test: determineReporters returns only TelemetryFile, gated on localTelemetryLogging,
+      // and even that setting is undeclared in package.json. So this file is usually absent. Best-effort
+      // dump — do NOT fail the run on its absence; the span pipeline above is the source of truth.
+      const events = await readTelemetryFileEvents(workspaceDir);
+      console.log('=== LEGACY TelemetryFile EVENTS (salesforcedx-vscode-core-telemetry.json) ===');
+      console.log(
+        events.length > 0 ? JSON.stringify(events, null, 2) : 'none — legacy class reporters inert in test mode'
+      );
+    });
 
-  // No validateNoCriticalErrors: this is a diagnostic dump, not a product-behavior assertion, and
-  // enabling telemetry can surface unrelated network noise from the reporters.
+    // No validateNoCriticalErrors: this is a diagnostic dump, not a product-behavior assertion, and
+    // enabling telemetry can surface unrelated network noise from the reporters.
+  } finally {
+    await stopRecording();
+  }
 });

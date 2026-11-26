@@ -40,6 +40,7 @@ const AURA_CMP_META = [
 // it up.
 const baseTest = createDesktopTest({
   fixturesDir: __dirname,
+  recordVideo: false,
   additionalExtensionDirs: ['salesforcedx-vscode-core'],
   disableOtherExtensions: false,
   userSettings: {
