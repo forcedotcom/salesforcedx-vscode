@@ -155,6 +155,7 @@
       ]
     },
     "test:desktop": {
+      "description": "Always run desktop E2E; upload videos as artifacts instead of caching them with Wireit.",
       "command": "playwright test --config=test/playwright/playwright.config.desktop.ts",
       "env": {
         "VSCODE_DESKTOP": "1",
@@ -174,10 +175,6 @@
         "test/playwright/**/*.ts",
         "package*.json",
         "../../.github/**"
-      ],
-      "output": [
-        "test-results/**",
-        "playwright-report/**"
       ]
     },
     "copy:jar": {
