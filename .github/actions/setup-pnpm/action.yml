@@ -13,7 +13,7 @@ runs:
   using: composite
   steps:
     - name: Setup pnpm and Node.js
-      uses: pnpm/setup@v3
+      uses: pnpm/setup@731dfb6463bbd11c11fd0ee11fe00ed0e36d48a1 # v3
       with:
         runtime: node@${{ inputs.node-version == 'lts/*' && 'lts' || inputs.node-version }}
         install: false
