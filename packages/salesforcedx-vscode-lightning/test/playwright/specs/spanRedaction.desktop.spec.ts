@@ -28,6 +28,7 @@ import {
   ensureSecondarySideBarHidden,
   executeCommandWithCommandPalette,
   reloadWindow,
+  startVideoRecording,
   verifyCommandExists,
   waitForQuickInputFirstOption,
   waitForVSCodeWorkbench,
@@ -49,7 +50,9 @@ const REDACTED = '<REDACTED ACCESS TOKEN>';
 
 type Envelope = { data?: { baseData?: { properties?: Record<string, unknown> } } };
 
-test('redact: planted access token -> <REDACTED ACCESS TOKEN> in span + AppInsights files', async ({ page }) => {
+test('redact: planted access token -> <REDACTED ACCESS TOKEN> in span + AppInsights files', async ({
+  page
+}, testInfo) => {
   test.setTimeout(360_000);
   const since = Date.now();
 
@@ -60,68 +63,77 @@ test('redact: planted access token -> <REDACTED ACCESS TOKEN> in span + AppInsig
     await waitForWorkspaceReady(page);
   });
 
-  await test.step('run a local, org-free command to produce a root command span', async () => {
-    const command = packageNls.lightning_generate_aura_component_text;
-    await verifyCommandExists(page, command, 60_000);
-    await executeCommandWithCommandPalette(page, command);
+  const videoName = [testInfo.project.name, ...testInfo.titlePath, 'span-redaction', `retry-${testInfo.retry}`]
+    .join('-')
+    .replaceAll(/[^a-zA-Z0-9._-]+/g, '-')
+    .replaceAll(/^-+|-+$/g, '');
+  const stopRecording = await startVideoRecording(page, testInfo, videoName);
+  try {
+    await test.step('run a local, org-free command to produce a root command span', async () => {
+      const command = packageNls.lightning_generate_aura_component_text;
+      await verifyCommandExists(page, command, 60_000);
+      await executeCommandWithCommandPalette(page, command);
 
-    const quickInput = page.locator(QUICK_INPUT_WIDGET);
-    await quickInput.waitFor({ state: 'visible', timeout: 30_000 });
-    await page.keyboard.type('RedactionProbeCmp');
-    await page.keyboard.press('Enter');
-    await waitForQuickInputFirstOption(page);
-    await page.keyboard.press('Enter');
+      const quickInput = page.locator(QUICK_INPUT_WIDGET);
+      await quickInput.waitFor({ state: 'visible', timeout: 30_000 });
+      await page.keyboard.type('RedactionProbeCmp');
+      await page.keyboard.press('Enter');
+      await waitForQuickInputFirstOption(page);
+      await page.keyboard.press('Enter');
 
-    await page.locator(EDITOR_WITH_URI).first().waitFor({ state: 'visible', timeout: 30_000 });
-  });
+      await page.locator(EDITOR_WITH_URI).first().waitFor({ state: 'visible', timeout: 30_000 });
+    });
 
-  await test.step('settle: let the AppInsights batch POST while the extension host is alive', async () => {
-    // BatchSpanProcessor's default scheduledDelay is 5s and an immediate reload tears the host down
-    // before it fires, dropping the async POST to localhost:3003. The file exporter is synchronous.
-    await page.waitForTimeout(10_000);
-  });
+    await test.step('settle: let the AppInsights batch POST while the extension host is alive', async () => {
+      // BatchSpanProcessor's default scheduledDelay is 5s and an immediate reload tears the host down
+      // before it fires, dropping the async POST to localhost:3003. The file exporter is synchronous.
+      await page.waitForTimeout(10_000);
+    });
 
-  await test.step('reload to flush the remaining buffered spans', async () => {
-    await reloadWindow(page);
-    await waitForVSCodeWorkbench(page);
-  });
+    await test.step('reload to flush the remaining buffered spans', async () => {
+      await reloadWindow(page);
+      await waitForVSCodeWorkbench(page);
+    });
 
-  await test.step('span file: telemetryTag redacted, raw token absent', async () => {
-    await expect
-      .poll(
-        async () => {
-          const files = await readJsonlFiles(SPANS_DIR, since);
-          return parseJsonlLines<SpanRow>(files).some(
-            row => row.kind === 'span' && row.attributes?.telemetryTag === REDACTED
-          );
-        },
-        { timeout: 90_000, message: 'no span with a redacted telemetryTag reached ~/.sf/vscode-spans' }
-      )
-      .toBe(true);
+    await test.step('span file: telemetryTag redacted, raw token absent', async () => {
+      await expect
+        .poll(
+          async () => {
+            const files = await readJsonlFiles(SPANS_DIR, since);
+            return parseJsonlLines<SpanRow>(files).some(
+              row => row.kind === 'span' && row.attributes?.telemetryTag === REDACTED
+            );
+          },
+          { timeout: 90_000, message: 'no span with a redacted telemetryTag reached ~/.sf/vscode-spans' }
+        )
+        .toBe(true);
 
-    const raw = (await readJsonlFiles(SPANS_DIR, since)).join('\n');
-    expect(raw, 'raw planted token leaked into the span file').not.toContain(PLANTED_TOKEN_TAIL);
-  });
+      const raw = (await readJsonlFiles(SPANS_DIR, since)).join('\n');
+      expect(raw, 'raw planted token leaked into the span file').not.toContain(PLANTED_TOKEN_TAIL);
+    });
 
-  await test.step('AppInsights envelopes: telemetryTag redacted, raw token absent', async () => {
-    await expect
-      .poll(
-        async () => {
-          const files = await readJsonlFiles(APPINSIGHTS_DIR, since);
-          return parseJsonlLines<Envelope>(files).some(
-            envelope => envelope.data?.baseData?.properties?.telemetryTag === REDACTED
-          );
-        },
-        {
-          timeout: 90_000,
-          message: `no envelope with a redacted telemetryTag reached ${APPINSIGHTS_DIR} — is the spans:server wireit service running?`
-        }
-      )
-      .toBe(true);
+    await test.step('AppInsights envelopes: telemetryTag redacted, raw token absent', async () => {
+      await expect
+        .poll(
+          async () => {
+            const files = await readJsonlFiles(APPINSIGHTS_DIR, since);
+            return parseJsonlLines<Envelope>(files).some(
+              envelope => envelope.data?.baseData?.properties?.telemetryTag === REDACTED
+            );
+          },
+          {
+            timeout: 90_000,
+            message: `no envelope with a redacted telemetryTag reached ${APPINSIGHTS_DIR} — is the spans:server wireit service running?`
+          }
+        )
+        .toBe(true);
 
-    const raw = (await readJsonlFiles(APPINSIGHTS_DIR, since)).join('\n');
-    expect(raw, 'raw planted token leaked into the AppInsights envelopes').not.toContain(PLANTED_TOKEN_TAIL);
-  });
+      const raw = (await readJsonlFiles(APPINSIGHTS_DIR, since)).join('\n');
+      expect(raw, 'raw planted token leaked into the AppInsights envelopes').not.toContain(PLANTED_TOKEN_TAIL);
+    });
 
-  // No validateNoCriticalErrors: enabling telemetry surfaces unrelated reporter network noise.
+    // No validateNoCriticalErrors: enabling telemetry surfaces unrelated reporter network noise.
+  } finally {
+    await stopRecording();
+  }
 });

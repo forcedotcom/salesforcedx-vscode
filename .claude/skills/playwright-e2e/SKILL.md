@@ -2,6 +2,7 @@
 name: playwright-e2e
 description: writing, running, and debugging Playwright tests; creating and recreating scratch orgs (Dreamhouse, minimal, non-tracking); working with their output from github actions
 review: always
+review-complexity: medium
 ---
 
 # Playwright E2E Tests

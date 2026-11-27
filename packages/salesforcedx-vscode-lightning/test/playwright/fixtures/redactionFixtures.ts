@@ -38,6 +38,7 @@ const PLANTED_TOKEN = `00D000000000000!${PLANTED_TOKEN_TAIL}`;
 export const redactionDesktopTest = createDesktopTest({
   fixturesDir: __dirname,
   useVsix: false,
+  recordVideo: false,
   additionalExtensionDirs: ['salesforcedx-vscode-core'],
   disableOtherExtensions: false,
   userSettings: {

@@ -13,6 +13,7 @@ const APEX_LANGUAGE_SERVER_EXTENSION_ID = 'salesforce.apex-language-server-exten
 
 const baseTest = createDesktopTest({
   fixturesDir: __dirname,
+  recordVideo: false,
   skipCurrentPackage: true,
   marketplaceExtensions: [APEX_LANGUAGE_SERVER_EXTENSION_ID],
   disableOtherExtensions: false,

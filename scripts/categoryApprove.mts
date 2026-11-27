@@ -33,16 +33,14 @@ import {
   TEAM_SLUG,
   type Decision,
   type Facts,
-  buildPrompt,
   categoryForPath,
   categoryIdsFromPolicy,
   classifyGit2GusConfig,
   decideCategoryApprove,
-  parseAgentResult,
   pathsForFile,
   rejectedPath
 } from './shared/categoryDecision.mts';
-import { openCodePrompt } from './shared/openCode.mts';
+import { classifyWithJev } from './shared/categoryJev.mts';
 import { GitError } from './shared/scriptErrors.mts';
 
 const commandOutput = Effect.fn('categoryApprove.commandOutput')(function* (command: Command.Command) {
@@ -113,41 +111,7 @@ export const classify = Effect.fn('categoryApprove.classify')(function* (input: 
     Effect.flatMap(diff =>
       diff.trim().length === 0
         ? Effect.succeed(Option.none<readonly string[]>())
-        : openCodePrompt({ prompt: buildPrompt(policy, diff, categories.length > 0) }).pipe(
-            Effect.map(parseAgentResult),
-            Effect.catchTag('OpenCodeRunFailed', error =>
-              Effect.logWarning(
-                'Automatic approval skipped: AI classification unavailable. Human approval remains available.',
-                {
-                  reason: error.message
-                }
-              ).pipe(
-                Effect.andThen(Config.option(Config.string('GITHUB_STEP_SUMMARY'))),
-                Effect.flatMap(
-                  Option.match({
-                    onNone: () => Effect.void,
-                    onSome: summaryPath =>
-                      FileSystem.FileSystem.pipe(
-                        Effect.flatMap(fs =>
-                          fs.writeFileString(
-                            summaryPath,
-                            'Automatic approval skipped: AI classification unavailable. Human approval remains available.\n',
-                            { flag: 'a' }
-                          )
-                        ),
-                        Effect.catchTag('SystemError', summaryError =>
-                          Effect.logWarning('Could not write automatic approval skip summary', summaryError.message)
-                        ),
-                        Effect.catchTag('BadArgument', summaryError =>
-                          Effect.logWarning('Could not write automatic approval skip summary', summaryError.message)
-                        )
-                      )
-                  })
-                ),
-                Effect.as(Option.none<readonly string[]>())
-              )
-            )
-          )
+        : classifyWithJev({ policy, diff, hasCoveredHunks: categories.length > 0 })
     ),
     Effect.map(
       Option.match({

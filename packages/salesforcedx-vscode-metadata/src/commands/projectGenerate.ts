@@ -64,6 +64,11 @@ const TEMPLATE_PRESENTATION: Partial<Record<ProjectTemplate, TemplatePresentatio
     label: nls.localize('project_generate_angular_external_app_display_text'),
     detail: nls.localize('project_generate_angular_b2x_template'),
     group: 'externalApps'
+  },
+  vueexternalapp: {
+    label: nls.localize('project_generate_vue_external_app_display_text'),
+    detail: nls.localize('project_generate_vue_b2x_template'),
+    group: 'externalApps'
   }
 };
 

@@ -6,11 +6,10 @@
  */
 
 import { FileOutputError, type FileOutput } from '@salesforce/apex-node/effect';
-import type { SalesforceVSCodeServicesApi } from '@salesforce/effect-ext-utils';
+import { getMessageFromError, type SalesforceVSCodeServicesApi } from '@salesforce/effect-ext-utils';
 import * as Chunk from 'effect/Chunk';
 import type * as Context from 'effect/Context';
 import * as Effect from 'effect/Effect';
-import { isError } from 'effect/Predicate';
 import * as Stream from 'effect/Stream';
 import { Utils } from 'vscode-uri';
 
@@ -18,7 +17,7 @@ type FsServiceTag = SalesforceVSCodeServicesApi['services']['FsService'];
 type FsService = Context.Tag.Service<FsServiceTag>;
 
 const toFileOutputError = (operation: string, path: string, cause: unknown): FileOutputError =>
-  new FileOutputError({ operation, path, message: isError(cause) ? cause.message : String(cause) });
+  new FileOutputError({ operation, path, message: getMessageFromError(cause) });
 
 /** Uses the services-owned filesystem, including its VS Code web workspace provider. */
 export const fileOutputFromFsService = (fsService: FsService): typeof FileOutput.Service => ({
