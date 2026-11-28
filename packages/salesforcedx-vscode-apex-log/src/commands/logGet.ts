@@ -8,7 +8,9 @@
 import type { ApexLogListItem } from '../logs/logTypes';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Arr from 'effect/Array';
+import * as DateTime from 'effect/DateTime';
 import * as Effect from 'effect/Effect';
+import * as Option from 'effect/Option';
 import * as vscode from 'vscode';
 import { LogGetNoLogsError } from '../errors/commandErrors';
 import { saveAndOpenLog } from '../logs/logStorage';
@@ -51,7 +53,14 @@ const selectLog = Effect.fn('ApexLog.selectLog')(function* (logs: readonly ApexL
             logs.map(log => ({
               label: `$(file-text) ${log.LogUser?.Name ?? 'Unknown'} - ${log.Operation ?? 'Api'}`,
               description: formatLogSize(log.LogLength),
-              detail: log.StartTime ? new Date(log.StartTime).toLocaleString() : undefined,
+              detail: log.StartTime
+                ? DateTime.make(Date.parse(log.StartTime)).pipe(
+                    Option.match({
+                      onNone: () => 'Invalid Date',
+                      onSome: date => DateTime.toDateUtc(date).toLocaleString()
+                    })
+                  )
+                : undefined,
               id: log.Id
             })),
             { placeHolder: nls.localize('log_get_pick_log') }

@@ -11,6 +11,7 @@ import { paginateRest } from '@octokit/plugin-paginate-rest';
 import type { RequestError } from '@octokit/request-error';
 import { type Endpoints } from '@octokit/types';
 import { getErrorMessage } from '@salesforce/salesforcedx-utils';
+import * as Clock from 'effect/Clock';
 import * as Config from 'effect/Config';
 import * as ConfigProvider from 'effect/ConfigProvider';
 import * as Duration from 'effect/Duration';
@@ -189,7 +190,7 @@ const isGraphqlResponseError = (cause: unknown): cause is GraphqlResponseError<u
   isError(cause) && cause.name === 'GraphqlResponseError' && 'errors' in cause && Array.isArray(cause.errors);
 
 /** GitHub primary limits use remaining=0; secondary limits send retry-after. */
-const retryAfterMillis = (cause: unknown) => {
+const retryAfterMillis = (cause: unknown, nowMillis: number) => {
   if (!isRequestError(cause)) return undefined;
   const retryAfter = header(cause.response, 'retry-after');
   const remaining = header(cause.response, 'x-ratelimit-remaining');
@@ -199,13 +200,13 @@ const retryAfterMillis = (cause: unknown) => {
     retryAfter !== undefined
       ? Number(retryAfter) * 1000
       : reset !== undefined
-        ? Math.max(0, Number(reset) * 1000 - Date.now())
+        ? Math.max(0, Number(reset) * 1000 - nowMillis)
         : 1000;
   return Number.isFinite(millis) ? Math.min(millis, maxRateLimitWait) : 1000;
 };
 
-const toError = (method: string, path: string, cause: unknown) => {
-  const wait = retryAfterMillis(cause);
+const toError = (method: string, path: string, cause: unknown, nowMillis: number) => {
+  const wait = retryAfterMillis(cause, nowMillis);
   return new GitHubRequestError({
     message: getErrorMessage(cause),
     status: isRequestError(cause) ? cause.status : isGraphqlResponseError(cause) ? 200 : 0,
@@ -216,10 +217,14 @@ const toError = (method: string, path: string, cause: unknown) => {
 };
 
 const run = <A>(method: string, path: string, request: () => Promise<A>) => {
-  const once = Effect.tryPromise({
+  const once: Effect.Effect<A, GitHubRequestError> = Effect.tryPromise({
     try: request,
-    catch: (cause: unknown) => toError(method, path, cause)
-  });
+    catch: (cause: unknown) => cause
+  }).pipe(
+    Effect.catchAll(cause =>
+      Clock.currentTimeMillis.pipe(Effect.flatMap(nowMillis => Effect.fail(toError(method, path, cause, nowMillis))))
+    )
+  );
   return once.pipe(
     Effect.catchTag('GitHubRequestError', error =>
       error.retryAfterMillis === undefined

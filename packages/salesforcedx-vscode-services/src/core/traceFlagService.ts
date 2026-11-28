@@ -9,6 +9,7 @@ import * as apex from '@salesforce/apex-node/effect';
 import * as Arr from 'effect/Array';
 import * as Cache from 'effect/Cache';
 import * as Chunk from 'effect/Chunk';
+import * as Clock from 'effect/Clock';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
 import * as Match from 'effect/Match';
@@ -394,7 +395,13 @@ export class TraceFlagService extends Effect.Service<TraceFlagService>()('TraceF
           Option.match({
             onNone: () => Effect.succeed(false),
             onSome: tf =>
-              tf.expirationDate < new Date() ? deleteTraceFlag(tf.id).pipe(Effect.as(true)) : Effect.succeed(false)
+              Clock.currentTimeMillis.pipe(
+                Effect.flatMap(now =>
+                  tf.expirationDate.getTime() < now
+                    ? deleteTraceFlag(tf.id).pipe(Effect.as(true))
+                    : Effect.succeed(false)
+                )
+              )
           })
         )
       )

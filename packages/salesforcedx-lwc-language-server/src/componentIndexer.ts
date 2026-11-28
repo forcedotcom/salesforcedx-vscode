@@ -16,6 +16,7 @@ import {
   type NormalizedPath
 } from '@salesforce/salesforcedx-lightning-lsp-common';
 import { snakeCase, camelCase } from 'change-case';
+import * as DateTime from 'effect/DateTime';
 import { isNotNull } from 'effect/Predicate';
 import * as path from 'node:path';
 import { type Connection, type DocumentUri } from 'vscode-languageserver';
@@ -141,7 +142,7 @@ const findFilesWithGlob = async (
       path: fileUri,
       stats: fileStat
         ? {
-            mtime: new Date(fileStat.mtime)
+            mtime: DateTime.unsafeMake(fileStat.mtime).pipe(DateTime.toDateUtc)
           }
         : undefined
     });

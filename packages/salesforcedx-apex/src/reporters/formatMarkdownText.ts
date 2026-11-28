@@ -7,6 +7,7 @@
 
 import type { ReportData } from './markdownReportTemplate';
 import type { ApexTestResultData, TestResult } from '../tests/types';
+import * as DateTime from 'effect/DateTime';
 import * as Order from 'effect/Order';
 import * as Stream from 'effect/Stream';
 import { escapeHtml, escapeMarkdown } from './escaping';
@@ -294,7 +295,7 @@ const formatMarkdownTextChunkIterable = (
     performanceThresholdMs: options.performanceThresholdMs ?? 5000,
     coverageThresholdPercent: options.coverageThresholdPercent ?? 75,
     codeCoverage: options.codeCoverage ?? false,
-    timestamp: options.timestamp ?? new Date(),
+    timestamp: options.timestamp ?? DateTime.unsafeNow().pipe(DateTime.toDateUtc),
     lineEnding: options.lineEnding ?? '\n'
   };
   const data = buildReportData(testResult, defaults);

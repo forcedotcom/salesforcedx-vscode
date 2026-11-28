@@ -9,6 +9,7 @@ import type { ListedMetadataComponent, TypeInventory } from './orgCatalogInterna
 import type { OrgMetadataCatalogInternalEntry as OrgMetadataCatalogEntry } from './orgMetadataCatalogTypes';
 import type { ArtifactNamespace } from '../core/artifactIdentity';
 import * as Arr from 'effect/Array';
+import * as DateTime from 'effect/DateTime';
 import * as Effect from 'effect/Effect';
 import { pipe } from 'effect/Function';
 import * as HashMap from 'effect/HashMap';
@@ -69,13 +70,14 @@ export const mergeInventory = Effect.fn('mergeInventory')(function* ({
     const key = componentIdentity(reference, workspaceNamespace);
     const existing = Option.getOrUndefined(HashMap.get(orgInventory, key));
     return (existing ? Effect.succeed(existing.documentUri) : componentDocumentUri(fullName)).pipe(
-      Effect.map(
-        uri =>
+      Effect.zipWith(
+        DateTime.now,
+        (uri, now) =>
           [
             key,
             {
               orgId,
-              observedAt: existing?.observedAt ?? new Date().toISOString(),
+              observedAt: existing?.observedAt ?? DateTime.formatIso(now),
               provenance: existing ? ('metadata-api+workspace' as const) : ('workspace' as const),
               reference:
                 existing && Schema.is(OrgMetadataComponentReference)(existing.reference)

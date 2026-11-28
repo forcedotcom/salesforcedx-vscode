@@ -5,10 +5,12 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import * as DateTime from 'effect/DateTime';
 import type { TraceFlagItem } from 'salesforcedx-vscode-services';
 
 /**
  * Live active check. Unlike the schema's `isActive` boolean (baked at decode time),
  * this re-evaluates against the current clock so callers clear stale state at expiry.
  */
-export const isTraceFlagActive = (item: TraceFlagItem): boolean => item.expirationDate.getTime() > Date.now();
+export const isTraceFlagActive = (item: TraceFlagItem): boolean =>
+  item.expirationDate.getTime() > DateTime.unsafeNow().pipe(DateTime.toEpochMillis);

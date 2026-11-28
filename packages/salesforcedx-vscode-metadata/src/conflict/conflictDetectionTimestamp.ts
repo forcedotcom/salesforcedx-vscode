@@ -18,8 +18,7 @@ import { buildTimestampIndex } from './resultStorage';
 
 const componentKey = (type: string, fullName: string) => `${type}:${fullName}`;
 
-const dateIsNewer = (remote: string, stored: DateTime.Utc) =>
-  new Date(remote).getTime() > DateTime.toEpochMillis(stored);
+const dateIsNewer = (remote: string, stored: DateTime.Utc) => Date.parse(remote) > DateTime.toEpochMillis(stored);
 
 const computePotentialConflictKeys = Effect.fn('conflictDetection.computePotentialConflictKeys')(function* (
   entries: readonly {

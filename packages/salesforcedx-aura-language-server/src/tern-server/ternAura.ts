@@ -7,6 +7,7 @@
 // @ts-nocheck as this is a third party library
 import { extractJsonFromImport, Logger, normalizePath } from '@salesforce/salesforcedx-lightning-lsp-common';
 import * as walk from 'acorn-walk';
+import * as DateTime from 'effect/DateTime';
 import * as path from 'node:path';
 import * as infer from '../tern/lib/infer';
 import * as tern from '../tern/lib/tern';
@@ -393,7 +394,7 @@ tern.registerPlugin('aura', (s, _options) => {
   const defs = extractJsonFromImport(auraTypesJsonImport);
   server.addDefs(defs);
 
-  Logger.log(`${new Date().toISOString()} Done loading!`);
+  Logger.log(`${DateTime.unsafeNow().pipe(DateTime.formatIso)} Done loading!`);
 });
 
 tern.defineQueryType('ideInit', {

@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import * as DateTime from 'effect/DateTime';
 import { EventEmitter } from 'node:events';
 import {
   CloseAction,
@@ -34,12 +35,12 @@ export class ApexErrorHandler extends EventEmitter implements ErrorHandler {
   // Closed is called when the server processes closes/quits
   public closed(): CloseHandlerResult {
     if (this.hasStarted) {
-      this.restarts = [Date.now()];
+      this.restarts = [DateTime.unsafeNow().pipe(DateTime.toEpochMillis)];
       this.emit('restarting', 1);
       this.hasStarted = false;
       return { action: CloseAction.Restart };
     }
-    this.restarts.push(Date.now());
+    this.restarts.push(DateTime.unsafeNow().pipe(DateTime.toEpochMillis));
     if (this.restarts.length < 5) {
       this.emit('restarting', this.restarts.length);
       return { action: CloseAction.Restart };

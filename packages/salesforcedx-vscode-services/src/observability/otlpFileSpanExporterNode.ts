@@ -8,6 +8,7 @@
 import { type ExportResult, ExportResultCode } from '@opentelemetry/core';
 import { type ReadableSpan, type SpanExporter } from '@opentelemetry/sdk-trace-base';
 import { Global } from '@salesforce/core/global';
+import * as DateTime from 'effect/DateTime';
 import { appendFileSync, mkdirSync } from 'node:fs';
 import { hostname } from 'node:os';
 import { join } from 'node:path';
@@ -21,7 +22,7 @@ let sharedFilePath: string | undefined;
 export const getOtlpFilePath = (): string => {
   if (!sharedFilePath) {
     mkdirSync(SPANS_DIR, { recursive: true });
-    const timestamp = new Date().toISOString().replaceAll(/[:.]/g, '-');
+    const timestamp = DateTime.unsafeNow().pipe(DateTime.formatIso).replaceAll(/[:.]/g, '-');
     sharedFilePath = join(SPANS_DIR, `${timestamp}.jsonl`);
   }
   return sharedFilePath;

@@ -6,6 +6,7 @@
  */
 
 import * as Arr from 'effect/Array';
+import * as DateTime from 'effect/DateTime';
 import * as Order from 'effect/Order';
 import { type TestResult, type ApexTestResultData } from '../tests/types';
 import { escapeMarkdown } from './escaping';
@@ -36,7 +37,7 @@ export const formatMarkdownText = (testResult: TestResult, options: MarkdownText
     performanceThresholdMs = 5000,
     coverageThresholdPercent = 75,
     codeCoverage = false,
-    timestamp = new Date()
+    timestamp = DateTime.unsafeNow().pipe(DateTime.toDateUtc)
   } = options;
   const buildReportData = (): ReportData => {
     const { passed, failed, skipped, total, duration } = getSummaryInfo(testResult.summary);

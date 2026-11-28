@@ -13,6 +13,8 @@ import {
 } from '@salesforce/salesforcedx-lightning-lsp-common';
 import { getErrorMessage } from '@salesforce/salesforcedx-utils';
 import { camelCase, paramCase } from 'change-case';
+import * as DateTime from 'effect/DateTime';
+import * as Option from 'effect/Option';
 
 import * as path from 'node:path';
 import { Location, Position, Range } from 'vscode-languageserver';
@@ -74,18 +76,24 @@ export const createTag = async (attributes: TagAttrs, fileSystemAccessor?: LspFi
   let updatedAt: Date;
 
   if (attributes.updatedAt) {
-    updatedAt = new Date(attributes.updatedAt);
+    const suppliedUpdatedAt = attributes.updatedAt;
+    updatedAt = DateTime.make(suppliedUpdatedAt).pipe(
+      Option.match({
+        onNone: () => suppliedUpdatedAt,
+        onSome: DateTime.toDateUtc
+      })
+    );
   } else if (file && fileSystemAccessor) {
     try {
       // file is already normalized, and getFileStat normalizes internally
       const stat = await fileSystemAccessor.getFileStat(`file://${file}`);
-      updatedAt = stat ? new Date(stat.mtime) : new Date();
+      updatedAt = (stat ? DateTime.unsafeMake(stat.mtime) : DateTime.unsafeNow()).pipe(DateTime.toDateUtc);
     } catch {
       // If file doesn't exist or can't be read, use current date
-      updatedAt = new Date();
+      updatedAt = DateTime.unsafeNow().pipe(DateTime.toDateUtc);
     }
   } else {
-    updatedAt = new Date();
+    updatedAt = DateTime.unsafeNow().pipe(DateTime.toDateUtc);
   }
 
   return {
@@ -304,13 +312,13 @@ export const updateTagMetadata = async (
     try {
       // tag.file is already normalized, and getFileStat normalizes internally
       const stat = await fileSystemAccessor.getFileStat(`file://${tag.file}`);
-      tag.updatedAt = stat ? new Date(stat.mtime) : new Date();
+      tag.updatedAt = (stat ? DateTime.unsafeMake(stat.mtime) : DateTime.unsafeNow()).pipe(DateTime.toDateUtc);
     } catch {
       // If file doesn't exist or can't be read, use current date
-      tag.updatedAt = new Date();
+      tag.updatedAt = DateTime.unsafeNow().pipe(DateTime.toDateUtc);
     }
   } else {
-    tag.updatedAt = new Date();
+    tag.updatedAt = DateTime.unsafeNow().pipe(DateTime.toDateUtc);
   }
 };
 

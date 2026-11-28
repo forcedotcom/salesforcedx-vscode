@@ -6,6 +6,7 @@
  */
 import type { ProgressAndSuccessCommandKey } from '../utils/notificationMode';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import * as DateTime from 'effect/DateTime';
 import * as Effect from 'effect/Effect';
 import * as Equal from 'effect/Equal';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
@@ -33,7 +34,7 @@ export class ApexTestController {
   private orgOnlyTag: vscode.TestTag | undefined;
   private suiteTag: vscode.TestTag | undefined;
   private staleTag: vscode.TestTag | undefined;
-  private readonly sessionStartTime = Date.now();
+  private readonly sessionStartTime = DateTime.unsafeNow().pipe(DateTime.toEpochMillis);
   private discoveryRequested = false;
   private initialResolutionPromise: Promise<void> | undefined;
 

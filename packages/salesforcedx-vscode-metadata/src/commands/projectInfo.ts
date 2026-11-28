@@ -6,6 +6,7 @@
  */
 
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import * as DateTime from 'effect/DateTime';
 import * as Effect from 'effect/Effect';
 import * as Schema from 'effect/Schema';
 import * as Stream from 'effect/Stream';
@@ -203,7 +204,7 @@ export const renderMarkdown = ({
   settings: readonly (readonly [string, unknown])[];
   envInfo: EnvInfo;
 }): string => {
-  const timestamp = new Date().toISOString();
+  const timestamp = DateTime.unsafeNow().pipe(DateTime.formatIso);
 
   const metaSection = [
     '## Metadata',

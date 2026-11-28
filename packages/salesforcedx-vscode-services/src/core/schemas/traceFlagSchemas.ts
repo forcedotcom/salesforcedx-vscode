@@ -10,6 +10,7 @@ import {
   TraceFlagLogType as ApexTraceFlagLogType,
   TraceFlagRecordSchema
 } from '@salesforce/apex-node/effect';
+import * as DateTime from 'effect/DateTime';
 import * as ParseResult from 'effect/ParseResult';
 import * as Schema from 'effect/Schema';
 
@@ -57,7 +58,7 @@ export const TraceFlagItemSchema = Schema.transformOrFail(ToolingTraceFlagRecord
       logType: rec.LogType,
       startDate: dateStringOrUndefined(rec.StartDate),
       expirationDate: rec.ExpirationDate,
-      isActive: new Date(rec.ExpirationDate).getTime() > Date.now()
+      isActive: Date.parse(rec.ExpirationDate) > DateTime.unsafeNow().pipe(DateTime.toEpochMillis)
     }),
   // Client representation => Server representation
   encode: (_toI, _options, _ast, toA) =>
