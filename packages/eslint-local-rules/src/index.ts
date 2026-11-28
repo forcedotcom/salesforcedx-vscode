@@ -16,6 +16,7 @@ import { noDuplicatePlaywrightLocators } from './noDuplicatePlaywrightLocators';
 import { noEffectFnWrapper } from './noEffectFnWrapper';
 import { noEffectServiceAccessorCalls } from './noEffectServiceAccessorCalls';
 import { noEffectServicePromiseReturn } from './noEffectServicePromiseReturn';
+import { noEffectTag } from './noEffectTag';
 import { noExplicitEffectReturnType } from './noExplicitEffectReturnType';
 import { noExportTaggedErrorInServices } from './noExportTaggedErrorInServices';
 import { noInlineEsbuildPlatform } from './noInlineEsbuildPlatform';
@@ -23,7 +24,6 @@ import { noJsforceQuery } from './noJsforceQuery';
 import { noLegacyTelemetryService } from './noLegacyTelemetryService';
 import { noNestedEffectGenCatchTags } from './noNestedEffectGenCatchTags';
 import { noNestedEffectTernary } from './noNestedEffectTernary';
-import { noOptionTag } from './noOptionTag';
 import { noPassThroughExports } from './noPassThroughExports';
 import { noRawDuration } from './noRawDuration';
 import { noRuntimeVscodeImport } from './noRuntimeVscodeImport';
@@ -84,7 +84,7 @@ const plugin: TSESLint.FlatConfig.Plugin = {
     'no-legacy-telemetry-service': noLegacyTelemetryService,
     'no-nested-effect-gen-catch-tags': noNestedEffectGenCatchTags,
     'no-nested-effect-ternary': noNestedEffectTernary,
-    'no-option-tag': noOptionTag,
+    'no-effect-tag': noEffectTag,
     'no-pass-through-exports': noPassThroughExports,
     'no-raw-duration': noRawDuration,
     'no-schema-is-throw-guard': noSchemaIsThrowGuard,

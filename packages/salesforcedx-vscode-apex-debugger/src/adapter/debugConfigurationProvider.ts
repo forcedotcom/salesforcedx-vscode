@@ -10,7 +10,7 @@ import { DEBUGGER_LAUNCH_TYPE, DEBUGGER_TYPE, type WorkspaceSettings } from '@sa
 
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
-import { isString, isUndefined } from 'effect/Predicate';
+import { isString, isTagged, isUndefined } from 'effect/Predicate';
 import * as Schedule from 'effect/Schedule';
 import * as Schema from 'effect/Schema';
 import * as vscode from 'vscode';
@@ -75,7 +75,7 @@ const waitForLanguageClientReady = Effect.fn('ApexDebugger.waitForLanguageClient
       Effect.asVoid,
       Effect.retry({
         schedule: Schedule.fixed(Duration.millis(100)).pipe(Schedule.intersect(Schedule.recurs(30))),
-        while: error => error._tag === 'LanguageClientNotReady'
+        while: isTagged('LanguageClientNotReady')
       })
     )
 );

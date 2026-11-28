@@ -12,6 +12,7 @@ import * as Effect from 'effect/Effect';
 import * as Exit from 'effect/Exit';
 import * as HashMap from 'effect/HashMap';
 import * as Option from 'effect/Option';
+import { isTagged } from 'effect/Predicate';
 import * as Ref from 'effect/Ref';
 import * as Schema from 'effect/Schema';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
@@ -440,9 +441,9 @@ export class OrgMetadataCatalog extends Effect.Service<OrgMetadataCatalog>()('Or
           );
           const flattened = results.flat();
           yield* Effect.annotateCurrentSpan({
-            componentResultCount: flattened.filter(result => result._tag === 'component').length,
-            notFoundResultCount: flattened.filter(result => result._tag === 'not-found').length,
-            sobjectResultCount: flattened.filter(result => result._tag === 'sobject').length
+            componentResultCount: flattened.filter(isTagged('component')).length,
+            notFoundResultCount: flattened.filter(isTagged('not-found')).length,
+            sobjectResultCount: flattened.filter(isTagged('sobject')).length
           });
           return flattened;
         })

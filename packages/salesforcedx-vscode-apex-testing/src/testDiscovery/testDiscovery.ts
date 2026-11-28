@@ -9,6 +9,7 @@ import { ExtensionProviderService, getMessageFromError } from '@salesforce/effec
 
 import * as Array from 'effect/Array';
 import * as Effect from 'effect/Effect';
+import * as Either from 'effect/Either';
 import { isNotUndefined } from 'effect/Predicate';
 import * as Schema from 'effect/Schema';
 import { nls } from '../messages';
@@ -83,7 +84,7 @@ export const discoverTests = (options: DiscoverTestsOptions = {}) =>
             })
           );
 
-          if (pageResult._tag === 'Left') {
+          if (Either.isLeft(pageResult)) {
             const error = pageResult.left;
             const errorMessage = error.message;
             // Check if it's a 431 error (Request Header Fields Too Large)

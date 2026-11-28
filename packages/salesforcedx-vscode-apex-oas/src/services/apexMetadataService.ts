@@ -8,7 +8,7 @@
 import { CallableSchema, getExtensionExports } from '@salesforce/effect-ext-utils';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
-import { isNotUndefined } from 'effect/Predicate';
+import { isNotUndefined, isTagged } from 'effect/Predicate';
 import * as Schedule from 'effect/Schedule';
 import * as Schema from 'effect/Schema';
 import type { ApexOASEligiblePayload, ApexVSCodeApi } from 'salesforcedx-vscode-apex';
@@ -76,7 +76,7 @@ const getApexApi = Effect.fn('ApexOas.Lsp.getApexApi')(function* () {
   );
   // The OAS commands can fire before indexing completes (activation is deferred), so wait for Ready.
   yield* probeReady(apexApi.languageClientManager).pipe(
-    Effect.retry({ schedule: LSP_READY_SCHEDULE, while: error => error._tag === 'ApexLspNotReady' })
+    Effect.retry({ schedule: LSP_READY_SCHEDULE, while: isTagged('ApexLspNotReady') })
   );
   return apexApi;
 });

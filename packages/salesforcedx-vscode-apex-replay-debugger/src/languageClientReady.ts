@@ -7,6 +7,7 @@
 
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
+import { isTagged } from 'effect/Predicate';
 import * as Schedule from 'effect/Schedule';
 import * as Schema from 'effect/Schema';
 
@@ -45,7 +46,7 @@ export const waitForLanguageClientReady = Effect.fn('ApexReplayDebugger.waitForL
     Effect.as(true),
     Effect.retry({
       schedule: LANGUAGE_CLIENT_READY_SCHEDULE,
-      while: error => error._tag === 'LanguageClientNotReadyError'
+      while: isTagged('LanguageClientNotReadyError')
     }),
     Effect.catchTag('LanguageClientNotReadyError', () => Effect.succeed(false))
   );

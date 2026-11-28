@@ -16,11 +16,62 @@ Reports `Array.isArray(value) ? value : [value]` and `!Array.isArray(value) ? [v
 
 Use `import * as Arr from 'effect/Array'` and `Arr.ensure(value)`. No autofix. Shape checks, transformed results, element selection, undefined-to-empty fallbacks, and nested-array conversions remain unchanged.
 
-### no-option-tag
+### no-effect-tag
 
-Reports direct `_tag` reads on Effect Options, including computed properties and destructuring. Uses TypeScript declarations to distinguish Effect Options from unrelated tagged unions, including unions with the same `Some`/`None` tags. Requires type information.
+Replaces `no-option-tag`. Reports direct `_tag` reads on Effect tagged values: dot access, computed string keys (including literal-typed variables), and object destructuring, including computed keys. Uses TypeScript declaration origins, including inherited tags from `Data.TaggedClass`, `Data.TaggedError`, and `Schema.TaggedError`. Unrelated application `_tag` fields remain allowed, even with `Some`/`None` tags. Requires type information.
 
-Use `Option.isNone` or `Option.isSome` for case checks, and `Option.match` when handling both cases. Enabled as an error in `eslint.config.mjs`.
+Writes, assignment targets, deletes, and type-only accesses remain allowed. No autofix: predicates, partial matches, and exhaustive dispatch have different control flow.
+
+**Bad:**
+
+```typescript
+option._tag === 'Some';
+either['_tag'] === 'Left';
+const { ['_tag']: tag } = exit;
+switch (error._tag) { /* dispatch */ }
+```
+
+**Dedicated APIs:**
+
+```typescript
+import * as Option from 'effect/Option';
+import * as Either from 'effect/Either';
+import * as Exit from 'effect/Exit';
+
+Option.isNone(option);
+Option.isSome(option);
+Option.match(option, { onNone: () => 0, onSome: value => value });
+Either.isLeft(either);
+Either.isRight(either);
+Either.match(either, { onLeft: error => error.message, onRight: value => String(value) });
+Exit.match(exit, { onFailure: cause => String(cause), onSuccess: value => String(value) });
+```
+
+**Other Effect tags — predicate or type guard:**
+
+```typescript
+import * as Predicate from 'effect/Predicate';
+
+const isFailed = Predicate.isTagged('Failed');
+if (isFailed(error)) { /* error narrowed to the matching tagged shape */ }
+```
+
+**Dispatch — handle all variants or preserve intentional unmatched cases:**
+
+```typescript
+import * as Match from 'effect/Match';
+
+Match.value(error).pipe(
+  Match.tag('Failed', error => error.message),
+  Match.tag('Cancelled', () => 'Cancelled'),
+  Match.exhaustive
+);
+
+Match.value(error).pipe(Match.tag('Failed', error => error.message), Match.option);
+Match.value(error).pipe(Match.tag('Failed', error => error.message), Match.orElse(() => 'Other'));
+```
+
+Enabled as `'local/no-effect-tag': 'error'` in `eslint.config.mjs` for TypeScript production files. Test directories, `*.test.*`, `*.spec.*`, and Playwright configuration files are excluded.
 
 ### no-schema-is-wrapper
 

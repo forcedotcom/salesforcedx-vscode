@@ -189,7 +189,6 @@ export default [
       'local/inline-single-use-yield-binding': 'error',
       'local/no-nested-effect-gen-catch-tags': 'error',
       'local/no-nested-effect-ternary': 'error',
-      'local/no-option-tag': 'error',
       'local/require-effect-fn-span-name': 'error',
       'local/no-raw-duration': 'error',
       'local/no-schema-is-throw-guard': 'error',
@@ -1006,6 +1005,13 @@ export default [
     files: ['scripts/manualTestPlan/test/**/*.mts'],
     rules: {
       '@typescript-eslint/no-floating-promises': 'off'
+    }
+  },
+  {
+    files: ['**/*.{ts,tsx,mts,cts}'],
+    ignores: ['**/test/**', '**/__tests__/**', '**/*.{test,spec}.{ts,tsx,mts,cts}', '**/playwright*.ts'],
+    rules: {
+      'local/no-effect-tag': 'error'
     }
   },
   // ESLint plugin rules for eslint-local-rules package only
