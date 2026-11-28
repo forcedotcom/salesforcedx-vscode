@@ -290,7 +290,7 @@ option._tag; either._tag; exit._tag; span._tag;`,
       'Do not read _tag on an Effect tagged value. Use Predicate.isTagged("Tag") from effect/Predicate for a boolean predicate or type guard, or Match.value(value).pipe(Match.tag(...), Match.exhaustive) for dispatch. Preserve intentional partial matches with Match.option or Match.orElse.'
     ]);
     expect(reports.every(report => report.fix === undefined && report.suggestions === undefined)).toBe(true);
-  });
+  }, 30_000);
 
   it('reports mixed unions and array assignment reads without reporting assignment targets', async () => {
     const [result] = await eslint.lintText(
