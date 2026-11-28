@@ -7,7 +7,6 @@
  */
 
 import * as Command from '@effect/platform/Command';
-import * as FileSystem from '@effect/platform/FileSystem';
 import * as NodeContext from '@effect/platform-node/NodeContext';
 import {
   actionsEnvironment,
@@ -19,7 +18,6 @@ import {
 } from '@salesforce/effect-octokit';
 import * as Arr from 'effect/Array';
 import * as Cause from 'effect/Cause';
-import * as Config from 'effect/Config';
 import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
 import * as Match from 'effect/Match';
@@ -88,36 +86,40 @@ export const classify = Effect.fn('categoryApprove.classify')(function* (input: 
 }) {
   const { policy, files, baseRef, headSha } = input;
   // GitHub caps pull-request files at 3,000; a list at that limit may omit uncovered files.
-  if (files.length >= 3000) return [];
+  if (files.length >= 3000) return { categories: [], uncoveredFiles: [] };
   if (files.length === 1 && files[0]?.filename === '.git2gus/config.json' && files[0].status === 'modified') {
     return yield* Effect.all([
       gitText(['show', `${baseRef}:.git2gus/config.json`]),
       gitText(['show', `${headSha}:.git2gus/config.json`])
-    ]).pipe(Effect.map(([before, after]) => classifyGit2GusConfig(files, before, after)));
+    ]).pipe(
+      Effect.map(([before, after]) => {
+        const configCategories = classifyGit2GusConfig(files, before, after);
+        return {
+          categories: configCategories,
+          uncoveredFiles: configCategories.length === 0 ? ['.git2gus/config.json'] : []
+        };
+      })
+    );
   }
   const paths = Arr.dedupe(files.flatMap(pathsForFile));
-  if (paths.some(rejectedPath)) return [];
+  if (paths.some(rejectedPath)) return { categories: [], uncoveredFiles: paths.filter(rejectedPath) };
   const categories = Arr.dedupe(Arr.filterMap(paths, categoryForPath));
   const remainingPaths = paths.filter(filename => Option.isNone(categoryForPath(filename)));
-  if (remainingPaths.length === 0) return categories;
+  if (remainingPaths.length === 0) return { categories, uncoveredFiles: [] };
   // Literal pathspecs and --no-renames keep covered files out, including either side of a rename.
-  return yield* gitText([
-    'diff',
-    '--no-renames',
-    `${baseRef}...${headSha}`,
-    '--',
-    ...remainingPaths.map(filename => `:(top,literal)${filename}`)
-  ]).pipe(
-    Effect.flatMap(diff =>
-      diff.trim().length === 0
-        ? Effect.succeed(Option.none<readonly string[]>())
-        : classifyWithJev({ policy, diff, hasCoveredHunks: categories.length > 0 })
-    ),
-    Effect.map(
-      Option.match({
-        onNone: () => [],
-        onSome: classified => Arr.dedupe([...categories, ...classified])
-      })
+  // Read each path separately so hunk ownership never depends on parsing Git's quoted filenames.
+  return yield* Effect.forEach(remainingPaths, filename =>
+    gitText(['diff', '--no-renames', `${baseRef}...${headSha}`, '--', `:(top,literal)${filename}`]).pipe(
+      Effect.map(diff => ({ filename, diff }))
+    )
+  ).pipe(
+    Effect.flatMap(fileDiffs => classifyWithJev({ policy, files: fileDiffs, hasCoveredHunks: categories.length > 0 })),
+    Effect.map(classified => ({
+      ...classified,
+      categories: Arr.dedupe([...categories, ...classified.categories])
+    })),
+    Effect.catchTag('JevRequestFailed', error =>
+      Effect.succeed({ categories: [], uncoveredFiles: [], classificationFailure: error.message })
     )
   );
 });
@@ -225,14 +227,14 @@ const onePull = Effect.fn('categoryApprove.onePull')(function* (
   yield* gitText(['fetch', 'origin', baseRef]);
   const policy = yield* gitText(['show', `origin/${baseRef}:APPROVAL_POLICY.md`]);
   yield* classify({ policy, files, baseRef: `origin/${baseRef}`, headSha }).pipe(
-    Effect.flatMap(categories =>
+    Effect.flatMap(classification =>
       listChecks(owner, repo, headSha, runId).pipe(
         Effect.map(freshChecks =>
           decideCategoryApprove({
             ...facts,
             statuses: freshChecks.statuses,
             checkRuns: freshChecks.checkRuns,
-            categories,
+            ...classification,
             allowedCategories: categoryIdsFromPolicy(policy)
           })
         ),
