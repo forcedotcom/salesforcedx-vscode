@@ -318,7 +318,7 @@ test('covers mixed skill and contributing changes, including renames between ski
 
 test('reports only files with uncovered hunks in mixed path and content classifications', async t => {
   const skill = '.agents/skills/vscode-extension-launch/SKILL.md';
-  const source = '.agents/settings "é"[1].json';
+  const source = '.agents/settings é[1].json';
   const testPath = 'test/example.test.ts';
   const before = {
     [skill]: 'old skill\n',
