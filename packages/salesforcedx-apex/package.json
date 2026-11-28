@@ -24,7 +24,6 @@
     "@salesforce/kit": "^4.0.0",
     "@salesforce/salesforcedx-utils": "*",
     "effect": "^3.22.4",
-    "faye": "1.4.1",
     "istanbul-lib-coverage": "^3.2.2",
     "istanbul-lib-report": "^3.0.1",
     "istanbul-reports": "^3.2.0",

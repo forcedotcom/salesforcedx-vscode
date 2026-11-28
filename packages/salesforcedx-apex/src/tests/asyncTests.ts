@@ -10,7 +10,7 @@ import { Duration } from '@salesforce/kit';
 import * as EffectDuration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
 import * as Option from 'effect/Option';
-import { isNotNull, isNotUndefined, isNull, isUndefined } from 'effect/Predicate';
+import { isNotNull, isNotUndefined, isNull } from 'effect/Predicate';
 import * as Schedule from 'effect/Schedule';
 import * as Schema from 'effect/Schema';
 import * as Stream from 'effect/Stream';
@@ -24,8 +24,9 @@ import { NodeFileOutput } from '../effect/nodeFileOutputLayer';
 import { queryRecords } from '../effect/records';
 import { ApexOperationError } from '../effect/schema/errors';
 import { ApexClassIdsSchema, ApexTestSuiteIdsSchema } from '../effect/schema/salesforceId';
-import { ApexTestQueueItemRecordSchema, ApexTestRunSummarySchema } from '../effect/schema/wire/asyncTests';
+import { ApexTestQueueItemRecordSchema } from '../effect/schema/wire/asyncTests';
 import { calculatePercentage, transformTestResult } from '../effect/testResults';
+import { getTestRunProgress, isTestRunFinished } from '../effect/testRunProgress';
 import { nls } from '../i18n';
 import { TestRunId } from '../schemas/salesforceId';
 import { stringifyTestResultChunks } from '../streaming/testResultStringify';
@@ -44,7 +45,6 @@ import {
   type ApexTestResultDataRaw,
   type ApexTestResultQueryRecord,
   type ApexTestRunResult,
-  type ApexTestRunResultStatus,
   type AsyncTestArrayConfiguration,
   type AsyncTestConfiguration,
   type FlowTestResultRecord,
@@ -79,7 +79,6 @@ export const writeAsyncResultsToFile = (
     writeAsyncResultsToFileEffect(formattedResults, runId).pipe(Effect.provideService(FileOutput, fileOutput))
   );
 
-const finishedStatuses = new Set<ApexTestRunResultStatus>(['Aborted', 'Failed', 'Completed', 'Passed', 'Skipped']);
 type AsyncTestRun = { runId: string; queueItem: ApexTestQueueItem };
 
 const asyncTestIdListsSchema = Schema.Struct({
@@ -102,7 +101,7 @@ const pollUntilComplete = Effect.fn('AsyncTests.pollUntilComplete')(function* <A
   timeout: Duration,
   operation: string
 ) {
-  const pollResult = Effect.tryPromise({
+  return yield* Effect.tryPromise({
     try: poll,
     catch: cause =>
       new ApexOperationError({
@@ -110,16 +109,14 @@ const pollUntilComplete = Effect.fn('AsyncTests.pollUntilComplete')(function* <A
         message: causeMessage(cause),
         cause: causeMessage(cause)
       })
-  });
-
-  return yield* Stream.repeatEffectWithSchedule(
-    pollResult,
-    Schedule.spaced(EffectDuration.millis(interval.milliseconds))
-  ).pipe(
-    Stream.takeUntil(result => result.completed),
-    Stream.runLast,
+  }).pipe(
+    Effect.repeat(
+      Schedule.recurUntil((result: PollingResult<A>) => result.completed).pipe(
+        Schedule.addDelay(() => EffectDuration.millis(interval.milliseconds))
+      )
+    ),
     Effect.timeoutOption(EffectDuration.millis(timeout.milliseconds)),
-    Effect.map(result => Option.map(Option.flatten(result), ({ payload }) => payload))
+    Effect.map(Option.map(({ payload }) => payload))
   );
 });
 
@@ -183,31 +180,19 @@ export class AsyncTests {
               };
             }
 
-            const testRunSummaries = await Effect.runPromise(
-              queryRecords({
-                connection: this.connection,
-                operation: 'AsyncTests.runTests',
-                soql: `SELECT Status, ClassesCompleted, ClassesEnqueued FROM ApexTestRunResult WHERE AsyncApexJobId = '${testRunId}'`,
-                recordSchema: ApexTestRunSummarySchema,
-                tooling: true
-              })
-            );
-
             // Query for test run summary first to check overall status
-            const summary = testRunSummaries[0];
-            if (isUndefined(summary)) {
-              throw new Error(`No test run summary found for test run ID: ${testRunId}`);
-            }
-
-            const isCompleted = finishedStatuses.has(summary.Status);
+            const summary = await Effect.runPromise(
+              getTestRunProgress(this.connection, Schema.decodeUnknownSync(TestRunId)(testRunId))
+            );
+            const isCompleted = isTestRunFinished(summary.status);
 
             progress?.report({
               type: 'PollingClientProgress',
               value: 'pollingProcessingTestRun',
               message: nls.localize('pollingProcessingTestRun', testRunId),
               testRunId,
-              classesCompleted: summary.ClassesCompleted,
-              classesEnqueued: summary.ClassesEnqueued
+              classesCompleted: summary.classesCompleted,
+              classesEnqueued: summary.classesEnqueued
             });
 
             // Query queue items to get detailed status; queryRecords follows all continuation pages.
@@ -423,7 +408,7 @@ export class AsyncTests {
       }
 
       return {
-        testsComplete: finishedStatuses.has(testRunSummaryResults.records[0].Status),
+        testsComplete: isTestRunFinished(testRunSummaryResults.records[0].Status),
         testRunSummary: testRunSummaryResults.records[0]
       };
     } catch (e) {

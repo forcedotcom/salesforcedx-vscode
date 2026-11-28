@@ -149,6 +149,8 @@ Closing the scope before the stream completes aborts unfinished queue items, inc
 
 Polling defaults to two seconds; `polling.interval` accepts an Effect `DurationInput`. There is no CometD fallback. Consumers own deadlines and UI formatting. This API reports execution progress; result formatting, coverage, and file output remain separate operations.
 
+The Promise test API uses the same status query and terminal-status rules, retaining its one-second interval, four-hour default timeout, and cancellation-token contract. A submission wait timeout returns the run ID without aborting the remote run. Log tailing still uses core's streaming client; the [streaming ownership decision](docs/adr/0006-effect-polling-and-streaming-ownership.md) records the inventory and Effect/CLI boundary.
+
 ### Effect report formatting
 
 `formatHumanReport`, `formatTapReport`, `formatJUnitReport`, and `formatMarkdownTextReport` return report strings through Effects with `ApexReportError`. They preserve the existing report content and options. `MarkdownTextReporterOptions`, `OutputFormat`, and `TestSortOrder` are supported public types exported by the Effect entry point. Markdown/text defaults remain Markdown, runtime sorting, 5000 ms performance threshold, 75% coverage threshold, and coverage disabled. The default timestamp uses the Effect clock. Human formatting preserves LF within tables and host-native separators between sections; an explicit `lineEnding` normalizes the complete Effect report to LF or CRLF. TAP formatting and coverage source parsing default to LF; callers can select CRLF.
