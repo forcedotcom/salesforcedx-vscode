@@ -121,8 +121,13 @@ runs:
       uses: salesforcecli/github-workflows/.github/actions/retry@b974ac8caddfccebd27cb28c0f88c1991dcca4c1 # main
       with:
         max_attempts: 3
-        command: npm i -g @salesforce/cli@${{ inputs.sf-cli-version }}
+        command: pnpm add -g @salesforce/cli@${{ inputs.sf-cli-version }}
         retry_wait_seconds: 30
+
+    - name: Verify Salesforce CLI installation
+      if: steps.try-run.outcome == 'failure' && inputs.scratch-orgs != ''
+      shell: bash
+      run: sf --version
 
     - name: Auth to dev hub (global)
       if: steps.try-run.outcome == 'failure' && inputs.scratch-orgs != ''

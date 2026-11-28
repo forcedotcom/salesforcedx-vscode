@@ -34,7 +34,6 @@
     "@effect/platform-node": "4.1.4",
     "fast-glob": "^3.3.2",
     "@salesforce/salesforcedx-utils": "*",
-    "faye": "1.4.1",
     "istanbul-lib-coverage": "^3.2.2",
     "istanbul-lib-report": "^3.0.1",
     "istanbul-reports": "^3.2.0",

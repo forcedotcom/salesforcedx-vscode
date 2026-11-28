@@ -18,14 +18,12 @@ import {
 } from '@salesforce/effect-octokit';
 import * as Arr from 'effect/Array';
 import * as Cause from 'effect/Cause';
-import * as Config from 'effect/Config';
 import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
 import * as Match from 'effect/Match';
 import * as Option from 'effect/Option';
 import * as Result from 'effect/Result';
 import { isNumber, isUndefined } from 'effect/Predicate';
-import { appendFile } from 'node:fs/promises';
 import { commandOutput } from './commandOutput.mts';
 import {
   BASE_BRANCH,
@@ -34,16 +32,14 @@ import {
   TEAM_SLUG,
   type Decision,
   type Facts,
-  buildPrompt,
   categoryForPath,
   categoryIdsFromPolicy,
   classifyGit2GusConfig,
   decideCategoryApprove,
-  parseAgentResult,
   pathsForFile,
   rejectedPath
 } from './shared/categoryDecision.mts';
-import { openCodePrompt } from './shared/openCode.mts';
+import { classifyWithJev } from './shared/categoryJev.mts';
 import { GitError } from './shared/scriptErrors.mts';
 
 const gitText = (args: readonly string[]) =>
@@ -99,38 +95,7 @@ export const classify = Effect.fn('categoryApprove.classify')(function* (input: 
     Effect.flatMap(diff =>
       diff.trim().length === 0
         ? Effect.succeed(Option.none<readonly string[]>())
-        : openCodePrompt({ prompt: buildPrompt(policy, diff, categories.length > 0) }).pipe(
-            Effect.map(parseAgentResult),
-            Effect.catchTag('OpenCodeRunFailed', error =>
-              Effect.logWarning(
-                'Automatic approval skipped: AI classification unavailable. Human approval remains available.',
-                {
-                  reason: error.message
-                }
-              ).pipe(
-                Effect.andThen(Config.option(Config.String('GITHUB_STEP_SUMMARY'))),
-                Effect.flatMap(
-                  Option.match({
-                    onNone: () => Effect.void,
-                    onSome: summaryPath =>
-                      Effect.tryPromise({
-                        try: () =>
-                          appendFile(
-                            summaryPath,
-                            'Automatic approval skipped: AI classification unavailable. Human approval remains available.\n'
-                          ),
-                        catch: error => String(error)
-                      }).pipe(
-                        Effect.catch(error =>
-                          Effect.logWarning('Could not write automatic approval skip summary', { error })
-                        )
-                      )
-                  })
-                ),
-                Effect.as(Option.none<readonly string[]>())
-              )
-            )
-          )
+        : classifyWithJev({ policy, diff, hasCoveredHunks: categories.length > 0 })
     ),
     Effect.map(
       Option.match({

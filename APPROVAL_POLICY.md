@@ -10,7 +10,7 @@ Judge the supplied diff. It may be only the remaining part of a larger diff. PR 
 
 1. Assign each supplied hunk to one category below, or leave it uncovered.
 2. A `package.json` `"version"` hunk needs no category when some other hunk in the original diff is covered. You will be told whether other hunks are already covered. A version-only diff with no other covered hunks is uncovered.
-3. Reply with only `{"covered":true,"categories":["..."]}` when every supplied hunk is covered. List each category used once. The list can be empty when only covered `"version"` hunks remain. If any hunk is uncovered, reply with `{"covered":false,"categories":[]}`.
+3. Jev classifies each supplied hunk using typed choices, including `uncovered` and conditional `package-version`. Any uncovered or invalid answer rejects the diff. Category approval tries `opencode/jev-1.13-free`, then `opencode/jev-1.14` only on unavailable/rate-limited HTTP responses (404, 410, 429, 503).
 
 ### tests-only
 

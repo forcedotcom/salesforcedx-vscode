@@ -1142,26 +1142,15 @@ describe('Run Apex tests asynchronously', () => {
           }
         ]
       });
-      mockToolingQuery.onSecondCall().rejects(new Error("sObject type 'ApexClass' is not supported."));
+      const errMsg = "sObject type 'ApexClass' is not supported.";
+      mockToolingQuery.onSecondCall().rejects(new Error(errMsg));
 
       const testSrv = new TestService(mockConnection);
-      const errMsg = "sObject type 'ApexClass' is not supported.";
-      try {
-        await testSrv.runTestAsynchronous(
-          {
-            testLevel: 'RunLocalTests'
-          },
-          false,
-          false,
-          undefined,
-          undefined,
-          Duration.minutes(2)
-        );
-        fail('Should have failed');
-      } catch (e) {
-        expect(formatTestErrorsMock).toHaveBeenCalledOnce();
-        expect(e.message).toContain(nls.localize('invalidsObjectErr', ['ApexClass', errMsg]));
-      }
+      await expect(
+        testSrv.runTestAsynchronous(requestOptions, false, false, undefined, undefined, Duration.minutes(2))
+      ).rejects.toThrow(nls.localize('invalidsObjectErr', ['ApexClass', errMsg]));
+      expect(formatTestErrorsMock).toHaveBeenCalledOnce();
+      sinon.assert.calledTwice(mockToolingQuery);
     });
   });
 

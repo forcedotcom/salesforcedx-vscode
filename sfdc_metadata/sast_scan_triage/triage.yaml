@@ -11,6 +11,14 @@ false_positive:
       `/runTestsAsynchronous` response using `TestRunId`. That schema only accepts
       `707` followed by 12 or 15 ASCII alphanumeric characters, so SOQL metacharacters
       cannot reach the query. The polling stream closes over that decoded ID.
+  - id: .github/actions/setup-pnpm/action.yml:b8cecb2ba0ae1cd4ba572316b0af5ac33661cc4b18454b98e5ca3ecc49f6e454
+    justification: >
+      salesforcecli/github-workflows is owned by Salesforce, not a third-party repository.
+      This finding incorrectly classifies its first-party action as a third-party dependency.
+  - id: .github/actions/playwright-e2e/action.yml:49bbdd04f6cc4165f434dfe42f1516dc1b6fcc39adc9f844b193eb21729ad115
+    justification: >
+      salesforcecli/github-workflows is owned by Salesforce, not a third-party repository.
+      This finding incorrectly classifies its first-party action as a third-party dependency.
 not_exploitable:
   - id: .github/workflows/publishVSCode.yml:a707e0df59dea45aaa0f92a2c73207e93aab8c9204a8ac5054c5f0d89a6b96fc
     justification: >

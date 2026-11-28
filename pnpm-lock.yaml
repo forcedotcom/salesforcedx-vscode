@@ -266,6 +266,9 @@ importers:
       '@salesforce/effect-octokit':
         specifier: workspace:*
         version: link:packages/effect-octokit
+      '@salesforce/opencode-decisions':
+        specifier: workspace:*
+        version: link:packages/opencode-decisions
       '@salesforce/playwright-vscode-ext':
         specifier: workspace:*
         version: link:packages/playwright-vscode-ext
@@ -617,6 +620,15 @@ importers:
         specifier: ^7.5.4
         version: 7.8.6
 
+  packages/opencode-decisions:
+    dependencies:
+      '@opencode/client':
+        specifier: 2.4.2
+        version: 2.4.2(effect@4.1.0)
+      effect:
+        specifier: 4.1.0
+        version: 4.1.0
+
   packages/playwright-vscode-ext:
     dependencies:
       '@playwright/test':
@@ -667,9 +679,6 @@ importers:
       fast-glob:
         specifier: ^3.3.2
         version: 3.3.3
-      faye:
-        specifier: 1.4.1
-        version: 1.4.1
       istanbul-lib-coverage:
         specifier: ^3.2.2
         version: 3.2.2
@@ -3785,6 +3794,23 @@ packages:
     resolution: {integrity: sha512-hAX0pT/73190NLqBPPWSdBVGtbY6VOhWYK3qqHqtXQ1gK7kS2yz4+ivsN07hpJ6I3aeMtKP6J6npsEKOAzuTLA==}
     engines: {node: '>=20.0'}
 
+  '@opencode/client@2.4.2':
+    resolution: {integrity: sha512-Wnb/wMl3HzPHu7WR4DYc4TkziFDdB6xUpNoLGGz7SMUIbBWPYhV2wPRenR7UEeMdlHlKgaYcxixTH80H+5YP2g==}
+    peerDependencies:
+      effect: 4.1.0
+      solid-js: '>=1.9.0'
+    peerDependenciesMeta:
+      effect:
+        optional: true
+      solid-js:
+        optional: true
+
+  '@opencode/protocol@2.4.2':
+    resolution: {integrity: sha512-w87Ym2Xd449fngSXNNbWE5d5mWl5sxeK8I/yp0TVb0rpQM1+jriwKh6g2Akxrp1Xzdwrz84gfms+ZEtM30R00g==}
+
+  '@opencode/schema@2.4.2':
+    resolution: {integrity: sha512-/qAbNPjIO4uOvaBB9UcxUZUGXtdp8OeR65gUi8HrVrxSJMxocMg7Yky7U2iiZzGiE9mE4NsQQK9F8cN/2vjkoA==}
+
   '@opentelemetry/api-logs@0.219.0':
     resolution: {integrity: sha512-FFx7YnaYJlIjqWW/AG/yAZ0L/NEY724PipXXXQLdtZPbLwBGbUMTGL1i/esI56TWfTUXxhLfpgrnWJCG8aUJyg==}
     engines: {node: '>=8.0.0'}
@@ -6799,6 +6825,9 @@ packages:
 
   effect@3.22.4:
     resolution: {integrity: sha512-RNshu7AXVxxDh6aS4lothhJ+QoZ4xSykbWNaaVdvDN72RMyVwhCGdALkyl1TbEydgAmRIdD1eTyJqBUGwSBGDA==}
+
+  effect@4.1.0:
+    resolution: {integrity: sha512-lGx2MJJyrXA8RZb2UpQ/0Nkb5Utaimby7oD92+18noBxLPE85IFOvptdzau8dvcxAOwfwHo9iqapbKeFzqQM/Q==}
 
   effect@4.1.4:
     resolution: {integrity: sha512-Tgrv/9FN+TZYyOn8XSli+fVqAfwDrDAkiX5Uu9vztINb675VTQdhD0gWI5Kzvhlh9QqzjZvw72iugqw5pwoghQ==}
@@ -14185,6 +14214,23 @@ snapshots:
 
   '@oozcitak/util@10.0.0': {}
 
+  '@opencode/client@2.4.2(effect@4.1.0)':
+    dependencies:
+      '@opencode/protocol': 2.4.2
+      '@opencode/schema': 2.4.2
+    optionalDependencies:
+      effect: 4.1.0
+
+  '@opencode/protocol@2.4.2':
+    dependencies:
+      '@opencode/schema': 2.4.2
+      effect: 4.1.0
+
+  '@opencode/schema@2.4.2':
+    dependencies:
+      '@standard-schema/spec': 1.1.0
+      effect: 4.1.0
+
   '@opentelemetry/api-logs@0.219.0':
     dependencies:
       '@opentelemetry/api': 1.9.1
@@ -17348,6 +17394,8 @@ snapshots:
     dependencies:
       '@standard-schema/spec': 1.1.0
       fast-check: 3.23.2
+
+  effect@4.1.0: {}
 
   effect@4.1.4: {}
 

@@ -19,6 +19,7 @@
     "url": "0.11.4"
   },
   "devDependencies": {
+    "@salesforce/opencode-decisions": "workspace:*",
     "@action-validator/core": "0.6.0",
     "@actions/core": "^2.0.3",
     "@actions/github": "^8.0.1",
@@ -195,6 +196,7 @@
         "./packages/salesforcedx-apex-replay-debugger:compile",
         "./packages/effect-ext-utils:compile",
         "./packages/effect-octokit:compile",
+        "./packages/opencode-decisions:compile",
         "./packages/salesforcedx-aura-language-server:compile",
         "./packages/salesforcedx-lwc-language-server:compile",
         "./packages/salesforcedx-visualforce-language-server:compile",
@@ -233,6 +235,7 @@
         "./packages/salesforcedx-apex-replay-debugger:lint",
         "./packages/effect-ext-utils:lint",
         "./packages/effect-octokit:lint",
+        "./packages/opencode-decisions:lint",
         "./packages/salesforcedx-visualforce-language-server:lint",
         "./packages/salesforcedx-vscode-core:lint",
         "./packages/salesforcedx-vscode-apex:lint",
@@ -325,13 +328,15 @@
         "./packages/salesforcedx-vscode-apex-log:test",
         "./packages/playwright-vscode-ext:test",
         "./packages/effect-ext-utils:test",
-        "./packages/effect-octokit:test"
+        "./packages/effect-octokit:test",
+        "./packages/opencode-decisions:test"
       ]
     },
     "test:ai-safeguards": {
-      "command": "node --test test/ai-safeguards.test.mjs test/ai-auto-approve.test.mjs test/category-approve.test.mts test/category-approve-preflight.test.cjs",
+      "command": "node --test test/ai-safeguards.test.mjs test/ai-auto-approve.test.mjs test/category-approve.test.mts test/category-approve-preflight.test.cjs test/jev-decisions.test.mts",
       "dependencies": [
-        "./packages/effect-octokit:compile"
+        "./packages/effect-octokit:compile",
+        "./packages/opencode-decisions:compile"
       ],
       "files": [
         ".claude/hooks/block-no-verify.sh",
@@ -349,6 +354,8 @@
         "scripts/shared/categoryGates.cjs",
         "scripts/shared/categoryGates.d.cts",
         "scripts/shared/categoryDecision.mts",
+        "scripts/shared/categoryJev.mts",
+        "scripts/shared/jevDecisions.mts",
         "scripts/shared/openCode.mts",
         "scripts/shared/scriptErrors.mts",
         ".github/workflows/categoryApprove.yml",
@@ -356,6 +363,7 @@
         "test/ai-safeguards.test.mjs",
         "test/ai-auto-approve.test.mjs",
         "test/category-approve.test.mts",
+        "test/jev-decisions.test.mts",
         "test/category-approve-preflight.test.cjs"
       ],
       "output": []
@@ -677,6 +685,7 @@
     "check:scripts": {
       "command": "tsc --noEmit -p scripts/tsconfig.native.json && node --check scripts/categoryApprove.mts && node --check scripts/changelogBody/changelogBody.mts && node --check scripts/manualTestPlan/manualTestPlan.mts && node --check test/category-approve.test.mts && node --check scripts/manualTestPlan/test/unit/manualTestPlan.test.mts",
       "dependencies": [
+        "./packages/opencode-decisions:compile",
         "./packages/salesforcedx-apex:compile",
         "./packages/salesforcedx-vscode-apex-log:compile",
         "./packages/effect-octokit:compile",

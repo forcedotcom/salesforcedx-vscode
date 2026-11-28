@@ -8,7 +8,10 @@
 import { defineConfig } from '@playwright/test';
 import { createWebConfig } from '@salesforce/playwright-vscode-ext';
 
+const webConfig = createWebConfig({ testDir: './specs' });
+
 export default defineConfig({
-  ...createWebConfig({ testDir: './specs' }),
+  ...webConfig,
+  use: { ...webConfig.use, video: 'off' },
   testIgnore: ['**/*.container.spec.ts', '**/*.desktop.spec.ts']
 });

@@ -11,9 +11,9 @@ import { createRequire } from 'node:module';
 
 import * as semver from 'semver';
 
-// Enforce one first-party runtime; only explicitly reviewed legacy declaration/compatibility
-// packages may resolve another version. Installed test fixtures are independent processes,
-// not workspace runtime consumers. Check actual resolution, not arbitrary files on disk.
+// Enforce one first-party runtime except for explicitly reviewed Promise-only API boundaries.
+// Installed test fixtures are independent processes, not workspace runtime consumers. Check
+// actual resolution, not arbitrary files on disk.
 
 const REPO_ROOT = path.resolve(__dirname, '../../..');
 
@@ -38,6 +38,8 @@ const workspaceFiles = [
 ];
 const effectSpec = (pkg: PackageJson): string | undefined => pkg.dependencies?.effect ?? pkg.devDependencies?.effect;
 const caretRange = (version: string): string => `^${version}`;
+const expectedEffectSpec = (file: string, version: string): string =>
+  file === 'packages/opencode-decisions/package.json' ? version : caretRange(version);
 const requireFrom = (file: string): NodeJS.Require => createRequire(path.join(REPO_ROOT, file));
 const resolvedEffect = (file: string, dependency = 'effect'): { version: string; file: string } => {
   const effectFile = requireFrom(file).resolve(`${dependency}/package.json`);
@@ -55,7 +57,10 @@ describe('effect version consistency', () => {
         expect(semver.valid(version)).not.toBeNull();
         const pkg = readJson(file);
         const spec = pkg.dependencies?.[dependency] ?? pkg.devDependencies?.[dependency];
-        expect(spec).toBe(dependency === 'effect' ? caretRange(version) : `npm:effect@${caretRange(version)}`);
+        // @opencode/client requires an exact Effect 4.1.0 peer; Jev stays behind a Promise boundary.
+        const expectedSpec =
+          dependency !== 'effect' ? `npm:effect@${caretRange(version)}` : expectedEffectSpec(file, version);
+        expect(spec).toBe(expectedSpec);
         expect(resolvedEffect(file, dependency).version).toBe(version);
       });
     });
@@ -77,7 +82,7 @@ describe('effect version consistency', () => {
         entry.spec !==
         (packageEffectVersions[entry.file]?.effect === undefined
           ? rootEffectSpec
-          : caretRange(packageEffectVersions[entry.file].effect))
+          : expectedEffectSpec(entry.file, packageEffectVersions[entry.file].effect))
     );
     expect(violations.length === 0 ? [] : byFile).toEqual([]);
   });

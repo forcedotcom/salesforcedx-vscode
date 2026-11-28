@@ -17,7 +17,7 @@ import {
   closeWelcomeTabs,
   executeCommandWithCommandPalette,
   validateNoCriticalErrors,
-  saveScreenshot,
+  startVideoRecording,
   QUICK_INPUT_WIDGET,
   EDITOR_WITH_URI,
   ensureSecondarySideBarHidden,
@@ -45,26 +45,35 @@ test.describe('Aura Templates', () => {
   });
 
   const createAuraTemplate = async (page: Page, command: string, name: string, expectedFiles: string[]) => {
-    await test.step(`Create Aura ${name}`, async () => {
-      await verifyCommandExists(page, command, 30_000);
-      await executeCommandWithCommandPalette(page, command);
+    const testInfo = test.info();
+    const videoName = [testInfo.project.name, ...testInfo.titlePath, 'create-template', `retry-${testInfo.retry}`]
+      .join('-')
+      .replaceAll(/[^a-zA-Z0-9._-]+/g, '-')
+      .replaceAll(/^-+|-+$/g, '');
+    const stopRecording = await startVideoRecording(page, testInfo, videoName);
+    try {
+      await test.step(`Create Aura ${name}`, async () => {
+        await verifyCommandExists(page, command, 30_000);
+        await executeCommandWithCommandPalette(page, command);
 
-      const quickInput = page.locator(QUICK_INPUT_WIDGET);
-      await quickInput.waitFor({ state: 'visible', timeout: 30_000 });
-      await page.keyboard.type(name);
-      await page.keyboard.press('Enter');
+        const quickInput = page.locator(QUICK_INPUT_WIDGET);
+        await quickInput.waitFor({ state: 'visible', timeout: 30_000 });
+        await page.keyboard.type(name);
+        await page.keyboard.press('Enter');
 
-      await waitForQuickInputFirstOption(page);
-      await page.keyboard.press('Enter');
+        await waitForQuickInputFirstOption(page);
+        await page.keyboard.press('Enter');
 
-      await page.locator(EDITOR_WITH_URI).first().waitFor({ state: 'visible', timeout: 15_000 });
+        await page.locator(EDITOR_WITH_URI).first().waitFor({ state: 'visible', timeout: 15_000 });
 
-      for (const file of expectedFiles) {
-        const explorerFile = page.locator('[role="treeitem"]').filter({ hasText: new RegExp(`${file}$`, 'i') });
-        await expect(explorerFile).toBeVisible();
-      }
-      await saveScreenshot(page, `aura-${name}-created.png`);
-    });
+        for (const file of expectedFiles) {
+          const explorerFile = page.locator('[role="treeitem"]').filter({ hasText: new RegExp(`${file}$`, 'i') });
+          await expect(explorerFile).toBeVisible();
+        }
+      });
+    } finally {
+      await stopRecording();
+    }
   };
 
   test('Create Aura App', async ({ page }) => {

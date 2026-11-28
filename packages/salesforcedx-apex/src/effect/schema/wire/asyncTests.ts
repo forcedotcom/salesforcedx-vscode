@@ -50,19 +50,31 @@ const nullableNumberWithDefaultZero = Schema.NullOr(Schema.Number).pipe(
   }),
   Schema.withDecodingDefaultType(Effect.succeed(0))
 );
-export const ApexTestRunSummarySchema = Schema.Struct({
+const ApexTestRunSummarySchema = Schema.Struct({
   Status: AsyncTestRunStatusSchema,
   ClassesCompleted: nullableNumberWithDefaultZero,
   ClassesEnqueued: nullableNumberWithDefaultZero
 }).annotate({ identifier: 'ApexTestRunSummary' });
 export const summariesSchema = Schema.Struct({ records: Schema.Tuple([ApexTestRunSummarySchema]) });
 
-const queueRecordsSchema = Schema.Array(
-  Schema.Struct({
-    Id: ApexTestQueueItemId,
-    Status: Schema.Literals(['Queued', 'Holding', 'Preparing', 'Processing', 'Aborted', 'Completed', 'Failed'])
-  })
-);
+const ApexTestQueueItemStatusSchema = Schema.Literals([
+  'Holding',
+  'Queued',
+  'Preparing',
+  'Processing',
+  'Aborted',
+  'Completed',
+  'Failed'
+]).annotate({ identifier: 'ApexTestQueueItemStatus' });
+
+const queueRecordFields = {
+  Id: ApexTestQueueItemId,
+  Status: ApexTestQueueItemStatusSchema
+};
+
+const queueRecordSchema = Schema.Struct(queueRecordFields);
+
+const queueRecordsSchema = Schema.Array(queueRecordSchema);
 export const queueSchema = Schema.Union([
   Schema.Struct({ done: Schema.Literal(true), records: queueRecordsSchema }),
   Schema.Struct({ done: Schema.Literal(false), records: queueRecordsSchema, nextRecordsUrl: Schema.String })

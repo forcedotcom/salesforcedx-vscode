@@ -1,5 +1,5 @@
 name: Setup pnpm
-description: Set up Node.js, pnpm caching, and workspace dependencies
+description: Restore pnpm dependencies on all branches; save caches only on trusted develop runs
 inputs:
   node-version:
     description: Node.js version
@@ -12,14 +12,16 @@ inputs:
 runs:
   using: composite
   steps:
-    - name: Setup pnpm
-      uses: pnpm/action-setup@v4
-    - name: Setup Node.js
-      uses: actions/setup-node@v7
+    - name: Setup pnpm and Node.js
+      uses: pnpm/setup@731dfb6463bbd11c11fd0ee11fe00ed0e36d48a1 # v3
       with:
-        node-version: ${{ inputs.node-version }}
-        cache: pnpm
-        cache-dependency-path: pnpm-lock.yaml
+        runtime: node@${{ inputs.node-version == 'lts/*' && 'lts' || inputs.node-version }}
+        install: false
+        cache: true
+        save-cache: >-
+          ${{ inputs.install == 'true' &&
+          github.ref == 'refs/heads/develop' &&
+          contains(fromJSON('["push", "workflow_dispatch", "schedule", "repository_dispatch"]'), github.event_name) }}
     - name: Install dependencies
       if: inputs.install == 'true'
       uses: salesforcecli/github-workflows/.github/actions/pnpmInstallWithRetries@main
