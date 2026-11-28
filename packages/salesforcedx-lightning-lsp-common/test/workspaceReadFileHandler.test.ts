@@ -22,11 +22,9 @@ describe.each(['file', 'memfs'])('workspace filesystem handlers (%s)', scheme =>
   const fileUri = Utils.joinPath(uri, 'example.js');
   const fileStat = { type: vscode.FileType.File, ctime: 1, mtime: 2, size: 3 };
   const spans: Tracer.Span[] = [];
-  const tracer = Effect.runSync(Effect.tracer);
   const recordingTracer = Tracer.make({
-    ...tracer,
-    span: (...args) => {
-      const span = tracer.span(...args);
+    span: options => {
+      const span = new Tracer.NativeSpan(options);
       spans.push(span);
       return span;
     }
@@ -52,7 +50,7 @@ describe.each(['file', 'memfs'])('workspace filesystem handlers (%s)', scheme =>
       ['example.js', vscode.FileType.File],
       ['nested', vscode.FileType.Directory]
     ]);
-    runtime = ManagedRuntime.make(Layer.setTracer(recordingTracer));
+    runtime = ManagedRuntime.make(Layer.succeed(Tracer.Tracer, recordingTracer));
     registerWorkspaceReadFileHandler(
       client,
       {

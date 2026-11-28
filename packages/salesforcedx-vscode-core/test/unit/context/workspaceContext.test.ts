@@ -10,9 +10,13 @@ import * as Layer from 'effect/Layer';
 import * as ManagedRuntime from 'effect/ManagedRuntime';
 import * as Schema from 'effect/Schema';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
-import type { DefaultOrgInfoSchema } from 'salesforcedx-vscode-services';
-import { ConnectionService } from 'salesforcedx-vscode-services/src/core/connectionService';
-import { OrgId } from 'salesforcedx-vscode-services/src/core/schemas/salesforceId';
+import {
+  ConnectionService,
+  OrgId,
+  TargetOrgRef,
+  type DefaultOrgInfoSchema,
+  type SalesforceVSCodeServicesApiV2
+} from '@salesforce/vscode-services/v2';
 import { WorkspaceContext } from '../../../src/context/workspaceContext';
 import { WorkspaceContextService } from '../../../src/context/workspaceContextService';
 
@@ -28,7 +32,6 @@ const ORG_USER = brandedOrgId('00D000000000008');
 const ORG_CLOSED = brandedOrgId('00D000000000009');
 
 const targetOrgRef = Effect.runSync(SubscriptionRef.make<typeof DefaultOrgInfoSchema.Type>({}));
-let getTargetOrgRef = () => Effect.succeed(targetOrgRef);
 const connection = { getAuthInfoFields: () => ({ orgId: '00D' }) };
 const connectDefaultOrg = () =>
   SubscriptionRef.update(targetOrgRef, current => ({
@@ -37,12 +40,17 @@ const connectDefaultOrg = () =>
     orgId: current.orgId ?? ORG_DEFAULT
   })).pipe(Effect.as(connection));
 let getConnection: () => Effect.Effect<typeof connection> = connectDefaultOrg;
+const connectionService = ConnectionService.of({
+  getConnection: () => getConnection()
+} as unknown as ConnectionService['Service']);
 const servicesApi = {
-  services: {
-    ConnectionService: { getConnection: () => getConnection() },
-    TargetOrgRef: () => getTargetOrgRef()
+  v2: {
+    services: {
+      ConnectionService,
+      TargetOrgRef
+    }
   }
-};
+} as unknown as SalesforceVSCodeServicesApiV2;
 const coreContext = {
   extension: { id: 'salesforce.salesforcedx-vscode-core' },
   subscriptions: []
@@ -53,11 +61,13 @@ const replayContext = {
 };
 const providerLayer = Layer.succeed(ExtensionProviderService, {
   getServicesApi: Effect.succeed(servicesApi)
-} as never);
-const connectionServiceLayer = Layer.succeed(ConnectionService, servicesApi.services.ConnectionService as never);
-const dependencies = Layer.mergeAll(providerLayer, connectionServiceLayer);
-const createRuntime = () =>
-  ManagedRuntime.make(Layer.merge(dependencies, Layer.provide(WorkspaceContextService.Default, dependencies)));
+} as unknown as ExtensionProviderService['Service']);
+const dependencies = Layer.mergeAll(
+  providerLayer,
+  Layer.succeed(ConnectionService, connectionService),
+  Layer.succeed(TargetOrgRef, targetOrgRef)
+);
+const createRuntime = () => ManagedRuntime.make(WorkspaceContextService.layer.pipe(Layer.provideMerge(dependencies)));
 let runtime = createRuntime();
 
 vi.mock('../../../src/services/runtime', () => ({ getRuntime: () => runtime }));
@@ -75,7 +85,6 @@ describe('WorkspaceContext', () => {
     vi.clearAllMocks();
     coreContext.subscriptions.length = 0;
     replayContext.subscriptions.length = 0;
-    getTargetOrgRef = () => Effect.succeed(targetOrgRef);
     getConnection = connectDefaultOrg;
     WorkspaceContext.disposeInstance();
     WorkspaceContext.getInstance(true);

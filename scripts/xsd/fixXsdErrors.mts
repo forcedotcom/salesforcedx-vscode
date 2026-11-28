@@ -11,7 +11,7 @@ interface ErrorInfo {
   typeName: string;
 }
 
-const byLineNumber = Order.mapInput(Order.number, (error: ErrorInfo) => error.lineNumber);
+const byLineNumber = Order.mapInput(Order.Number, (error: ErrorInfo) => error.lineNumber);
 
 function parseErrorFile(errorFilePath: string): ErrorInfo[] {
   const content = fs.readFileSync(errorFilePath, 'utf-8');

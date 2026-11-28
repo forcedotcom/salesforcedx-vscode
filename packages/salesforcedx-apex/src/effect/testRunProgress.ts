@@ -5,15 +5,15 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import type { TestRunId } from './schema/salesforceId.js';
 import type { Connection } from '@salesforce/core';
 import { getErrorMessage } from '@salesforce/salesforcedx-utils';
 import * as Effect from 'effect/Effect';
 import * as HashSet from 'effect/HashSet';
 import * as Schema from 'effect/Schema';
-import { type TestRunId } from '../schemas/salesforceId';
-import { AsyncTestProgressSchema } from './schema/asyncTests';
-import { ApexOperationError, ApexResponseDecodeError } from './schema/errors';
-import { summariesSchema } from './schema/wire/asyncTests';
+import { AsyncTestProgressSchema } from './schema/asyncTests.js';
+import { ApexOperationError, ApexResponseDecodeError } from './schema/errors.js';
+import { summariesSchema } from './schema/wire/asyncTests.js';
 
 const finishedStatuses = HashSet.make('Aborted', 'Failed', 'Completed', 'Passed', 'Skipped');
 
@@ -37,7 +37,7 @@ export const getTestRunProgress = Effect.fn('Apex.getTestRunProgress')(function*
       })
   }).pipe(
     Effect.flatMap(response =>
-      Schema.decodeUnknown(summariesSchema)(response).pipe(
+      Schema.decodeUnknownEffect(summariesSchema)(response).pipe(
         Effect.mapError(
           cause =>
             new ApexResponseDecodeError({

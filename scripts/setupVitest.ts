@@ -52,6 +52,7 @@ export const {
   DocumentLink,
   CodeAction,
   Diagnostic,
+  DiagnosticSeverity,
   FileType,
   FilePermission,
   FileChangeType,

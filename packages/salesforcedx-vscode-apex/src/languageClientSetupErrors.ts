@@ -10,7 +10,7 @@ import { isError, isString } from 'effect/Predicate';
 import * as Schema from 'effect/Schema';
 import { nls } from './messages';
 
-const ApexLanguageClientSetupPhase = Schema.Literal(
+const ApexLanguageClientSetupPhase = Schema.Literals([
   'requirements',
   'configuration',
   'options',
@@ -18,7 +18,7 @@ const ApexLanguageClientSetupPhase = Schema.Literal(
   'outputChannel',
   'start',
   'initialization'
-);
+]);
 export type ApexLanguageClientSetupPhase = Schema.Schema.Type<typeof ApexLanguageClientSetupPhase>;
 
 export class ApexLanguageClientSetupError extends Schema.TaggedError<ApexLanguageClientSetupError>()(

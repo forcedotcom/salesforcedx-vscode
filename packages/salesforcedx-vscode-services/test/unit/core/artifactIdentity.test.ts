@@ -13,7 +13,7 @@ import {
   artifactIdentityKey,
   artifactNamespacesEqual,
   normalizeArtifactIdentity
-} from '../../../src/core/artifactIdentity';
+} from '@salesforce/vscode-services/v2';
 
 describe('artifact identity', () => {
   it.each([

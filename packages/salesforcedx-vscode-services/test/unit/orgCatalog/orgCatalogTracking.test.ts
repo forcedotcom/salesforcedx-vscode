@@ -5,10 +5,10 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import type { RemoteTrackingObservation } from '../../../src/orgCatalog/orgCatalogInternalTypes';
+import type { RemoteTrackingObservation } from '../../../src/services/orgCatalog/orgCatalogInternalTypes.js';
 import * as Effect from 'effect/Effect';
 import * as HashMap from 'effect/HashMap';
-import { compareTrackingObservations } from '../../../src/orgCatalog/orgMetadataCatalogRecorder';
+import { compareTrackingObservations } from '../../../src/services/orgCatalog/orgMetadataCatalogRecorder.js';
 
 const observation = (xmlName: string, fullName: string, signature: string): RemoteTrackingObservation => ({
   reference: { xmlName, fullName },

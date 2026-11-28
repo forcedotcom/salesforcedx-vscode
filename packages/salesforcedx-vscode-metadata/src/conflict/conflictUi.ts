@@ -37,7 +37,7 @@ export const handleConflictsModal = Effect.fn('handleConflictsModal')(function* 
     options;
 
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const channelService = yield* api.services.ChannelService;
+  const channelService = yield* api.v2.services.ChannelService;
 
   yield* channelService.appendToChannel(
     `Conflicts: Found ${pairs.length} file${pairs.length === 1 ? '' : 's'} in conflict`
@@ -60,7 +60,7 @@ export const handleConflictsModal = Effect.fn('handleConflictsModal')(function* 
     return 'continue' satisfies ConflictModalResult;
   }
   if (isUndefined(choice)) {
-    return yield* new api.services.UserCancellationError();
+    return yield* new api.v2.services.UserCancellationError({ message: 'User cancelled' });
   }
 
   yield* SubscriptionRef.update(stateRef, () => ({

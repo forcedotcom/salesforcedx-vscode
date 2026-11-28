@@ -3,9 +3,9 @@
  * Convert metadata_types_map_scraped.json to XSD file compatible with the RedHat XML extension.
  */
 
-import type { MetadataTypesMap } from './scrapeUtils.mts';
 import * as fs from 'fs';
 import * as path from 'path';
+import type { MetadataTypesMap } from './scrapeUtils.mts';
 
 /**
  * Remove zero-width characters that cause XSD validation errors.

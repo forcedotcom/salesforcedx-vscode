@@ -23,7 +23,7 @@ import { EXTENSION_NAME } from '../constants';
  */
 export const isConflictDetectionEnabled = Effect.fn('isConflictDetectionEnabled')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  return yield* (yield* api.services.SettingsService).getValueOrElse(
+  return yield* (yield* api.v2.services.SettingsService).getValueOrElse(
     EXTENSION_NAME,
     'sourceTracking.enableConflictDetection',
     true

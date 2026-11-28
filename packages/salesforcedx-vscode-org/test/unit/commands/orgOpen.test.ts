@@ -10,6 +10,13 @@ import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as Exit from 'effect/Exit';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
+import {
+  ChannelService,
+  ProjectService,
+  TargetOrgRef,
+  TerminalService,
+  type DefaultOrgInfo
+} from '@salesforce/vscode-services/v2';
 import * as vscode from 'vscode';
 import { orgOpenCommand } from '../../../src/commands/orgOpen';
 
@@ -26,26 +33,27 @@ const buildServices = (opts: {
   simpleExec: VitestMock;
   appendToChannel: VitestMock;
   show: VitestMock;
-}) => ({
-  // getSfProject sets the project context and fails when there's no project; orgOpen ignores the
-  // returned SfProject, so the success path just yields a sentinel.
-  ProjectService: {
-    getSfProject: () =>
-      opts.isProject ? Effect.succeed({}) : Effect.fail({ _tag: 'FailedToResolveSfProjectError' as const })
-  },
-  TerminalService: Effect.succeed({ simpleExec: opts.simpleExec }),
-  ChannelService: Effect.succeed({
-    appendToChannel: (msg: string) =>
-      Effect.sync(() => {
-        opts.appendToChannel(msg);
-      }),
-    // in-layer showChannel reveals the OutputChannel (no legacy ../channels singleton)
-    showChannel: Effect.sync(() => {
-      opts.show();
+}) => {
+  const targetOrgRef = Effect.runSync(
+    SubscriptionRef.make<DefaultOrgInfo>({
+      orgId: opts.orgInfo.orgId as DefaultOrgInfo['orgId'],
+      username: opts.orgInfo.username
     })
-  }),
-  TargetOrgRef: () => SubscriptionRef.make(opts.orgInfo)
-});
+  );
+  return {
+    api: { v2: { services: { ProjectService, TerminalService, ChannelService, TargetOrgRef } } },
+    projectService: {
+      getSfProject: () =>
+        opts.isProject ? Effect.succeed({}) : Effect.fail({ _tag: 'FailedToResolveSfProjectError' as const })
+    } as unknown as ProjectService['Service'],
+    terminalService: { simpleExec: opts.simpleExec } as unknown as TerminalService['Service'],
+    channelService: {
+      appendToChannel: (msg: string) => Effect.sync(() => opts.appendToChannel(msg)),
+      showChannel: Effect.sync(() => opts.show())
+    } as unknown as ChannelService['Service'],
+    targetOrgRef
+  };
+};
 
 const run = (opts: {
   isProject: boolean;
@@ -54,13 +62,20 @@ const run = (opts: {
   appendToChannel: VitestMock;
   show: VitestMock;
 }) =>
-  Effect.runPromiseExit(
-    orgOpenCommand().pipe(
-      Effect.provideService(ExtensionProviderService, {
-        getServicesApi: Effect.succeed({ services: buildServices(opts) })
-      } as unknown as ExtensionProviderService)
-    ) as Effect.Effect<void, unknown, never>
-  );
+  (() => {
+    const services = buildServices(opts);
+    return Effect.runPromiseExit(
+      orgOpenCommand().pipe(
+        Effect.provideService(ExtensionProviderService, {
+          getServicesApi: Effect.succeed(services.api)
+        } as unknown as ExtensionProviderService['Service']),
+        Effect.provideService(ProjectService, services.projectService),
+        Effect.provideService(TerminalService, services.terminalService),
+        Effect.provideService(ChannelService, services.channelService),
+        Effect.provideService(TargetOrgRef, services.targetOrgRef)
+      ) as Effect.Effect<void, unknown, never>
+    );
+  })();
 
 describe('orgOpenCommand', () => {
   let openExternal: VitestMock;

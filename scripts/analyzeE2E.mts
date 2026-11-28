@@ -5,37 +5,30 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import * as Command from '@effect/platform/Command';
-import * as FileSystem from '@effect/platform/FileSystem';
-import * as Path from '@effect/platform/Path';
-import * as NodeContext from '@effect/platform-node/NodeContext';
+import * as NodeServices from '@effect/platform-node/NodeServices';
 import { GitHub } from '@salesforce/effect-octokit';
 import * as Cause from 'effect/Cause';
 import * as Console from 'effect/Console';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
-import * as Order from 'effect/Order';
+import * as FileSystem from 'effect/FileSystem';
+import * as Path from 'effect/Path';
 import { isError } from 'effect/Predicate';
+import * as ChildProcess from 'effect/process/ChildProcess';
 import * as Schedule from 'effect/Schedule';
 import * as Stream from 'effect/Stream';
 import { commandFailed, commandOutput } from './commandOutput.mts';
 import { GitHubCliLive } from './githubCli.mts';
 
-type WorkflowRun = Effect.Effect.Success<ReturnType<typeof GitHub.workflowRuns>>[number];
+type WorkflowRun = Effect.Success<ReturnType<GitHub['Service']['workflowRuns']>>[number];
 
 const repository = { owner: 'forcedotcom', repo: 'salesforcedx-vscode' };
-
-const byCreatedAtDescending = Order.mapInput(
-  Order.reverse(Order.Date),
-  (workflow: WorkflowRun) => new Date(workflow.created_at)
-);
 
 const quietCommandExitCode = Effect.fn('analyzeE2E.quietCommandExitCode')(function* (
   executable: string,
   args: readonly string[]
 ) {
-  return yield* Command.make(executable, ...args).pipe(
-    Command.start,
+  return yield* ChildProcess.make(executable, args).pipe(
     Effect.flatMap(process =>
       Effect.all([Stream.runDrain(process.stdout), Stream.runDrain(process.stderr), process.exitCode], {
         concurrency: 'unbounded'
@@ -49,7 +42,7 @@ const quietCommandExitCode = Effect.fn('analyzeE2E.quietCommandExitCode')(functi
 const commandSucceeded = Effect.fn('analyzeE2E.commandSucceeded')(function* (executable: string, ...args: string[]) {
   return yield* quietCommandExitCode(executable, args).pipe(
     Effect.map(exitCode => exitCode === 0),
-    Effect.catchAll(() => Effect.succeed(false))
+    Effect.catch(() => Effect.succeed(false))
   );
 });
 
@@ -64,11 +57,9 @@ const runCommand = Effect.fn('analyzeE2E.runCommand')(function* ({
 }) {
   const exitCode =
     output === 'inherit'
-      ? yield* Command.make(executable, ...args).pipe(
-          Command.stdin('inherit'),
-          Command.stdout('inherit'),
-          Command.stderr('inherit'),
-          Command.exitCode
+      ? yield* ChildProcess.make(executable, args, { stdin: 'inherit', stdout: 'inherit', stderr: 'inherit' }).pipe(
+          Effect.flatMap(process => process.exitCode),
+          Effect.scoped
         )
       : yield* quietCommandExitCode(executable, args);
   if (exitCode !== 0) {
@@ -93,7 +84,7 @@ const checkPrerequisites = Effect.fn('analyzeE2E.checkPrerequisites')(function* 
 const getCurrentBranch = Effect.fn('analyzeE2E.getCurrentBranch')(function* () {
   const branch = yield* commandOutput({ executable: 'git', args: ['branch', '--show-current'] }).pipe(
     Effect.map(({ stdout }) => stdout.trim()),
-    Effect.catchAll(() => Effect.succeed(''))
+    Effect.catch(() => Effect.succeed(''))
   );
   if (branch.length === 0) {
     yield* Console.error('No branch checked out. Please checkout a branch first.');
@@ -103,7 +94,8 @@ const getCurrentBranch = Effect.fn('analyzeE2E.getCurrentBranch')(function* () {
 });
 
 const findPlaywrightWorkflows = (branch: string) =>
-  GitHub.workflowRuns({ ...repository, branch, per_page: 50 }).pipe(
+  GitHub.pipe(
+    Effect.flatMap(github => github.workflowRuns({ ...repository, branch, per_page: 50 })),
     Effect.map(runs => runs.filter(run => run.name?.includes('(Playwright)')))
   );
 
@@ -114,7 +106,7 @@ const prioritizeWorkflows = (workflows: WorkflowRun[]): WorkflowRun[] => {
   }
   return workflows
     .filter(w => w.status === 'completed')
-    .toSorted(byCreatedAtDescending)
+    .toSorted((left, right) => right.created_at.localeCompare(left.created_at))
     .slice(0, 1);
 };
 
@@ -131,10 +123,12 @@ const monitorWorkflows = Effect.fn('analyzeE2E.monitorWorkflows')(function* (wor
     workflow.status === 'in_progress' || workflow.status === 'queued'
       ? Console.log(`Monitoring workflow: ${workflow.name} (run ${workflow.id})...`).pipe(
           Effect.andThen(
-            GitHub.workflowRun({ ...repository, run_id: Number(workflow.id) }).pipe(
+            GitHub.pipe(
+              Effect.flatMap(github => github.workflowRun({ ...repository, run_id: Number(workflow.id) }))
+            ).pipe(
               Effect.tap(run => Console.log(`${run.name} (run ${run.id}): ${run.status}`)),
               Effect.repeat({
-                schedule: Schedule.identity<WorkflowRun>().pipe(Schedule.addDelay(() => Duration.seconds(5))),
+                schedule: Schedule.spaced(Duration.seconds(5)),
                 until: run => run.status === 'completed'
               })
             )
@@ -163,7 +157,11 @@ const downloadArtifacts = Effect.fn('analyzeE2E.downloadArtifacts')(
     const path = yield* Path.Path;
 
     // Check if artifacts exist using the metadata API; gh still owns downloading them.
-    if ((yield* GitHub.workflowRunArtifacts({ ...repository, run_id: Number(runId) })).length === 0) {
+    if (
+      (yield* GitHub.pipe(
+        Effect.flatMap(github => github.workflowRunArtifacts({ ...repository, run_id: Number(runId) }))
+      )).length === 0
+    ) {
       yield* Console.log('No artifacts available for this workflow run.');
       return undefined;
     }
@@ -174,7 +172,7 @@ const downloadArtifacts = Effect.fn('analyzeE2E.downloadArtifacts')(
       args: ['run', 'download', String(runId), '--repo', 'forcedotcom/salesforcedx-vscode', '-D', artifactDir]
     }).pipe(
       Effect.as(true),
-      Effect.catchAll(error => reportArtifactDownloadFailure(runId, error).pipe(Effect.as(false)))
+      Effect.catch(error => reportArtifactDownloadFailure(runId, error).pipe(Effect.as(false)))
     );
     if (!downloaded) return undefined;
 
@@ -187,7 +185,7 @@ const downloadArtifacts = Effect.fn('analyzeE2E.downloadArtifacts')(
       zipFiles,
       zipFile =>
         runCommand({ executable: 'unzip', args: ['-o', zipFile, '-d', artifactDir], output: 'discard' }).pipe(
-          Effect.catchAll(() => Effect.void)
+          Effect.catch(() => Effect.void)
         ),
       { concurrency: 1, discard: true }
     ).pipe(Effect.as(artifactDir));
@@ -280,11 +278,11 @@ const analyzeE2E = Effect.fn('analyzeE2E')(function* () {
 
 const main = () =>
   checkPrerequisites().pipe(
-    Effect.provide(NodeContext.layer),
+    Effect.provide(NodeServices.layer),
     Effect.flatMap(prerequisitesMet =>
-      prerequisitesMet ? analyzeE2E().pipe(Effect.provide([GitHubCliLive, NodeContext.layer])) : Effect.succeed(1)
+      prerequisitesMet ? analyzeE2E().pipe(Effect.provide([GitHubCliLive, NodeServices.layer])) : Effect.succeed(1)
     ),
-    Effect.catchAllCause(cause => Console.error('Unexpected error:', Cause.pretty(cause)).pipe(Effect.as(1))),
+    Effect.catchCause(cause => Console.error('Unexpected error:', Cause.pretty(cause)).pipe(Effect.as(1))),
     Effect.runPromise
   );
 

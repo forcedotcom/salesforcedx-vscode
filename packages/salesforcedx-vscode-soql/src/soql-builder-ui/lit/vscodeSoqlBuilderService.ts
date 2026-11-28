@@ -19,8 +19,7 @@ import {
   type SoqlBuilderState
 } from '@salesforce/soql-builder-ui/domain';
 import {
-  SoqlBuilderService,
-  type SoqlBuilderService as SoqlBuilderServiceShape
+  SoqlBuilderService
 } from '@salesforce/soql-builder-ui/service';
 import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
@@ -76,12 +75,12 @@ const LegacySavedStateSchema = Schema.Struct({
   originalSoqlStatement: Schema.String
 });
 
-const limitsEqual = Schema.equivalence(SoqlLimitSchema);
+const limitsEqual = Schema.toEquivalence(SoqlLimitSchema);
 
 const decodeSavedState = (input: unknown) =>
-  Schema.decodeUnknown(SoqlBuilderStateSchema)(input).pipe(
-    Effect.orElse(() =>
-      Schema.decodeUnknown(LegacySavedStateSchema)(input).pipe(
+  Schema.decodeUnknownEffect(SoqlBuilderStateSchema)(input).pipe(
+    Effect.catchTag('SchemaError', () =>
+      Schema.decodeUnknownEffect(LegacySavedStateSchema)(input).pipe(
         Effect.flatMap(saved => parseExternalQuery(saved.originalSoqlStatement)),
         Effect.map(query => ({ ...createInitialSoqlBuilderState(), query }))
       )
@@ -102,7 +101,7 @@ const makeVscodeSoqlBuilderService = Effect.gen(function* () {
   const errors = yield* PubSub.unbounded<ServiceError>();
 
   const removeMessageListener = messageService.onMessage(event => {
-    messages.unsafeOffer(event);
+    Queue.offerUnsafe(messages, event);
   });
   yield* Effect.addFinalizer(() =>
     Effect.sync(removeMessageListener).pipe(
@@ -113,7 +112,7 @@ const makeVscodeSoqlBuilderService = Effect.gen(function* () {
 
   const publishError = (error: ServiceError) => PubSub.publish(errors, error).pipe(Effect.asVoid);
   const reportMessageError = <A>(handler: Effect.Effect<A, ServiceError>) =>
-    handler.pipe(Effect.catchAll(publishError));
+    handler.pipe(Effect.catch(publishError));
 
   const requestObjects = Effect.fn('VscodeSoqlBuilderService.requestObjects')(() =>
     trySendMessage(() => messageService.sendMessage({ type: MessageType.SOBJECTS_REQUEST }))
@@ -284,7 +283,7 @@ const makeVscodeSoqlBuilderService = Effect.gen(function* () {
     yield* requestMetadata(savedState.query.sObject);
   }
 
-  const dispatch: SoqlBuilderServiceShape['dispatch'] = Match.type<SoqlBuilderAction>().pipe(
+  const dispatch: SoqlBuilderService['Service']['dispatch'] = Match.type<SoqlBuilderAction>().pipe(
     Match.tagsExhaustive({
       ObjectSelected: Effect.fn('VscodeSoqlBuilderService.dispatchObjectSelected')(function* (action) {
         const current = yield* SubscriptionRef.get(state);
@@ -400,10 +399,10 @@ const makeVscodeSoqlBuilderService = Effect.gen(function* () {
     dispatch,
     initialState: SubscriptionRef.get(state),
     stateChanges: Stream.merge(
-      state.changes.pipe(Stream.drop(1)),
+      SubscriptionRef.changes(state).pipe(Stream.drop(1)),
       Stream.fromPubSub(errors).pipe(Stream.mapEffect(error => Effect.fail(error)))
     )
   });
 });
 
-export const VscodeSoqlBuilderServiceLive = Layer.scoped(SoqlBuilderService, makeVscodeSoqlBuilderService);
+export const VscodeSoqlBuilderServiceLive = Layer.effect(SoqlBuilderService, makeVscodeSoqlBuilderService);

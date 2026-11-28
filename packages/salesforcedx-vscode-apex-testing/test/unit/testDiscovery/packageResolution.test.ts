@@ -7,64 +7,72 @@
 
 import type { Mock as VitestMock } from 'vitest';
 import type { ResolvedPackageInfo } from '../../../src/testDiscovery/schemas';
-import type { Connection } from '@salesforce/core';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as Stream from 'effect/Stream';
 import * as Layer from 'effect/Layer';
 import * as Option from 'effect/Option';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
+import {
+  QueryService,
+  TargetOrgRef,
+  type DefaultOrgInfo,
+  type QueryOptions,
+  type QueryPage,
+  type SalesforceVSCodeServicesApiV2
+} from '@salesforce/vscode-services/v2';
 import { PackageResolutionService } from '../../../src/testDiscovery/packageResolution';
 
 // PackageResolutionService.resolve resolves the connection via ConnectionService.getConnection() and the
 // org key via TargetOrgRef, both reached ambiently through ExtensionProviderService. The tests drive the
 // service through a stub ExtensionProviderService layer; QueryService.query is the controllable seam.
-// buildLayer() constructs a fresh service instance (fresh Ref state) per run, so cache/unavailable state
+// buildLayer() constructs a fresh V4 service instance (fresh Ref state) per run, so cache/unavailable state
 // never leaks between tests. runWith resolves the service once and runs the whole program in one runtime,
 // so multiple resolve() calls in one test share that instance's cache.
 describe('PackageResolutionService', () => {
   let mockToolingQuery: VitestMock;
-  let mockConnection: Partial<Connection>;
-  let orgInfo: { orgId?: string; username?: string };
+  let orgInfo: DefaultOrgInfo;
 
   beforeEach(() => {
     mockToolingQuery = vi.fn();
-    mockConnection = { tooling: { query: mockToolingQuery } as unknown as Connection['tooling'] };
-    orgInfo = { orgId: 'org123', username: 'user@example.com' };
+    orgInfo = { orgId: 'org123' as DefaultOrgInfo['orgId'], username: 'user@example.com' };
   });
 
   const buildLayer = () => {
     const mockApi = {
-      services: {
-        ConnectionService: { getConnection: () => Effect.succeed(mockConnection as Connection) },
-        QueryService: Effect.succeed({
-          query: (options: { soql: string }) =>
-            Effect.tryPromise({
-              try: () => mockToolingQuery(options.soql) as Promise<{ records?: unknown[]; totalSize?: number }>,
-              catch: (error: unknown) => error
-            }).pipe(
-              Effect.map(result => ({
-                totalSize: result.totalSize ?? result.records?.length ?? 0,
-                records: Stream.fromIterable(result.records ?? [])
-              }))
-            )
-        }),
-        TargetOrgRef: () => SubscriptionRef.make(orgInfo)
-      }
-    };
+      v2: { services: { QueryService, TargetOrgRef } }
+    } as unknown as SalesforceVSCodeServicesApiV2;
+    const queryService = {
+      query: <A, E, R>(options: QueryOptions, decodePage: (input: unknown) => Effect.Effect<QueryPage<A>, E, R>) =>
+        Effect.tryPromise({
+          try: () => mockToolingQuery(options.soql) as Promise<{ records?: unknown[]; totalSize?: number }>,
+          catch: (error: unknown) => (error instanceof Error ? error : new Error(String(error)))
+        }).pipe(
+          Effect.flatMap(result =>
+            decodePage({
+              totalSize: result.totalSize ?? result.records?.length ?? 0,
+              records: result.records ?? []
+            })
+          ),
+          Effect.map(page => ({ totalSize: page.totalSize, records: Stream.fromIterable(page.records ?? []) }))
+        )
+    } as unknown as QueryService['Service'];
     const ExtProviderLayer = Layer.succeed(ExtensionProviderService, {
       getServicesApi: Effect.succeed(mockApi)
-    } as unknown as ExtensionProviderService);
-    // Provide the ext provider to the service AND keep it ambient (resolve yields it at call time).
-    return Layer.merge(Layer.provide(PackageResolutionService.Default, ExtProviderLayer), ExtProviderLayer);
+    } as unknown as ExtensionProviderService['Service']);
+    const serviceLayers = Layer.mergeAll(
+      Layer.succeed(QueryService, queryService),
+      Layer.effect(TargetOrgRef, SubscriptionRef.make<DefaultOrgInfo>(orgInfo))
+    );
+    return Layer.mergeAll(PackageResolutionService.layer, serviceLayers, ExtProviderLayer);
   };
 
   // The mock api provides ConnectionService/TargetOrgRef at runtime, but resolve's type still declares them
   // in R (via the static accessor types); erase R to never at the boundary, like apexTestExecutionService.test.
-  const runWith = <A, E, R>(program: (svc: PackageResolutionService) => Effect.Effect<A, E, R>): Promise<A> =>
-    Effect.runPromise(
-      Effect.flatMap(PackageResolutionService, program).pipe(Effect.provide(buildLayer())) as Effect.Effect<A>
-    );
+  const runWith = <A, E, R>(
+    program: (svc: PackageResolutionService['Service']) => Effect.Effect<A, E, R>
+  ): Promise<A> =>
+    Effect.runPromise(PackageResolutionService.use(program).pipe(Effect.provide(buildLayer())) as Effect.Effect<A>);
 
   const resolve = (
     ids: string[],
@@ -231,9 +239,12 @@ describe('PackageResolutionService', () => {
     expect(mockToolingQuery.mock.calls[2][0]).toContain('ManageableState');
   });
 
-  it('only resolves no-namespace classes with installed ManageableState (null/empty excluded)', async () => {
+  it('only resolves no-namespace classes with installed ManageableState (null/empty/unmanaged/absent excluded)', async () => {
     const installedId = '01p000000000001AAA';
-    const unpackagedId = '01p000000000002AAA';
+    const nullStateId = '01p000000000002AAA';
+    const emptyStateId = '01p000000000003AAA';
+    const unmanagedStateId = '01p000000000004AAA';
+    const absentStateId = '01p000000000005AAA';
     mockToolingQuery
       .mockRejectedValueOnce({
         _tag: 'SoqlError',
@@ -252,17 +263,29 @@ describe('PackageResolutionService', () => {
       .mockResolvedValueOnce({
         records: [
           { Id: installedId, ManageableState: 'installed' },
-          { Id: unpackagedId, ManageableState: null }
+          { Id: nullStateId, ManageableState: null },
+          { Id: emptyStateId, ManageableState: '' },
+          { Id: unmanagedStateId, ManageableState: 'unmanaged' },
+          { Id: absentStateId }
         ]
       });
     const classIdToNamespace = new Map<string, Option.Option<string>>([
       [installedId, Option.none()],
-      [unpackagedId, Option.none()]
+      [nullStateId, Option.none()],
+      [emptyStateId, Option.none()],
+      [unmanagedStateId, Option.none()],
+      [absentStateId, Option.none()]
     ]);
-    const result = await resolve([installedId, unpackagedId], classIdToNamespace);
+    const result = await resolve(
+      [installedId, nullStateId, emptyStateId, unmanagedStateId, absentStateId],
+      classIdToNamespace
+    );
     expect(result.size).toBe(1);
     expect(result.get(installedId)?.packageName).toBe('Trigger Actions Framework');
-    expect(result.has(unpackagedId)).toBe(false);
+    expect(result.has(nullStateId)).toBe(false);
+    expect(result.has(emptyStateId)).toBe(false);
+    expect(result.has(unmanagedStateId)).toBe(false);
+    expect(result.has(absentStateId)).toBe(false);
   });
 
   it('serves cached resolution and does not re-query once the org is marked unavailable', async () => {

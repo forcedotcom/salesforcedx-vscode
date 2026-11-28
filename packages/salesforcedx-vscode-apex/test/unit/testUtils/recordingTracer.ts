@@ -9,7 +9,7 @@ import { ExtensionProviderService, getServicesApi } from '@salesforce/effect-ext
 import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
 import * as Tracer from 'effect/Tracer';
-import { SettingsService } from 'salesforcedx-vscode-services/src/vscode/settingsService';
+import { FsService, PromptService, SettingsService, WorkspaceService } from '@salesforce/vscode-services/v2';
 
 export type RecordedSpan = { name: string; attributes: Map<string, unknown>; ended: boolean };
 
@@ -27,54 +27,50 @@ export const createRecordingRuntimeMock = (
     forkSync?: boolean;
     provideExtensionProvider?: boolean;
     settingsGetValue?: (section: string, key: string, defaultValue?: unknown) => Effect.Effect<unknown>;
+    promptService?: PromptService['Service'];
+    fsService?: FsService['Service'];
+    workspaceService?: WorkspaceService['Service'];
   }
 ) => {
   const recordingTracer = Tracer.make({
-    span: (name, parent, context, links, startTime, kind, spanOptions) => {
+    span: spanOptions => {
       const recordedSpans = getRecordedSpans();
-      const attributes = new Map<string, unknown>(Object.entries(spanOptions?.attributes ?? {}));
-      const recorded: RecordedSpan = { name, attributes, ended: false };
+      const span = new Tracer.NativeSpan(spanOptions);
+      const recorded: RecordedSpan = { name: span.name, attributes: span.attributes, ended: false };
       recordedSpans.push(recorded);
-      return {
-        _tag: 'Span',
-        name,
-        spanId: `span-${recordedSpans.length}`,
-        traceId: 'trace',
-        parent,
-        context,
-        links,
-        status: { _tag: 'Started', startTime },
-        attributes,
-        sampled: true,
-        kind,
-        end: () => {
-          recorded.ended = true;
-        },
-        attribute: (key: string, value: unknown) => {
-          attributes.set(key, value);
-        },
-        event: () => {},
-        addLinks: () => {}
-      } as Tracer.Span;
-    },
-    context: <X>(f: () => X) => f()
+      const end = span.end.bind(span);
+      span.end = (endTime, exit) => {
+        recorded.ended = true;
+        end(endTime, exit);
+      };
+      return span;
+    }
   });
-  const layer = Layer.setTracer(recordingTracer);
+  const layer = Layer.succeed(Tracer.Tracer, recordingTracer);
   const provideRuntimeServices = <A, E, R>(effect: Effect.Effect<A, E, R>) => {
     const withExtensionProvider = options?.provideExtensionProvider
       ? effect.pipe(Effect.provideService(ExtensionProviderService, { getServicesApi }))
       : effect;
-    return options?.settingsGetValue
+    const withSettings = options?.settingsGetValue
       ? withExtensionProvider.pipe(
           Effect.provideService(
             SettingsService,
-            SettingsService.make({
+            SettingsService.of({
               getValue: options.settingsGetValue,
               getValueOrElse: options.settingsGetValue
             } as never)
           )
         )
       : withExtensionProvider;
+    const withPrompt = options?.promptService
+      ? withSettings.pipe(Effect.provideService(PromptService, options.promptService))
+      : withSettings;
+    const withFs = options?.fsService
+      ? withPrompt.pipe(Effect.provideService(FsService, options.fsService))
+      : withPrompt;
+    return options?.workspaceService
+      ? withFs.pipe(Effect.provideService(WorkspaceService, options.workspaceService))
+      : withFs;
   };
   return {
     getRuntime: () => ({
@@ -83,7 +79,7 @@ export const createRecordingRuntimeMock = (
       runFork: (eff: Effect.Effect<unknown, unknown>) => {
         const provided = provideRuntimeServices(eff).pipe(
           Effect.provide(layer),
-          Effect.catchAllCause(() => Effect.void)
+          Effect.catchCause(() => Effect.void)
         );
         if (options?.forkSync) {
           Effect.runSync(provided as Effect.Effect<void>);

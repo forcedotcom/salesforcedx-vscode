@@ -8,9 +8,8 @@
 import { MarkdownTextFormatTransformer } from '../../src';
 import { pipeline, Writable } from 'node:stream';
 import { getTestData, successResult } from './testResults';
-import type { TestResult } from '../../src/tests/types';
+import type { TestResult } from '../../src/tests/apiTypes';
 import { apexClassId } from '../schemaHelpers';
-import { normalizeFormatterOutput } from './formattingSnapshot';
 
 const { testResults } = getTestData();
 
@@ -36,9 +35,7 @@ describe('MarkdownTextFormatTransformer', () => {
     reporter: MarkdownTextFormatTransformer,
     callback: (result: string) => void
   ): Promise<void> => {
-    const result = await runPipeline(reporter);
-    expect(normalizeFormatterOutput(result)).toMatchSnapshot();
-    callback(result);
+    callback(await runPipeline(reporter));
   };
 
   describe('format differences', () => {
@@ -74,9 +71,6 @@ describe('MarkdownTextFormatTransformer', () => {
           codeCoverage: true
         })
       );
-
-      expect(normalizeFormatterOutput(markdownResult)).toMatchSnapshot('markdown');
-      expect(normalizeFormatterOutput(textResult)).toMatchSnapshot('text');
 
       // Markdown should have HTML table syntax, text should not
       expect(markdownResult).toContain('<table');

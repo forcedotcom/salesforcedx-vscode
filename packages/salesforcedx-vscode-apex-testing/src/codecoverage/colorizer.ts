@@ -21,7 +21,7 @@ const setCoverageDecorators = (editor: TextEditor, ranges: CoverageRanges): void
 
 /** Compute+store coverage for the editor's document and paint the returned ranges. */
 const applyForEditor = Effect.fn('colorizer.applyForEditor')(function* (editor: TextEditor) {
-  const ranges = yield* CodeCoverageService.applyForEditorHandled(editor.document);
+  const ranges = yield* CodeCoverageService.use(service => service.applyForEditorHandled(editor.document));
   yield* Effect.sync(() => setCoverageDecorators(editor, ranges));
 });
 
@@ -35,7 +35,7 @@ export const watchActiveEditorForCoverage = Effect.fn('colorizer.watchActiveEdit
   statusBar: StatusBarToggle
 ) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const editorService = yield* api.services.EditorService;
+  const editorService = yield* api.v2.services.EditorService;
   yield* Stream.merge(
     Stream.fromEffect(Effect.sync(() => window.activeTextEditor)),
     Stream.fromPubSub(editorService.pubsub)
@@ -55,7 +55,7 @@ export class CodeCoverageHandler {
     const editor = window.activeTextEditor;
     if (this.statusBar.isHighlightingEnabled) {
       this.statusBar.toggle(false);
-      const ranges = await getApexTestingRuntime().runPromise(CodeCoverageService.clear());
+      const ranges = await getApexTestingRuntime().runPromise(CodeCoverageService.use(service => service.clear()));
       if (editor) {
         setCoverageDecorators(editor, ranges);
       }

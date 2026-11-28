@@ -9,7 +9,11 @@ import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
 import * as Logger from 'effect/Logger';
-import { NoWorkspaceOpenError } from 'salesforcedx-vscode-services/src/vscode/workspaceService';
+import {
+  NoWorkspaceOpenError,
+  WorkspaceService,
+  type SalesforceVSCodeServicesApiV2
+} from '@salesforce/vscode-services/v2';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import { createRecordingRuntimeMock, type RecordedSpan } from '../../testUtils/recordingTracer';
@@ -17,21 +21,16 @@ import { createRecordingRuntimeMock, type RecordedSpan } from '../../testUtils/r
 const mockRecordedSpans: RecordedSpan[] = [];
 const mockGetWorkspaceInfoOrThrow = vi.fn();
 const loggedMessages: unknown[] = [];
-type ServicesApi = Effect.Effect.Success<ExtensionProviderService['getServicesApi']>;
 const servicesApiLayer = Layer.succeed(ExtensionProviderService, {
   getServicesApi: Effect.succeed({
-    services: {
-      WorkspaceService: {
-        getWorkspaceInfoOrThrow: mockGetWorkspaceInfoOrThrow
-      }
-    }
-  } as unknown as ServicesApi)
-});
-const loggerLayer = Logger.replace(
-  Logger.defaultLogger,
-  Logger.make(({ message }) => loggedMessages.push(message))
-);
-const testLayer = Layer.merge(servicesApiLayer, loggerLayer);
+    v2: { services: { WorkspaceService } }
+  } as unknown as SalesforceVSCodeServicesApiV2)
+} as unknown as ExtensionProviderService['Service']);
+const workspaceLayer = Layer.succeed(WorkspaceService, {
+  getWorkspaceInfoOrThrow: mockGetWorkspaceInfoOrThrow
+} as unknown as WorkspaceService['Service']);
+const loggerLayer = Logger.layer([Logger.make(options => loggedMessages.push(options.message))]);
+const testLayer = Layer.mergeAll(servicesApiLayer, workspaceLayer, loggerLayer);
 
 vi.mock('../../../../src/services/runtime', () => createRecordingRuntimeMock(() => mockRecordedSpans));
 
@@ -63,7 +62,7 @@ describe('workspace telemetry spans', () => {
       Effect.fail(new NoWorkspaceOpenError({ message: 'No workspace is currently open' }))
     );
 
-    const result = await getRuntime().runPromise(getTestWorkspaceFolder().pipe(Effect.provide(testLayer)));
+    const result = await getRuntime().runPromise(getTestWorkspaceFolder(undefined).pipe(Effect.provide(testLayer)));
 
     expect(result).toBeUndefined();
     expect(mockGetWorkspaceInfoOrThrow).toHaveBeenCalledTimes(1);

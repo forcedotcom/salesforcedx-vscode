@@ -25,5 +25,5 @@ import * as Schema from 'effect/Schema';
  *   schema
  * });
  */
-export const CallableSchema = <F extends (...args: never[]) => unknown>() =>
+export const CallableSchema = <F extends (...args: never[]) => unknown>(): Schema.ConstraintDecoder<F, never> =>
   Schema.declare((value): value is F => typeof value === 'function', { identifier: 'Function' });

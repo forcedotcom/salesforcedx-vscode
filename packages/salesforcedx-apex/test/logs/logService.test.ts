@@ -17,12 +17,12 @@ import * as path from 'node:path';
 import { type LogResult } from '../../src/logs/types';
 
 type LogQueryResult = {
-  records: Schema.Schema.Encoded<typeof ApexLogRecordSchema>[];
+  records: Schema.Codec.Encoded<typeof ApexLogRecordSchema>[];
   done: true;
   totalSize: number;
 };
 
-const logRecords: Schema.Schema.Encoded<typeof ApexLogRecordSchema>[] = [
+const logRecords: Schema.Codec.Encoded<typeof ApexLogRecordSchema>[] = [
   {
     Id: '07L000000000001AAA',
     Application: 'Unknown',

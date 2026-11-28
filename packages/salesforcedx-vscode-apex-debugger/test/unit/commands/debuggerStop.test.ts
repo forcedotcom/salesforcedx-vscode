@@ -11,7 +11,15 @@ import * as effectExtUtils from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as Stream from 'effect/Stream';
 import * as Layer from 'effect/Layer';
-import { NotificationModeService } from 'salesforcedx-vscode-services/src/vscode/notificationModeService';
+import {
+  ConfigService,
+  ConnectionService,
+  NotificationModeService,
+  ProjectService,
+  PromptService,
+  QueryService,
+  type SalesforceVSCodeServicesApiV2
+} from '@salesforce/vscode-services/v2';
 import * as vscode from 'vscode';
 import { debuggerStop } from '../../../src/commands/debuggerStop';
 
@@ -27,7 +35,7 @@ const showSuccessNotification = vi.fn(() => Effect.void);
 const notificationMode = {
   getProgressLocation,
   showSuccessNotification
-} as unknown as NotificationModeService;
+} as unknown as NotificationModeService['Service'];
 
 // Fake jsforce Connection: `tooling.query` and `tooling.sobject(...).update` are spies.
 const makeConnection = (
@@ -60,36 +68,45 @@ const providerLayer = (
   Layer.mergeAll(
     Layer.succeed(effectExtUtils.ExtensionProviderService, {
       getServicesApi: Effect.succeed({
-        services: {
-          ProjectService: { getSfProject: () => Effect.void },
-          ConfigService: makeConfigService(isvSid, isvUrl),
-          ConnectionService: { getConnection: () => Effect.succeed(conn) },
-          // Run the wrapped Effect directly.
-          PromptService: Effect.succeed({
-            withProgress:
-              () =>
-              <A, E, R>(work: Effect.Effect<A, E, R>) =>
-                work
-          }),
-          NotificationModeService,
-          QueryService: Effect.succeed({
-            query: (options: { soql: string; tooling: boolean }) =>
-              Effect.tryPromise({
-                try: () => {
-                  query(options);
-                  return queryImpl();
-                },
-                catch: (error: unknown) => (error instanceof Error ? error : new Error(String(error)))
-              }).pipe(
-                Effect.map(result => ({
-                  totalSize: result.records.length,
-                  records: Stream.fromIterable(result.records)
-                }))
-              )
-          })
+        v2: {
+          services: {
+            ProjectService,
+            ConfigService,
+            ConnectionService,
+            PromptService,
+            NotificationModeService,
+            QueryService
+          }
         }
-      })
-    } as unknown as effectExtUtils.ExtensionProviderService),
+      } as unknown as SalesforceVSCodeServicesApiV2)
+    } as unknown as effectExtUtils.ExtensionProviderService['Service']),
+    Layer.succeed(ProjectService, { getSfProject: () => Effect.void } as unknown as ProjectService['Service']),
+    Layer.succeed(ConfigService, makeConfigService(isvSid, isvUrl) as unknown as ConfigService['Service']),
+    Layer.succeed(ConnectionService, {
+      getConnection: () => Effect.succeed(conn)
+    } as unknown as ConnectionService['Service']),
+    Layer.succeed(PromptService, {
+      // withProgress is a pipeable operator; the mock passes the wrapped effect through unchanged.
+      withProgress:
+        () =>
+        <A, E, R>(self: Effect.Effect<A, E, R>) =>
+          self
+    } as unknown as PromptService['Service']),
+    Layer.succeed(QueryService, {
+      query: (options: { soql: string; tooling: boolean }) =>
+        Effect.tryPromise({
+          try: () => {
+            query(options);
+            return queryImpl();
+          },
+          catch: (error: unknown) => (error instanceof Error ? error : new Error(String(error)))
+        }).pipe(
+          Effect.map(result => ({
+            totalSize: result.records.length,
+            records: Stream.fromIterable(result.records)
+          }))
+        )
+    } as unknown as QueryService['Service']),
     Layer.succeed(NotificationModeService, notificationMode)
   );
 

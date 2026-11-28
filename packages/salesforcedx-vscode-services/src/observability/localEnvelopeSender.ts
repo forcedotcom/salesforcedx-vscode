@@ -15,10 +15,10 @@
  * http://→https:// (node_modules/@azure/monitor-opentelemetry-exporter), making a plain-HTTP
  * local server unreachable.
  */
-import * as HttpClient from '@effect/platform/HttpClient';
-import * as HttpClientRequest from '@effect/platform/HttpClientRequest';
 import { type ExportResult, ExportResultCode } from '@opentelemetry/core';
 import * as Effect from 'effect/Effect';
+import * as HttpClient from 'effect/http/HttpClient';
+import * as HttpClientRequest from 'effect/http/HttpClientRequest';
 import * as Schema from 'effect/Schema';
 import { exportResultFromHttpStatus } from './httpExportResult';
 import { makeLocalHttpRuntime } from './localHttpRuntime';
@@ -53,7 +53,10 @@ export const makeLocalEnvelopeSender = (localEndpoint: string): LocalEnvelopeSen
         }).pipe(
           Effect.flatMap(HttpClient.execute),
           Effect.map(res => exportResultFromHttpStatus(res.status, status => `local /v2.1/track responded ${status}`)),
-          Effect.catchAll(error => Effect.succeed({ code: ExportResultCode.FAILED, error })),
+          Effect.catchTags({
+            EnvelopeSerializationError: error => Effect.succeed({ code: ExportResultCode.FAILED, error }),
+            HttpClientError: error => Effect.succeed({ code: ExportResultCode.FAILED, error })
+          }),
           Effect.withTracerEnabled(false)
         )
       ),

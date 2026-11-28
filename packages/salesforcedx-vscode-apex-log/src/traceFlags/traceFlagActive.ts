@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import type { TraceFlagItem } from 'salesforcedx-vscode-services';
+import type { TraceFlagItem } from '@salesforce/vscode-services/v2';
 
 /**
  * Live active check. Unlike the schema's `isActive` boolean (baked at decode time),

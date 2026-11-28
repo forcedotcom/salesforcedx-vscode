@@ -5,15 +5,18 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import * as Command from '@effect/platform/Command';
-import * as FileSystem from '@effect/platform/FileSystem';
-import * as Path from '@effect/platform/Path';
-import { Config, Effect, Option, Redacted, Ref, Schema, Stream } from 'effect';
+import { Config, Effect, Option, Redacted, Schema, Stream } from 'effect';
+import * as FileSystem from 'effect/FileSystem';
+import * as Path from 'effect/Path';
+import { isError } from 'effect/Predicate';
+import * as ChildProcess from 'effect/process/ChildProcess';
+import * as Ref from 'effect/Ref';
 
 export class OpenCodeRunFailed extends Schema.TaggedError<OpenCodeRunFailed>()('OpenCodeRunFailed', {
   message: Schema.String
 }) {}
 
+const Models = Schema.NonEmptyArray(Schema.String.check(Schema.isPattern(/^[^\s/]+\/[^\s]+$/)));
 class OpenCodeModelRetryableError extends Schema.TaggedError<OpenCodeModelRetryableError>()(
   'OpenCodeModelRetryableError',
   {
@@ -22,7 +25,6 @@ class OpenCodeModelRetryableError extends Schema.TaggedError<OpenCodeModelRetrya
   }
 ) {}
 
-const Models = Schema.NonEmptyArray(Schema.String.pipe(Schema.pattern(/^[^\s/]+\/[^\s]+$/)));
 const RetryableModelFailure =
   /(?:\b(?:Provider)?Model(?:Unavailable|NotFound)Error\b|\bmodel(?:\s+["'`]?[^\s"'`]+["'`]?)?\s+(?:(?:is|was)\s+)?(?:unavailable|not\s+available|not\s+found|does\s+not\s+exist)\b|\b(?:unavailable|unsupported|unknown)\s+model\b|\bno\s+(?:free\s+)?models?\s+available\b|\b(?:HTTP(?:\/[\d.]+)?|status(?:[\s_-]*code)?)["']?\s*[:=]?\s*["']?(?:410|429)\b|RateLimit\.FreeUsageLimitError|Free usage limit reached)/i;
 const Event = Schema.Struct({
@@ -32,7 +34,7 @@ const Event = Schema.Struct({
 
 const replyText = Effect.fn('openCode.replyText')(function* (stdout: string) {
   const events = yield* Effect.forEach(stdout.trim().split('\n'), line =>
-    Schema.decodeUnknown(Schema.parseJson(Event))(line)
+    Schema.decodeUnknownEffect(Schema.fromJsonString(Event))(line)
   );
   const lastStep = events.slice(events.findLastIndex(event => event.type === 'step_start'));
   const text = lastStep.flatMap(event => (event.type === 'text' ? [event.part?.text ?? ''] : [])).join('');
@@ -50,17 +52,14 @@ export const openCodePrompt = Effect.fn('openCode.prompt')(
     const fs = yield* FileSystem.FileSystem;
     const path = yield* Path.Path;
     const [apiKey, models, pathEnv, certificates] = yield* Config.all([
-      Config.redacted('OPENCODE_API_KEY').pipe(
-        Config.validate({
-          message: 'OPENCODE_API_KEY must not be empty',
-          validation: key => Redacted.value(key).trim().length > 0
-        })
-      ),
-      Config.string('OPENCODE_MODELS'),
-      Config.string('PATH'),
-      Config.option(Config.string('NODE_EXTRA_CA_CERTS'))
+      Config.Redacted('OPENCODE_API_KEY'),
+      Config.String('OPENCODE_MODELS'),
+      Config.String('PATH'),
+      Config.option(Config.String('NODE_EXTRA_CA_CERTS'))
     ]);
-    const configuredModels = yield* Schema.decodeUnknown(Schema.parseJson(Models))(models);
+    if (Redacted.value(apiKey).trim().length === 0)
+      return yield* new OpenCodeRunFailed({ message: 'OPENCODE_API_KEY must not be empty' });
+    const configuredModels = yield* Schema.decodeUnknownEffect(Schema.fromJsonString(Models))(models);
     const directory = yield* fs.makeTempDirectoryScoped({ prefix: 'ci-opencode-' });
     const readDirectory = input.readDirectory === undefined ? undefined : yield* fs.realPath(input.readDirectory);
     yield* fs.writeFileString(
@@ -89,7 +88,7 @@ export const openCodePrompt = Effect.fn('openCode.prompt')(
         }
       })
     );
-    // Command.env merges with process.env: clear everything before adding the allowlist.
+    // Keep the child process environment limited to the allowlist.
     const environment = {
       ...Object.fromEntries(Object.keys(process.env).map(key => [key, ''])),
       PATH: pathEnv,
@@ -103,17 +102,15 @@ export const openCodePrompt = Effect.fn('openCode.prompt')(
       ...Option.match(certificates, { onNone: () => ({}), onSome: value => ({ NODE_EXTRA_CA_CERTS: value }) })
     };
     const runModel = Effect.fn('openCode.runModel')(function* (model: string) {
-      const handle = yield* Command.make(
+      const handle = yield* ChildProcess.make(
         'opencode',
-        '--standalone',
-        'run',
-        '--agent',
-        'judgment',
-        '--format',
-        'json',
-        '--model',
-        model
-      ).pipe(Command.workingDirectory(directory), Command.env(environment), Command.feed(input.prompt), Command.start);
+        ['--standalone', 'run', '--agent', 'judgment', '--format', 'json', '--model', model],
+        {
+          cwd: directory,
+          env: environment,
+          stdin: Stream.make(input.prompt).pipe(Stream.encodeText)
+        }
+      );
       const [stdout, stderr, code] = yield* Effect.all(
         [
           Stream.mkString(Stream.decodeText(handle.stdout)),
@@ -126,19 +123,19 @@ export const openCodePrompt = Effect.fn('openCode.prompt')(
       const errorOutput = stdout
         .split('\n')
         .filter(line =>
-          Schema.decodeUnknownOption(Schema.parseJson(Event))(line).pipe(
-            Option.match({ onNone: () => code !== 0, onSome: event => event.type === 'error' })
+          Schema.decodeUnknownOption(Schema.fromJsonString(Event))(line).pipe(
+            Option.match({ onNone: () => Number(code) !== 0, onSome: event => event.type === 'error' })
           )
         );
-      const failureOutput = code !== 0 || errorOutput.length > 0 ? `${errorOutput.join('\n')}\n${stderr}` : '';
+      const failureOutput = Number(code) !== 0 || errorOutput.length > 0 ? `${errorOutput.join('\n')}\n${stderr}` : '';
       if (RetryableModelFailure.test(failureOutput)) {
         return yield* new OpenCodeModelRetryableError({ model, message: 'Model unavailable or rate limited' });
       }
-      if (code !== 0) return yield* new OpenCodeRunFailed({ message: `OpenCode exited ${code}` });
+      if (Number(code) !== 0) return yield* new OpenCodeRunFailed({ message: `OpenCode exited ${code}` });
       return yield* replyText(stdout);
     });
     const modelIndex = yield* Ref.make(0);
-    return yield* Ref.getAndUpdate(modelIndex, index => index + 1).pipe(
+    return yield* Ref.modify(modelIndex, index => [index, index + 1] as const).pipe(
       Effect.flatMap(index => {
         const model = configuredModels[index];
         return model === undefined
@@ -156,5 +153,5 @@ export const openCodePrompt = Effect.fn('openCode.prompt')(
     );
   },
   Effect.scoped,
-  Effect.mapError(error => new OpenCodeRunFailed({ message: error.message }))
+  Effect.mapError(error => new OpenCodeRunFailed({ message: isError(error) ? error.message : String(error) }))
 );

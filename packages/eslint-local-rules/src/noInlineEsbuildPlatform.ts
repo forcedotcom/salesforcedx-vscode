@@ -52,7 +52,7 @@ export const noInlineEsbuildPlatform = RuleCreator.withoutDocs({
             : undefined;
       if (!source || !isProcessEnvAccess(source)) return;
       const destructured = node.properties.find(
-        (prop): prop is TSESTree.Property =>
+        (prop): prop is Extract<TSESTree.ObjectPattern['properties'][number], { type: AST_NODE_TYPES.Property }> =>
           prop.type === AST_NODE_TYPES.Property &&
           prop.key.type === AST_NODE_TYPES.Identifier &&
           prop.key.name === 'ESBUILD_PLATFORM'

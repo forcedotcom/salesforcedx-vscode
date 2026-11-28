@@ -5,14 +5,21 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+/* eslint-disable import/no-extraneous-dependencies -- Effect is provided by the parent extension package; this nested manifest only sets ESM scope. */
 import * as Effect from 'effect/Effect';
-import * as Encoding from 'effect/Encoding';
-import { isError, isNull } from 'effect/Predicate';
+import { isNotUndefined, isNull } from 'effect/Predicate';
+import * as Schema from 'effect/Schema';
+import { Buffer } from 'node:buffer';
 import * as http from 'node:http';
 
 const PORT = 3002;
 
 const SEPARATOR = '='.repeat(80);
+
+class O11yDebugError extends Schema.TaggedError<O11yDebugError>()('O11yDebugError', { message: Schema.String }) {}
+
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === 'object' && value !== null && !Array.isArray(value);
 
 type JsonEndState = { depth: number; done: boolean; end?: number };
 
@@ -36,7 +43,7 @@ const findJsonEnd = (str: string, start: number): number | undefined => {
   return result.end;
 };
 
-const extractJsonObjects = (str: string): string[] => {
+const extractJsonObjects = (str: string) => {
   // OTEL spans: {"name",...}; legacy O11yService.logEvent: {"eventName",...} or {"message",...}
   const jsonStartPattern = /\{"(name|eventName|message)"/g;
   const allMatchIndices: number[] = [];
@@ -50,34 +57,33 @@ const extractJsonObjects = (str: string): string[] => {
     return findMatches(match.index + 1);
   };
 
-  const matches = findMatches(0);
-
-  return matches
+  const jsonStrings = findMatches(0)
     .map(start => ({ start, end: findJsonEnd(str, start) }))
     .filter((match): match is { start: number; end: number } => match.end !== undefined)
-    .map(({ start, end }) => str.substring(start, end))
-    .map(jsonStr =>
-      Effect.try({
-        try: () => {
-          const parsed = JSON.parse(jsonStr);
-          return typeof parsed === 'object' && parsed !== null && !Array.isArray(parsed) ? parsed : undefined;
-        },
-        catch: () => undefined
-      })
-    )
-    .map(effect => Effect.runSync(effect))
-    .filter((json): json is Record<string, unknown> => json !== undefined)
-    .map(json => JSON.stringify(json, undefined, 2));
+    .map(({ start, end }) => str.substring(start, end));
+
+  return Effect.forEach(jsonStrings, jsonStr =>
+    Effect.try({
+      try: () => {
+        const parsed: unknown = JSON.parse(jsonStr);
+        return isRecord(parsed) ? parsed : undefined;
+      },
+      catch: cause => new O11yDebugError({ message: String(cause) })
+    }).pipe(Effect.catchTag('O11yDebugError', () => Effect.void))
+  ).pipe(Effect.map(jsonObjects => jsonObjects.filter(isNotUndefined).map(json => JSON.stringify(json, undefined, 2))));
 };
 
 const parseBody = (body: string) =>
   Effect.try({
-    try: () => JSON.parse(body),
-    catch: error => (isError(error) ? error : new Error(String(error)))
+    try: () => {
+      const parsed: unknown = JSON.parse(body);
+      return parsed;
+    },
+    catch: cause => new O11yDebugError({ message: String(cause) })
   }).pipe(
     Effect.flatMap(parsed => {
-      if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed)) {
-        return Effect.fail(new Error('Invalid JSON: expected object'));
+      if (!isRecord(parsed)) {
+        return Effect.fail(new O11yDebugError({ message: 'Invalid JSON: expected object' }));
       }
       const { base64Env, ...rest } = parsed;
       return Effect.succeed({ base64Env: typeof base64Env === 'string' ? base64Env : undefined, rest });
@@ -85,7 +91,10 @@ const parseBody = (body: string) =>
   );
 
 const decodeBase64Env = (base64Env: string) =>
-  Encoding.decodeBase64String(base64Env).pipe(Effect.map(extractJsonObjects));
+  Effect.try({
+    try: () => Buffer.from(base64Env, 'base64').toString('utf8'),
+    catch: cause => new O11yDebugError({ message: String(cause) })
+  }).pipe(Effect.flatMap(extractJsonObjects));
 
 const logRequest = (method: string | undefined, url: string | undefined, headers: http.IncomingHttpHeaders): void => {
   const timestamp = new Date().toISOString();
@@ -138,11 +147,11 @@ const handleRequest = (req: http.IncomingMessage, res: http.ServerResponse): voi
               ? decodeBase64Env(base64Env).pipe(
                   Effect.tap(() => Effect.sync(() => console.log('\nDecoded base64Env (human-readable JSON only):'))),
                   Effect.tap(jsonMatches => Effect.sync(() => logDecodedJson(jsonMatches))),
-                  Effect.catchAll(() => Effect.sync(() => console.log('Failed to decode base64Env')))
+                  Effect.catchTag('O11yDebugError', () => Effect.sync(() => console.log('Failed to decode base64Env')))
                 )
               : Effect.succeed([])
           ),
-          Effect.catchAll(() => Effect.sync(() => console.log(body)))
+          Effect.catchTag('O11yDebugError', () => Effect.sync(() => console.log(body)))
         )
       );
     }

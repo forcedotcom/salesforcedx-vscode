@@ -5,9 +5,9 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import * as NodeContext from '@effect/platform-node/NodeContext';
-import { GitHub } from '@salesforce/effect-octokit';
-import { ConfigProvider, Effect, Option, Schema } from 'effect';
+import * as NodeServices from '@effect/platform-node/NodeServices';
+import { GitHub, GitHubLayer } from '@salesforce/effect-octokit';
+import { ConfigProvider, Effect, Layer, Option, Schema } from 'effect';
 import assert from 'node:assert/strict';
 import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
@@ -34,6 +34,7 @@ import {
 import { jobArtifact, latestTargetRun, targetLanes, Workflow } from '../../videoTargets.mts';
 
 const repository = 'forcedotcom/salesforcedx-vscode';
+const config = () => ConfigProvider.fromEnvRecord({ GITHUB_REPOSITORY: repository, IDEE_GH_TOKEN: 'test-token' });
 const target = {
   spec: 'packages/salesforcedx-vscode-apex-log/test/playwright/specs/executeAnonymous.headless.spec.ts',
   workflow: 'Apex Log E2E (Playwright)',
@@ -110,7 +111,10 @@ const fixture = () => ({
   urls: new Array<string>()
 });
 
-const withGitHub = async <A, E>(state: ReturnType<typeof fixture>, program: Effect.Effect<A, E, GitHub>) => {
+const withGitHub = async <A, E>(
+  state: ReturnType<typeof fixture>,
+  program: Effect.Effect<A, E, GitHub | NodeServices.NodeServices>
+) => {
   const fetchMock = mock.method(globalThis, 'fetch', (request: string | URL | Request, options?: RequestInit) => {
     const url = new URL(typeof request === 'string' ? request : request instanceof URL ? request.href : request.url);
     state.urls.push(url.href);
@@ -137,7 +141,7 @@ const withGitHub = async <A, E>(state: ReturnType<typeof fixture>, program: Effe
         };
       }
       if (path.endsWith('/pulls/8497') && options?.method === 'PATCH') {
-        const changed = Schema.decodeUnknownSync(Schema.parseJson(Schema.Struct({ body: Schema.String })))(
+        const changed = Schema.decodeUnknownSync(Schema.fromJsonString(Schema.Struct({ body: Schema.String })))(
           options.body
         );
         state.body = changed.body;
@@ -175,16 +179,10 @@ const withGitHub = async <A, E>(state: ReturnType<typeof fixture>, program: Effe
     return Promise.resolve(response);
   });
   try {
+    const configLayer = ConfigProvider.layer(config());
     return await program.pipe(
-      Effect.provide(GitHub.Default),
-      Effect.withConfigProvider(
-        ConfigProvider.fromMap(
-          new Map([
-            ['GITHUB_REPOSITORY', repository],
-            ['IDEE_GH_TOKEN', 'test-token']
-          ])
-        )
-      ),
+      Effect.provide(configLayer),
+      Effect.provide(Layer.mergeAll(GitHubLayer.pipe(Layer.provide(configLayer)), NodeServices.layer)),
       Effect.runPromise
     );
   } finally {
@@ -212,9 +210,10 @@ test('streams artifact bytes to disk through the local Octokit client', async t 
     return Promise.resolve(response);
   });
   try {
+    const configLayer = ConfigProvider.layer(config());
     await downloadArtifact(repository, 7, path).pipe(
-      Effect.provide(GitHub.Default),
-      Effect.withConfigProvider(ConfigProvider.fromMap(new Map([['IDEE_GH_TOKEN', 'test-token']]))),
+      Effect.provide(configLayer),
+      Effect.provide(Layer.mergeAll(GitHubLayer.pipe(Layer.provide(configLayer)), NodeServices.layer)),
       Effect.runPromise
     );
     assert.deepEqual(readFileSync(path), bytes);
@@ -260,7 +259,7 @@ const update = (
             );
           })
       }
-    ).pipe(Effect.scoped, Effect.provide(NodeContext.layer))
+    ).pipe(Effect.scoped, Effect.provide(NodeServices.layer))
   );
 
 test('completion gate rereads all workflows, external checks and commit statuses', async () => {
@@ -471,9 +470,9 @@ test('missing and expired artifacts preserve the plan, and absent videos do not 
       { pr: 8497, sha: 'head', clear: false },
       {
         collect: () => Effect.succeed([]),
-        publish: () => Effect.dieMessage('Must not publish')
+        publish: () => Effect.die(new Error('Must not publish'))
       }
-    ).pipe(Effect.scoped, Effect.provide(NodeContext.layer))
+    ).pipe(Effect.scoped, Effect.provide(NodeServices.layer))
   );
   assert.equal(absent.body, initialBody);
 });
@@ -506,7 +505,7 @@ test('event resolution delegates payload decoding and keeps event-specific behav
   t.after(() => rmSync(directory, { recursive: true, force: true }));
   const eventPath = join(directory, 'event.json');
   const resolve = (name: string) =>
-    readPullResolution(name, eventPath).pipe(Effect.provide(NodeContext.layer), Effect.runPromise);
+    readPullResolution(name, eventPath).pipe(Effect.provide(NodeServices.layer), Effect.runPromise);
   writeFileSync(eventPath, JSON.stringify({ inputs: { pull_number: '8497' } }));
   assert.deepEqual(await resolve('workflow_dispatch'), { kind: 'pull', pullNumber: 8497, clear: false });
   writeFileSync(eventPath, JSON.stringify({ action: 'synchronize', pull_request: { number: 8497 } }));

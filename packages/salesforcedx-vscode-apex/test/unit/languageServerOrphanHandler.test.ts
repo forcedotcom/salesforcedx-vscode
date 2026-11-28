@@ -10,9 +10,9 @@ import type { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
 import * as Fiber from 'effect/Fiber';
-import * as TestClock from 'effect/TestClock';
-import * as TestContext from 'effect/TestContext';
+import * as TestClock from 'effect/testing/TestClock';
 import type * as Tracer from 'effect/Tracer';
+import type * as V2Services from '@salesforce/vscode-services/v2';
 import * as vscode from 'vscode';
 import { UBER_JAR_NAME } from '../../src/constants';
 import { nls } from '../../src/messages';
@@ -88,17 +88,16 @@ const makeSettingsService = (stub: SettingsStub) => ({
   }
 });
 
-const makeApi = (responses: { match: string; result: ExecResult }[], settingsStub?: SettingsStub) => ({
-  services: {
-    TerminalService: Effect.succeed({ simpleExec: makeSimpleExec(responses) }),
-    PromptService: Effect.succeed(makePromptService()),
-    SettingsService: Effect.succeed(makeSettingsService(settingsStub ?? makeSettingsStub())),
-    ChannelService: Effect.succeed({
-      showChannel: Effect.void,
-      appendToChannel: (_message: string) => Effect.void,
-      getChannel: Effect.succeed(undefined),
-      clearChannel: Effect.void
-    })
+type ServiceTags = Pick<typeof V2Services, 'TerminalService' | 'PromptService' | 'SettingsService' | 'ChannelService'>;
+
+const makeApi = (services: ServiceTags) => ({
+  v2: {
+    services: {
+      TerminalService: services.TerminalService,
+      PromptService: services.PromptService,
+      SettingsService: services.SettingsService,
+      ChannelService: services.ChannelService
+    }
   }
 });
 
@@ -119,7 +118,8 @@ const loadHandler = async (platform: NodeJS.Platform) => {
   try {
     const { ExtensionProviderService: Provider } = await import('@salesforce/effect-ext-utils');
     const { checkAndResolveOrphanedLanguageServers } = await import('../../src/languageServerOrphanHandler.js');
-    return { checkAndResolveOrphanedLanguageServers, Provider };
+    const Services = await import('@salesforce/vscode-services/v2');
+    return { checkAndResolveOrphanedLanguageServers, Provider, Services };
   } finally {
     Object.defineProperty(process, 'platform', { value: original, configurable: true });
   }
@@ -128,14 +128,24 @@ const loadHandler = async (platform: NodeJS.Platform) => {
 const provide =
   (
     Provider: typeof ExtensionProviderService,
+    services: ServiceTags,
     responses: { match: string; result: ExecResult }[],
     settingsStub?: SettingsStub
   ) =>
   (effect: Effect.Effect<unknown, unknown, unknown>) =>
     effect.pipe(
       Effect.provideService(Provider, {
-        getServicesApi: Effect.succeed(makeApi(responses, settingsStub))
-      } as unknown as ExtensionProviderService)
+        getServicesApi: Effect.succeed(makeApi(services))
+      } as unknown as ExtensionProviderService['Service']),
+      Effect.provideService(services.TerminalService, { simpleExec: makeSimpleExec(responses) } as never),
+      Effect.provideService(services.PromptService, makePromptService() as never),
+      Effect.provideService(services.SettingsService, makeSettingsService(settingsStub ?? makeSettingsStub()) as never),
+      Effect.provideService(services.ChannelService, {
+        showChannel: Effect.void,
+        appendToChannel: (_message: string) => Effect.void,
+        getChannel: Effect.succeed(undefined),
+        clearChannel: Effect.void
+      } as never)
     );
 
 // Capture the root span so tests can assert the annotations the handler writes via annotateRootSpan.
@@ -150,11 +160,11 @@ const run = async (
   holder: { root?: Tracer.Span } = {},
   settingsStub?: SettingsStub
 ) => {
-  const { checkAndResolveOrphanedLanguageServers, Provider } = await loadHandler('darwin');
+  const { checkAndResolveOrphanedLanguageServers, Provider, Services } = await loadHandler('darwin');
   return Effect.runPromise(
     (
       checkAndResolveOrphanedLanguageServers(3, Duration.millis(0)).pipe(
-        provide(Provider, responses, settingsStub)
+        provide(Provider, Services, responses, settingsStub)
       ) as Effect.Effect<void>
     ).pipe(captureRoot(holder))
   );
@@ -177,16 +187,20 @@ const runWithClock = async (
   holder: { root?: Tracer.Span } = {},
   settingsStub?: SettingsStub
 ) => {
-  const { checkAndResolveOrphanedLanguageServers, Provider } = await loadHandler('darwin');
+  const { checkAndResolveOrphanedLanguageServers, Provider, Services } = await loadHandler('darwin');
   return Effect.runPromise(
-    Effect.gen(function* () {
-      holder.root = yield* Effect.currentSpan;
-      const fiber = yield* Effect.fork(
-        checkAndResolveOrphanedLanguageServers(3, Duration.millis(0)).pipe(provide(Provider, responses, settingsStub))
-      );
-      yield* TestClock.adjust(Duration.seconds(KILL_RETRY_TOTAL_SECONDS + 1));
-      return yield* Fiber.join(fiber);
-    }).pipe(Effect.withSpan('test-root'), Effect.provide(TestContext.TestContext)) as Effect.Effect<void>
+    Effect.scoped(
+      Effect.gen(function* () {
+        holder.root = yield* Effect.currentSpan;
+        const fiber = yield* Effect.forkChild(
+          checkAndResolveOrphanedLanguageServers(3, Duration.millis(0)).pipe(
+            provide(Provider, Services, responses, settingsStub)
+          )
+        );
+        yield* TestClock.adjust(`${KILL_RETRY_TOTAL_SECONDS + 1} seconds`);
+        return yield* Fiber.join(fiber);
+      }).pipe(Effect.withSpan('test-root'))
+    ).pipe(Effect.provide(TestClock.layer())) as Effect.Effect<void>
   );
 };
 
@@ -246,7 +260,7 @@ describe('languageServerOrphanHandler', () => {
 
   it('orphan disappears on re-check → no prompt, no kill', async () => {
     let psCallCount = 0;
-    const { checkAndResolveOrphanedLanguageServers, Provider } = await loadHandler('darwin');
+    const { checkAndResolveOrphanedLanguageServers, Provider, Services } = await loadHandler('darwin');
     const statefulSimpleExec = ({
       executable,
       args,
@@ -265,24 +279,22 @@ describe('languageServerOrphanHandler', () => {
       }
       return Effect.die(new Error(`unexpected command: ${command}`));
     };
-    const api = {
-      services: {
-        TerminalService: Effect.succeed({ simpleExec: statefulSimpleExec }),
-        PromptService: Effect.succeed(makePromptService()),
-        SettingsService: Effect.succeed(makeSettingsService(makeSettingsStub())),
-        ChannelService: Effect.succeed({
-          showChannel: Effect.void,
-          appendToChannel: (_message: string) => Effect.void,
-          getChannel: Effect.succeed(undefined),
-          clearChannel: Effect.void
-        })
-      }
-    };
+    const settingsService = makeSettingsService(makeSettingsStub());
+    const api = makeApi(Services);
     await Effect.runPromise(
       checkAndResolveOrphanedLanguageServers(3, Duration.millis(0)).pipe(
         Effect.provideService(Provider, {
           getServicesApi: Effect.succeed(api)
-        } as unknown as ExtensionProviderService)
+        } as unknown as ExtensionProviderService['Service']),
+        Effect.provideService(Services.TerminalService, { simpleExec: statefulSimpleExec } as never),
+        Effect.provideService(Services.PromptService, makePromptService() as never),
+        Effect.provideService(Services.SettingsService, settingsService as never),
+        Effect.provideService(Services.ChannelService, {
+          showChannel: Effect.void,
+          appendToChannel: (_message: string) => Effect.void,
+          getChannel: Effect.succeed(undefined),
+          clearChannel: Effect.void
+        } as never)
       ) as Effect.Effect<void>
     );
     expect(vscode.window.showWarningMessage).not.toHaveBeenCalled();
@@ -409,14 +421,15 @@ describe('languageServerOrphanHandler (Windows powershell guard)', () => {
     const { ExtensionProviderService: IsolatedProvider } = await import('@salesforce/effect-ext-utils');
     const { checkAndResolveOrphanedLanguageServers: checkOnWindows } =
       await import('../../src/languageServerOrphanHandler.js');
+    const Services = await import('@salesforce/vscode-services/v2');
+    const responses = [{ match: 'where powershell', result: { fail: 'powershell not found' } }];
     const program = Effect.gen(function* () {
       holder.root = yield* Effect.currentSpan;
       return yield* checkOnWindows().pipe(
         Effect.provideService(IsolatedProvider, {
-          getServicesApi: Effect.succeed(
-            makeApi([{ match: 'where powershell', result: { fail: 'powershell not found' } }])
-          )
-        } as unknown as ExtensionProviderService)
+          getServicesApi: Effect.succeed(makeApi(Services))
+        } as unknown as ExtensionProviderService['Service']),
+        Effect.provideService(Services.TerminalService, { simpleExec: makeSimpleExec(responses) } as never)
       );
     }).pipe(Effect.withSpan('test-root')) as Effect.Effect<void>;
     const killSpy = vi.spyOn(process, 'kill').mockReturnValue(true);

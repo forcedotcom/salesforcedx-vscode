@@ -23,8 +23,8 @@ const COMMAND: ProgressAndSuccessCommandKey = messages.deploy_this_source_text;
 const deployUris = Effect.fn('deploySourcePath.deployUris')(
   function* (uris: Set<URI>) {
     const api = yield* (yield* ExtensionProviderService).getServicesApi;
-    yield* api.services.ProjectService.ensureInPackageDirectories(Array.from(uris));
-    const componentSetService = yield* api.services.ComponentSetService;
+    yield* api.v2.services.ProjectService.use(service => service.ensureInPackageDirectories(Array.from(uris)));
+    const componentSetService = yield* api.v2.services.ComponentSetService;
     return yield* Effect.succeed(Array.from(uris)).pipe(
       Effect.flatMap(componentSetService.getComponentSetFromUris),
       Effect.flatMap(componentSetService.ensureNonEmptyComponentSet),
@@ -44,8 +44,8 @@ const deployUris = Effect.fn('deploySourcePath.deployUris')(
 export const deployActiveEditorCommand = Effect.fn('deploySourcePath.deployActiveEditor')(
   function* () {
     const api = yield* (yield* ExtensionProviderService).getServicesApi;
-    const notificationMode = yield* api.services.NotificationModeService;
-    const activeEditorUri = yield* api.services.EditorService.getActiveEditorUri();
+    const notificationMode = yield* api.v2.services.NotificationModeService;
+    const activeEditorUri = yield* api.v2.services.EditorService.use(service => service.getActiveEditorUri());
     const result = yield* deployUris(new Set([activeEditorUri]));
     yield* notificationMode.showSuccessNotification(
       COMMAND,
@@ -79,7 +79,7 @@ export const deploySourcePathsCommand = Effect.fn('deploySourcePath.deploySource
 ) {
   yield* Effect.annotateCurrentSpan({ sourceUri, uris });
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const notificationMode = yield* api.services.NotificationModeService;
+  const notificationMode = yield* api.v2.services.NotificationModeService;
   const result = yield* deployUris(new Set([sourceUri, ...uris]));
   yield* notificationMode.showSuccessNotification(
     COMMAND,

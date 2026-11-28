@@ -9,7 +9,7 @@ Salesforce project resolution. Accessor pattern: call methods directly.
 Check if workspace is Salesforce project (sfdx-project.json exists):
 
 ```typescript
-const isProject = yield * api.services.ProjectService.isSalesforceProject();
+const isProject = yield* api.v2.services.ProjectService.use(service => service.isSalesforceProject());
 ```
 
 Side effect: sets `sf:project_opened` context.
@@ -19,7 +19,7 @@ Side effect: sets `sf:project_opened` context.
 Get SfProject (fails if not Salesforce project):
 
 ```typescript
-const project = yield * api.services.ProjectService.getSfProject();
+const project = yield* api.v2.services.ProjectService.use(service => service.getSfProject());
 ```
 
 Returns `SfProject` from `@salesforce/core`. Side effect: sets `sf:project_opened` context.
@@ -34,13 +34,15 @@ Returns `SfProject` from `@salesforce/core`. Side effect: sets `sf:project_opene
 From `salesforcedx-vscode-metadata`:
 
 ```typescript
-const packageDirs = (yield * api.services.ProjectService.getSfProject()).getPackageDirectories();
+const project = yield* api.v2.services.ProjectService.use(service => service.getSfProject());
+const packageDirs = project.getPackageDirectories();
 ```
 
 From `salesforcedx-vscode-org-browser`:
 
 ```typescript
-const dirs = (yield * api.services.ProjectService.getSfProject()).getPackageDirectories();
+const project = yield* api.v2.services.ProjectService.use(service => service.getSfProject());
+const dirs = project.getPackageDirectories();
 ```
 
 ## Notes

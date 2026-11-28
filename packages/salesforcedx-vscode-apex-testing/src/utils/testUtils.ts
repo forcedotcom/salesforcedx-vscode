@@ -17,7 +17,7 @@ export const readTestRunIdFile = Effect.fn('testUtils.readTestRunIdFile')(
   function* (apexTestDir: URI) {
     const api = yield* (yield* ExtensionProviderService).getServicesApi;
     const fileUri = Utils.joinPath(apexTestDir, 'test-run-id.txt');
-    const content = yield* api.services.FsService.readFile(fileUri);
+    const content = yield* api.v2.services.FsService.use(service => service.readFile(fileUri));
     return content.trim();
   },
   Effect.orElseSucceed(() => undefined)
@@ -30,7 +30,7 @@ export const writeTestResultJsonFile = Effect.fn('testUtils.writeTestResultJsonF
   codeCoverage: boolean
 ) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const fsService = yield* api.services.FsService;
+  const fsService = yield* api.v2.services.FsService;
   yield* writeResultFiles(
     result,
     { dirPath: outputDir.toString(), resultFormats: ['json'] },

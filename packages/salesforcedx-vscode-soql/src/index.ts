@@ -28,7 +28,7 @@ import {
 export const activate = async (extensionContext: vscode.ExtensionContext): Promise<void> => {
   const extensionScope = Effect.runSync(getExtensionScope());
   setAllServicesLayer(buildAllServicesLayer(extensionContext));
-  await getSoqlRuntime().runPromise(activateEffect(extensionContext).pipe(Scope.extend(extensionScope)));
+  await getSoqlRuntime().runPromise(Scope.provide(extensionScope)(activateEffect(extensionContext)));
 };
 
 export const deactivate = async (): Promise<void> => {
@@ -39,7 +39,7 @@ export const activateEffect = Effect.fn(`activation:${SOQL_CONFIGURATION_NAME}`)
   context: vscode.ExtensionContext
 ) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const svc = yield* api.services.ChannelService;
+  const svc = yield* api.v2.services.ChannelService;
   yield* svc.appendToChannel(`SOQL Extension Initializing in mode ${context.extensionMode}`);
 
   yield* Effect.sync(() => {
@@ -48,7 +48,7 @@ export const activateEffect = Effect.fn(`activation:${SOQL_CONFIGURATION_NAME}`)
     registerSoqlCodeLensProvider(context);
   });
 
-  const registerCommand = api.services.registerCommandWithRuntime(getSoqlRuntime());
+  const registerCommand = api.v2.services.registerCommandWithRuntime(getSoqlRuntime());
   yield* Effect.all(
     [
       registerCommand('soql.open.new.builder', soqlOpenNewBuilder),
@@ -77,7 +77,7 @@ export const activateEffect = Effect.fn(`activation:${SOQL_CONFIGURATION_NAME}`)
 
 export const deactivateEffect = Effect.fn(`deactivation:${SOQL_CONFIGURATION_NAME}`)(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const svc = yield* api.services.ChannelService;
+  const svc = yield* api.v2.services.ChannelService;
   yield* closeExtensionScope();
   yield* Effect.promise(() => stopLanguageClient() ?? Promise.resolve());
   yield* svc.appendToChannel('SOQL Extension Deactivated');

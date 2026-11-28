@@ -14,7 +14,7 @@ import { nls } from '../../messages';
 const reportMissingWorkspaceFolder = (cause?: unknown) => {
   const errorMessage = nls.localize('no_workspace_folder_found_for_test_text');
   return Effect.logError(errorMessage, { cause }).pipe(
-    Effect.zipRight(
+    Effect.andThen(
       Effect.sync(() => {
         void vscode.window.showErrorMessage(errorMessage);
       })
@@ -35,9 +35,9 @@ const reportMissingWorkspaceFolder = (cause?: unknown) => {
  * @param testUri optional testUri
  */
 export const getTestWorkspaceFolder = Effect.fn('getTestWorkspaceFolder')(
-  function* (testUri?: URI) {
+  function* (testUri: URI | undefined) {
     const api = yield* (yield* ExtensionProviderService).getServicesApi;
-    const workspaceInfo = yield* api.services.WorkspaceService.getWorkspaceInfoOrThrow();
+    const workspaceInfo = yield* api.v2.services.WorkspaceService.use(service => service.getWorkspaceInfoOrThrow());
     const workspaceFolder = vscode.workspace.getWorkspaceFolder(testUri ?? workspaceInfo.uri);
     return yield* isNotUndefined(workspaceFolder) ? Effect.succeed(workspaceFolder) : reportMissingWorkspaceFolder();
   },

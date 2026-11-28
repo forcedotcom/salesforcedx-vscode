@@ -71,7 +71,7 @@ export const activateEffect = Effect.fn('activation:salesforcedx-vscode-core')(f
   void showTelemetryMessage(extensionContext);
 
   // Set internal dev context
-  const internalDev = yield* servicesApi.services.SettingsService.getInternalDev();
+  const internalDev = yield* servicesApi.v2.services.SettingsService.use(service => service.getInternalDev());
   yield* Effect.promise(() => vscode.commands.executeCommand('setContext', 'sf:internal_dev', internalDev));
   yield* Effect.promise(() => WorkspaceContext.getInstance().initialize(extensionContext));
 
@@ -80,10 +80,12 @@ export const activateEffect = Effect.fn('activation:salesforcedx-vscode-core')(f
     return;
   }
 
-  const registerCommand = servicesApi.services.registerCommandWithRuntime(getRuntime());
+  const registerCommand = servicesApi.v2.services.registerCommandWithRuntime(getRuntime());
 
   // Context — ProjectService.isSalesforceProject() sets sf:project_opened as a side effect
-  const salesforceProjectOpened = yield* servicesApi.services.ProjectService.isSalesforceProject();
+  const salesforceProjectOpened = yield* servicesApi.v2.services.ProjectService.use(service =>
+    service.isSalesforceProject()
+  );
 
   yield* registerCommand('sf.config.list', () => configListCommand());
 
@@ -101,10 +103,8 @@ export const activateEffect = Effect.fn('activation:salesforcedx-vscode-core')(f
   ) {
     // Refresh SObject definitions only for an open Salesforce project
     // when faux classes are missing (metadata extension registers the command).
-    const sobjectRefreshStartup = yield* (yield* servicesApi.services.SettingsService).getValueOrElse(
-      SFDX_CORE_EXTENSION_NAME,
-      ENABLE_SOBJECT_REFRESH_ON_STARTUP,
-      false
+    const sobjectRefreshStartup = yield* servicesApi.v2.services.SettingsService.use(service =>
+      service.getValueOrElse(SFDX_CORE_EXTENSION_NAME, ENABLE_SOBJECT_REFRESH_ON_STARTUP, false)
     );
     yield* initSObjectDefinitions(vscode.workspace.workspaceFolders![0].uri.fsPath, sobjectRefreshStartup);
   }
@@ -115,7 +115,7 @@ export const activateEffect = Effect.fn('activation:salesforcedx-vscode-core')(f
 
 const initializeProject = Effect.fn('initializeProject')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const extensionContext = yield* (yield* api.services.ExtensionContextService).getContext;
+  const extensionContext = yield* (yield* api.v2.services.ExtensionContextService).getContext;
   const metadataHoverProvider = new MetadataHoverProvider();
 
   yield* Effect.all([initializeMetadataSupport(), Effect.promise(() => metadataHoverProvider.initialize())], {
@@ -142,6 +142,7 @@ export const deactivate = async (): Promise<void> => {
     )
   );
   await getRuntime().runPromise(closeExtensionScope());
+  await getRuntime().dispose();
 
   telemetryService.dispose();
 };

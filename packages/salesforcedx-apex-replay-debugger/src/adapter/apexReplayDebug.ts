@@ -20,8 +20,8 @@ import {
   Thread
 } from '@vscode/debugadapter';
 import type { DebugProtocol } from '@vscode/debugprotocol';
-import * as Either from 'effect/Either';
 import * as Predicate from 'effect/Predicate';
+import * as Result from 'effect/Result';
 import * as Schema from 'effect/Schema';
 import { EOL } from 'node:os';
 import { breakpointUtil } from '../breakpoints';
@@ -80,14 +80,14 @@ export class ApexReplayDebug extends LoggingDebugSession {
 
   public launchRequest(response: DebugProtocol.LaunchResponse, args: LaunchRequestArguments): void {
     if (Predicate.isNotUndefined(args.sourceUriMapping)) {
-      const sourceUriMapping = Schema.decodeUnknownEither(SourceUriMappingSchema)(args.sourceUriMapping);
-      if (Either.isLeft(sourceUriMapping)) {
+      const sourceUriMapping = Schema.decodeUnknownResult(SourceUriMappingSchema)(args.sourceUriMapping);
+      if (Result.isFailure(sourceUriMapping)) {
         response.success = false;
-        response.message = `Invalid sourceUriMapping: ${sourceUriMapping.left.message}`;
+        response.message = `Invalid sourceUriMapping: ${sourceUriMapping.failure.message}`;
         this.sendResponse(response);
         return;
       }
-      args.sourceUriMapping = sourceUriMapping.right;
+      args.sourceUriMapping = sourceUriMapping.success;
     }
     let lineBreakpointInfoAvailable = false;
     if (args?.lineBreakpointInfo) {

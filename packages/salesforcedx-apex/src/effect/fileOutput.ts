@@ -9,7 +9,7 @@ import * as Context from 'effect/Context';
 import type * as Effect from 'effect/Effect';
 import * as Schema from 'effect/Schema';
 import type * as Stream from 'effect/Stream';
-import { ApexReportError } from './errors';
+import { ApexReportError } from './errors.js';
 
 export class FileOutputError extends Schema.TaggedError<FileOutputError>()('FileOutputError', {
   operation: Schema.String,
@@ -22,11 +22,11 @@ export class FileOutputError extends Schema.TaggedError<FileOutputError>()('File
 export class PartialResultFilesError extends Schema.TaggedError<PartialResultFilesError>()('PartialResultFilesError', {
   writtenFiles: Schema.NonEmptyArray(Schema.String),
   message: Schema.String,
-  cause: Schema.Union(FileOutputError, ApexReportError)
+  cause: Schema.Union([FileOutputError, ApexReportError])
 }) {}
 
 /** File operations needed by Apex result writers. Hosts provide the implementation for their filesystem. */
-export class FileOutput extends Context.Tag('Apex.FileOutput')<
+export class FileOutput extends Context.Service<
   FileOutput,
   {
     createDirectory: (path: string) => Effect.Effect<void, FileOutputError>;
@@ -36,4 +36,4 @@ export class FileOutput extends Context.Tag('Apex.FileOutput')<
       content: Stream.Stream<string, never, never>
     ) => Effect.Effect<string, FileOutputError>;
   }
->() {}
+>()('Apex.FileOutput') {}

@@ -4,9 +4,9 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import type { ReportLineEnding } from './lineEnding';
-import { type ApexTestResultData } from '../tests/types';
-import { splitLines } from '../utils/splitLines';
+import type { ReportLineEnding } from './lineEnding.js';
+import { type ApexTestResultData } from '../tests/apiTypes.js';
+import { splitLines } from '../utils/splitLines.js';
 /**
  * this regex is flagged as likely incorrect by Cursor, BUT there is a unit test that specs
  * expect(result[12].diagnostics).to.eql([
@@ -16,7 +16,7 @@ import { splitLines } from '../utils/splitLines';
     ]);
     so it has been left as is
  */
-const startsWithNewlineRegex = new RegExp(/^[/\r\n|\r|\n][\w]*/im);
+const startsWithNewlineRegex = new RegExp(/^[/\r\n|\r|\n][\w]*/gim);
 
 export const buildTapDiagnostics = (testResult: ApexTestResultData, lineEnding: ReportLineEnding = '\n'): string[] => {
   if (testResult.outcome === 'Pass') {

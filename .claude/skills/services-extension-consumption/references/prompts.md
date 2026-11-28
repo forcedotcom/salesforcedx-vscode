@@ -62,7 +62,7 @@ Always wrap VS Code prompt promises in `Effect.promise`.
 ```typescript
 const promptForTemplate = Effect.fn('promptForTemplate')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const promptService = yield* api.services.PromptService;
+  const promptService = yield* api.v2.services.PromptService;
 
   return yield* Effect.promise(() =>
     vscode.window.showQuickPick(
@@ -119,7 +119,7 @@ const outputDirUri = yield * promptService.promptForOutputDir({
 });
 ```
 
-Requires `ProjectService` + `WorkspaceService` in the layer (already in `PromptService.Default` dependencies).
+Requires Project and Workspace services from the shared V2 layer.
 
 ### `getApiVersion`
 

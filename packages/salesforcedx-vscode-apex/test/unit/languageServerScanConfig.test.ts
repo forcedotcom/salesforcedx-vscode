@@ -10,11 +10,12 @@ import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
 import {
   GetRegistryAccessError,
-  MetadataRegistryService
-} from 'salesforcedx-vscode-services/src/core/metadataRegistryService';
+  MetadataRegistryService,
+  type SalesforceVSCodeServicesApiV2
+} from '@salesforce/vscode-services/v2';
 import { buildMetadataRegistryScanConfig, deriveExcludedMetadataFolders } from '../../src/languageServerScanConfig';
 
-const mockGetServicesApi = vi.fn<() => Effect.Effect<EffectExtUtils.SalesforceVSCodeServicesApi, unknown>>();
+const mockGetServicesApi = vi.fn<() => Effect.Effect<SalesforceVSCodeServicesApiV2, unknown>>();
 
 vi.mock('@salesforce/effect-ext-utils', async () => {
   const actual = await vi.importActual<typeof EffectExtUtils>('@salesforce/effect-ext-utils');
@@ -28,16 +29,17 @@ vi.mock('@salesforce/effect-ext-utils', async () => {
 const useRegistryAccess = (registryAccess: Effect.Effect<unknown, unknown>) => {
   const metadataRegistryService = {
     getRegistryAccess: () => registryAccess
-  } as unknown as InstanceType<typeof MetadataRegistryService>;
+  } as unknown as MetadataRegistryService['Service'];
   const prebuiltServicesLayer = Layer.succeed(MetadataRegistryService, metadataRegistryService);
 
   mockGetServicesApi.mockReturnValue(
     Effect.succeed({
-      services: {
-        MetadataRegistryService,
-        prebuiltServicesLayer
+      v2: {
+        services: {
+          MetadataRegistryService
+        }
       }
-    } as unknown as EffectExtUtils.SalesforceVSCodeServicesApi)
+    } as unknown as SalesforceVSCodeServicesApiV2)
   );
   return prebuiltServicesLayer;
 };
@@ -73,14 +75,7 @@ describe('languageServerScanConfig', () => {
 
     it('returns undefined when the services API is unavailable', async () => {
       const layer = useRegistryAccess(Effect.succeed({ getRegistry: () => ({}), getTypeByName: () => ({}) }));
-      mockGetServicesApi.mockReturnValue(
-        Effect.fail(
-          new EffectExtUtils.ExtensionNotFoundError({
-            extId: 'salesforce.salesforcedx-vscode-services',
-            message: 'Services extension is not installed'
-          })
-        )
-      );
+      mockGetServicesApi.mockReturnValue(Effect.fail(new EffectExtUtils.ServicesExtensionNotFoundError()));
 
       await expect(runBuildMetadataRegistryScanConfig(layer)).resolves.toBeUndefined();
     });
@@ -88,20 +83,16 @@ describe('languageServerScanConfig', () => {
     it('propagates services API activation failure', async () => {
       const layer = useRegistryAccess(Effect.succeed({ getRegistry: () => ({}), getTypeByName: () => ({}) }));
       mockGetServicesApi.mockReturnValue(
-        Effect.fail(
-          new EffectExtUtils.ExtensionActivationError({
-            extId: 'salesforce.salesforcedx-vscode-services',
-            message: 'Services extension activation failed',
-            cause: new Error('activation failed')
-          })
-        )
+        Effect.fail(new EffectExtUtils.InvalidServicesApiError({ cause: new Error('activation failed') }))
       );
 
       await expect(runBuildMetadataRegistryScanConfig(layer)).rejects.toThrow();
     });
 
     it('returns undefined when registry access fails', async () => {
-      const layer = useRegistryAccess(new GetRegistryAccessError({ cause: 'registry unavailable' }).pipe(Effect.fail));
+      const layer = useRegistryAccess(
+        new GetRegistryAccessError({ cause: 'registry unavailable', message: 'registry unavailable' }).pipe(Effect.fail)
+      );
 
       await expect(runBuildMetadataRegistryScanConfig(layer)).resolves.toBeUndefined();
     });

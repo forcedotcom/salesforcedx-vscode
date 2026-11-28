@@ -6,8 +6,8 @@
  */
 
 import type { DiffFilePair } from '../shared/diff/diffTypes';
+import type { NonEmptyComponentSet } from '@salesforce/vscode-services/v2';
 import * as Data from 'effect/Data';
-import type { NonEmptyComponentSet } from 'salesforcedx-vscode-services';
 
 export class ConflictsDetectedError extends Data.TaggedError('ConflictsDetectedError')<{
   readonly pairs: DiffFilePair[];

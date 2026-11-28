@@ -5,27 +5,40 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { isNull } from 'effect/Predicate';
 import * as Schema from 'effect/Schema';
-import { ApexLogId, UserId } from '../../../schemas/salesforceId';
+import * as SchemaGetter from 'effect/SchemaGetter';
+import { QueryPageSchema } from '../queryPage.js';
+import { ApexLogId, UserId } from '../salesforceId.js';
+
+const LogUserSchema = Schema.Struct({
+  Name: Schema.String.pipe(Schema.NullOr, Schema.optional),
+  attributes: Schema.optional(Schema.Record(Schema.String, Schema.String))
+});
+const OptionalLogUserSchema = Schema.NullOr(LogUserSchema).pipe(
+  Schema.decodeTo(Schema.UndefinedOr(LogUserSchema), {
+    decode: SchemaGetter.transform(value => (isNull(value) ? undefined : value)),
+    encode: SchemaGetter.transform(value => value ?? null)
+  })
+);
 
 /** ApexLog record from Tooling API query (Id, LogLength, StartTime, Status required per API reference). */
 export const ApexLogRecordSchema = Schema.Struct({
   Id: ApexLogId,
-  Application: Schema.optionalWith(Schema.String, { nullable: true }),
-  DurationMilliseconds: Schema.optionalWith(Schema.Number, { nullable: true }),
-  Location: Schema.optionalWith(Schema.String, { nullable: true }),
+  Application: Schema.String.pipe(Schema.NullOr, Schema.optional),
+  DurationMilliseconds: Schema.Number.pipe(Schema.NullOr, Schema.optional),
+  Location: Schema.String.pipe(Schema.NullOr, Schema.optional),
   LogLength: Schema.Number,
-  LogUserId: Schema.optionalWith(UserId, { nullable: true }),
-  LogUser: Schema.optionalWith(
-    Schema.Struct({
-      Name: Schema.optionalWith(Schema.String, { nullable: true }),
-      attributes: Schema.optional(Schema.Record({ key: Schema.String, value: Schema.Unknown }))
-    }),
-    { nullable: true }
-  ),
-  Operation: Schema.optionalWith(Schema.String, { nullable: true }),
-  Request: Schema.optionalWith(Schema.String, { nullable: true }),
+  LogUserId: UserId.pipe(Schema.NullOr, Schema.optional),
+  LogUser: Schema.optional(OptionalLogUserSchema),
+  Operation: Schema.String.pipe(Schema.NullOr, Schema.optional),
+  Request: Schema.String.pipe(Schema.NullOr, Schema.optional),
   StartTime: Schema.String,
   Status: Schema.String
-}).annotations({ identifier: 'ApexLogRecord' });
+}).annotate({ identifier: 'ApexLogRecord' });
 export type ApexLogRecord = typeof ApexLogRecordSchema.Type;
+
+export const ApexLogListItem = ApexLogRecordSchema.annotate({ identifier: 'ApexLogListItem' });
+export type ApexLogListItem = ApexLogRecord;
+
+export const ApexLogPageSchema = QueryPageSchema(ApexLogListItem).annotate({ identifier: 'ApexLogPage' });

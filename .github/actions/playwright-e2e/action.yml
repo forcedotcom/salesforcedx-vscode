@@ -60,7 +60,7 @@ runs:
       with:
         node-version: ${{ inputs.node-version }}
 
-    - uses: google/wireit@setup-github-actions-caching/v2
+    - uses: google/wireit@9d7c2e5346f8ef1b1ab6014c4e96c74e234f7ed5 # setup-github-actions-caching/v2
 
     # This package is loaded by Playwright before test discovery. Do not trust a malformed
     # Wireit cache entry that reports success without its required out/index.js.
@@ -118,7 +118,7 @@ runs:
 
     - name: Install Salesforce CLI
       if: steps.try-run.outcome == 'failure' && inputs.scratch-orgs != ''
-      uses: salesforcecli/github-workflows/.github/actions/retry@main
+      uses: salesforcecli/github-workflows/.github/actions/retry@b974ac8caddfccebd27cb28c0f88c1991dcca4c1 # main
       with:
         max_attempts: 3
         command: pnpm add -g @salesforce/cli@${{ inputs.sf-cli-version }}
@@ -131,7 +131,7 @@ runs:
 
     - name: Auth to dev hub (global)
       if: steps.try-run.outcome == 'failure' && inputs.scratch-orgs != ''
-      uses: salesforcecli/github-workflows/.github/actions/retry@main
+      uses: salesforcecli/github-workflows/.github/actions/retry@b974ac8caddfccebd27cb28c0f88c1991dcca4c1 # main
       with:
         max_attempts: 3
         command: bash -c 'echo "$SFDX_AUTH_URL" | sf org login sfdx-url --set-default-dev-hub --alias hub --sfdx-url-stdin'
@@ -139,7 +139,7 @@ runs:
 
     - name: Install Playwright browsers
       if: steps.try-run.outcome == 'failure'
-      uses: salesforcecli/github-workflows/.github/actions/retry@main
+      uses: salesforcecli/github-workflows/.github/actions/retry@b974ac8caddfccebd27cb28c0f88c1991dcca4c1 # main
       with:
         max_attempts: 3
         command: pnpm exec playwright install chromium
@@ -148,7 +148,7 @@ runs:
     # Check Chromium before invoking apt: Ubuntu mirror outages must not block runners that can already launch it.
     - name: Install missing Playwright OS deps
       if: steps.try-run.outcome == 'failure' && runner.os == 'Linux'
-      uses: salesforcecli/github-workflows/.github/actions/retry@main
+      uses: salesforcecli/github-workflows/.github/actions/retry@b974ac8caddfccebd27cb28c0f88c1991dcca4c1 # main
       with:
         max_attempts: 3
         command: >-
@@ -158,7 +158,7 @@ runs:
 
     - name: Clone dreamhouse
       if: steps.try-run.outcome == 'failure' && contains(format(' {0} ', inputs.scratch-orgs), ' dreamhouse ')
-      uses: salesforcecli/github-workflows/.github/actions/retry@main
+      uses: salesforcecli/github-workflows/.github/actions/retry@b974ac8caddfccebd27cb28c0f88c1991dcca4c1 # main
       with:
         max_attempts: 3
         command: git clone --depth=1 https://github.com/trailheadapps/dreamhouse-lwc dreamhouse-lwc
@@ -173,24 +173,26 @@ runs:
         set -e
         has_org() { [[ " $SCRATCH_ORGS " == *" $1 "* ]]; }
 
+        # Salesforce reports scratch-org expiration as a date. Keep test orgs alive across UTC midnight
+        # so the extension doesn't classify a just-created one-day org as already expired.
         if has_org dreamhouse; then
           (cd dreamhouse-lwc
-            sf org create scratch -y 1 -d -f config/project-scratch-def.json -a "$DREAMHOUSE_ORG_ALIAS" --json --wait 30
+            sf org create scratch -y 2 -d -f config/project-scratch-def.json -a "$DREAMHOUSE_ORG_ALIAS" --json --wait 30
             sf project deploy start
             sf org assign permset -n dreamhouse)
         fi
         if has_org minimal || has_org throwaway || has_org default-logout; then
           sf project generate -n minimal-project
           (cd minimal-project
-            if has_org minimal; then sf org create scratch -y 1 -d -f config/project-scratch-def.json -a "$MINIMAL_ORG_ALIAS" --json --wait 30; fi
+            if has_org minimal; then sf org create scratch -y 2 -d -f config/project-scratch-def.json -a "$MINIMAL_ORG_ALIAS" --json --wait 30; fi
             # The logout tests require two additional, non-default throwaway orgs.
-            if has_org throwaway; then sf org create scratch -y 1 -f config/project-scratch-def.json -a "$THROWAWAY_ORG_ALIAS" --json; fi
-            if has_org default-logout; then sf org create scratch -y 1 -f config/project-scratch-def.json -a "$DEFAULT_LOGOUT_ORG_ALIAS" --json; fi)
+            if has_org throwaway; then sf org create scratch -y 2 -f config/project-scratch-def.json -a "$THROWAWAY_ORG_ALIAS" --json; fi
+            if has_org default-logout; then sf org create scratch -y 2 -f config/project-scratch-def.json -a "$DEFAULT_LOGOUT_ORG_ALIAS" --json; fi)
         fi
         if has_org non-tracking; then
           sf project generate -n non-tracking-project
           (cd non-tracking-project
-            sf org create scratch -y 1 -d -f config/project-scratch-def.json -a "$NON_TRACKING_ORG_ALIAS" --json --wait 30 --no-track-source)
+            sf org create scratch -y 2 -d -f config/project-scratch-def.json -a "$NON_TRACKING_ORG_ALIAS" --json --wait 30 --no-track-source)
         fi
 
     - name: Run E2E tests
@@ -220,11 +222,11 @@ runs:
         if [[ "$SCRATCH_ORGS" == minimal ]]; then
           (cd minimal-project
             sf org delete scratch -o "$MINIMAL_ORG_ALIAS" --no-prompt 2>/dev/null || true
-            sf org create scratch -y 1 -d -f config/project-scratch-def.json -a "$MINIMAL_ORG_ALIAS" --json --wait 30)
+            sf org create scratch -y 2 -d -f config/project-scratch-def.json -a "$MINIMAL_ORG_ALIAS" --json --wait 30)
         elif [[ "$SCRATCH_ORGS" == non-tracking ]]; then
           (cd non-tracking-project
             sf org delete scratch -o "$NON_TRACKING_ORG_ALIAS" --no-prompt 2>/dev/null || true
-            sf org create scratch -y 1 -d -f config/project-scratch-def.json -a "$NON_TRACKING_ORG_ALIAS" --json --wait 30 --no-track-source)
+            sf org create scratch -y 2 -d -f config/project-scratch-def.json -a "$NON_TRACKING_ORG_ALIAS" --json --wait 30 --no-track-source)
         fi
 
     - name: Retry failed tests (sequential)

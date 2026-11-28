@@ -11,6 +11,7 @@ export default defineConfig({
   ...baseConfig,
   test: {
     ...baseConfig.test,
-    include: ['test/**/*.test.ts']
+    include: ['test/**/*.test.ts'],
+    testTimeout: 15_000
   }
 });

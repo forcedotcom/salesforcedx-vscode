@@ -28,12 +28,14 @@ export const openTestReport = Effect.fn('writeAndOpenTestReport.openReport')(fun
 ) {
   if (format === 'markdown') {
     yield* Effect.tryPromise(() => vscode.commands.executeCommand('markdown.preview.refresh')).pipe(
-      Effect.catchAll(() => Effect.void)
+      Effect.catch(() => Effect.void)
     );
     yield* Effect.tryPromise(() => vscode.commands.executeCommand('markdown.showPreview', reportUri));
   } else {
     const api = yield* (yield* ExtensionProviderService).getServicesApi;
-    yield* api.services.FsService.showTextDocument(reportUri, { preview: false, preserveFocus: false });
+    yield* api.v2.services.FsService.use(service =>
+      service.showTextDocument(reportUri, { preview: false, preserveFocus: false })
+    );
   }
 });
 
@@ -47,9 +49,9 @@ export const writeAndOpenTestReport = Effect.fn('writeAndOpenTestReport')(functi
 ) {
   yield* Effect.annotateCurrentSpan({ outputFormat: format });
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const fsService = yield* api.services.FsService;
-  const channelSvc = yield* api.services.ChannelService;
-  const settings = yield* api.services.SettingsService;
+  const fsService = yield* api.v2.services.FsService;
+  const channelSvc = yield* api.v2.services.ChannelService;
+  const settings = yield* api.v2.services.SettingsService;
   const performanceThresholdMs = yield* settings.getValueOrElse(
     APEX_TESTING_SECTION,
     'testPerformanceThresholdMs',

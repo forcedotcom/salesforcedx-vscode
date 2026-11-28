@@ -5,9 +5,9 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import type { HashableUri } from '@salesforce/vscode-services/v2';
 import type { NonEmptyReadonlyArray } from 'effect/Array';
 import * as HashSet from 'effect/HashSet';
-import type { HashableUri } from 'salesforcedx-vscode-services';
 
 /** Returns the subset of allJsonUris that are stale — i.e., no component from that file
  * appears as the winning (first) row for any key in byKey. */

@@ -48,7 +48,7 @@ const launchFromLogFileCommand = Effect.fn('ApexReplayDebugger.launchFromLogFile
   let resolved = editorUri;
   if (!resolved) {
     const api = yield* (yield* ExtensionProviderService).getServicesApi;
-    resolved = yield* api.services.EditorService.getActiveEditorUri().pipe(
+    resolved = yield* api.v2.services.EditorService.use(service => service.getActiveEditorUri()).pipe(
       Effect.catchTag('NoActiveEditorError', () => Effect.as(Effect.void, undefined))
     );
   }
@@ -122,9 +122,8 @@ export const activate = async (extensionContext: vscode.ExtensionContext) => {
 export const activateEffect = Effect.fn('activation:salesforcedx-vscode-apex-replay-debugger')(function* (
   extensionContext: vscode.ExtensionContext
 ) {
-  const registerCommand = (yield* (yield* ExtensionProviderService).getServicesApi).services.registerCommandWithRuntime(
-    getRuntime()
-  );
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const registerCommand = api.v2.services.registerCommandWithRuntime(getRuntime());
   yield* registerCommand('sf.create.checkpoints', sfCreateCheckpointsCommand);
   yield* registerCommand('sf.toggle.checkpoint', sfToggleCheckpointCommand);
   yield* registerCommand('sf.launch.replay.debugger.logfile', (editorUri?: URI) =>

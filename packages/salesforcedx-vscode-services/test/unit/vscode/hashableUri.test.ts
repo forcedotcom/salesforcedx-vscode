@@ -11,7 +11,7 @@ import * as Hash from 'effect/Hash';
 import * as HashMap from 'effect/HashMap';
 import * as HashSet from 'effect/HashSet';
 import { URI } from 'vscode-uri';
-import { HashableUri } from '../../../src/vscode/hashableUri';
+import { HashableUri } from '@salesforce/vscode-services/v2';
 
 describe('HashableUri', () => {
   describe('fromUri / .uri', () => {
@@ -146,7 +146,7 @@ describe('HashableUri', () => {
       const lookup = HashableUri.fromUri(URI.parse('file:///c:/users/RUNNER/project/file.ts'));
 
       expect(HashSet.has(set, lookup)).toBe(true);
-      expect([...HashSet.toValues(set)][0].uri.path).toBe('/c:/Users/Runner/Project/File.ts');
+      expect([...set][0].uri.path).toBe('/c:/Users/Runner/Project/File.ts');
     });
   });
 
@@ -159,13 +159,13 @@ describe('HashableUri', () => {
       );
       expect(HashMap.size(map)).toBe(2);
       // Last write wins for the equal key
-      expect(HashMap.unsafeGet(map, HashableUri.fromUri(URI.file('/a.ts')))).toBe('A2');
+      expect(HashMap.getUnsafe(map, HashableUri.fromUri(URI.file('/a.ts')))).toBe('A2');
     });
 
     it('round-trips lookup with a freshly constructed key', () => {
       const map = HashMap.make([HashableUri.fromUri(URI.file('/a.ts')), 'value'] as const);
       const lookup = HashableUri.fromUri(URI.file('/a.ts'));
-      expect(HashMap.unsafeGet(map, lookup)).toBe('value');
+      expect(HashMap.getUnsafe(map, lookup)).toBe('value');
     });
   });
 

@@ -10,7 +10,7 @@ import { URI } from 'vscode-uri';
 import {
   OrgMetadataCatalogComponentReferenceSchema,
   OrgMetadataCatalogEntrySchema
-} from '../../../src/orgCatalog/orgMetadataCatalogTypes';
+} from '@salesforce/vscode-services/v2';
 
 describe('OrgMetadataCatalogEntrySchema', () => {
   const baseEntry = {

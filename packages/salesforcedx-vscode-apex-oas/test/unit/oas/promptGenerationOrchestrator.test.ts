@@ -6,7 +6,7 @@
  */
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
-import { SettingsService } from 'salesforcedx-vscode-services/src/vscode/settingsService';
+import { SettingsService, type SalesforceVSCodeServicesApiV2 } from '@salesforce/vscode-services/v2';
 import type { ApexClassOASEligibleResponse, ApexClassOASGatherContextResponse } from 'salesforcedx-vscode-apex';
 import { URI } from 'vscode-uri';
 import type { GenerationStrategy } from '../../../src/oas/generationStrategy/generationStrategy';
@@ -163,17 +163,15 @@ describe('selectStrategyByBidRule', () => {
       selectStrategyByBidRule(mockMetadata, mockContext).pipe(
         Effect.provideService(ExtensionProviderService, {
           getServicesApi: Effect.succeed({
-            services: {
-              SettingsService
-            }
-          } as never)
-        }),
+            v2: { services: { SettingsService } }
+          } as unknown as SalesforceVSCodeServicesApiV2)
+        } as never),
         Effect.provideService(
           SettingsService,
-          SettingsService.make({
+          SettingsService.of({
             getValue: () => Effect.succeed(rule),
             getValueOrElse: () => Effect.succeed(rule)
-          } as never)
+          } as unknown as SettingsService['Service'])
         )
       ) as Effect.Effect<GenerationStrategy, unknown, never>
     );

@@ -36,7 +36,7 @@ export const getLwcTestRunnerExecutable = Effect.fn('getLwcTestRunnerExecutable'
 
   const executablePath = isSFDX ? path.join(cwd, 'node_modules', '.bin', 'lwc-jest') : which.sync('lwc-test');
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const exists = yield* api.services.FsService.fileOrFolderExists(executablePath);
+  const exists = yield* api.v2.services.FsService.use(service => service.fileOrFolderExists(executablePath));
 
   if (exists) {
     return Option.some(executablePath);

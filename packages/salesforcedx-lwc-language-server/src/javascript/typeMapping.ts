@@ -38,9 +38,9 @@ type InternalDecorator = InternalApiDecorator | InternalTrackDecorator | Interna
 type LwcExport = ScriptFile['exports'][0];
 type DataProperty = ClassProperty['dataProperty'];
 
-const byMemberLocation = Order.mapInput(Order.number, (member: InternalClassMember) => member.loc?.start.line ?? 0);
+const byMemberLocation = Order.mapInput(Order.Number, (member: InternalClassMember) => member.loc?.start.line ?? 0);
 const byDecoratorLocation = <T extends { name: string }>(locations: ReadonlyMap<string, number>): Order.Order<T> =>
-  Order.mapInput(Order.number, (decorator: T) => locations.get(decorator.name) ?? 0);
+  Order.mapInput(Order.Number, (decorator: T) => locations.get(decorator.name) ?? 0);
 
 const decoratorTypeMap = {
   Api: 'api',

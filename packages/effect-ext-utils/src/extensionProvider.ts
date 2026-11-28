@@ -5,32 +5,44 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import type { SalesforceVSCodeServicesApiV2 } from '@salesforce/vscode-services/v2';
 import * as Context from 'effect/Context';
+import * as Data from 'effect/Data';
 import * as Effect from 'effect/Effect';
-import type * as ParseResult from 'effect/ParseResult';
-// Import from the npm package (symlinked in workspace) - wireit ensures it's compiled first
-export type { SalesforceVSCodeServicesApi } from 'salesforcedx-vscode-services';
-import type { SalesforceVSCodeServicesApi } from 'salesforcedx-vscode-services';
-import { type ExtensionActivationError, type ExtensionNotFoundError, getExtensionExports } from './extensionExports';
+import { isError } from 'effect/Predicate';
+import * as vscode from 'vscode';
 
-export type ExtensionProviderService = {
-  /** Get the SalesforceVSCodeServicesApi, activating if needed */
+// Import from the npm package (symlinked in workspace) - wireit ensures it's compiled first
+export type { SalesforceVSCodeServicesApiV2 } from '@salesforce/vscode-services/v2';
+
+export class ServicesExtensionNotFoundError extends Data.TaggedError('ServicesExtensionNotFoundError') {}
+export class InvalidServicesApiError extends Data.TaggedError('InvalidServicesApiError')<{ cause?: Error }> {}
+
+type ExtensionProviderServiceShape = {
+  /** Get the SalesforceVSCodeServicesApiV2, activating if needed */
   readonly getServicesApi: Effect.Effect<
-    SalesforceVSCodeServicesApi,
-    ExtensionNotFoundError | ExtensionActivationError | ParseResult.ParseError,
+    SalesforceVSCodeServicesApiV2,
+    ServicesExtensionNotFoundError | InvalidServicesApiError,
     never
   >;
 };
 
-export const ExtensionProviderService = Context.GenericTag<ExtensionProviderService>('ExtensionProviderService');
+export class ExtensionProviderService extends Context.Service<
+  ExtensionProviderService,
+  ExtensionProviderServiceShape
+>()('ExtensionProviderService') {}
 
 /** connect to the Salesforce Services extension and get all of its API services */
-export const getServicesApi: ExtensionProviderService['getServicesApi'] = getExtensionExports({
-  extId: 'salesforce.salesforcedx-vscode-services'
-}).pipe(
-  Effect.map(
-    // This first-party extension is compiled against the same public type; retain the existing typed wrapper.
-    // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-    exports => exports as SalesforceVSCodeServicesApi
+export const getServicesApi = Effect.sync(() =>
+  vscode.extensions.getExtension<SalesforceVSCodeServicesApiV2>('salesforce.salesforcedx-vscode-services')
+).pipe(
+  Effect.flatMap(ext => (ext ? Effect.succeed(ext) : Effect.fail(new ServicesExtensionNotFoundError()))),
+  Effect.flatMap(ext =>
+    ext.isActive
+      ? Effect.sync(() => ext.exports)
+      : Effect.tryPromise({
+          try: () => ext.activate(),
+          catch: e => new InvalidServicesApiError(isError(e) ? { cause: e } : { cause: new Error(String(e)) })
+        })
   )
 );

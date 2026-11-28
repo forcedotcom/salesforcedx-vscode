@@ -11,20 +11,18 @@ import { Schema } from 'effect';
 
 const Step = Schema.Struct({
   uses: Schema.optional(Schema.String),
-  with: Schema.optional(Schema.Record({ key: Schema.String, value: Schema.Unknown }))
+  with: Schema.optional(Schema.Record(Schema.String, Schema.Unknown))
 });
 export const Workflow = Schema.Struct({
   name: Schema.String,
-  jobs: Schema.Record({
-    key: Schema.String,
-    value: Schema.Struct({
+  jobs: Schema.Record(
+    Schema.String,
+    Schema.Struct({
       name: Schema.optional(Schema.String),
-      strategy: Schema.optional(
-        Schema.Struct({ matrix: Schema.Record({ key: Schema.String, value: Schema.Array(Schema.String) }) })
-      ),
+      strategy: Schema.optional(Schema.Struct({ matrix: Schema.Record(Schema.String, Schema.Array(Schema.String)) })),
       steps: Schema.optional(Schema.Array(Step))
     })
-  })
+  )
 });
 
 const expand = (template: string, matrix: Readonly<Record<string, string>>) =>

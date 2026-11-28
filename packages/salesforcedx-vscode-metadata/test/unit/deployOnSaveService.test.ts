@@ -11,12 +11,15 @@ import type * as vscode from 'vscode';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import { URI } from 'vscode-uri';
 import { shouldDeploy } from '../../src/services/deployOnSaveService';
-import { sampleProjectName } from 'salesforcedx-vscode-services/src/constants';
-import { ChannelService } from 'salesforcedx-vscode-services/src/vscode/channelService';
-import { FsService } from 'salesforcedx-vscode-services/src/vscode/fsService';
-import { uriToPath } from 'salesforcedx-vscode-services/src/vscode/paths';
-import { WorkspaceService } from 'salesforcedx-vscode-services/src/vscode/workspaceService';
-import type { SalesforceVSCodeServicesApi } from 'salesforcedx-vscode-services';
+import {
+  ChannelService,
+  FsService,
+  WorkspaceService,
+  type SalesforceVSCodeServicesApiV2
+} from '@salesforce/vscode-services/v2';
+
+const sampleProjectName = 'dx-project';
+const uriToPath = (uri: URI): string => (uri.scheme === 'file' ? uri.fsPath : uri.path);
 
 /** Base path for test workspace - uses temp dir for cross-platform compatibility */
 const workspaceRoot = path.join(path.sep, 'workspace');
@@ -24,8 +27,8 @@ const otherRoot = path.join(path.sep, 'other');
 
 const mockAppendToChannel = vi.fn();
 
-const createMockChannelService = (): ChannelService =>
-  new ChannelService({
+const createMockChannelService = (): ChannelService['Service'] =>
+  ({
     getChannel: Effect.sync(
       () =>
         ({
@@ -36,12 +39,12 @@ const createMockChannelService = (): ChannelService =>
     showChannel: Effect.void,
     clearChannel: Effect.succeed(undefined),
     appendToChannel: (message: string) => Effect.sync(() => mockAppendToChannel(message))
-  });
+  }) as ChannelService['Service'];
 
-const createMockWorkspaceService = (fsPath: string, isVirtualFs = false): WorkspaceService => {
+const createMockWorkspaceService = (fsPath: string, isVirtualFs = false): WorkspaceService['Service'] => {
   const workspacePath = isVirtualFs ? `memfs:${fsPath}` : URI.file(fsPath).toString();
   const uri = isVirtualFs ? URI.parse(`memfs:${fsPath}`) : URI.file(fsPath);
-  return new WorkspaceService({
+  return {
     getWorkspaceInfo: () =>
       Effect.succeed({
         uri,
@@ -65,22 +68,24 @@ const createMockWorkspaceService = (fsPath: string, isVirtualFs = false): Worksp
           index: 0
         }
       })
-  });
+  } as WorkspaceService['Service'];
 };
 
-const createMockFsService = (): InstanceType<typeof FsService> =>
-  ({ uriToPath: (uri: URI) => Effect.succeed(uriToPath(uri)) }) as InstanceType<typeof FsService>;
+const createMockFsService = (): FsService['Service'] =>
+  ({ uriToPath: (uri: URI) => Effect.succeed(uriToPath(uri)) }) as unknown as FsService['Service'];
 
-const createMockExtensionProvider = (): ExtensionProviderService => ({
+const createMockExtensionProvider = (): ExtensionProviderService['Service'] => ({
   getServicesApi: Effect.sync(
     () =>
       ({
-        services: {
-          ChannelService,
-          FsService,
-          WorkspaceService
+        v2: {
+          services: {
+            ChannelService,
+            FsService,
+            WorkspaceService
+          }
         }
-      }) as unknown as SalesforceVSCodeServicesApi
+      }) as unknown as SalesforceVSCodeServicesApiV2
   )
 });
 

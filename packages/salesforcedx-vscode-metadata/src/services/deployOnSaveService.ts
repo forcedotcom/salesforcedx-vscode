@@ -4,14 +4,12 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import { ExtensionProviderService, getExtensionScope } from '@salesforce/effect-ext-utils';
 import type { ComponentSet } from '@salesforce/source-deploy-retrieve';
-import * as Chunk from 'effect/Chunk';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
 import { isError } from 'effect/Predicate';
 import * as Queue from 'effect/Queue';
-import * as Runtime from 'effect/Runtime';
 import * as Stream from 'effect/Stream';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
 import * as vscode from 'vscode';
@@ -24,6 +22,7 @@ import { getDeployOnSaveEnabled, getIgnoreConflicts } from '../settings/deployOn
 import { deployComponentSet } from '../shared/deploy/deployComponentSet';
 import { DeployCompletedWithErrorsError } from '../shared/deploy/deployErrors';
 import { type ProgressAndSuccessCommandKey } from '../utils/notificationMode';
+import { getMetadataRuntime } from './extensionProvider';
 
 const COMMAND: ProgressAndSuccessCommandKey = 'Deploy on Save';
 
@@ -33,7 +32,7 @@ const ENQUEUE_DELAY_MS = 1000;
 export const shouldDeploy = Effect.fn('deployOnSave:shouldDeploy')(function* (uri: URI) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const [workspaceInfo, fsService] = yield* Effect.all(
-    [api.services.WorkspaceService.getWorkspaceInfoOrThrow(), api.services.FsService],
+    [api.v2.services.WorkspaceService.use(service => service.getWorkspaceInfoOrThrow()), api.v2.services.FsService],
     { concurrency: 'unbounded' }
   );
   const [uriPath, workspacePath] = yield* Effect.all(
@@ -61,7 +60,7 @@ const deployQueuedFiles = Effect.fn('deployOnSave:deployQueuedFiles', {
 })(function* (uris: readonly URI[]) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const [channelService, componentSetService, sourceTrackingService] = yield* Effect.all(
-    [api.services.ChannelService, api.services.ComponentSetService, api.services.SourceTrackingService],
+    [api.v2.services.ChannelService, api.v2.services.ComponentSetService, api.v2.services.SourceTrackingService],
     { concurrency: 'unbounded' }
   );
 
@@ -87,7 +86,7 @@ const deployQueuedFiles = Effect.fn('deployOnSave:deployQueuedFiles', {
   }
 
   const result = yield* deployComponentSet({ componentSet, command: COMMAND });
-  const notificationMode = yield* api.services.NotificationModeService;
+  const notificationMode = yield* api.v2.services.NotificationModeService;
   yield* notificationMode.showSuccessNotification(
     COMMAND,
     nls.localize('command_succeeded_text', nls.localize('deploy_on_save_text'))
@@ -108,7 +107,7 @@ const handleDeployConflict = Effect.fn('deployOnSave:handleDeployConflict')(func
   }));
   conflictTreeProvider.fireChange();
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const channelService = yield* api.services.ChannelService;
+  const channelService = yield* api.v2.services.ChannelService;
   const msg = nls.localize('deploy_source_conflicts_detected', [...pairs].map(p => p.fileName).join(', '));
   yield* channelService.appendToChannel(msg);
   yield* channelService.getChannel.pipe(Effect.map(channel => channel.show()));
@@ -118,7 +117,7 @@ const handleDeployConflict = Effect.fn('deployOnSave:handleDeployConflict')(func
 /** Handle residual errors from deploy on save */
 const handleDeployError = Effect.fn('deployOnSave:handleDeployError')(function* (err: unknown) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const channelService = yield* api.services.ChannelService;
+  const channelService = yield* api.v2.services.ChannelService;
 
   if (err instanceof DeployCompletedWithErrorsError) {
     void vscode.window.showErrorMessage(err.userMessage);
@@ -140,32 +139,31 @@ const handleDeployError = Effect.fn('deployOnSave:handleDeployError')(function* 
 /** Create and start the deploy on save service */
 export const createDeployOnSaveService = Effect.fn('deployOnSave:createDeployOnSaveService')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const channelService = yield* api.services.ChannelService;
+  const channelService = yield* api.v2.services.ChannelService;
+  const projectService = yield* api.v2.services.ProjectService;
 
   // Create a sliding queue to collect saved URIs
   const saveQueue = yield* Queue.unbounded<URI>();
+  const extensionScope = yield* getExtensionScope();
 
   // Start the stream processor that batches and deploys
   yield* Stream.fromQueue(saveQueue).pipe(
     Stream.filterEffect(() => getDeployOnSaveEnabled()),
     Stream.filterEffect(shouldDeploy),
-    Stream.filterEffect(api.services.ProjectService.isInPackageDirectories),
+    Stream.filterEffect(uri => projectService.isInPackageDirectories(uri)),
     Stream.groupedWithin(10_000, Duration.millis(ENQUEUE_DELAY_MS)),
     Stream.runForEach(chunk =>
-      chunk.pipe(
-        Chunk.toReadonlyArray,
-        deployQueuedFiles,
-        Effect.catchAll(error => handleDeployError(error)),
-        Effect.catchAll(() => Effect.void)
+      deployQueuedFiles(chunk).pipe(
+        Effect.catch(error => handleDeployError(error)),
+        Effect.catch(() => Effect.void)
       )
     ),
-    Effect.forkDaemon
+    Effect.forkIn(extensionScope)
   );
 
   // Register the save handler
-  const runtime = yield* Effect.runtime();
   const disposable = vscode.workspace.onDidSaveTextDocument(async (document: vscode.TextDocument) => {
-    await Runtime.runPromise(runtime)(Queue.offer(saveQueue, document.uri));
+    await getMetadataRuntime().runPromise(Queue.offer(saveQueue, document.uri));
   });
 
   yield* channelService.appendToChannel('Deploy on save service initialized');

@@ -1,0 +1,227 @@
+import assert from 'node:assert/strict';
+import { execFileSync, spawnSync } from 'node:child_process';
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath, pathToFileURL } from 'node:url';
+import * as esbuild from 'esbuild';
+import { commonConfigBrowser } from './bundling/web.mjs';
+import {
+  createPackedFixturesDirectory,
+  installAndCompileFixtures,
+  packServicesExtension,
+  packServicesPackage
+} from './packedServicesFixtures.mjs';
+
+const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+const temp = createPackedFixturesDirectory('salesforce-effect-bridge-');
+const host = path.join(temp, 'bridgeHost');
+const consumer = path.join(temp, 'bridgeConsumer');
+const abi = path.join(temp, 'legacyAbi');
+
+try {
+  const artifacts = [
+    packServicesPackage(path.join(root, 'packages/salesforcedx-apex'), host, 'apex.tgz'),
+    packServicesPackage(path.join(root, 'packages/salesforcedx-utils'), host, 'utils.tgz'),
+    packServicesPackage(path.join(root, 'packages/salesforcedx-vscode-i18n'), host, 'i18n.tgz'),
+    packServicesPackage(path.join(root, 'packages/salesforcedx-vscode-services-types'), host, 'legacy.tgz'),
+    packServicesPackage(path.join(root, 'packages/salesforcedx-vscode-services-v3-compat'), host, 'v3.tgz'),
+    packServicesExtension(path.join(root, 'packages/salesforcedx-vscode-services'), host, 'services.tgz')
+  ];
+  fs.mkdirSync(consumer);
+  const abiArtifacts = [
+    packServicesPackage(path.join(root, 'packages/salesforcedx-vscode-services-v3-compat'), abi, 'compat.tgz')
+  ];
+  await installAndCompileFixtures([
+    { fixture: 'bridgeHost', directory: host, packedPackages: artifacts },
+    { fixture: 'bridgeConsumer', directory: consumer, packedPackages: [] },
+    { fixture: 'legacyAbi', directory: abi, packedPackages: abiArtifacts }
+  ]);
+  for (const [file, expected] of [
+    ['negativeMissingMethod.ts', 'getConnectionForOrg'],
+    ['negativeMissingDefault.ts', 'DefaultWithoutDependencies']
+  ]) {
+    const result = spawnSync(
+      process.execPath,
+      [
+        path.join(abi, 'node_modules/typescript/bin/tsc'),
+        '--ignoreConfig',
+        '--noEmit',
+        '--strict',
+        '--skipLibCheck',
+        'false',
+        '--target',
+        'ES2024',
+        '--module',
+        'NodeNext',
+        '--moduleResolution',
+        'NodeNext',
+        path.join(abi, file)
+      ],
+      { cwd: abi, encoding: 'utf8', timeout: 180000 }
+    );
+    assert.equal(result.error, undefined);
+    assert.notEqual(result.status, 0, `${file} must reject an incomplete frozen ABI`);
+    assert.match(result.stdout, /TS2741/);
+    assert.ok(result.stdout.includes(expected), result.stdout);
+    assert.doesNotMatch(result.stdout, /Cannot find module/);
+  }
+  const abiHome = path.join(abi, 'home');
+  fs.mkdirSync(abiHome);
+  execFileSync(process.execPath, ['--import', 'tsx', path.join(abi, 'index.ts')], {
+    cwd: root,
+    stdio: 'inherit',
+    timeout: 180000,
+    env: { ...process.env, HOME: abiHome, USERPROFILE: abiHome, SF_USE_GENERIC_UNIX_KEYCHAIN: 'true' }
+  });
+  for (const platform of ['node', 'browser']) {
+    const bundle = await esbuild.build({
+      entryPoints: [path.join(abi, 'sourceFallback.mjs')],
+      bundle: true,
+      platform,
+      format: 'esm',
+      write: false,
+      // Assertions belong to the Node runner, not the browser-target compatibility modules.
+      external: ['node:assert/strict'],
+      plugins: [
+        {
+          name: 'legacy-source-default-host',
+          setup: bundler => {
+            bundler.onResolve({ filter: /^vscode$/ }, () => ({ path: path.join(abi, 'vscode.mjs') }));
+          }
+        }
+      ]
+    });
+    await import(
+      `data:text/javascript;base64,${Buffer.from(bundle.outputFiles[0].text).toString('base64')}#legacy-default-${platform}`
+    );
+  }
+  execFileSync(process.execPath, ['--import', 'tsx', path.join(consumer, 'index.ts')], {
+    cwd: root,
+    stdio: 'inherit',
+    timeout: 180000
+  });
+  execFileSync(process.execPath, ['--import', 'tsx', path.join(consumer, 'invalidHost.mjs')], {
+    cwd: root,
+    stdio: 'inherit',
+    timeout: 180000
+  });
+
+  const sdkHelper = await esbuild.transform(fs.readFileSync(path.join(host, 'nodeConnection.ts'), 'utf8'), {
+    loader: 'ts',
+    format: 'esm',
+    target: 'node24'
+  });
+  const sdkHelperPath = path.join(host, 'nodeConnection.mjs');
+  fs.writeFileSync(sdkHelperPath, sdkHelper.code);
+  const { createOfflineConnection } = await import(pathToFileURL(sdkHelperPath).href);
+  for (const platform of ['node', 'browser']) {
+    const bundle = await esbuild.build({
+      entryPoints: [path.join(consumer, 'browser.ts')],
+      bundle: true,
+      platform,
+      format: 'esm',
+      write: false,
+      metafile: true
+    });
+    const inputs = Object.keys(bundle.metafile.inputs);
+    assert.ok(
+      inputs.some(file => file.includes('bridgeConsumer/node_modules/effect/')),
+      'independent V3 consumer runtime must be bundled'
+    );
+    assert.ok(
+      inputs.some(file => file.includes('vscode-services-v3-compat/node_modules/effect/')),
+      'actual adapter owns its pinned V3 runtime'
+    );
+    assert.ok(
+      inputs.some(file => file.includes('bridgeHost/node_modules/effect/')),
+      'one V4 host runtime must be bundled'
+    );
+    const bundled = await import(
+      `data:text/javascript;base64,${Buffer.from(bundle.outputFiles[0].text).toString('base64')}`
+    );
+    assert.equal(bundled.observed.failureTag, 'NoTargetOrgConfiguredError');
+    assert.equal(bundled.observed.graphBuilds, 1);
+    assert.equal(bundled.observed.graphDisposals, 1);
+    assert.equal(bundled.observed.subscribersAfterClose, 0);
+    assert.deepEqual(
+      bundled.observed.updates,
+      Array.from({ length: 2 }, () => ['00D000000000002', '00D000000000003', '00D000000000004', '00D000000000005'])
+    );
+    if (platform === 'node') {
+      assert.equal((await bundled.basicConformance(await createOfflineConnection())).sameConnection, true);
+    }
+  }
+  console.log(
+    'PASS actual packed V3 bridge Node/browser bundle isolation and basic conformance; browser-target bundles execute under Node'
+  );
+  fs.writeFileSync(
+    path.join(host, 'real-entry.mjs'),
+    `
+    import { realConnectionConformance } from '../bridgeConsumer/realConnection.ts';
+    import { stats } from './connectionVscode.mjs';
+    export const observed = await realConnectionConformance();
+    export { stats };
+  `
+  );
+  for (const platform of ['node', 'browser']) {
+    const outfile = path.join(host, `real-${platform}.mjs`);
+    const result = await esbuild.build({
+      ...(platform === 'browser' ? commonConfigBrowser : {}),
+      entryPoints: [path.join(host, 'real-entry.mjs')],
+      outfile,
+      bundle: true,
+      format: 'esm',
+      platform,
+      target: 'es2024',
+      metafile: true,
+      define: {
+        ...(platform === 'browser' ? commonConfigBrowser.define : {}),
+        'process.env.ESBUILD_PLATFORM': JSON.stringify(platform === 'browser' ? 'web' : 'node')
+      },
+      external: platform === 'node' ? ['@salesforce/core', '@salesforce/core/*'] : [],
+      plugins: [
+        ...(platform === 'browser' ? (commonConfigBrowser.plugins ?? []) : []),
+        {
+          name: 'connection-fixture-vscode',
+          setup: bundler =>
+            bundler.onResolve({ filter: /^vscode$/ }, () => ({ path: path.join(host, 'connectionVscode.mjs') }))
+        }
+      ]
+    });
+    assert(
+      Object.keys(result.metafile.inputs).some(file =>
+        file.includes('salesforcedx-vscode-services/out/src/services/connectionService.js')
+      )
+    );
+    const runner = path.join(host, `run-real-${platform}.mjs`);
+    fs.writeFileSync(
+      runner,
+      `
+      import assert from 'node:assert/strict';
+      ${platform === 'browser' ? `import { JSDOM } from 'jsdom'; const dom = new JSDOM('<!doctype html>', {url:'https://fixture.example/'}); globalThis.window = dom.window; globalThis.document = dom.window.document; Object.defineProperty(globalThis, 'navigator', {configurable:true,value:dom.window.navigator});` : ''}
+      const { observed, stats } = await import('./real-${platform}.mjs');
+      assert.deepEqual(observed, { sameConnection:true, unchangedByOverride:true, localWriteRepaired:true, overrideNative:true,
+        switchedNative:true, mirrorsMatch:true, username:'fixture-${platform === 'node' ? 'b' : 'a'}@example.com', afterShutdown:'Failure' });
+      assert.deepEqual(stats, { workspaceWatchers:1,workspaceDisposed:1,settingsWatchers:1,settingsDisposed:1 });
+      ${platform === 'browser' ? 'dom.window.close();' : ''}
+      console.log('PASS packed real ${platform}-target connection graph, genuine V3/V4 Connection identity, acknowledged org state and scoped teardown');
+    `
+    );
+    execFileSync(process.execPath, [runner], {
+      cwd: root,
+      stdio: 'inherit',
+      timeout: 180000,
+      env: { ...process.env, FORCE_MEMFS: 'true', SF_USE_GENERIC_UNIX_KEYCHAIN: 'true' }
+    });
+  }
+} catch (error) {
+  console.error('V3 bridge check failed:', error);
+  process.exitCode = 1;
+} finally {
+  try {
+    fs.rmSync(temp, { recursive: true, force: true, maxRetries: 10, retryDelay: 200 });
+  } catch (error) {
+    console.error('V3 bridge cleanup failed:', error);
+    process.exitCode = 1;
+  }
+}

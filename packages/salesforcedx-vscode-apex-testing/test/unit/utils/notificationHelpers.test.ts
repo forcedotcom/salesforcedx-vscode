@@ -12,16 +12,22 @@ import * as Layer from 'effect/Layer';
 import type { Mock as VitestMock } from 'vitest';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
+import { NotificationModeService } from '@salesforce/vscode-services/v2';
 import { messages } from '../../../src/messages/i18n';
 import { showRunOutcomeNotification } from '../../../src/utils/notificationHelpers';
 
 const showSuccessNotification = vi.fn((..._a: unknown[]) => Effect.void);
 const showErrorWithActions = vi.fn((..._a: unknown[]) => Effect.void);
-const ExtProviderLayer = Layer.succeed(ExtensionProviderService, {
-  getServicesApi: Effect.succeed({
-    services: { NotificationModeService: Effect.succeed({ showSuccessNotification, showErrorWithActions }) }
-  })
-} as unknown as ExtensionProviderService);
+const notificationMode = {
+  showSuccessNotification,
+  showErrorWithActions
+} as unknown as NotificationModeService['Service'];
+const ExtProviderLayer = Layer.mergeAll(
+  Layer.succeed(ExtensionProviderService, {
+    getServicesApi: Effect.succeed({ v2: { services: { NotificationModeService } } })
+  } as unknown as ExtensionProviderService['Service']),
+  Layer.succeed(NotificationModeService, notificationMode)
+);
 const reportUri = URI.file('/tmp/test-result-RID.md');
 const resultWith = (outcome: string, failing = 0) =>
   ({ tests: [], summary: { outcome, failing } }) as unknown as TestResult;

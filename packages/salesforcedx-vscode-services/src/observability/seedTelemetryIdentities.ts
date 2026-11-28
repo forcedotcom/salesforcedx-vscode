@@ -5,28 +5,31 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { CliId, ExtensionContextService } from '@salesforce/vscode-services/v2';
 import * as Effect from 'effect/Effect';
 import * as Option from 'effect/Option';
 import * as Schema from 'effect/Schema';
-import * as SubscriptionRef from 'effect/SubscriptionRef';
-import { getDefaultOrgRef } from '../core/defaultOrgRef';
-import { ExtensionContextService } from '../vscode/extensionContextService';
-import { CliId, getCliId } from './cliTelemetry';
+import { OrgChanges } from '../services/targetOrgRef';
+import { getCliId } from './cliTelemetry';
 import { readGlobalStateKey } from './readGlobalStateKey';
 import { TELEMETRY_GLOBAL_USER_ID, TELEMETRY_GLOBAL_WEB_USER_ID, UNAUTHENTICATED_USER } from './webUserId';
 
 // crypto.randomUUID() returns a valid UUIDv4 — decode lifts it to the CliId brand.
-const newRandomCliId = () => Schema.decode(CliId)(globalThis.crypto.randomUUID()).pipe(Effect.orDie);
+const newRandomCliId = () =>
+  Effect.sync(() => globalThis.crypto.randomUUID()).pipe(
+    Effect.flatMap(Schema.decodeUnknownEffect(CliId)),
+    Effect.orDie
+  );
 
 const resolveCliIdFromCli = () =>
   process.env.ESBUILD_PLATFORM === 'web'
     ? newRandomCliId()
     : getCliId().pipe(Effect.flatMap(Option.match({ onSome: Effect.succeed, onNone: newRandomCliId })));
 
-const decodeStoredCliId = (value: string) => Schema.decode(CliId)(value).pipe(Effect.orDie);
+const decodeStoredCliId = (value: string) => Schema.decodeUnknownEffect(CliId)(value).pipe(Effect.orDie);
 
 /**
- * Seed the stable cliId and webUserId identities into defaultOrgRef + globalState.
+ * Seed stable cliId and webUserId through the authoritative org writer and globalState.
  * Must run before consumers (connectionService, core telemetry init) read identity state.
  */
 export const seedTelemetryIdentities = Effect.fn('seedTelemetryIdentities')(function* () {
@@ -49,6 +52,7 @@ export const seedTelemetryIdentities = Effect.fn('seedTelemetryIdentities')(func
     yield* Effect.promise(() => extensionContext.globalState.update(TELEMETRY_GLOBAL_WEB_USER_ID, webUserId));
   }
 
-  const defaultOrgRef = yield* getDefaultOrgRef();
-  yield* SubscriptionRef.update(defaultOrgRef, existingOrgInfo => ({ ...existingOrgInfo, cliId, webUserId }));
+  const changes = yield* OrgChanges;
+  const generation = yield* changes.begin;
+  yield* changes.update(generation, current => Effect.succeed({ ...current.org, cliId, webUserId }));
 });

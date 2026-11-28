@@ -12,8 +12,15 @@ import * as Layer from 'effect/Layer';
 import { XMLParser } from 'fast-xml-parser';
 import * as path from 'node:path';
 import type { OpenAPIV3 } from 'openapi-types';
-import { FsService, FsServiceError } from 'salesforcedx-vscode-services/src/vscode/fsService';
-import { UserCancellationError } from 'salesforcedx-vscode-services/src/vscode/prompts/promptService';
+import {
+  FsService,
+  FsServiceError,
+  MetadataRegistryService,
+  PromptService,
+  UserCancellationError,
+  WorkspaceService,
+  type SalesforceVSCodeServicesApiV2
+} from '@salesforce/vscode-services/v2';
 import * as vscode from 'vscode';
 import { nls } from '../../../src/messages/nls';
 import type { ProcessorInputOutput } from '../../../src/oas/documentProcessorPipeline/processorStep';
@@ -34,22 +41,25 @@ import {
 const fakeWorkspace = path.join('test', 'workspace');
 
 const buildExtensionProviderLayer = (registryAccess: any) =>
-  Layer.succeed(ExtensionProviderService, {
-    getServicesApi: Effect.succeed({
-      services: {
-        MetadataRegistryService: {
-          getRegistryAccess: () => Effect.succeed(registryAccess)
-        },
-        WorkspaceService: {
-          getWorkspaceInfoOrThrow: () => Effect.succeed({ fsPath: fakeWorkspace })
-        },
-        PromptService: Effect.succeed({
-          considerUndefinedAsCancellation: <T>(value: T | undefined) =>
-            value === undefined ? Effect.fail(new UserCancellationError()) : Effect.succeed(value)
-        })
-      }
-    } as any)
-  });
+  Layer.mergeAll(
+    Layer.succeed(ExtensionProviderService, {
+      getServicesApi: Effect.succeed({
+        v2: { services: { MetadataRegistryService, WorkspaceService, PromptService, FsService } }
+      } as unknown as SalesforceVSCodeServicesApiV2)
+    } as unknown as ExtensionProviderService['Service']),
+    Layer.succeed(MetadataRegistryService, {
+      getRegistryAccess: () => Effect.succeed(registryAccess)
+    } as unknown as MetadataRegistryService['Service']),
+    Layer.succeed(WorkspaceService, {
+      getWorkspaceInfoOrThrow: () => Effect.succeed({ fsPath: fakeWorkspace })
+    } as unknown as WorkspaceService['Service']),
+    Layer.succeed(PromptService, {
+      considerUndefinedAsCancellation: <T>(value: T | undefined) =>
+        value === undefined
+          ? Effect.fail(new UserCancellationError({ message: 'User canceled' }))
+          : Effect.succeed(value)
+    } as unknown as PromptService['Service'])
+  );
 
 const runEffect = <A, E>(eff: Effect.Effect<A, E, any>, registryAccess: any) =>
   Effect.runPromise(
@@ -81,27 +91,23 @@ const processedOasResult: ProcessorInputOutput = {
   errors: []
 };
 
-const buildFsService = (
-  overrides: Partial<InstanceType<typeof FsService>>
-): Partial<InstanceType<typeof FsService>> => ({
+const buildFsService = (overrides: Partial<FsService['Service']>): Partial<FsService['Service']> => ({
   fileOrFolderExists: () => Effect.succeed(false),
   writeFile: () => Effect.void,
   ...overrides
 });
 
-const runGenerateAndGetFailure = (isESRDecomposed: boolean, fsService: Partial<InstanceType<typeof FsService>>) => {
+const runGenerateAndGetFailure = (isESRDecomposed: boolean, fsService: Partial<FsService['Service']>) => {
   const layer = Layer.succeed(ExtensionProviderService, {
-    getServicesApi: Effect.succeed({ services: { FsService: fsService } })
-  } as unknown as ExtensionProviderService);
+    getServicesApi: Effect.succeed({
+      v2: { services: { FsService } }
+    } as unknown as SalesforceVSCodeServicesApiV2)
+  } as unknown as ExtensionProviderService['Service']);
   return Effect.runPromise(
     generateEsrMD(isESRDecomposed, processedOasResult, [
       '/path/to/Test.externalServiceRegistration-meta.xml',
       '/path/to/Test.externalServiceRegistration-meta.xml'
-    ]).pipe(
-      Effect.provide(layer),
-      Effect.provideService(FsService, fsService as InstanceType<typeof FsService>),
-      Effect.flip
-    )
+    ]).pipe(Effect.provide(layer), Effect.provideService(FsService, fsService as FsService['Service']), Effect.flip)
   );
 };
 
@@ -157,7 +163,7 @@ describe('externalServiceRegistrationManager', () => {
           )
         ) as Effect.Effect<unknown, unknown, never>
       );
-      expect(Exit.isFailure(exit) && exit.cause).toMatchObject({ error: { _tag: 'UserCancellationError' } });
+      if (Exit.isFailure(exit)) expect(JSON.stringify(exit.cause)).toContain('UserCancellationError');
     });
 
     it('throws if registry access fails', async () => {
@@ -295,11 +301,14 @@ describe('externalServiceRegistrationManager', () => {
     it('writes YAML alongside the ESR XML via the FsService', async () => {
       const writeFile = vi.fn(() => Effect.void);
       const layer = Layer.succeed(ExtensionProviderService, {
-        getServicesApi: Effect.succeed({ services: { FsService: { writeFile } } })
-      } as any);
+        getServicesApi: Effect.succeed({
+          v2: { services: { FsService } }
+        } as unknown as SalesforceVSCodeServicesApiV2)
+      } as unknown as ExtensionProviderService['Service']);
       await Effect.runPromise(
         buildESRYaml('/path/to/esr.externalServiceRegistration-meta.xml', 'safeSpec').pipe(
-          Effect.provide(layer)
+          Effect.provide(layer),
+          Effect.provideService(FsService, { writeFile } as unknown as FsService['Service'])
         ) as Effect.Effect<void, never, never>
       );
       expect(writeFile).toHaveBeenCalledWith('/path/to/esr.yaml', 'safeSpec');

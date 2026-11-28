@@ -20,7 +20,7 @@
  */
 import { SpanKind, SpanStatusCode } from '@opentelemetry/api';
 import { type ExportResult, ExportResultCode } from '@opentelemetry/core';
-import { LoggerProvider, SimpleLogRecordProcessor } from '@opentelemetry/sdk-logs';
+import { LoggerProvider, SimpleLogRecordProcessor, type LogRecordExporter } from '@opentelemetry/sdk-logs';
 import { type ReadableSpan, type SpanExporter } from '@opentelemetry/sdk-trace-base';
 import { Global } from '@salesforce/core/global';
 import * as Effect from 'effect/Effect';
@@ -28,6 +28,7 @@ import * as Match from 'effect/Match';
 import { join } from 'node:path';
 import { workspace } from 'vscode';
 import { AzureMonitorLogExporterWrapper } from './azureMonitorLogExporterWrapper';
+import { finishFlush, trackExportCallbacks } from './exportCallbacks';
 import { getSpanCreationIdentity } from './spanTransformProcessor';
 import {
   convertAttributes,
@@ -57,20 +58,20 @@ const getSpanKindName = (kind: SpanKind): string =>
 export class ApplicationInsightsNodeExporter implements SpanExporter {
   private loggerProvider: LoggerProvider;
   private otelLogger: ReturnType<LoggerProvider['getLogger']>;
+  private readonly logExporter: LogRecordExporter;
 
   constructor(connectionString: string, localIngestionEndpoint?: string) {
+    this.logExporter = trackExportCallbacks(
+      new AzureMonitorLogExporterWrapper(
+        {
+          connectionString,
+          storageDirectory: join(Global.SF_DIR, 'vscode-extensions-telemetry')
+        },
+        localIngestionEndpoint
+      )
+    );
     this.loggerProvider = new LoggerProvider({
-      processors: [
-        new SimpleLogRecordProcessor(
-          new AzureMonitorLogExporterWrapper(
-            {
-              connectionString,
-              storageDirectory: join(Global.SF_DIR, 'vscode-extensions-telemetry')
-            },
-            localIngestionEndpoint
-          )
-        )
-      ]
+      processors: [new SimpleLogRecordProcessor(this.logExporter)]
     });
     this.otelLogger = this.loggerProvider.getLogger('salesforce-vscode-customevents', '1.0.0');
   }
@@ -94,8 +95,16 @@ export class ApplicationInsightsNodeExporter implements SpanExporter {
     );
   }
 
-  public shutdown(): Promise<void> {
-    return this.loggerProvider.shutdown();
+  public async forceFlush(): Promise<void> {
+    const resources = await Promise.allSettled([this.loggerProvider.forceFlush()]);
+    const exports = await Promise.allSettled([this.logExporter.forceFlush()]);
+    await finishFlush([...resources, ...exports]);
+  }
+
+  public async shutdown(): Promise<void> {
+    const flushing = await Promise.allSettled([this.forceFlush()]);
+    const shutdown = await Promise.allSettled([this.loggerProvider.shutdown()]);
+    await finishFlush([...flushing, ...shutdown]);
   }
 }
 

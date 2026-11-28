@@ -7,9 +7,7 @@
 
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
-import type { SObject } from 'salesforcedx-vscode-services';
-import { MetadataDescribeService } from 'salesforcedx-vscode-services/src/core/metadataDescribeService';
-import { TransmogrifierService } from 'salesforcedx-vscode-services/src/core/transmogrifierService';
+import { MetadataDescribeService, TransmogrifierService, type SObject } from '@salesforce/vscode-services/v2';
 import type { CancellationToken, CompletionContext, Position, TextDocument } from 'vscode';
 import { middleware } from '../../../src/lspClient/codeCompletion';
 
@@ -20,18 +18,15 @@ const mockDescribeSObject = vi.fn<(_name: string) => Effect.Effect<SObject>>();
 const mockMetadataDescribe = {
   listSObjects: () => mockListSObjects(),
   describeCustomObject: (apiName: string) => mockDescribeSObject(apiName)
-} as unknown as InstanceType<typeof MetadataDescribeService>;
+} as unknown as MetadataDescribeService['Service'];
 const mockTransmogrifier = {
   toMinimalSObject: (value: SObject) => Effect.succeed(value)
-} as unknown as InstanceType<typeof TransmogrifierService>;
+} as unknown as TransmogrifierService['Service'];
 const mockExtensionProvider = {
   getServicesApi: Effect.succeed({
-    services: {
-      MetadataDescribeService,
-      TransmogrifierService
-    }
+    v2: { services: { MetadataDescribeService, TransmogrifierService } }
   })
-} as unknown as ExtensionProviderService;
+} as unknown as ExtensionProviderService['Service'];
 const mockRunPromise = <A, E, R>(effect: Effect.Effect<A, E, R>): Promise<A> =>
   Effect.runPromise(
     effect.pipe(

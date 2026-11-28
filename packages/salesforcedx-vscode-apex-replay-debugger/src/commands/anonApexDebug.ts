@@ -35,7 +35,7 @@ const launchReplayDebugger = Effect.fn('ApexReplayDebugger.launchReplayDebugger'
 ) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   if (!logs) return false;
-  yield* api.services.FsService.safeWriteFile(logFilePath, logs);
+  yield* api.v2.services.FsService.use(service => service.safeWriteFile(logFilePath, logs));
   yield* launchFromLogFile(logFilePath.fsPath, true, anonApexFilePath, anonApexLineOffset);
   return true;
 });
@@ -46,7 +46,7 @@ type AnonApexContext =
 
 const getAnonApexContext = Effect.fn('ApexReplayDebugger.getAnonApexContext')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const { isEmpty } = yield* api.services.WorkspaceService.getWorkspaceInfo();
+  const { isEmpty } = yield* api.v2.services.WorkspaceService.use(service => service.getWorkspaceInfo());
   if (isEmpty) return undefined;
   const editor = vscode.window.activeTextEditor;
   if (!editor) return undefined;
@@ -73,22 +73,26 @@ const executeAnonApexDebug = Effect.fn('ApexReplayDebugger.executeAnonApexDebug'
   if (!ctx) return false;
 
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const notificationMode = yield* api.services.NotificationModeService;
-  const code = ctx.kind === 'code' ? ctx.apexCode : yield* api.services.FsService.readFile(ctx.filePath);
+  const notificationMode = yield* api.v2.services.NotificationModeService;
+  const code =
+    ctx.kind === 'code'
+      ? ctx.apexCode
+      : yield* api.v2.services.FsService.use(service => service.readFile(ctx.filePath));
   if (!code) return false;
 
-  const { result, logBody } = yield* api.services.ExecuteAnonymousService.executeAndRetrieveLog(code);
-  yield* api.services.ExecuteAnonymousService.reportExecResult(
-    result,
-    ctx.documentUri,
-    ctx.kind === 'code' ? ctx.selectionRange?.start.line : undefined
+  const { result, logBody } = yield* api.v2.services.ExecuteAnonymousService.use(service =>
+    service.executeAndRetrieveLog(code)
+  );
+  yield* api.v2.services.ExecuteAnonymousService.use(service =>
+    service.reportExecResult(result, ctx.documentUri, ctx.kind === 'code' ? ctx.selectionRange?.start.line : undefined)
   );
 
   if (!result.compiled || !result.success) return false;
 
+  const now = yield* DateTime.nowAsDate;
   const logFilePath = Utils.joinPath(
-    yield* api.services.ProjectService.getDebugLogsFolder(),
-    `${getYYYYMMddHHmmssDateFormat(yield* DateTime.nowAsDate)}.log`
+    yield* api.v2.services.ProjectService.use(service => service.getDebugLogsFolder()),
+    `${getYYYYMMddHHmmssDateFormat(now)}.log`
   );
   const success = yield* launchReplayDebugger(
     logFilePath,
@@ -106,10 +110,12 @@ const COMMAND: ProgressAndSuccessCommandKey = 'Debug Anonymous Apex';
 
 export const anonApexDebugCommand = Effect.fn('ApexReplayDebugger.anonApexDebugCommand')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const prompts = yield* api.services.PromptService;
+  const notificationMode = yield* api.v2.services.NotificationModeService;
+  const progressLocation = yield* notificationMode.getProgressLocation(COMMAND);
+  const prompts = yield* api.v2.services.PromptService;
   yield* executeAnonApexDebug().pipe(
-    prompts.withProgress({ command: COMMAND, title: nls.localize('apex_execute_text'), cancellable: false }),
-    Effect.catchAll(error =>
+    prompts.withProgress(nls.localize('apex_execute_text'), progressLocation),
+    Effect.catch(error =>
       Effect.sync(() => {
         void vscode.window.showErrorMessage(nls.localize('apex_execute_debug_failed', String(error)));
       })

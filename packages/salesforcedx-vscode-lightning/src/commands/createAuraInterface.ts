@@ -19,13 +19,17 @@ const AURA_INTERFACE_TEMPLATE_DESCRIPTIONS: Record<string, string> = {
 const promptForTemplate = Effect.fn('promptForAuraInterfaceTemplate')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
 
-  const customTemplateNames = yield* api.services.TemplateService.getCustomTemplateNames('lightninginterface', '.intf');
+  const customTemplateNames = yield* api.v2.services.TemplateService.use(service =>
+    service.getCustomTemplateNames('lightninginterface', '.intf')
+  );
   if (customTemplateNames.length === 0) {
     return 'DefaultLightningIntf';
   }
 
-  const promptService = yield* api.services.PromptService;
-  const builtInNames = yield* api.services.TemplateService.getBuiltInTemplateNames('lightninginterface', /\.intf$/);
+  const promptService = yield* api.v2.services.PromptService;
+  const builtInNames = yield* api.v2.services.TemplateService.use(service =>
+    service.getBuiltInTemplateNames('lightninginterface', /\.intf$/)
+  );
   const builtInItems = builtInNames.map(label => ({
     label,
     description: AURA_INTERFACE_TEMPLATE_DESCRIPTIONS[label] ?? ''
@@ -54,10 +58,11 @@ export const createAuraInterfaceCommand = Effect.fn('createAuraInterfaceCommand'
   options?: { internal?: boolean }
 ) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const promptService = yield* api.services.PromptService;
-  const project = yield* api.services.ProjectService.getSfProject();
-  const workspaceInfo = yield* api.services.WorkspaceService.getWorkspaceInfoOrThrow();
-  const fsService = yield* api.services.FsService;
+  const promptService = yield* api.v2.services.PromptService;
+  const project = yield* api.v2.services.ProjectService.use(service => service.getSfProject());
+  const workspaceInfo = yield* api.v2.services.WorkspaceService.use(service => service.getWorkspaceInfoOrThrow());
+  const fsService = yield* api.v2.services.FsService;
+  const cwd = yield* fsService.uriToPath(workspaceInfo.uri);
 
   const template = yield* promptForTemplate();
   const interfaceName = yield* promptForAuraName({ promptKey: 'aura_interface_name_prompt' });
@@ -75,18 +80,20 @@ export const createAuraInterfaceCommand = Effect.fn('createAuraInterfaceCommand'
   const componentDirUri = Utils.joinPath(outputDirUri, interfaceName);
   yield* promptService.ensureMetadataOverwriteOrThrow({ uris: [componentDirUri] });
 
-  yield* api.services.TemplateService.create({
-    cwd: yield* fsService.uriToPath(workspaceInfo.uri),
-    templateType: api.services.TemplateType.LightningInterface,
-    outputdir: outputDirUri,
-    options: {
-      interfacename: interfaceName,
-      template,
-      internal: options?.internal ?? false
-    }
-  });
+  yield* api.v2.services.TemplateService.use(service =>
+    service.create({
+      cwd,
+      templateType: api.v2.services.TemplateType.LightningInterface,
+      outputdir: outputDirUri,
+      options: {
+        interfacename: interfaceName,
+        template,
+        internal: options?.internal ?? false
+      }
+    })
+  );
 
-  const channelService = yield* api.services.ChannelService;
+  const channelService = yield* api.v2.services.ChannelService;
   yield* channelService.appendToChannel(nls.localize('aura_generate_interface_success'));
   yield* fsService.showTextDocument(Utils.joinPath(componentDirUri, `${interfaceName}.intf`));
 });

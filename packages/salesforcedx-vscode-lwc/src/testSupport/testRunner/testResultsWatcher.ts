@@ -17,7 +17,7 @@ const updateTestResultsFromTestResultsJson = Effect.fn('updateTestResultsFromTes
   testResultsUri: URI
 ) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const testResultsContent = yield* api.services.FsService.readFile(testResultsUri.fsPath);
+  const testResultsContent = yield* api.v2.services.FsService.use(service => service.readFile(testResultsUri.fsPath));
   // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment -- JSON.parse returns any; shape validated by updateTestResults
   const testResults: LwcJestTestResults = JSON.parse(testResultsContent);
   lwcTestIndexer.updateTestResults(testResults);
@@ -50,7 +50,7 @@ class TestResultsWatcher implements vscode.Disposable {
     return getRuntime().runPromise(
       Effect.gen(function* () {
         const api = yield* (yield* ExtensionProviderService).getServicesApi;
-        yield* api.services.FsService.createDirectory(folder);
+        yield* api.v2.services.FsService.use(service => service.createDirectory(folder));
         return folder;
       })
     );

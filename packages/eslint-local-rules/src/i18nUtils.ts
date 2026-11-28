@@ -54,9 +54,9 @@ export const extractMessagesObject = (ast: TSESTree.Program): MessagesObject => 
   }
 
   const entries = objExpr.properties
-    .filter(ASTUtils.isNodeOfType(AST_NODE_TYPES.Property))
     .filter(
-      (prop): prop is TSESTree.Property =>
+      (prop): prop is Extract<TSESTree.ObjectExpression['properties'][number], { type: AST_NODE_TYPES.Property }> =>
+        prop.type === AST_NODE_TYPES.Property &&
         (prop.key.type === AST_NODE_TYPES.Identifier ||
           (prop.key.type === AST_NODE_TYPES.Literal && typeof prop.key.value === 'string')) &&
         (prop.value.type === AST_NODE_TYPES.Literal || prop.value.type === AST_NODE_TYPES.TemplateLiteral)

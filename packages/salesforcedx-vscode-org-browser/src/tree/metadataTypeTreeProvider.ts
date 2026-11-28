@@ -5,6 +5,13 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import type {
+  InactiveOrgOperationError,
+  OrgMetadataCatalogService,
+  OrgMetadataCatalogComponentEntry,
+  OrgMetadataCatalogEntry,
+  OrgMetadataCatalogFolderEntry
+} from '@salesforce/vscode-services/v2';
 import * as Arr from 'effect/Array';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
@@ -13,13 +20,6 @@ import * as Match from 'effect/Match';
 import * as Option from 'effect/Option';
 import { isUndefined } from 'effect/Predicate';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
-import type {
-  InactiveOrgOperationError,
-  OrgMetadataCatalog,
-  OrgMetadataCatalogComponentEntry,
-  OrgMetadataCatalogEntry,
-  OrgMetadataCatalogFolderEntry
-} from 'salesforcedx-vscode-services';
 import * as vscode from 'vscode';
 import { getOrgBrowserRuntime } from '../services/extensionProvider';
 import { preloadMetadataTypes } from '../services/metadataTypePreload';
@@ -54,12 +54,12 @@ export class MetadataTypeTreeProvider implements vscode.TreeDataProvider<OrgBrow
   private orgRequestCount = 0;
   private orgRequestLabel = '';
   private orgRequestStatus: vscode.StatusBarItem | undefined;
-  private orgRequestStatusTimer: Fiber.RuntimeFiber<void> | undefined;
+  private orgRequestStatusTimer: Fiber.Fiber<void, never> | undefined;
 
   /** Shows slow, uncached org requests without flashing for catalog cache hits. */
   public trackOrgRequest<A, E, R>(label: string, request: Effect.Effect<A, E, R>) {
     return Effect.sync(() => this.startOrgRequest(label)).pipe(
-      Effect.zipRight(request),
+      Effect.andThen(request),
       Effect.ensuring(Effect.sync(() => this.finishOrgRequest()))
     );
   }
@@ -83,7 +83,7 @@ export class MetadataTypeTreeProvider implements vscode.TreeDataProvider<OrgBrow
       this.updateOrgRequestStatus();
       return;
     }
-    if (this.orgRequestStatusTimer) this.orgRequestStatusTimer.pipe(Fiber.interruptFork, Effect.runSync);
+    if (this.orgRequestStatusTimer) this.orgRequestStatusTimer.pipe(Fiber.interrupt, Effect.runSync);
     this.orgRequestStatusTimer = undefined;
     this.orgRequestStatus?.dispose();
     this.orgRequestStatus = undefined;
@@ -181,7 +181,7 @@ export class MetadataTypeTreeProvider implements vscode.TreeDataProvider<OrgBrow
   public async refreshType(node?: OrgBrowserTreeItem): Promise<void> {
     if (!node) this.fullDiscoveryOrgIds.clear();
     await getOrgBrowserRuntime().runPromise(
-      invalidateForNode(node).pipe(Effect.zipRight(node ? Effect.void : preloadConfiguredMetadataTypes))
+      invalidateForNode(node).pipe(Effect.andThen(node ? Effect.void : preloadConfiguredMetadataTypes))
     );
     this._onDidChangeTreeData.fire(node);
   }
@@ -230,7 +230,7 @@ export class MetadataTypeTreeProvider implements vscode.TreeDataProvider<OrgBrow
 const invalidateForNode = Effect.fn('invalidateForNode')(function* (node?: OrgBrowserTreeItem) {
   const svcProvider = yield* ExtensionProviderService;
   const api = yield* svcProvider.getServicesApi;
-  const catalog = yield* api.services.OrgMetadataCatalog;
+  const catalog = yield* api.v2.services.OrgMetadataCatalog;
   const reference = Match.value(node).pipe(
     Match.when(Match.undefined, () => ({})),
     Match.when(isFolderNode, n => ({
@@ -252,11 +252,11 @@ const invalidateForNode = Effect.fn('invalidateForNode')(function* (node?: OrgBr
 const preloadConfiguredMetadataTypes = Effect.gen(function* () {
   const svcProvider = yield* ExtensionProviderService;
   const api = yield* svcProvider.getServicesApi;
-  const { orgId } = yield* SubscriptionRef.get(yield* api.services.TargetOrgRef());
+  const { orgId } = yield* SubscriptionRef.get(yield* api.v2.services.TargetOrgRef);
   if (!orgId) return;
-  const catalog = yield* api.services.OrgMetadataCatalog;
+  const catalog = yield* api.v2.services.OrgMetadataCatalog;
   yield* preloadMetadataTypes(catalog).pipe(
-    Effect.catchAll(error => Effect.logWarning('Failed to preload Org Browser metadata types', error))
+    Effect.catch(error => Effect.logWarning('Failed to preload Org Browser metadata types', error))
   );
 });
 
@@ -315,7 +315,7 @@ const inventoryEntryMatchesViewMode = (entry: OrgMetadataCatalogEntry, provider:
 const loadVisibleChildren = Effect.fn('loadVisibleChildren')(function* (
   element: OrgBrowserTreeItem,
   provider: MetadataTypeTreeProvider,
-  catalog: OrgMetadataCatalog,
+  catalog: OrgMetadataCatalogService,
   consistency?: 'cache-only'
 ) {
   const entries =
@@ -381,7 +381,7 @@ const loadVisibleChildren = Effect.fn('loadVisibleChildren')(function* (
   return children;
 });
 
-type Catalog = OrgMetadataCatalog;
+type Catalog = OrgMetadataCatalogService;
 
 const retainMatchingSubtree: (
   node: OrgBrowserTreeItem,
@@ -389,7 +389,7 @@ const retainMatchingSubtree: (
   catalog: Catalog,
   consistency?: 'cache-only',
   descendantsCacheOnly?: boolean
-) => Effect.Effect<boolean, Effect.Effect.Error<ReturnType<typeof loadVisibleChildren>>, never> = Effect.fn(
+) => Effect.Effect<boolean, Effect.Error<ReturnType<typeof loadVisibleChildren>>, never> = Effect.fn(
   'retainMatchingSubtree'
 )(function* (
   node: OrgBrowserTreeItem,
@@ -425,7 +425,7 @@ export const filterTypesWithMatchingComponents = Effect.fn('filterTypesWithMatch
   provider: MetadataTypeTreeProvider
 ) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const catalog = yield* api.services.OrgMetadataCatalog;
+  const catalog = yield* api.v2.services.OrgMetadataCatalog;
   return yield* Effect.all(
     typeNodes.map(typeNode =>
       (isGlobalSearch(provider)
@@ -443,7 +443,7 @@ export const filterTypesWithMatchingComponents = Effect.fn('filterTypesWithMatch
             )
       ).pipe(
         Effect.map(matches => (matches ? Option.some(typeNode) : Option.none<OrgBrowserTreeItem>())),
-        Effect.catchAll(error =>
+        Effect.catch(error =>
           Effect.logWarning(`Failed to search Org Browser metadata type ${typeNode.xmlName}`, error).pipe(
             Effect.as(Option.none<OrgBrowserTreeItem>())
           )
@@ -467,9 +467,9 @@ const getChildrenOfTreeItem = (element: OrgBrowserTreeItem | undefined, provider
   const loadForActiveOrg = Effect.gen(function* () {
     const svcProvider = yield* ExtensionProviderService;
     const api = yield* svcProvider.getServicesApi;
-    const orgMetadataCatalog = yield* api.services.OrgMetadataCatalog;
+    const orgMetadataCatalog = yield* api.v2.services.OrgMetadataCatalog;
     // this could be the initial load, before the org is set.  Prevents duplication loads of root
-    const { orgId } = yield* SubscriptionRef.get(yield* api.services.TargetOrgRef());
+    const { orgId } = yield* SubscriptionRef.get(yield* api.v2.services.TargetOrgRef);
     if (!orgId) {
       return yield* Effect.succeed([]);
     }

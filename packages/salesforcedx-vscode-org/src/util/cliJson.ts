@@ -10,7 +10,7 @@ import * as Effect from 'effect/Effect';
 import * as Schema from 'effect/Schema';
 
 /** Parses sf-CLI stdout JSON into a plain object so a discriminant can be injected before a tagged-union decode. */
-export const CliRawObject = Schema.parseJson(Schema.Record({ key: Schema.String, value: Schema.Unknown }));
+export const CliRawObject = Schema.fromJsonString(Schema.Record(Schema.String, Schema.Unknown));
 
 type CliRawObject = Schema.Schema.Type<typeof CliRawObject>;
 
@@ -27,11 +27,11 @@ const sanitizeJson = (stdout: string) => getJsonCandidate(stdout) ?? '';
  * failure to the caller's tagged error. Downstream dispatch is on `_tag` via `Match`.
  */
 export const decodeTaggedCliResponse =
-  <A, I extends { readonly _tag: string }>(union: Schema.Schema<A, I>, discriminate: (raw: CliRawObject) => string) =>
+  <A, I extends { readonly _tag: string }>(union: Schema.Codec<A, I>, discriminate: (raw: CliRawObject) => string) =>
   <E>(onError: () => E) =>
   (stdout: string): Effect.Effect<A, E> =>
-    Schema.decodeUnknown(CliRawObject)(sanitizeJson(stdout)).pipe(
+    Schema.decodeUnknownEffect(CliRawObject)(sanitizeJson(stdout)).pipe(
       Effect.map(raw => ({ ...raw, _tag: discriminate(raw) })),
-      Effect.flatMap(tagged => Schema.decodeUnknown(union)(tagged)),
+      Effect.flatMap(tagged => Schema.decodeUnknownEffect(union)(tagged)),
       Effect.mapError(onError)
     );

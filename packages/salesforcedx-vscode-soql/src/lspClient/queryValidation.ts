@@ -8,7 +8,7 @@ import { ExtensionProviderService, getMessageFromError } from '@salesforce/effec
 
 import { QueryValidationFeature } from '@salesforce/soql-language-server';
 import * as Effect from 'effect/Effect';
-import { isRecord, isString, isUndefined } from 'effect/Predicate';
+import { isObject, isString, isUndefined } from 'effect/Predicate';
 import * as Schema from 'effect/Schema';
 import type { BaseLanguageClient as LanguageClient, StaticFeature } from 'vscode-languageclient';
 import { SOQL_CONFIGURATION_NAME, SOQL_VALIDATION_CONFIG } from '../constants';
@@ -30,7 +30,7 @@ class SoqlQueryRequestError extends Schema.TaggedError<SoqlQueryRequestError>()(
 }) {}
 
 const soqlQueryRequestError = (cause: unknown) => {
-  const record = isRecord(cause) ? cause : undefined;
+  const record = isObject(cause) ? cause : undefined;
   const errorName = isString(record?.name) ? record.name : undefined;
   const errorCode = record?.errorCode;
   return new SoqlQueryRequestError({
@@ -42,7 +42,7 @@ const soqlQueryRequestError = (cause: unknown) => {
 
 const handleRunQuery = Effect.fn('queryValidation.handleRunQuery')(function* (queryText: string) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const enabled = yield* (yield* api.services.SettingsService).getValue<boolean>(
+  const enabled = yield* (yield* api.v2.services.SettingsService).getValue<boolean>(
     SOQL_CONFIGURATION_NAME,
     SOQL_VALIDATION_CONFIG
   );

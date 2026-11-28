@@ -17,10 +17,9 @@ export const isDefaultOrgSet = (): Promise<boolean> =>
   getSoqlRuntime().runPromise(
     Effect.gen(function* () {
       const api = yield* getServicesApi;
-      return yield* api.services.TargetOrgRef().pipe(
-        Effect.flatMap(ref => SubscriptionRef.get(ref)),
-        Effect.map(info => Boolean(info?.username))
-      );
+      const ref = yield* api.v2.services.TargetOrgRef;
+      const info = yield* SubscriptionRef.get(ref);
+      return Boolean(info.username);
     })
   );
 
@@ -33,8 +32,8 @@ export const onDefaultOrgChange = (listener: () => void): vscode.Disposable => {
   void getSoqlRuntime().runPromise(
     Effect.gen(function* () {
       const api = yield* getServicesApi;
-      const ref = yield* api.services.TargetOrgRef();
-      yield* ref.changes.pipe(Stream.runForEach(() => Effect.sync(listener)));
+      const ref = yield* api.v2.services.TargetOrgRef;
+      yield* SubscriptionRef.changes(ref).pipe(Stream.runForEach(() => Effect.sync(listener)));
     }),
     { signal: abortController.signal }
   );

@@ -6,6 +6,7 @@
  */
 
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import type { TraceFlagItem } from '@salesforce/vscode-services/v2';
 import * as Array from 'effect/Array';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
@@ -13,7 +14,6 @@ import * as Order from 'effect/Order';
 import * as Schedule from 'effect/Schedule';
 import * as Stream from 'effect/Stream';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
-import type { TraceFlagItem } from 'salesforcedx-vscode-services';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
 import { type messages } from '../messages/i18n';
@@ -26,9 +26,9 @@ const STATUS_BAR_PRIORITY = 46;
 const stopLink = (rec: TraceFlagItem) =>
   ` [${nls.localize('trace_flag_tooltip_stop')}](command:sf.apex.traceFlags.deleteForId?${encodeURIComponent(JSON.stringify([rec.id]))})`;
 
-const byName = Order.mapInput(Order.string, (r: TraceFlagItem) => r.tracedEntityName ?? r.tracedEntityId ?? '');
+const byName = Order.mapInput(Order.String, (r: TraceFlagItem) => r.tracedEntityName ?? r.tracedEntityId ?? '');
 
-const byExpirationDesc = Order.mapInput(Order.reverse(Order.Date), (r: TraceFlagItem) => r.expirationDate);
+const byExpirationDesc = Order.mapInput(Order.flip(Order.Date), (r: TraceFlagItem) => r.expirationDate);
 
 const toLogTypeKey = (r: TraceFlagItem): 'DEVELOPER_LOG' | 'USER_DEBUG' | 'CLASS_TRACING' | 'TRIGGERS' | 'OTHER' => {
   if (r.tracedEntityId?.startsWith('01q')) return 'TRIGGERS';
@@ -66,20 +66,20 @@ export const createTraceFlagStatusBar = () =>
     statusBarItem.name = 'Salesforce: Trace Flag';
     statusBarItem.command = 'sf.apex.traceFlags.open';
 
-    const targetOrgRef = yield* api.services.TargetOrgRef();
-    const traceFlagService = yield* api.services.TraceFlagService;
+    const targetOrgRef = yield* api.v2.services.TargetOrgRef;
+    const traceFlagService = yield* api.v2.services.TraceFlagService;
 
     // reasons to update the status bar:
-    yield* Effect.fork(
+    yield* Effect.forkChild(
       Stream.mergeAll(
         [
           // because the org changed — re-query trace flags from the new org
-          targetOrgRef.changes.pipe(
+          SubscriptionRef.changes(targetOrgRef).pipe(
             Stream.map(orgInfo => orgInfo.orgId),
             Stream.changes,
             Stream.tap(() =>
-              api.services.TraceFlagService.getTraceFlags().pipe(
-                Effect.catchAll(() => Effect.succeed([])),
+              api.v2.services.TraceFlagService.use(service => service.getTraceFlags()).pipe(
+                Effect.catch(() => Effect.succeed([])),
                 Effect.flatMap(flags => SubscriptionRef.set(currentTraceFlagsRef, flags))
               )
             ),
@@ -91,9 +91,9 @@ export const createTraceFlagStatusBar = () =>
             Stream.as(undefined)
           ),
           // because the trace flags changed
-          currentTraceFlagsRef.changes.pipe(Stream.as(undefined)),
+          SubscriptionRef.changes(currentTraceFlagsRef).pipe(Stream.as(undefined)),
           // because new logs were retrieved
-          collectorRef.changes.pipe(Stream.as(undefined)),
+          SubscriptionRef.changes(collectorRef).pipe(Stream.as(undefined)),
           // because a trace flag may have expired since the last render — re-eval live isTraceFlagActive
           // so the footer clears within a minute of expiry without a manual toggle or reload. Unlike the
           // cleanup scheduler (which hits the org), this is a cheap local re-render, so it is NOT gated on
@@ -108,7 +108,9 @@ export const createTraceFlagStatusBar = () =>
         Stream.runForEach(() => refresh(statusBarItem))
       )
     );
-    yield* api.services.ConnectionService.getConnection().pipe(Effect.catchAll(() => Effect.void));
+    yield* api.v2.services.ConnectionService.use(service => service.getConnection()).pipe(
+      Effect.catch(() => Effect.void)
+    );
     yield* Effect.addFinalizer(() => Effect.sync(() => statusBarItem.dispose()));
     yield* Effect.sleep(Duration.infinity);
   });
@@ -116,7 +118,7 @@ export const createTraceFlagStatusBar = () =>
 const refresh = Effect.fn('ApexLog.traceFlagStatusBar.refresh', { root: true, attributes: { telemetryIgnore: true } })(
   function* (statusBarItem: vscode.StatusBarItem) {
     const api = yield* (yield* ExtensionProviderService).getServicesApi;
-    const ref = yield* api.services.TargetOrgRef();
+    const ref = yield* api.v2.services.TargetOrgRef;
     const { orgId, userId } = yield* SubscriptionRef.get(ref);
     if (!orgId || !userId) {
       return statusBarItem.hide();

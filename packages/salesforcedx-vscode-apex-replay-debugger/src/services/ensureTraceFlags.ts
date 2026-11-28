@@ -13,8 +13,8 @@ import * as Effect from 'effect/Effect';
 export const ensureTraceFlagsForCurrentUser = Effect.fn('ensureTraceFlagsForCurrentUser')(
   function* () {
     const api = yield* (yield* ExtensionProviderService).getServicesApi;
-    const traceFlagService = yield* api.services.TraceFlagService;
-    const settings = yield* api.services.SettingsService;
+    const traceFlagService = yield* api.v2.services.TraceFlagService;
+    const settings = yield* api.v2.services.SettingsService;
     const [userId, durationMinutes] = yield* Effect.all([
       traceFlagService.getUserId(),
       settings.getValueOrElse('salesforcedx-vscode-apex-log', 'traceFlagsDefaultDurationMinutes', 30)

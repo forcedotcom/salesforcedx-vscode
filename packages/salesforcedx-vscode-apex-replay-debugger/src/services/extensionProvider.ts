@@ -11,11 +11,11 @@ import * as Layer from 'effect/Layer';
 import type { ExtensionContext } from 'vscode';
 
 export const buildAllServicesLayer = (context: ExtensionContext, fallbackDisplayName: string) =>
-  Layer.unwrapEffect(
+  Layer.unwrap(
     Effect.map(getServicesApi, api =>
       Layer.merge(
         buildBaseServicesLayer(context, fallbackDisplayName),
-        api.services.NotificationModeService.Default(
+        api.v2.services.NotificationModeServiceLayer(
           'salesforcedx-vscode-apex-replay-debugger',
           'sf-apex-replay-debugger-notifications',
           'Salesforce: Apex Replay Debugger Notifications'

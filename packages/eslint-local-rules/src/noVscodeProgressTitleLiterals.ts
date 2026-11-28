@@ -45,9 +45,8 @@ export const noVscodeProgressTitleLiterals = RuleCreator.withoutDocs({
         if (!titleProp?.value) return;
 
         const value = titleProp.value;
-        if (value.type === AST_NODE_TYPES.AssignmentPattern) return;
 
-        if (isStringLiteralOrTemplateWithoutNls(value as TSESTree.Expression)) {
+        if (isStringLiteralOrTemplateWithoutNls(value)) {
           context.report({ node: value, messageId: 'noLiteral' });
           return;
         }
@@ -67,9 +66,9 @@ export const noVscodeProgressTitleLiterals = RuleCreator.withoutDocs({
           optionsArg?.type === AST_NODE_TYPES.ObjectExpression
             ? findObjectProperty(optionsArg, 'title')?.value
             : undefined;
-        if (!titleArg || titleArg.type === AST_NODE_TYPES.AssignmentPattern) return;
+        if (!titleArg) return;
 
-        if (isStringLiteralOrTemplateWithoutNls(titleArg as TSESTree.Expression)) {
+        if (isStringLiteralOrTemplateWithoutNls(titleArg)) {
           context.report({ node: titleArg, messageId: 'noLiteral' });
           return;
         }

@@ -7,11 +7,10 @@
 
 import * as Effect from 'effect/Effect';
 import * as Exit from 'effect/Exit';
+import * as Cause from 'effect/Cause';
 import * as Fiber from 'effect/Fiber';
 import * as Layer from 'effect/Layer';
-import * as Option from 'effect/Option';
-import * as TestClock from 'effect/TestClock';
-import * as TestContext from 'effect/TestContext';
+import * as TestClock from 'effect/testing/TestClock';
 import { LLMConnectionFailed } from '../../../../src/errors';
 import { callLLMWithRetry } from '../../../../src/oas/generationStrategy/json/apexRest';
 import { LLMService } from '../../../../src/services/llmService';
@@ -28,17 +27,23 @@ const mockLLMLayer = (responses: string[]) => {
       return Effect.succeed(queue.shift()!);
     })
   );
-  return { layer: Layer.succeed(LLMService, { callLLM } as unknown as InstanceType<typeof LLMService>), callLLM };
+  return {
+    layer: Layer.succeed(LLMService, { callLLM, ensureAvailable: Effect.void } as unknown as LLMService['Service']),
+    callLLM
+  };
 };
 
 /** Mock LLMService whose callLLM always fails with the given (already-classified) error. */
 const failingLLMLayer = (error: unknown) => {
   const callLLM = vi.fn(() => Effect.fail(error));
-  return { layer: Layer.succeed(LLMService, { callLLM } as unknown as InstanceType<typeof LLMService>), callLLM };
+  return {
+    layer: Layer.succeed(LLMService, { callLLM, ensureAvailable: Effect.void } as unknown as LLMService['Service']),
+    callLLM
+  };
 };
 
 const run = <A, E>(effect: Effect.Effect<A, E, LLMService>, llmLayer: Layer.Layer<LLMService>) =>
-  Effect.runPromiseExit(effect.pipe(Effect.provide(llmLayer), Effect.provide(TestContext.TestContext)));
+  Effect.runPromiseExit(effect.pipe(Effect.provide(Layer.mergeAll(llmLayer, TestClock.layer()))));
 
 describe('callLLMWithRetry', () => {
   it('returns the response when the first call is non-empty', async () => {
@@ -54,11 +59,11 @@ describe('callLLMWithRetry', () => {
 
     const exit = await Effect.runPromiseExit(
       Effect.gen(function* () {
-        const fiber = yield* Effect.fork(callLLMWithRetry('prompt', 750, vi.fn()));
+        const fiber = yield* Effect.forkChild(callLLMWithRetry('prompt', 750, vi.fn()));
         // Advance past the backoff windows so the scheduled retries fire.
         yield* TestClock.adjust(PAST_ALL_RETRIES);
         return yield* Fiber.join(fiber);
-      }).pipe(Effect.provide(layer), Effect.provide(TestContext.TestContext))
+      }).pipe(Effect.provide(Layer.mergeAll(layer, TestClock.layer())))
     );
 
     expect(Exit.isSuccess(exit)).toBe(true);
@@ -72,15 +77,15 @@ describe('callLLMWithRetry', () => {
 
     const exit = await Effect.runPromiseExit(
       Effect.gen(function* () {
-        const fiber = yield* Effect.fork(callLLMWithRetry('prompt', 750, vi.fn()));
+        const fiber = yield* Effect.forkChild(callLLMWithRetry('prompt', 750, vi.fn()));
         yield* TestClock.adjust(PAST_ALL_RETRIES);
         return yield* Fiber.join(fiber);
-      }).pipe(Effect.provide(layer), Effect.provide(TestContext.TestContext))
+      }).pipe(Effect.provide(Layer.mergeAll(layer, TestClock.layer())))
     );
 
     expect(Exit.isFailure(exit)).toBe(true);
     if (Exit.isFailure(exit)) {
-      const error = Exit.causeOption(exit).pipe(Option.match({ onNone: () => undefined, onSome: cause => cause }));
+      const error = Exit.isFailure(exit) ? Cause.squash(exit.cause) : undefined;
       expect(String(error)).toContain('LLMRetriesExhausted');
     }
     expect(callLLM).toHaveBeenCalledTimes(6);
@@ -91,15 +96,15 @@ describe('callLLMWithRetry', () => {
 
     const exit = await Effect.runPromiseExit(
       Effect.gen(function* () {
-        const fiber = yield* Effect.fork(callLLMWithRetry('prompt', 750, vi.fn()));
+        const fiber = yield* Effect.forkChild(callLLMWithRetry('prompt', 750, vi.fn()));
         yield* TestClock.adjust(PAST_ALL_RETRIES);
         return yield* Fiber.join(fiber);
-      }).pipe(Effect.provide(layer), Effect.provide(TestContext.TestContext))
+      }).pipe(Effect.provide(Layer.mergeAll(layer, TestClock.layer())))
     );
 
     expect(Exit.isFailure(exit)).toBe(true);
     if (Exit.isFailure(exit)) {
-      const error = Exit.causeOption(exit).pipe(Option.match({ onNone: () => undefined, onSome: cause => cause }));
+      const error = Exit.isFailure(exit) ? Cause.squash(exit.cause) : undefined;
       // A connection error is treated as transient: retried, then wrapped so the per-method handler degrades
       // it to empty content. The original reason rides along in the exhaustion message.
       expect(String(error)).toContain('LLMRetriesExhausted');
@@ -115,10 +120,10 @@ describe('callLLMWithRetry', () => {
 
     await Effect.runPromiseExit(
       Effect.gen(function* () {
-        const fiber = yield* Effect.fork(callLLMWithRetry('prompt', 750, onAttempt));
+        const fiber = yield* Effect.forkChild(callLLMWithRetry('prompt', 750, onAttempt));
         yield* TestClock.adjust(PAST_ALL_RETRIES);
         return yield* Fiber.join(fiber);
-      }).pipe(Effect.provide(layer), Effect.provide(TestContext.TestContext))
+      }).pipe(Effect.provide(Layer.mergeAll(layer, TestClock.layer())))
     );
 
     expect(onAttempt).toHaveBeenCalledTimes(2);

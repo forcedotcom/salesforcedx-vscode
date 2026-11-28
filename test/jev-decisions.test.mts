@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import * as FetchHttpClient from '@effect/platform/FetchHttpClient';
-import { Effect, Option } from 'effect';
+import * as FetchHttpClient from 'effect/http/FetchHttpClient';
+import { ConfigProvider, Effect, Option } from 'effect';
 import { readFileSync } from 'node:fs';
 import { classifyWithJev, categoryQuestions } from '../scripts/shared/categoryJev.mts';
 import { config, decisionResponse } from './ciAiFixtures.mts';
@@ -39,14 +39,11 @@ for (const status of [200, 404, 410, 429, 503, 400, 401, 500]) {
             )
           : decisionResponse(answer());
       }),
-      Effect.withConfigProvider(config()),
-      Effect.either,
+      Effect.provide(ConfigProvider.layer(config())),
       Effect.runPromise
     );
     assert.deepEqual(models, [404, 410, 429, 503].includes(status) ? ['jev-1.13-free', 'jev-1.14'] : ['jev-1.13-free']);
-    assert.equal(result._tag, 'Right');
-    if (result._tag === 'Right')
-      assert.deepEqual(result.right, [400, 401, 500].includes(status) ? Option.none() : Option.some(['tests-only']));
+    assert.deepEqual(result, [400, 401, 500].includes(status) ? Option.none() : Option.some(['tests-only']));
   });
 }
 
@@ -79,11 +76,10 @@ for (const body of invalidBodies) {
         calls += 1;
         return typeof body === 'string' ? Response.json(body) : decisionResponse(body);
       }),
-      Effect.withConfigProvider(config()),
-      Effect.either,
+      Effect.provide(ConfigProvider.layer(config())),
       Effect.runPromise
     );
     assert.equal(calls, 1);
-    if (result._tag === 'Right') assert.deepEqual(result.right, Option.none());
+    assert.deepEqual(result, Option.none());
   });
 }

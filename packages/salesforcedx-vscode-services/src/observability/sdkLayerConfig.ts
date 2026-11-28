@@ -4,31 +4,10 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import type { SdkLayerConfig } from '@salesforce/vscode-services/v2';
 import type * as vscode from 'vscode';
 import { type ExtensionContext, ExtensionMode } from 'vscode';
 import { DEFAULT_AI_CONNECTION_STRING } from './appInsights';
-
-export type SdkLayerConfig = {
-  extensionName: string;
-  extensionVersion: string;
-  o11yEndpoint?: string;
-  productFeatureId?: string;
-  enableCustomEventsFromSpans?: boolean;
-  /**
-   * Full Azure Monitor connection string for the OTEL path.
-   * Expected format: "InstrumentationKey=...;IngestionEndpoint=..."
-   * Resolved from packageJSON: otelConnectionString preferred over aiKey (normalized),
-   * falling back to DEFAULT_AI_CONNECTION_STRING.
-   */
-  connectionString?: string;
-  /**
-   * Dev/test only: local HTTP endpoint to divert App Insights envelopes to instead of Azure.
-   * When set, NodeSdkLayerFor uses LocalDivertTraceExporter to POST envelopes here over plain HTTP.
-   * The connection string is left pristine (the Azure SDK force-upgrades http→https, so the
-   * endpoint cannot be carried inside it). Undefined in production = normal Azure export.
-   */
-  localIngestionEndpoint?: string;
-};
 
 /**
  * Resolves the OTEL connection string from packageJSON with precedence:

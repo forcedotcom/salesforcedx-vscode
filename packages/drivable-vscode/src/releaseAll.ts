@@ -8,6 +8,7 @@
 import * as Effect from 'effect/Effect';
 
 export const releaseAll = <E>(releases: readonly Effect.Effect<unknown, E>[]) =>
-  Effect.all(releases.map(Effect.uninterruptible), { concurrency: 'unbounded', mode: 'validate', discard: true }).pipe(
-    Effect.parallelErrors
-  );
+  Effect.validate(releases, release => Effect.uninterruptible(release), {
+    concurrency: 'unbounded',
+    discard: true
+  });

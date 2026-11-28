@@ -15,7 +15,7 @@ export const formatRetrieveOutput = Effect.fn('formatRetrieveOutput')(function* 
   fileResponsesFromDelete: FileResponse[] = []
 ) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const { isSDRSuccess, isSDRFailure } = yield* api.services.ComponentSetService;
+  const { isSDRSuccess, isSDRFailure } = yield* api.v2.services.ComponentSetService;
   const fileResponses = result?.getFileResponses() ?? [];
   const succeeded = [...fileResponses.filter(isSDRSuccess), ...fileResponsesFromDelete];
   const failed = fileResponses.filter(isSDRFailure);

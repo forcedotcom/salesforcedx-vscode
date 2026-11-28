@@ -39,19 +39,19 @@ const initialStats: FakeEffectServiceStats = {
 };
 
 export const makeFakeEffectService = Effect.fn('FakeEffectService.make')(function* <Identifier, State, Action, Failure>(
-  tag: Context.Tag<Identifier, EffectService<State, Action, Failure>>,
+  tag: Context.Key<Identifier, EffectService<State, Action, Failure>>,
   initialState: State,
-  options: { readonly dispatchLatency?: Duration.DurationInput } = {}
+  options: { readonly dispatchLatency?: Duration.Input } = {}
 ) {
   const state = yield* SubscriptionRef.make(initialState);
   const actions = yield* Ref.make<readonly Action[]>([]);
   const actionQueue = yield* Queue.unbounded<Action>();
   const failures = yield* PubSub.unbounded<Failure>();
   const dispatchFailure = yield* Ref.make<Option.Option<Failure>>(Option.none());
-  const dispatchLatency = yield* Ref.make<Duration.DurationInput>(options.dispatchLatency ?? Duration.zero);
+  const dispatchLatency = yield* Ref.make<Duration.Input>(options.dispatchLatency ?? Duration.zero);
   const stats = yield* Ref.make(initialStats);
   const stateChanges = Stream.merge(
-    state.changes.pipe(Stream.drop(1)),
+    SubscriptionRef.changes(state).pipe(Stream.drop(1)),
     Stream.fromPubSub(failures).pipe(Stream.mapEffect(error => Effect.fail(error)))
   );
   const service: EffectService<State, Action, Failure> = {
@@ -109,7 +109,7 @@ export const makeFakeEffectService = Effect.fn('FakeEffectService.make')(functio
           current.releases === current.acquisitions
       )
     ),
-    layer: Layer.scoped(
+    layer: Layer.effect(
       tag,
       Effect.acquireRelease(
         Ref.update(stats, current => ({
@@ -127,7 +127,7 @@ export const makeFakeEffectService = Effect.fn('FakeEffectService.make')(functio
     ),
     nextAction: Queue.take(actionQueue),
     recordedActions: Ref.get(actions),
-    setDispatchLatency: (latency: Duration.DurationInput) => Ref.set(dispatchLatency, latency),
+    setDispatchLatency: (latency: Duration.Input) => Ref.set(dispatchLatency, latency),
     stats: Ref.get(stats)
   };
 });

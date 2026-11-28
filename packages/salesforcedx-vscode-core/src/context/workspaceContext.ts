@@ -16,7 +16,7 @@ import { WorkspaceContextService } from './workspaceContextService';
 const createWorkspaceContextAdapter = () => {
   const orgChangeEmitter = new vscode.EventEmitter<{ username?: string; alias?: string }>();
   let initializationPromise: Promise<void> | undefined;
-  let service: WorkspaceContextService | undefined;
+  let service: WorkspaceContextService['Service'] | undefined;
 
   const initialize = async () => {
     if (initializationPromise) return initializationPromise;
@@ -27,7 +27,7 @@ const createWorkspaceContextAdapter = () => {
         const extensionScope = yield* getExtensionScope();
         yield* Stream.fromPubSub(workspaceContextService.orgChanges).pipe(
           Stream.runForEach(event => Effect.sync(() => orgChangeEmitter.fire(event))),
-          Effect.forkIn(extensionScope)
+          Effect.forkIn(extensionScope, { startImmediately: true })
         );
         yield* workspaceContextService.initialized;
         service = workspaceContextService;
@@ -88,7 +88,7 @@ export class WorkspaceContext {
     return getRuntime().runPromise(
       Effect.gen(function* () {
         const api = yield* (yield* ExtensionProviderService).getServicesApi;
-        return yield* api.services.ConnectionService.getConnection();
+        return yield* api.v2.services.ConnectionService.use(service => service.getConnection());
       })
     );
   }

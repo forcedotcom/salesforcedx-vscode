@@ -168,3 +168,6 @@ graphify-out/
 .claude/auto-build-wi.lock
 .claude/backlog-grooming-*.md
 .fastcontext/
+
+# OpenCode session goal metadata
+/.opencode/goals/

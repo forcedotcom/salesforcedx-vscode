@@ -16,6 +16,6 @@ import * as SubscriptionRef from 'effect/SubscriptionRef';
  */
 export const getDefaultOrgInfo = Effect.fn('context.getDefaultOrgInfo')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const ref = yield* api.services.TargetOrgRef();
+  const ref = yield* api.v2.services.TargetOrgRef;
   return yield* SubscriptionRef.get(ref);
 });

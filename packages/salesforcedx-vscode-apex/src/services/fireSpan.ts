@@ -27,7 +27,7 @@ export const fireErrorSpan = (
 ): void => {
   getRuntime().runFork(
     Effect.annotateCurrentSpan('error', String(error?.error ?? error)).pipe(
-      Effect.zipRight(Effect.fail(error)),
+      Effect.andThen(Effect.fail(error)),
       Effect.withSpan(name, { attributes, root: true })
     )
   );

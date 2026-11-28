@@ -40,9 +40,7 @@ const isSfdxProjectConfig = (value: unknown): value is SfdxProjectConfig => {
   );
 };
 
-// Normalizes the workspace root for consistency.
-// Relative roots are kept relative: web memfs roots (e.g. "dx-project") have no leading slash, and
-// workspace/findFiles results are normalized the same way, so resolving against process.cwd() would break prefix matching.
+// Keep relative roots relative: browser virtual workspaces return relative paths from workspace/findFiles too.
 export const getWorkspaceRoot = (workspaceRoot: string): NormalizedPath => normalizePath(workspaceRoot);
 
 /** Get SFDX configuration from sfdx-project.json */

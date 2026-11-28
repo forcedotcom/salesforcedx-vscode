@@ -5,11 +5,11 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import type { ReportData } from './markdownReportTemplate';
-import type { ApexTestResultData, TestResult } from '../tests/types';
+import type { ReportData } from './markdownReportTemplate.js';
+import type { ApexTestResultData, TestResult } from '../tests/apiTypes.js';
 import * as Order from 'effect/Order';
 import * as Stream from 'effect/Stream';
-import { escapeHtml, escapeMarkdown } from './escaping';
+import { escapeHtml, escapeMarkdown } from './escaping.js';
 import {
   formatDuration,
   formatTimestamp,
@@ -20,15 +20,15 @@ import {
   hasPoorCoverage,
   isPoorlyPerforming,
   type MarkdownTextReporterOptions
-} from './markdownTextReporter';
-import { normalizeTextStream } from './normalizeTextStream';
+} from './markdownTextReporter.js';
+import { normalizeTextStream } from './normalizeTextStream.js';
 
 const buildReportData = (testResult: TestResult, options: Required<MarkdownTextReporterOptions>): ReportData => {
   const { passed, failed, skipped, total, duration } = getSummaryInfo(testResult.summary);
   const { codeCoverage, performanceThresholdMs, coverageThresholdPercent, sortOrder } = options;
-  const descendingNumber = Order.reverse(Order.number);
+  const descendingNumber: Order.Order<number> = (left, right) => Order.Number(right, left);
   const runtimeOrder = Order.mapInput(descendingNumber, (test: ApexTestResultData) => test.runTime ?? 0);
-  const coverageOrder = Order.mapInput(Order.number, (test: ApexTestResultData) =>
+  const coverageOrder = Order.mapInput(Order.Number, (test: ApexTestResultData) =>
     codeCoverage ? (getCoveragePercentage(test.perClassCoverage?.[0]?.percentage) ?? 100) : 100
   );
   const severityOrder = Order.mapInput(descendingNumber, (test: ApexTestResultData) =>
@@ -41,11 +41,11 @@ const buildReportData = (testResult: TestResult, options: Required<MarkdownTextR
         ? Order.combine(coverageOrder, runtimeOrder)
         : severityOrder;
   const warningCoverageOrder = Order.mapInput(
-    Order.number,
+    Order.Number,
     (test: ApexTestResultData) => getCoveragePercentage(test.perClassCoverage?.[0]?.percentage) ?? 0
   );
   const coverageTableOrder = Order.mapInput(
-    Order.number,
+    Order.Number,
     (coverage: NonNullable<TestResult['codecoverage']>[number]) => getCoveragePercentage(coverage.percentage) ?? 0
   );
   const sortTests = (tests: ApexTestResultData[]): ApexTestResultData[] => [...tests].sort(testOrder);

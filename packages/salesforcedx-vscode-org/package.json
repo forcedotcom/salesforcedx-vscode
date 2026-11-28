@@ -29,13 +29,12 @@
   ],
   "dependencies": {
     "@salesforce/effect-ext-utils": "workspace:*",
-    "@salesforce/vscode-services": "workspace:*",
+    "@salesforce/vscode-services": "*",
     "@salesforce/vscode-i18n": "workspace:*",
-    "effect": "^3.22.4",
+    "effect": "^4.1.4",
     "vscode-uri": "^3.0.8"
   },
   "devDependencies": {
-    "@effect/opentelemetry": "0.64.0",
     "@salesforce/core": "^9.4.1",
     "@salesforce/playwright-vscode-ext": "workspace:*",
     "salesforcedx-vscode-services": "workspace:*"

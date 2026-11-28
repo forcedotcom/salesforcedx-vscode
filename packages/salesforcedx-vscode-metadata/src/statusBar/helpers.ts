@@ -24,13 +24,13 @@ export type SourceTrackingDetails = {
 
 const statusRowOrder = Order.combine(
   /** Sort by type (case-insensitive) */
-  Order.mapInput(Order.string, (row: StatusOutputRow) => row.type.toLowerCase()),
+  Order.mapInput(Order.String, (row: StatusOutputRow) => row.type.toLowerCase()),
   /** Sort by fullName (case-insensitive) */
-  Order.mapInput(Order.string, (row: StatusOutputRow) => row.fullName.toLowerCase())
+  Order.mapInput(Order.String, (row: StatusOutputRow) => row.fullName.toLowerCase())
 );
 
 /** Sort by conflict status (conflicts first) */
-const byConflict = Order.reverse(Order.mapInput(Order.boolean, (row: StatusOutputRow) => row.conflict ?? false));
+const byConflict = Order.flip(Order.mapInput(Order.Boolean, (row: StatusOutputRow) => row.conflict ?? false));
 
 /** Deduplicate status rows by fullName and type */
 export const dedupeStatus = (status: StatusOutputRow[]): StatusOutputRow[] => {

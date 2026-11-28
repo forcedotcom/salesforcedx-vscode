@@ -36,12 +36,16 @@ export const retrieveEffect = Effect.fn('RetrieveMetadata.retrieveEffect')(funct
 
   yield* Effect.annotateCurrentSpan({ memberCount: members.length });
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const notificationMode = yield* api.services.NotificationModeService;
-  yield* confirmOverwrite(yield* api.services.ComponentSetService.getComponentSetFromProjectDirectories(), members);
+  const notificationMode = yield* api.v2.services.NotificationModeService;
+  yield* confirmOverwrite(
+    yield* api.v2.services.ComponentSetService.use(service => service.getComponentSetFromProjectDirectories()),
+    members
+  );
+  const progressLocation = yield* notificationMode.getProgressLocation(COMMAND);
 
-  return yield* OrgBrowserRetrieveService.retrieve(members, members.length === 1, {
-    progressLocation: yield* notificationMode.getProgressLocation(COMMAND)
-  }).pipe(
+  return yield* OrgBrowserRetrieveService.use(service =>
+    service.retrieve(members, members.length === 1, { progressLocation })
+  ).pipe(
     Effect.tap(() =>
       Match.value(node.kind).pipe(
         Match.whenOr('component', 'customObject', () =>
@@ -92,7 +96,7 @@ const confirmOverwrite = Effect.fn('confirmRetrieveOverwrite')(function* (
   if (overwriteCount === 0) return;
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const typeName = members[0]?.type ?? 'Unknown';
-  yield* (yield* api.services.PromptService).confirmOrThrow({
+  yield* (yield* api.v2.services.PromptService).confirmOrThrow({
     message: nls.localize('confirm_overwrite', String(overwriteCount), typeName),
     confirmLabel: nls.localize('yes_button')
   });

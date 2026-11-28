@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { getServicesApi, type SalesforceVSCodeServicesApi } from '@salesforce/effect-ext-utils';
+import { getServicesApi } from '@salesforce/effect-ext-utils';
 import { errorToString } from '@salesforce/salesforcedx-utils';
 import {
   type Properties,
@@ -14,6 +14,7 @@ import {
   type TelemetryServiceInterface,
   type ActivationInfo
 } from '@salesforce/vscode-service-provider';
+import type { SalesforceVSCodeServicesApiV2 } from '@salesforce/vscode-services/v2';
 import * as Effect from 'effect/Effect';
 import { isNotUndefined, isString } from 'effect/Predicate';
 import * as Schema from 'effect/Schema';
@@ -29,7 +30,7 @@ type CommandMetric = {
   executionTime?: string;
 };
 
-type TelemetrySender = ReturnType<SalesforceVSCodeServicesApi['services']['getLegacyTelemetrySender']>;
+type TelemetrySender = ReturnType<SalesforceVSCodeServicesApiV2['v2']['services']['getLegacyTelemetrySender']>;
 type TelemetryPayload = Parameters<TelemetrySender>[0];
 
 // export only for unit test
@@ -109,7 +110,7 @@ export class TelemetryService implements TelemetryServiceInterface {
     if (!this.sendProductionTelemetry && (await this.isTelemetryEnabled())) {
       // sender built once per instance from ExtensionContext, cached exporters live in services
       const api = await Effect.runPromise(getServicesApi);
-      this.sendProductionTelemetry = api.services.getLegacyTelemetrySender(extensionContext);
+      this.sendProductionTelemetry = api.v2.services.getLegacyTelemetrySender(extensionContext);
     }
     if (!extensionContext.subscriptions.includes(this)) extensionContext.subscriptions.push(this);
   }

@@ -5,13 +5,13 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import * as FileSystem from '@effect/platform/FileSystem';
+import * as FileSystem from 'effect/FileSystem';
 import { getErrorMessage } from '@salesforce/salesforcedx-utils';
 import { Effect, Schema } from 'effect';
 import { createHash } from 'node:crypto';
 import * as yauzl from 'yauzl';
 
-class VideoArchiveError extends Schema.TaggedError<VideoArchiveError>()('VideoArchiveError', {
+export class VideoArchiveError extends Schema.TaggedError<VideoArchiveError>()('VideoArchiveError', {
   message: Schema.String
 }) {}
 
@@ -89,9 +89,9 @@ const readMember = (archive: yauzl.ZipFile, entries: readonly yauzl.Entry[], nam
 
 const decodeUtf8 = (bytes: Buffer) => Effect.sync(() => bytes.toString('utf8'));
 
-const parseJson = <A, I>(bytes: Buffer, schema: Schema.Schema<A, I>) =>
+const parseJson = <S extends Schema.Constraint>(bytes: Buffer, schema: S) =>
   decodeUtf8(bytes).pipe(
-    Effect.flatMap(Schema.decodeUnknown(Schema.parseJson(schema))),
+    Effect.flatMap(Schema.decodeUnknownEffect(Schema.fromJsonString(schema))),
     Effect.mapError(cause => new VideoArchiveError({ message: getErrorMessage(cause) }))
   );
 
@@ -193,9 +193,12 @@ const collectVideos = Effect.fn('playwrightVideos.collectVideos')(function* (
   return yield* Effect.forEach(selectedWithPaths, (attachment, index) => {
     const digest = digests[index];
     const path = `${output}/${digest}.webm`;
-    return Effect.fromNullable(byDigest.get(digest)).pipe(
-      Effect.mapError(() => new VideoArchiveError({ message: `Missing test-results video: ${attachment.test.title}` })),
-      Effect.flatMap(content => fileSystem.writeFile(path, content)),
+    const content = byDigest.get(digest);
+    if (content === undefined) {
+      return Effect.fail(new VideoArchiveError({ message: `Missing test-results video: ${attachment.test.title}` }));
+    }
+    return fileSystem.writeFile(path, content).pipe(
+      Effect.mapError(cause => new VideoArchiveError({ message: getErrorMessage(cause) })),
       Effect.as({
         path,
         title: attachment.test.title,

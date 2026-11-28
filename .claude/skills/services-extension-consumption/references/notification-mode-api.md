@@ -11,12 +11,12 @@ import * as Effect from 'effect/Effect';
 
 const program = Effect.gen(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const service = yield* api.services.NotificationModeService;
+  const service = yield* api.v2.services.NotificationModeService;
   // use service.showSuccessNotification, service.showErrorWithActions, service.getProgressLocation
 });
 
 const api = yield* (yield* ExtensionProviderService).getServicesApi;
-const layer = api.services.NotificationModeService.Default(
+const layer = api.v2.services.NotificationModeServiceLayer(
   'my-extension-section',
   'my-extension.statusBar',
   'My Extension Status'
@@ -25,7 +25,7 @@ const layer = api.services.NotificationModeService.Default(
 yield* program.pipe(Effect.provide(layer));
 ```
 
-`Default(extensionSection, statusBarId, statusBarName)` returns a scoped per-extension layer. Its status item,
+`NotificationModeServiceLayer(extensionSection, statusBarId, statusBarName)` returns a scoped per-extension layer. Its status item,
 registered command, and timer are released when the owning runtime is disposed.
 
 ## showSuccessNotification
@@ -131,7 +131,7 @@ const deployCommand = Effect.fn('deploy')(function* () {
 
 // In extension activate():
 const extensionApi = yield* (yield* ExtensionProviderService).getServicesApi;
-const layer = extensionApi.services.NotificationModeService.Default(
+const layer = extensionApi.v2.services.NotificationModeServiceLayer(
   EXTENSION_NAME,
   'metadata.deploy.progress',
   'Metadata Deployment'

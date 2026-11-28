@@ -13,11 +13,11 @@ const WatchVideo = Schema.TaggedStruct('WatchVideo', {
   job: Schema.NonEmptyString
 });
 const ManualItem = Schema.TaggedStruct('ManualItem', { step: Schema.NonEmptyString });
-const Item = Schema.Union(WatchVideo, ManualItem);
+const Item = Schema.Union([WatchVideo, ManualItem]);
 export type Item = typeof Item.Type;
 const Nothing = Schema.TaggedStruct('Nothing', {});
 const Checklist = Schema.TaggedStruct('Checklist', { items: Schema.NonEmptyArray(Item) });
-export const Judgment = Schema.Union(Nothing, Checklist);
+export const Judgment = Schema.Union([Nothing, Checklist]);
 export type Judgment = typeof Judgment.Type;
 
 export class CommandFailed extends Schema.TaggedError<CommandFailed>()('CommandFailed', {

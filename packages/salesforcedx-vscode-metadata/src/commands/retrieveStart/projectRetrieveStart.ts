@@ -24,9 +24,10 @@ const COMMAND: ProgressAndSuccessCommandKey = messages.project_retrieve_start_de
  */
 const applyAndRetrieve = Effect.fn('projectRetrieve.applyAndRetrieve')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const channelService = yield* api.services.ChannelService;
-  const { componentSetFromNonDeletes, fileResponsesFromDelete } =
-    yield* api.services.SourceTrackingService.maybeApplyRemoteDeletesToLocal();
+  const channelService = yield* api.v2.services.ChannelService;
+  const { componentSetFromNonDeletes, fileResponsesFromDelete } = yield* api.v2.services.SourceTrackingService.use(
+    service => service.maybeApplyRemoteDeletesToLocal()
+  );
 
   yield* componentSetFromNonDeletes.size > 0
     ? retrieveComponentSet({
@@ -44,7 +45,7 @@ const retrieveEffect = Effect.fn('retrieveEffect')(
 
     const api = yield* (yield* ExtensionProviderService).getServicesApi;
     const [sourceTrackingService, channelService, componentSetService] = yield* Effect.all(
-      [api.services.SourceTrackingService, api.services.ChannelService, api.services.ComponentSetService],
+      [api.v2.services.SourceTrackingService, api.v2.services.ChannelService, api.v2.services.ComponentSetService],
       { concurrency: 'unbounded' }
     );
 
@@ -84,7 +85,7 @@ export const projectRetrieveStartCommand = Effect.fn('projectRetrieveStartComman
   ignoreConflicts: boolean
 ) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const notificationMode = yield* api.services.NotificationModeService;
+  const notificationMode = yield* api.v2.services.NotificationModeService;
   return yield* retrieveEffect(ignoreConflicts).pipe(
     Effect.tap(() =>
       notificationMode.showSuccessNotification(

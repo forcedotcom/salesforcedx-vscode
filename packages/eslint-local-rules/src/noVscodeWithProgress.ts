@@ -22,10 +22,13 @@ export const noVscodeWithProgress = RuleCreator.withoutDocs({
   },
   defaultOptions: [],
   create: context => {
+    const filename = context.filename.replaceAll('\\', '/');
+    // These files own the V2 progress adapter and native SDK progress lifecycle. Their raw VS Code boundary
+    // is the implementation of PromptService, not a consumer bypassing it.
     if (
-      context.filename
-        .replaceAll('\\', '/')
-        .endsWith('/salesforcedx-vscode-services/src/vscode/prompts/promptService.ts')
+      filename.endsWith('/salesforcedx-vscode-services/src/vscode/prompts/promptService.ts') ||
+      filename.endsWith('/salesforcedx-vscode-services/src/services/promptProgress.ts') ||
+      filename.endsWith('/salesforcedx-vscode-services/src/services/nativeMetadataOperation.ts')
     ) {
       return {};
     }

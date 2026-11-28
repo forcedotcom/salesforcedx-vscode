@@ -74,6 +74,10 @@
       ],
       "files": [
         "test/**/*.ts",
+        "../../config/effect-version-boundaries.json",
+        "../../pnpm-lock.yaml",
+        "../../package.json",
+        "../*/package.json",
         "../salesforcedx-utils/src/helpers/getErrorMessage.ts",
         "test/fixtures/no-nested-effect-gen-catch-tags/tsconfig.json",
         "vitest.config.mts",

@@ -5,13 +5,14 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import * as Command from '@effect/platform/Command';
-import * as FileSystem from '@effect/platform/FileSystem';
-import * as Path from '@effect/platform/Path';
-import * as NodeContext from '@effect/platform-node/NodeContext';
-import { Array as Arr, Effect, Exit, HashMap, HashSet, Layer, Logger, Option, pipe, Schema } from 'effect';
+import * as NodeServices from '@effect/platform-node/NodeServices';
+import { Array as Arr, Effect, Exit, HashMap, HashSet, Layer, Logger, Option, Schema } from 'effect';
+import * as FileSystem from 'effect/FileSystem';
+import * as Path from 'effect/Path';
 import { isNotUndefined, isUndefined } from 'effect/Predicate';
 import { pathToFileURL } from 'node:url';
+import { commandOutput } from '../commandOutput.mts';
+import { gitLocalEnv } from '../shared/gitLocalEnv.mts';
 import { openCodePrompt } from '../shared/openCode.mts';
 
 const repo = 'forcedotcom/salesforcedx-vscode';
@@ -21,7 +22,7 @@ const sectionNames = ['Added', 'Fixed', 'Changed', 'Under the Hood'] as const;
 const Fact = Schema.Struct({
   sha: Schema.String,
   pr: Schema.Number,
-  type: Schema.Literal(...keptTypes),
+  type: Schema.Literals(keptTypes),
   subject: Schema.String,
   title: Schema.String,
   body: Schema.optional(Schema.String),
@@ -63,7 +64,12 @@ const runCommand = Effect.fn('changelogBody.runCommand')(function* (
   command: string,
   args: readonly string[]
 ) {
-  return yield* pipe(Command.make(command, ...args), Command.workingDirectory(cwd), Command.string);
+  return yield* commandOutput({
+    executable: command,
+    args,
+    cwd,
+    ...(command === 'git' ? { env: gitLocalEnv, extendEnv: true } : {})
+  }).pipe(Effect.map(({ stdout }) => stdout));
 });
 
 const git = Effect.fn('changelogBody.git')(function* (cwd: string, args: readonly string[]) {
@@ -92,7 +98,7 @@ const isIgnoredPath = (path: Path.Path, file: string) => {
 const packageName = (path: Path.Path, file: string) => {
   const parts = segments(path, file);
   return parts[0] === 'packages'
-    ? Option.fromNullable(parts[1]).pipe(
+    ? Option.fromUndefinedOr(parts[1]).pipe(
         Option.filter(name => name.startsWith('salesforce') || name.startsWith('docs'))
       )
     : Option.none();
@@ -114,9 +120,9 @@ const packageSet = (path: Path.Path, files: readonly string[]) => {
 const parseSubject = (subject: string) =>
   Option.gen(function* () {
     const typed = /^([a-zA-Z]+)(?:\([^)]*\))?!?:\s*([\s\S]*)$/.exec(subject);
-    const typeName = yield* Option.fromNullable(typed?.[1]);
-    const rest = yield* Option.fromNullable(typed?.[2]);
-    const pr = yield* Option.fromNullable(/\(#(\d+)\)\s*$/.exec(rest)?.[1]);
+    const typeName = yield* Option.fromUndefinedOr(typed?.[1]);
+    const rest = yield* Option.fromUndefinedOr(typed?.[2]);
+    const pr = yield* Option.fromUndefinedOr(/\(#(\d+)\)\s*$/.exec(rest)?.[1]);
     const type = yield* Arr.findFirst(keptTypes, candidate => candidate === typeName.toLowerCase());
     return {
       type,
@@ -131,12 +137,12 @@ const parseSubject = (subject: string) =>
 const numbersIn = (text: string, kind: 'issues' | 'discussions') =>
   Arr.getSomes(
     [...text.matchAll(new RegExp(`github\\.com/${repo}/${kind}/(\\d+)`, 'g'))].map(match =>
-      Option.fromNullable(match[1]).pipe(Option.map(Number))
+      Option.fromUndefinedOr(match[1]).pipe(Option.map(Number))
     )
   );
 
 const referenceSection = (body: string) =>
-  Option.fromNullable(/### What issues does this PR fix or reference\?\s*([\s\S]*?)(?=\n### |$)/.exec(body)?.[1]);
+  Option.fromUndefinedOr(/### What issues does this PR fix or reference\?\s*([\s\S]*?)(?=\n### |$)/.exec(body)?.[1]);
 
 const survivingPaths = (path: Path.Path, nameOnly: string) =>
   nameOnly
@@ -157,19 +163,19 @@ const loadKeptCommit = Effect.fn('changelogBody.loadKeptCommit')(function* (
         Effect.map(nameOnly => survivingPaths(path, nameOnly))
       ),
       runCommand(cwd, 'gh', ['pr', 'view', String(parsed.pr), '--repo', repo, '--json', 'title,body,labels']).pipe(
-        Effect.flatMap(json => Schema.decodeUnknown(Schema.parseJson(PullRequest))(json))
+        Effect.flatMap(json => Schema.decodeUnknownEffect(Schema.fromJsonString(PullRequest))(json))
       )
     ],
     { concurrency: 'unbounded' }
   );
-  const references = Option.fromNullable(pull.body).pipe(Option.flatMap(referenceSection));
-  return yield* Schema.decodeUnknown(Fact)({
+  const references = Option.fromNullOr(pull.body).pipe(Option.flatMap(referenceSection));
+  return yield* Schema.decodeUnknownEffect(Fact)({
     sha,
     pr: parsed.pr,
     type: parsed.type,
     subject: parsed.message,
     title: pull.title,
-    body: Option.getOrUndefined(Option.fromNullable(pull.body)),
+    body: Option.getOrUndefined(Option.fromNullOr(pull.body)),
     labels: pull.labels.map(label => label.name),
     packages: packageSet(path, paths),
     paths,
@@ -200,34 +206,40 @@ const sectionsSchema = (facts: readonly Fact[]) =>
     Changed: Schema.Array(Entry),
     'Under the Hood': Schema.Array(Entry)
   }).pipe(
-    Schema.filter(sections => {
-      const actual = sectionNames
-        .flatMap(name => sections[name].map(entry => entry.pr))
-        .toSorted((left, right) => left - right);
-      const expected = facts.map(fact => fact.pr).toSorted((left, right) => left - right);
-      const byPr = HashMap.fromIterable(facts.map(fact => [fact.pr, fact] as const));
-      const visible = [sections.Added, sections.Fixed, sections.Changed].flat();
-      const badPackage = visible.find(entry =>
-        Option.match(HashMap.get(byPr, entry.pr), {
-          onNone: () => true,
-          onSome: fact => isUndefined(entry.package) || !fact.packages.includes(entry.package)
-        })
-      );
-      const badHood = sections['Under the Hood'].find(
-        entry => !isUndefined(entry.package) || Option.isNone(HashMap.get(byPr, entry.pr))
-      );
-      const emptyPackage = HashSet.fromIterable(facts.filter(fact => fact.packages.length === 0).map(fact => fact.pr));
-      const misplaced = visible.find(entry => HashSet.has(emptyPackage, entry.pr));
-      return expected.length === actual.length && expected.every((pr, index) => pr === actual[index])
-        ? !isUndefined(badPackage)
-          ? `package for PR ${badPackage.pr} is not in that fact's package set`
-          : !isUndefined(badHood)
-            ? `Under the Hood PR ${badHood.pr} must omit package`
-            : !isUndefined(misplaced)
-              ? `PR ${misplaced.pr} has no package and must be Under the Hood`
-              : true
-        : 'PR set does not match the changelog facts';
-    })
+    Schema.check(
+      Schema.makeFilter(sections => {
+        const actual = sectionNames
+          .flatMap(name => sections[name].map(entry => entry.pr))
+          .toSorted((left, right) => left - right);
+        const expected = facts.map(fact => fact.pr).toSorted((left, right) => left - right);
+        const byPr = HashMap.fromIterable(facts.map(fact => [fact.pr, fact] as const));
+        const visible = [sections.Added, sections.Fixed, sections.Changed].flat();
+        const badPackage = visible.find(entry =>
+          Option.match(HashMap.get(byPr, entry.pr), {
+            onNone: () => true,
+            onSome: fact => isUndefined(entry.package) || !fact.packages.includes(entry.package)
+          })
+        );
+        const badHood = sections['Under the Hood'].find(
+          entry => !isUndefined(entry.package) || Option.isNone(HashMap.get(byPr, entry.pr))
+        );
+        const emptyPackage = HashSet.fromIterable(
+          facts.filter(fact => fact.packages.length === 0).map(fact => fact.pr)
+        );
+        const misplaced = visible.find(entry => HashSet.has(emptyPackage, entry.pr));
+        const result =
+          expected.length === actual.length && expected.every((pr, index) => pr === actual[index])
+            ? !isUndefined(badPackage)
+              ? `package for PR ${badPackage.pr} is not in that fact's package set`
+              : !isUndefined(badHood)
+                ? `Under the Hood PR ${badHood.pr} must omit package`
+                : !isUndefined(misplaced)
+                  ? `PR ${misplaced.pr} has no package and must be Under the Hood`
+                  : true
+            : 'PR set does not match the changelog facts';
+        return result === true ? undefined : result;
+      })
+    )
   );
 
 const linkList = (fact: Fact) =>
@@ -330,7 +342,7 @@ export const changelogBody = Effect.fn('changelogBody.program')(function* ({
     )
   );
   const text = yield* openCodePrompt({ prompt: `${skill}\n\nChangelog facts:\n${JSON.stringify(facts)}` });
-  return yield* Schema.decodeUnknown(Schema.parseJson(sectionsSchema(facts)))(text).pipe(
+  return yield* Schema.decodeUnknownEffect(Schema.fromJsonString(sectionsSchema(facts)))(text).pipe(
     Effect.flatMap(sections => toMarkdown(sections, facts))
   );
 });
@@ -340,7 +352,9 @@ const stderrLogger = Logger.make(({ message }) => {
 });
 
 if (process.argv[1] !== undefined && import.meta.url === pathToFileURL(process.argv[1]).href) {
-  await Schema.decodeUnknown(Schema.Tuple(Schema.NonEmptyString, Schema.NonEmptyString))(process.argv.slice(2)).pipe(
+  await Schema.decodeUnknownEffect(Schema.Tuple([Schema.NonEmptyString, Schema.NonEmptyString]))(
+    process.argv.slice(2)
+  ).pipe(
     Effect.flatMap(([from, to]) =>
       git(process.cwd(), ['rev-parse', '--show-toplevel']).pipe(
         Effect.flatMap(cwd => changelogBody({ cwd: cwd.trim(), from, to }))
@@ -358,7 +372,7 @@ if (process.argv[1] !== undefined && import.meta.url === pathToFileURL(process.a
         if (Exit.isFailure(exit)) process.exitCode = 1;
       })
     ),
-    Effect.provide(Layer.mergeAll(NodeContext.layer, Logger.replace(Logger.defaultLogger, stderrLogger))),
+    Effect.provide(Layer.mergeAll(NodeServices.layer, Logger.layer([stderrLogger]))),
     Effect.runPromise
   );
 }

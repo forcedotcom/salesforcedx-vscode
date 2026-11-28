@@ -5,9 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { ExtensionProviderService, getMessageFromError } from '@salesforce/effect-ext-utils';
-import * as Cause from 'effect/Cause';
 import * as Effect from 'effect/Effect';
-import { isError, isRecord, isString } from 'effect/Predicate';
+import { isError, isObject, isString } from 'effect/Predicate';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
 
@@ -21,7 +20,7 @@ const getStandardSObjectsDirectory = (projectPath: string) =>
 
 export const extractErrorMessage = (error: unknown): string => {
   if (isError(error)) return getMessageFromError(error);
-  if (isRecord(error)) {
+  if (isObject(error)) {
     if ('error' in error && isError(error.error)) return getMessageFromError(error.error);
     if ('message' in error && isString(error.message)) return error.message;
   }
@@ -41,7 +40,7 @@ export const initSObjectDefinitions = Effect.fn('initSObjectDefinitions')(functi
 
   if (
     yield* (yield* ExtensionProviderService).getServicesApi.pipe(
-      Effect.flatMap(api => api.services.FsService.fileOrFolderExists(sobjectFolder))
+      Effect.flatMap(api => api.v2.services.FsService.use(service => service.fileOrFolderExists(sobjectFolder)))
     )
   )
     return;
@@ -50,18 +49,22 @@ export const initSObjectDefinitions = Effect.fn('initSObjectDefinitions')(functi
     Effect.withSpan('sObjectRefreshNotification', { attributes: { type: refreshSource }, root: true })
   );
   yield* Effect.promise(() => vscode.commands.executeCommand('sf.internal.refreshsobjects', refreshSource)).pipe(
-    Effect.tapDefect(cause => {
-      const error = Cause.squash(cause);
-      return Effect.failCause(cause).pipe(
+    Effect.tapDefect(defect =>
+      Effect.logError('initSObjectDefinitions failed', {
+        message: extractErrorMessage(defect),
+        sobjectRefreshStartup: isSettingEnabled
+      }).pipe(
+        Effect.andThen(Effect.die(defect)),
         Effect.withSpan('initSObjectDefinitionsError', {
           attributes: {
-            message: `Error: ${extractErrorMessage(error)} with sobjectRefreshStartup = ${isSettingEnabled}`
+            message: `Error: ${extractErrorMessage(defect)} with sobjectRefreshStartup = ${isSettingEnabled}`
           },
           root: true
         }),
+        // Capture the failed span so tapDefect can preserve the original command defect.
         Effect.exit,
         Effect.asVoid
-      );
-    })
+      )
+    )
   );
 });

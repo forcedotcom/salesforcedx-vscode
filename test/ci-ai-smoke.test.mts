@@ -1,5 +1,5 @@
-import * as NodeContext from '@effect/platform-node/NodeContext';
-import { Effect, Schema } from 'effect';
+import * as NodeServices from '@effect/platform-node/NodeServices';
+import { ConfigProvider, Effect, Schema } from 'effect';
 import * as Option from 'effect/Option';
 import assert from 'node:assert/strict';
 import { readFileSync, realpathSync, writeFileSync } from 'node:fs';
@@ -153,14 +153,14 @@ test(
       const manual = yield* manualTestPlanPrompt(cwd, {
         skill: readFileSync(new URL('../.opencode/skills/manual-test-plan-judgment/SKILL.md', import.meta.url), 'utf8'),
         diff: '+export const feature = true;'
-      }).pipe(Effect.flatMap(Schema.decodeUnknown(Schema.parseJson(Judgment))));
+      }).pipe(Effect.flatMap(Schema.decodeUnknownEffect(Schema.fromJsonString(Judgment))));
       assert.deepEqual(manual, { _tag: 'Nothing' });
     });
     await program
       .pipe(
         Effect.provide(layer),
-        Effect.provide(NodeContext.layer),
-        Effect.withConfigProvider(config()),
+        Effect.provide(NodeServices.layer),
+        Effect.provide(ConfigProvider.layer(config())),
         Effect.runPromise
       )
       .catch(error => {

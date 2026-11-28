@@ -6,26 +6,25 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import * as Command from '@effect/platform/Command';
-import * as FileSystem from '@effect/platform/FileSystem';
-import * as NodeContext from '@effect/platform-node/NodeContext';
+import * as NodeServices from '@effect/platform-node/NodeServices';
 import {
   actionsEnvironment,
   findApprovedReviewOnHead,
   GitHub,
+  GitHubLayer,
   readCheckEvent,
   type CheckEvent,
   withoutWorkflowRun
 } from '@salesforce/effect-octokit';
 import * as Arr from 'effect/Array';
 import * as Cause from 'effect/Cause';
-import * as Config from 'effect/Config';
 import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
 import * as Match from 'effect/Match';
 import * as Option from 'effect/Option';
+import * as Result from 'effect/Result';
 import { isNumber, isUndefined } from 'effect/Predicate';
-import * as Stream from 'effect/Stream';
+import { commandOutput } from './commandOutput.mts';
 import {
   BASE_BRANCH,
   BOT_LOGIN,
@@ -43,27 +42,10 @@ import {
 import { classifyWithJev } from './shared/categoryJev.mts';
 import { GitError } from './shared/scriptErrors.mts';
 
-const commandOutput = Effect.fn('categoryApprove.commandOutput')(function* (command: Command.Command) {
-  const handle = yield* Command.start(command);
-  return yield* Effect.all(
-    [
-      Stream.mkString(Stream.decodeText(handle.stdout)),
-      Stream.mkString(Stream.decodeText(handle.stderr)),
-      handle.exitCode
-    ],
-    { concurrency: 'unbounded' }
-  );
-});
-
 const gitText = (args: readonly string[]) =>
-  commandOutput(Command.make('git', ...args)).pipe(
-    Effect.scoped,
-    Effect.filterOrFail(
-      ([, , code]) => code === 0,
-      ([, stderr, code]) =>
-        new GitError({ message: stderr.length === 0 ? `git ${args.join(' ')} exited ${code}` : stderr })
-    ),
-    Effect.map(([stdout]) => stdout)
+  commandOutput({ executable: 'git', args }).pipe(
+    Effect.map(({ stdout }) => stdout),
+    Effect.catchTag('CommandFailed', error => Effect.fail(new GitError({ message: error.message })))
   );
 
 const listChecks = Effect.fn('categoryApprove.listChecks')(function* (
@@ -97,7 +79,9 @@ export const classify = Effect.fn('categoryApprove.classify')(function* (input: 
   }
   const paths = Arr.dedupe(files.flatMap(pathsForFile));
   if (paths.some(rejectedPath)) return [];
-  const categories = Arr.dedupe(Arr.filterMap(paths, categoryForPath));
+  const categories = Arr.dedupe(
+    Arr.filterMap(paths, filename => Result.fromOption(categoryForPath(filename), () => undefined))
+  );
   const remainingPaths = paths.filter(filename => Option.isNone(categoryForPath(filename)));
   if (remainingPaths.length === 0) return categories;
   // Literal pathspecs and --no-renames keep covered files out, including either side of a rename.
@@ -170,7 +154,7 @@ const act = (
     Match.tag('Dismiss', dismissed =>
       Effect.log(`#${pullNumber} dismiss (${dismissed.reason})`).pipe(
         Effect.andThen(
-          Option.match(Option.fromNullable(findApprovedReviewOnHead(reviews, headSha, BOT_LOGIN)), {
+          Option.match(Option.fromUndefinedOr(findApprovedReviewOnHead(reviews, headSha, BOT_LOGIN)), {
             onNone: () => Effect.void,
             onSome: review => dismiss(owner, repo, pullNumber, review.id)
           })
@@ -268,7 +252,7 @@ const pullNumbers = Effect.fn('categoryApprove.pullNumbers')(function* (
 });
 
 const categoryApprove = Effect.fn('categoryApprove')(function* () {
-  const env = yield* actionsEnvironment;
+  const env = yield* actionsEnvironment();
   const event = yield* readCheckEvent(env.eventPath);
   if (event.check_run?.name === 'category-approve') {
     yield* Effect.log('skip: own check run');
@@ -286,8 +270,8 @@ const categoryApprove = Effect.fn('categoryApprove')(function* () {
 
 if (import.meta.main) {
   await categoryApprove().pipe(
-    Effect.provide(Layer.mergeAll(GitHub.Default, NodeContext.layer)),
-    Effect.tapErrorCause(cause => Effect.logError(Cause.pretty(cause))),
+    Effect.provide(Layer.mergeAll(GitHubLayer, NodeServices.layer)),
+    Effect.tapCause(cause => Effect.logError(Cause.pretty(cause))),
     Effect.runPromise
   );
 }

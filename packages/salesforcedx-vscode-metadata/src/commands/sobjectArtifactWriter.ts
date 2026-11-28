@@ -7,10 +7,10 @@
 import type { SObjectShortDescription, SObjectsStandardAndCustom } from '../sobjects/describeTypes';
 import type { SObjectCategory, SObjectRefreshSource } from '../sobjects/types/general';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import type { SObject } from '@salesforce/vscode-services/v2';
 import * as Effect from 'effect/Effect';
 import * as Ref from 'effect/Ref';
 import * as Stream from 'effect/Stream';
-import type { SObject } from 'salesforcedx-vscode-services';
 import type * as vscode from 'vscode';
 import { Utils } from 'vscode-uri';
 import { generateSObjectDefinition } from '../sobjects/declarationGenerator';
@@ -41,10 +41,10 @@ const streamAndWriteSobjectArtifactsEffect = Effect.fn('streamAndWriteSobjectArt
   progress: ProgressReporter
 ) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const fs = yield* api.services.FsService;
-  const project = yield* api.services.ProjectService;
-  const tx = yield* api.services.TransmogrifierService;
-  const metadataDescribeService = yield* api.services.MetadataDescribeService;
+  const fs = yield* api.v2.services.FsService;
+  const project = yield* api.v2.services.ProjectService;
+  const tx = yield* api.v2.services.TransmogrifierService;
+  const metadataDescribeService = yield* api.v2.services.MetadataDescribeService;
 
   const [fauxStandard, fauxCustom, typings, soqlMeta, soqlStandard, soqlCustom] = yield* Effect.all(
     [
@@ -134,8 +134,8 @@ const writeSobjectArtifactsEffect = Effect.fn('writeSobjectArtifacts')(function*
   progress: ProgressReporter
 ) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const fs = yield* api.services.FsService;
-  const project = yield* api.services.ProjectService;
+  const fs = yield* api.v2.services.FsService;
+  const project = yield* api.v2.services.ProjectService;
 
   const [fauxStandard, fauxCustom, typings, soqlMeta, soqlStandard, soqlCustom] = yield* Effect.all(
     [

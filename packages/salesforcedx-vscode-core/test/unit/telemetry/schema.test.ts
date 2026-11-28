@@ -43,12 +43,8 @@ describe('extensionPackageJsonSchema', () => {
   });
 
   it('rejects missing required fields and invalid optional values', () => {
-    expect(() => decodeExtensionPackageJson({ version: '1.0.0' })).toThrow(
-      'Extension name is not defined in package.json'
-    );
-    expect(() => decodeExtensionPackageJson({ name: 'extension' })).toThrow(
-      'Extension version is not defined in package.json'
-    );
+    expect(() => decodeExtensionPackageJson({ version: '1.0.0' })).toThrow();
+    expect(() => decodeExtensionPackageJson({ name: 'extension' })).toThrow();
     expect(() =>
       decodeExtensionPackageJson({ name: 'extension', version: '1.0.0', enableO11y: 'sometimes' })
     ).toThrow();

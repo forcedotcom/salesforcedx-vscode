@@ -10,7 +10,7 @@ import {
   ApexSourceTypeSchema,
   apexSourceSoqlWhere,
   apexSourceToolingIdentity
-} from '../../../src/orgCatalog/apexSourceTooling';
+} from '../../../src/services/orgCatalog/apexSourceTooling';
 
 describe('apexSourceToolingIdentity', () => {
   it('uses a null namespace predicate for unpackaged source', () => {

@@ -5,18 +5,20 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import * as FileSystem from '@effect/platform/FileSystem';
-import * as NodeContext from '@effect/platform-node/NodeContext';
+import * as FileSystem from 'effect/FileSystem';
+import * as NodeServices from '@effect/platform-node/NodeServices';
 import {
   allGitHubChecksSuccessful,
   GitHub,
+  GitHubLayer,
   readCompletedChecksEvent,
   readSynchronizeEvent,
   readWorkflowDispatchEvent,
   WorkflowArtifact,
   WorkflowRun
 } from '@salesforce/effect-octokit';
-import { Config, Effect, Option, Redacted, Schema } from 'effect';
+import { Config, Effect, Layer, Option, Redacted, Schema } from 'effect';
+import * as ConfigProvider from 'effect/ConfigProvider';
 import { execFile } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { createWriteStream } from 'node:fs';
@@ -26,7 +28,7 @@ import { ReadableStream as NodeReadableStream } from 'node:stream/web';
 import { pathToFileURL } from 'node:url';
 import { promisify } from 'node:util';
 import { parse } from 'yaml';
-import { collectLane } from './playwrightVideos.mts';
+import { collectLane, type VideoArchiveError } from './playwrightVideos.mts';
 import { CommandFailed } from './schema.mts';
 import {
   appendVideoSection,
@@ -46,22 +48,22 @@ export const downloadArtifact = Effect.fn('manualTestPlanVideos.downloadArtifact
   path: string
 ) {
   const [owner, repo] = repository.split('/');
-  const body: unknown = yield* GitHub.request(
-    'GET /repos/{owner}/{repo}/actions/artifacts/{artifact_id}/{archive_format}',
-    {
+  const github = yield* GitHub;
+  const body: unknown = yield* github
+    .request('GET /repos/{owner}/{repo}/actions/artifacts/{artifact_id}/{archive_format}', {
       owner,
       repo,
       artifact_id: artifactId,
       archive_format: 'zip',
       request: { parseSuccessResponseBody: false }
-    }
-  ).pipe(
-    Effect.catchTag('GitHubRequestError', error =>
-      Effect.fail(
-        new CommandFailed({ command: 'Octokit artifact download', code: error.status, message: error.message })
+    })
+    .pipe(
+      Effect.catchTag('GitHubRequestError', error =>
+        Effect.fail(
+          new CommandFailed({ command: 'Octokit artifact download', code: error.status, message: error.message })
+        )
       )
-    )
-  );
+    );
   return yield* Effect.tryPromise({
     try: async signal => {
       if (!(body instanceof NodeReadableStream)) throw new Error('Octokit returned a non-stream artifact response');
@@ -71,7 +73,7 @@ export const downloadArtifact = Effect.fn('manualTestPlanVideos.downloadArtifact
   });
 });
 const command = Effect.fn('manualTestPlanVideos.command')(function* (file: string, args: readonly string[]) {
-  const token = yield* Config.redacted('IDEE_GH_TOKEN');
+  const token = yield* Config.Redacted('IDEE_GH_TOKEN');
   const result = yield* Effect.tryPromise({
     try: () =>
       exec(file, args, { env: { ...process.env, GH_TOKEN: Redacted.value(token) }, maxBuffer: 16 * 1024 * 1024 }),
@@ -116,19 +118,20 @@ export const readPullResolution = Effect.fn('manualTestPlanVideos.readPullResolu
 
 /** Push workflows often have no pull_requests array. Resolve associations through the commit API. */
 export const resolveVideoPulls = Effect.fn('manualTestPlanVideos.resolvePulls')(function* (event: PullResolution) {
-  const repository = yield* Config.string('GITHUB_REPOSITORY');
+  const repository = yield* Config.String('GITHUB_REPOSITORY');
+  const github = yield* GitHub;
   const [owner, repo] = repository.split('/');
   const candidates =
     event.kind === 'pull'
       ? [event.pullNumber]
       : event.kind === 'commit'
-        ? (yield* GitHub.pullsForCommit(owner, repo, event.sha)).map(pull => pull.number)
+        ? (yield* github.pullsForCommit(owner, repo, event.sha)).map(pull => pull.number)
         : [];
   const sha = event.kind === 'commit' ? event.sha : undefined;
   return yield* Effect.forEach(
     [...new Set(candidates)],
     Effect.fn('manualTestPlanVideos.resolvePull')(function* (number) {
-      const pull = yield* GitHub.pullRequest(owner, repo, number);
+      const pull = yield* github.pullRequest(owner, repo, number);
       return pull?.state === 'OPEN' &&
         pull.baseRepository?.nameWithOwner === repository &&
         (sha === undefined || pull.headRefOid === sha)
@@ -197,8 +200,10 @@ class NoVideoCandidate extends Schema.TaggedError<NoVideoCandidate>()('NoVideoCa
   message: Schema.String
 }) {}
 
-const firstVideo = <A, E, R>(candidates: Iterable<Effect.Effect<readonly A[], E, R>>) => {
-  const attempts = Array.from(candidates, candidate =>
+const firstVideo = <A, E, R>(
+  candidates: Iterable<Effect.Effect<readonly A[], E, R>>
+): Effect.Effect<readonly A[], E | NoVideoCandidate, R> => {
+  const attempts: Array<Effect.Effect<readonly A[], E | NoVideoCandidate, R>> = Array.from(candidates, candidate =>
     candidate.pipe(
       Effect.flatMap(videos =>
         videos.length === 0
@@ -208,7 +213,15 @@ const firstVideo = <A, E, R>(candidates: Iterable<Effect.Effect<readonly A[], E,
     )
   );
   return Effect.firstSuccessOf(
-    attempts.length === 0 ? [Effect.fail(new NoVideoCandidate({ message: 'No candidates' }))] : attempts
+    attempts.length === 0
+      ? [
+          Effect.fail(new NoVideoCandidate({ message: 'No candidates' })) as Effect.Effect<
+            readonly A[],
+            E | NoVideoCandidate,
+            R
+          >
+        ]
+      : attempts
   );
 };
 
@@ -216,25 +229,28 @@ export const updateManualTestPlanVideos = Effect.fn('manualTestPlanVideos.update
   input: typeof VideoUpdate.Type,
   deps?: { readonly collect?: typeof collect; readonly publish?: typeof publish }
 ) {
-  const repository = yield* Config.string('GITHUB_REPOSITORY');
+  const repository = yield* Config.String('GITHUB_REPOSITORY');
   const [owner, repo] = repository.split('/');
-  const pull = yield* GitHub.pullRequest(owner, repo, input.pr);
+  const github = yield* GitHub;
+  const pull = yield* github.pullRequest(owner, repo, input.pr);
   if (pull?.state !== 'OPEN' || pull.headRefOid !== input.sha) return;
   const body = pull.body ?? '';
   if (input.clear) {
     const previousSection = videoSection(body);
     if (previousSection === undefined || previousSection.includes(`"sha":"${input.sha}"`)) return;
     // Reread immediately before writing, just as for publication.
-    const current = yield* GitHub.pullRequest(owner, repo, input.pr);
+    const current = yield* github.pullRequest(owner, repo, input.pr);
     if (current?.state === 'OPEN' && current.headRefOid === input.sha) {
-      yield* GitHub.updatePullBody(owner, repo, input.pr, removeVideoSection(current.body ?? ''));
+      yield* github.updatePullBody(owner, repo, input.pr, removeVideoSection(current.body ?? ''));
     }
     return;
   }
   const green = Effect.fn('manualTestPlanVideos.green')(function* () {
-    return yield* GitHub.headChecks(owner, repo, input.sha).pipe(
-      Effect.map(checks => allGitHubChecksSuccessful(checks.filter(check => check.key !== `workflow:${updaterPath}`)))
-    );
+    return yield* github
+      .headChecks(owner, repo, input.sha)
+      .pipe(
+        Effect.map(checks => allGitHubChecksSuccessful(checks.filter(check => check.key !== `workflow:${updaterPath}`)))
+      );
   });
   if (!(yield* green())) return;
   const manifest = readVideoManifest(body);
@@ -246,18 +262,15 @@ export const updateManualTestPlanVideos = Effect.fn('manualTestPlanVideos.update
     })
   );
   if (targets.length === 0) return;
-  const commits = yield* GitHub.pipe(
-    Effect.flatMap(github =>
-      github.paginate<unknown>('GET /repos/{owner}/{repo}/pulls/{pull_number}/commits', {
-        owner,
-        repo,
-        pull_number: input.pr
-      })
-    ),
-    Effect.flatMap(Schema.decodeUnknown(Schema.Array(Schema.Struct({ sha: Schema.String }))))
-  );
+  const commits = yield* github
+    .paginate<unknown>('GET /repos/{owner}/{repo}/pulls/{pull_number}/commits', {
+      owner,
+      repo,
+      pull_number: input.pr
+    })
+    .pipe(Effect.flatMap(Schema.decodeUnknownEffect(Schema.Array(Schema.Struct({ sha: Schema.String })))));
   const shas = [...new Set([input.sha, ...commits.toReversed().map(commit => commit.sha)])];
-  const pullFiles = yield* GitHub.pullFiles(owner, repo, input.pr);
+  const pullFiles = yield* github.pullFiles(owner, repo, input.pr);
   const changedFiles = new Set(pullFiles.map(file => file.filename));
   const fs = yield* FileSystem.FileSystem;
   const dir = yield* fs.makeTempDirectoryScoped({ prefix: 'manual-test-plan-videos-' });
@@ -269,14 +282,14 @@ export const updateManualTestPlanVideos = Effect.fn('manualTestPlanVideos.update
         if (sha !== input.sha && changedFiles.has(run.path)) return [];
         const workflow = yield* fs.readFileString(run.path).pipe(
           Effect.flatMap(text => Effect.try((): unknown => parse(text))),
-          Effect.flatMap(Schema.decodeUnknown(Workflow))
+          Effect.flatMap(Schema.decodeUnknownEffect(Workflow))
         );
         const lanes = targetLanes(workflow, target);
         if (lanes.length === 0) yield* warning(`No artifact targets: ${target.workflow} / ${target.job}`);
-        const jobs = yield* GitHub.workflowRunJobs(repository, String(run.id), 'all');
-        const artifacts = yield* GitHub.workflowRunArtifacts({ owner, repo, run_id: run.id }).pipe(
-          Effect.flatMap(Schema.decodeUnknown(Schema.Array(WorkflowArtifact)))
-        );
+        const jobs = yield* github.workflowRunJobs(repository, String(run.id), 'all');
+        const artifacts = yield* github
+          .workflowRunArtifacts({ owner, repo, run_id: run.id })
+          .pipe(Effect.flatMap(Schema.decodeUnknownEffect(Schema.Array(WorkflowArtifact))));
         return yield* Effect.forEach(
           lanes,
           Effect.fn('manualTestPlanVideos.lane')(function* (lane) {
@@ -307,8 +320,8 @@ export const updateManualTestPlanVideos = Effect.fn('manualTestPlanVideos.update
               dir
             }).pipe(
               Effect.catchTags({
-                CommandFailed: error => warning(error.message).pipe(Effect.as([])),
-                VideoArchiveError: error => warning(error.message).pipe(Effect.as([]))
+                CommandFailed: (error: CommandFailed) => warning(error.message).pipe(Effect.as([])),
+                VideoArchiveError: (error: VideoArchiveError) => warning(error.message).pipe(Effect.as([]))
               }),
               Effect.map(videos =>
                 videos.map(video => ({
@@ -329,12 +342,9 @@ export const updateManualTestPlanVideos = Effect.fn('manualTestPlanVideos.update
       });
       const shaVideos = Effect.fn('manualTestPlanVideos.sha')(function* (sha: string) {
         if (sha !== input.sha && changedFiles.has(target.spec)) return [];
-        const runs = yield* GitHub.pipe(
-          Effect.flatMap(github =>
-            github.paginate<unknown>('GET /repos/{owner}/{repo}/actions/runs', { owner, repo, head_sha: sha })
-          ),
-          Effect.flatMap(Schema.decodeUnknown(Schema.Array(WorkflowRun)))
-        );
+        const runs = yield* github
+          .paginate<unknown>('GET /repos/{owner}/{repo}/actions/runs', { owner, repo, head_sha: sha })
+          .pipe(Effect.flatMap(Schema.decodeUnknownEffect(Schema.Array(WorkflowRun))));
         const matchingRuns = runs
           .filter(run => run.name === target.workflow && run.status === 'completed' && run.conclusion === 'success')
           .toSorted((a, b) => b.id - a.id);
@@ -353,7 +363,7 @@ export const updateManualTestPlanVideos = Effect.fn('manualTestPlanVideos.update
     .digest('hex');
   const state = `<!-- manual-test-plan-videos-state ${JSON.stringify({ sha: input.sha, fingerprint })} -->`;
   if (!(yield* green())) return;
-  const latest = yield* GitHub.pullRequest(owner, repo, input.pr);
+  const latest = yield* github.pullRequest(owner, repo, input.pr);
   if (latest?.state !== 'OPEN' || latest.headRefOid !== input.sha) return;
   const latestBody = latest.body ?? '';
   // A plan regeneration or human edit during downloads must not be overwritten.
@@ -378,17 +388,17 @@ export const updateManualTestPlanVideos = Effect.fn('manualTestPlanVideos.update
 const main = Effect.fn('manualTestPlanVideos.main')(function* () {
   if (process.argv[2] === 'resolve') {
     const fs = yield* FileSystem.FileSystem;
-    const eventName = yield* Config.string('GITHUB_EVENT_NAME');
-    const eventPath = yield* Config.string('GITHUB_EVENT_PATH');
+    const eventName = yield* Config.String('GITHUB_EVENT_NAME');
+    const eventPath = yield* Config.String('GITHUB_EVENT_PATH');
     const pulls = yield* readPullResolution(eventName, eventPath).pipe(Effect.flatMap(resolveVideoPulls));
-    const output = yield* Config.string('GITHUB_OUTPUT');
+    const output = yield* Config.String('GITHUB_OUTPUT');
     yield* fs.writeFileString(output, `pulls=${JSON.stringify(pulls)}\n`, { flag: 'a' });
     return;
   }
   yield* Config.all({
-    pr: Config.integer('VIDEO_PR'),
-    sha: Config.string('VIDEO_SHA'),
-    clear: Config.boolean('VIDEO_CLEAR')
+    pr: Config.Int('VIDEO_PR'),
+    sha: Config.String('VIDEO_SHA'),
+    clear: Config.Boolean('VIDEO_CLEAR')
   }).pipe(
     Effect.flatMap(input => updateManualTestPlanVideos(input)),
     Effect.scoped
@@ -396,5 +406,10 @@ const main = Effect.fn('manualTestPlanVideos.main')(function* () {
 });
 
 if (process.argv[1] !== undefined && import.meta.url === pathToFileURL(process.argv[1]).href) {
-  await main().pipe(Effect.provide([GitHub.Default, NodeContext.layer]), Effect.runPromise);
+  const configLayer = ConfigProvider.layer(ConfigProvider.fromEnvRecord(process.env));
+  await main().pipe(
+    Effect.provide(configLayer),
+    Effect.provide(Layer.mergeAll(GitHubLayer.pipe(Layer.provide(configLayer)), NodeServices.layer)),
+    Effect.runPromise
+  );
 }

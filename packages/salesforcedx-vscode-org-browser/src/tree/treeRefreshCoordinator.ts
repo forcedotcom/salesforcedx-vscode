@@ -10,8 +10,9 @@ import * as Effect from 'effect/Effect';
 import * as Ref from 'effect/Ref';
 
 /** Coalesces catalog and discovery refreshes without overlapping tree projections. */
-export const makeTreeRefreshCoordinator = (refresh: () => void, quietPeriod: Duration.DurationInput = '500 millis') =>
+export const makeTreeRefreshCoordinator = (refresh: () => void, quietPeriod: Duration.Input = '500 millis') =>
   Effect.gen(function* () {
+    const scope = yield* Effect.scope;
     const projectionActive = yield* Ref.make(false);
     const refreshPending = yield* Ref.make(false);
     const refreshScheduled = yield* Ref.make(false);
@@ -36,12 +37,12 @@ export const makeTreeRefreshCoordinator = (refresh: () => void, quietPeriod: Dur
         refresh();
         return;
       }
-      yield* Effect.forkDaemon(scheduleRefresh());
+      yield* Effect.forkIn(scheduleRefresh(), scope);
     });
 
     const projectionFinished = Effect.fn('TreeRefreshCoordinator.projectionFinished')(function* () {
       yield* Ref.set(projectionActive, false);
-      if (yield* Ref.get(refreshPending)) yield* Effect.forkDaemon(scheduleRefresh());
+      if (yield* Ref.get(refreshPending)) yield* Effect.forkIn(scheduleRefresh(), scope);
     });
 
     const projectionStarted = Effect.fn('TreeRefreshCoordinator.projectionStarted')(function* () {

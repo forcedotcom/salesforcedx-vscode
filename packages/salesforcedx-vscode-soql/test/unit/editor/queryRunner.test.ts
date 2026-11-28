@@ -8,18 +8,22 @@
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as Stream from 'effect/Stream';
+import { QueryService } from '@salesforce/vscode-services/v2';
 import { runQuery } from '../../../src/editor/queryRunner';
 
 describe('runQuery ALL ROWS handling', () => {
   const run = (queryText: string) => {
-    const query = vi.fn(() => Effect.succeed({ records: Stream.empty, totalSize: 0 }));
+    const query = vi.fn((_options: unknown, _decodePage: unknown) =>
+      Effect.succeed({ records: Stream.empty, totalSize: 0 })
+    );
     return Effect.runPromise(
       runQuery(queryText).pipe(
         Effect.provideService(ExtensionProviderService, {
           getServicesApi: Effect.succeed({
-            services: { QueryService: Effect.succeed({ query }) }
+            v2: { services: { QueryService } }
           } as never)
-        })
+        }),
+        Effect.provideService(QueryService, { query } as unknown as QueryService['Service'])
       ) as Effect.Effect<unknown, unknown, never>
     ).then(() => query);
   };

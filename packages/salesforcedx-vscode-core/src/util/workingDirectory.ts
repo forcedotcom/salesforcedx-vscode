@@ -17,12 +17,12 @@ import * as Effect from 'effect/Effect';
  */
 export const ensureCurrentWorkingDirIsProjectPath = Effect.fn('ensureCurrentWorkingDirIsProjectPath')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const { fsPath } = yield* api.services.WorkspaceService.getWorkspaceInfo();
+  const { fsPath } = yield* api.v2.services.WorkspaceService.use(service => service.getWorkspaceInfo());
   if (!fsPath || process.cwd() === fsPath) {
     return;
   }
-  yield* api.services.FsService.stat(fsPath).pipe(
+  yield* api.v2.services.FsService.use(service => service.stat(fsPath)).pipe(
     Effect.andThen(Effect.sync(() => process.chdir(fsPath))),
-    Effect.catchAll(() => Effect.void)
+    Effect.catch(() => Effect.void)
   );
 });

@@ -7,16 +7,17 @@
 
 import { type Connection } from '@salesforce/core';
 import * as Effect from 'effect/Effect';
-import * as Either from 'effect/Either';
 import { isNotUndefined } from 'effect/Predicate';
+import * as Result from 'effect/Result';
 import { formatSyncResults, requestSyncTests } from '../effect/syncTests';
 import { nls } from '../i18n';
 import { getCurrentTime } from '../utils/dateUtil';
 import { elapsedTime } from '../utils/elapsedTime';
+import { HeapMonitor } from '../utils/heapMonitor';
+import { type SyncTestConfiguration, type TestResult } from './apiTypes';
 import { type CancellationToken } from './cancellation';
 import { CodeCoverage } from './codeCoverage';
 import { formatTestErrors } from './diagnosticUtil';
-import { type SyncTestConfiguration, type TestResult } from './types';
 import { calculateCodeCoverage } from './utils';
 
 export class SyncTests {
@@ -40,29 +41,37 @@ export class SyncTests {
     codeCoverage = false,
     token?: CancellationToken
   ): Promise<TestResult> {
+    HeapMonitor.getInstance().checkHeapSize('synctests.runTests');
     try {
-      const execution = await requestSyncTests(this.connection, options).pipe(Effect.either, Effect.runPromise);
+      const execution = await requestSyncTests(this.connection, options).pipe(Effect.result, Effect.runPromise);
       // Keep Promise rejections free of the Effect runtime's FiberFailure prefix.
-      if (Either.isLeft(execution)) throw new Error(execution.left.message);
+      if (Result.isFailure(execution)) throw new Error(execution.failure.message);
 
       if (token?.isCancellationRequested) {
         throw new Error(nls.localize('testRunCancelled'));
       }
 
-      return await this.formatSyncResults(execution.right, getCurrentTime(), codeCoverage);
+      return await this.formatSyncResults(execution.success, getCurrentTime(), codeCoverage);
     } catch (e) {
       throw formatTestErrors(e);
+    } finally {
+      HeapMonitor.getInstance().checkHeapSize('synctests.runTests');
     }
   }
 
   @elapsedTime()
   public async formatSyncResults(apiTestResult: unknown, startTime: number, codeCoverage = false): Promise<TestResult> {
-    const formatted = await formatSyncResults(this.connection, apiTestResult, startTime).pipe(
-      Effect.either,
-      Effect.runPromise
-    );
-    if (Either.isLeft(formatted)) throw new Error(formatted.left.message);
-    return this.addCodeCoverage(formatted.right, codeCoverage);
+    HeapMonitor.getInstance().checkHeapSize('synctests.formatSyncResults');
+    try {
+      const formatted = await formatSyncResults(this.connection, apiTestResult, startTime).pipe(
+        Effect.result,
+        Effect.runPromise
+      );
+      if (Result.isFailure(formatted)) throw new Error(formatted.failure.message);
+      return await this.addCodeCoverage(formatted.success, codeCoverage);
+    } finally {
+      HeapMonitor.getInstance().checkHeapSize('synctests.formatSyncResults');
+    }
   }
 
   // Coverage retrieval retains its existing class implementation until its own migration.

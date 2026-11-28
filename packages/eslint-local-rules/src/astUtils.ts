@@ -110,9 +110,12 @@ export const isProcessEnvAccess = (node: TSESTree.Node): node is TSESTree.Member
   node.object.name === 'process';
 
 /** Find a property by name in an ObjectExpression */
-export const findObjectProperty = (obj: TSESTree.ObjectExpression, name: string): TSESTree.Property | undefined =>
+export const findObjectProperty = (
+  obj: TSESTree.ObjectExpression,
+  name: string
+): Extract<TSESTree.ObjectExpression['properties'][number], { type: AST_NODE_TYPES.Property }> | undefined =>
   obj.properties.find(
-    (prop): prop is TSESTree.Property =>
+    (prop): prop is Extract<TSESTree.ObjectExpression['properties'][number], { type: AST_NODE_TYPES.Property }> =>
       prop.type === AST_NODE_TYPES.Property && prop.key.type === AST_NODE_TYPES.Identifier && prop.key.name === name
   );
 

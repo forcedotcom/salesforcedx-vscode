@@ -13,7 +13,7 @@ export type DebuggerWindowType = 'error' | 'warning';
 
 const getChannelService = Effect.gen(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  return yield* api.services.ChannelService;
+  return yield* api.v2.services.ChannelService;
 });
 
 /**
@@ -38,7 +38,12 @@ const appendAndShow = Effect.fn('channels.appendAndShowChannelOutput')(function*
  * channel output stays best-effort for the sync `void` callers of `writeToDebuggerOutputWindow`.
  */
 const appendAndShowChannelOutput = (message: string): void => {
-  getRuntime().runFork(Effect.ignoreLogged(appendAndShow(message)));
+  getRuntime().runFork(
+    appendAndShow(message).pipe(
+      Effect.tapError(error => Effect.logError('Failed to append replay debugger output', error)),
+      Effect.ignore
+    )
+  );
 };
 
 export const writeToDebuggerOutputWindow = (output: string, windowType?: DebuggerWindowType) => {

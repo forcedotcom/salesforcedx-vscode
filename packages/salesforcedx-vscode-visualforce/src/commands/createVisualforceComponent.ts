@@ -19,18 +19,16 @@ const VF_COMPONENT_TEMPLATE_DESCRIPTIONS: Record<string, string> = {
 const promptForTemplate = Effect.fn('promptForVisualforceComponentTemplate')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
 
-  const customTemplateNames = yield* api.services.TemplateService.getCustomTemplateNames(
-    'visualforcecomponent',
-    '.component'
+  const customTemplateNames = yield* api.v2.services.TemplateService.use(service =>
+    service.getCustomTemplateNames('visualforcecomponent', '.component')
   );
   if (customTemplateNames.length === 0) {
     return 'DefaultVFComponent';
   }
 
-  const promptService = yield* api.services.PromptService;
-  const builtInNames = yield* api.services.TemplateService.getBuiltInTemplateNames(
-    'visualforcecomponent',
-    /\.component$/
+  const promptService = yield* api.v2.services.PromptService;
+  const builtInNames = yield* api.v2.services.TemplateService.use(service =>
+    service.getBuiltInTemplateNames('visualforcecomponent', /\.component$/)
   );
   const builtInItems = builtInNames.map(label => ({
     label,
@@ -57,9 +55,9 @@ const promptForTemplate = Effect.fn('promptForVisualforceComponentTemplate')(fun
 
 export const createVisualforceComponentCommand = Effect.fn('createVisualforceComponentCommand')(function* (arg?: URI) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const promptService = yield* api.services.PromptService;
-  const project = yield* api.services.ProjectService.getSfProject();
-  const workspaceInfo = yield* api.services.WorkspaceService.getWorkspaceInfoOrThrow();
+  const promptService = yield* api.v2.services.PromptService;
+  const project = yield* api.v2.services.ProjectService.use(service => service.getSfProject());
+  const workspaceInfo = yield* api.v2.services.WorkspaceService.use(service => service.getWorkspaceInfoOrThrow());
 
   const template = yield* promptForTemplate();
   const componentName = yield* promptForVfTypeName(nls.localize('vf_component_name_prompt'));
@@ -82,17 +80,20 @@ export const createVisualforceComponentCommand = Effect.fn('createVisualforceCom
   const uris = [`${componentName}.component`, `${componentName}.component-meta.xml`].map(f =>
     Utils.joinPath(outputDirUri, f)
   );
-  const fsService = yield* api.services.FsService;
+  const fsService = yield* api.v2.services.FsService;
+  const cwd = yield* fsService.uriToPath(workspaceInfo.uri);
   yield* promptService.ensureMetadataOverwriteOrThrow({ uris });
 
-  yield* api.services.TemplateService.create({
-    cwd: yield* api.services.FsService.uriToPath(workspaceInfo.uri),
-    templateType: api.services.TemplateType.VisualforceComponent,
-    outputdir: outputDirUri,
-    options: { componentname: componentName, label: componentName, template }
-  });
+  yield* api.v2.services.TemplateService.use(service =>
+    service.create({
+      cwd,
+      templateType: api.v2.services.TemplateType.VisualforceComponent,
+      outputdir: outputDirUri,
+      options: { componentname: componentName, label: componentName, template }
+    })
+  );
 
-  const channelService = yield* api.services.ChannelService;
+  const channelService = yield* api.v2.services.ChannelService;
   yield* channelService.appendToChannel(nls.localize('vf_generate_component_success'));
   yield* fsService.showTextDocument(uris[0]);
 

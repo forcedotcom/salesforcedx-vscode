@@ -88,7 +88,7 @@ export const generatePromptForMethod = Effect.fn('ApexOas.Prompt.generatePromptF
   const methodContext = methodsContextMap.get(methodName);
   const additionalUserPrompts = getPromptForMethodContext(methodContext);
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const templateContent = yield* api.services.FsService.readFile(templatePath.fsPath);
+  const templateContent = yield* api.v2.services.FsService.use(service => service.readFile(templatePath.fsPath));
   return ejs.render(templateContent, {
     classPrompt,
     methodImplementation,

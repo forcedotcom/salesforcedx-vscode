@@ -8,26 +8,24 @@
 import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
 import { URI } from 'vscode-uri';
+import { setImmediate } from 'node:timers/promises';
 import { type FsProvider } from '../../../src/virtualFsProvider/fsTypes';
 import { projectFiles } from '../../../src/virtualFsProvider/projectInit';
-import { WorkspaceService } from '../../../src/vscode/workspaceService';
+import { WorkspaceService } from '@salesforce/vscode-services/v2';
 
 const projectUri = URI.parse('memfs:/dx-project');
 
-const workspaceLayer = Layer.succeed(
-  WorkspaceService,
-  new WorkspaceService({
-    getWorkspaceInfo: () =>
-      Effect.succeed({
-        uri: URI.parse(''),
-        path: '',
-        fsPath: '',
-        isEmpty: true,
-        isVirtualFs: true,
-        cwd: '/'
-      })
-  } as unknown as WorkspaceService)
-);
+const workspaceLayer = Layer.mock(WorkspaceService, {
+  getWorkspaceInfo: () =>
+    Effect.succeed({
+      uri: URI.parse(''),
+      path: '',
+      fsPath: '',
+      isEmpty: true,
+      isVirtualFs: true,
+      cwd: '/'
+    })
+});
 
 const createFsProvider = (projectExists: boolean) => {
   const createDirectory = vi.fn().mockResolvedValue(undefined);
@@ -76,5 +74,59 @@ describe('projectFiles', () => {
 
     expect(createDirectory).not.toHaveBeenCalled();
     expect(writeFile).not.toHaveBeenCalled();
+  });
+
+  it('does not complete initialization before native file writes settle', async () => {
+    const { provider, writeFile } = createFsProvider(false);
+    const started = Promise.withResolvers<void>();
+    const release = Promise.withResolvers<void>();
+    writeFile.mockImplementation(() => {
+      started.resolve();
+      return release.promise;
+    });
+    let finished = false;
+    const initializing = runProjectFiles(provider).then(() => {
+      finished = true;
+    });
+    await started.promise;
+    await setImmediate();
+    expect(finished).toBe(false);
+    release.resolve();
+    await initializing;
+    expect(writeFile).toHaveBeenCalledTimes(10);
+  });
+
+  it('reports rejected file writes as initialization failures', async () => {
+    const { provider, writeFile } = createFsProvider(false);
+    const cause = new Error('write denied');
+    writeFile.mockRejectedValueOnce(cause);
+    const failure = await Effect.runPromise(projectFiles(provider).pipe(Effect.provide(workspaceLayer), Effect.flip));
+    expect(failure).toMatchObject({ _tag: 'VirtualFsProviderError', message: 'write denied', cause });
+  });
+
+  it('joins started native writes when initialization is cancelled', async () => {
+    const { provider, writeFile } = createFsProvider(false);
+    const started = Promise.withResolvers<void>();
+    const release = Promise.withResolvers<void>();
+    writeFile.mockImplementation(() => {
+      started.resolve();
+      return release.promise;
+    });
+    const controller = new AbortController();
+    let finished = false;
+    const initializing = Effect.runPromiseExit(projectFiles(provider).pipe(Effect.provide(workspaceLayer)), {
+      signal: controller.signal
+    }).then(outcome => {
+      finished = true;
+      return outcome;
+    });
+    await started.promise;
+    controller.abort();
+    await setImmediate();
+    expect(finished).toBe(false);
+    release.resolve();
+    const result = await initializing;
+    expect(result._tag).toBe('Failure');
+    if (result._tag === 'Failure') expect(result.cause.reasons.some(reason => reason._tag === 'Interrupt')).toBe(true);
   });
 });

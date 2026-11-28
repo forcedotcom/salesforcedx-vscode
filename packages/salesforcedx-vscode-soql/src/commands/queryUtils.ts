@@ -9,7 +9,7 @@ import { getServicesApi, getMessageFromError } from '@salesforce/effect-ext-util
 import * as Arr from 'effect/Array';
 import * as Effect from 'effect/Effect';
 import * as Option from 'effect/Option';
-import { isError, isNullable } from 'effect/Predicate';
+import { isError, isNullish } from 'effect/Predicate';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
 import { prepareQuery } from '../prepareQuery';
@@ -21,7 +21,7 @@ const API_ITEMS = [
 
 const ensureTextAndNormalize = Effect.fn('ensureTextAndNormalize')(function* (text: string) {
   const servicesApi = yield* getServicesApi;
-  const promptService = yield* servicesApi.services.PromptService;
+  const promptService = yield* servicesApi.v2.services.PromptService;
   const withoutBrackets = text.replace('[', '').replace(']', '');
   const prepared = prepareQuery(withoutBrackets);
   const normalized = prepared.soql.replaceAll(/(\r\n|\n)/g, ' ').trim();
@@ -30,13 +30,14 @@ const ensureTextAndNormalize = Effect.fn('ensureTextAndNormalize')(function* (te
 
 const getQueryText = Effect.fn('getQueryText')(function* (useSelection: boolean) {
   const servicesApi = yield* getServicesApi;
-  const editorService = yield* servicesApi.services.EditorService;
-  return yield* editorService.getActiveEditorText(useSelection).pipe(Effect.flatMap(ensureTextAndNormalize));
+  return yield* servicesApi.v2.services.EditorService.use(service => service.getActiveEditorText(useSelection)).pipe(
+    Effect.flatMap(ensureTextAndNormalize)
+  );
 });
 
 const pickApi = Effect.fn('pickApi')(function* () {
   const servicesApi = yield* getServicesApi;
-  const promptService = yield* servicesApi.services.PromptService;
+  const promptService = yield* servicesApi.v2.services.PromptService;
   return yield* Effect.promise(() => vscode.window.showQuickPick(API_ITEMS)).pipe(
     Effect.flatMap(s => promptService.considerUndefinedAsCancellation(s)),
     Effect.map(s => s.api)
@@ -77,7 +78,7 @@ export const formatErrorMessage = (error: unknown): string => {
     ? getMessageFromError(error)
     : error && typeof error === 'object' && 'message' in error
       ? String(error.message)
-      : isNullable(error)
+      : isNullish(error)
         ? String(error)
         : getMessageFromError(error);
   return Arr.findFirst(ERROR_PATTERNS, ({ match }) => match(errorString)).pipe(

@@ -17,6 +17,14 @@ ruleTester.run('no-vscode-with-progress', noVscodeWithProgress, {
     {
       code: 'vscode.window.withProgress(options, task);',
       filename: '/repo/packages/salesforcedx-vscode-services/src/vscode/prompts/promptService.ts'
+    },
+    {
+      code: 'vscode.window.withProgress(options, task);',
+      filename: '/repo/packages/salesforcedx-vscode-services/src/services/promptProgress.ts'
+    },
+    {
+      code: 'vscode.window.withProgress(options, task);',
+      filename: '/repo/packages/salesforcedx-vscode-services/src/services/nativeMetadataOperation.ts'
     }
   ],
   invalid: [

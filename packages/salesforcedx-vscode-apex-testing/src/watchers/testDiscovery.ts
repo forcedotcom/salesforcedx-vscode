@@ -5,11 +5,12 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import { ExtensionProviderService, getExtensionScope } from '@salesforce/effect-ext-utils';
+import type { OrgMetadataCatalogChange } from '@salesforce/vscode-services/v2';
 import * as Effect from 'effect/Effect';
 import { isString } from 'effect/Predicate';
 import * as Stream from 'effect/Stream';
-import type { OrgMetadataCatalogChange } from 'salesforcedx-vscode-services';
+import * as SubscriptionRef from 'effect/SubscriptionRef';
 import { type URI, Utils } from 'vscode-uri';
 import { type getTestController } from '../views/testController';
 
@@ -36,13 +37,14 @@ export const initializeTestDiscovery = Effect.fn('apex-testing.initializeTestDis
   testController: ReturnType<typeof getTestController>
 ) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const targetOrgRef = yield* api.services.TargetOrgRef();
-  const channelService = yield* api.services.ChannelService;
-  const catalogChanges = yield* api.services.OrgMetadataCatalogChangePubSub;
+  const targetOrgRef = yield* api.v2.services.TargetOrgRef;
+  const channelService = yield* api.v2.services.ChannelService;
+  const catalogChanges = yield* api.v2.services.OrgMetadataCatalogChangePubSub;
+  const extensionScope = yield* getExtensionScope();
   yield* Effect.all(
     [
-      Effect.forkDaemon(
-        targetOrgRef.changes.pipe(
+      Effect.forkIn(
+        SubscriptionRef.changes(targetOrgRef).pipe(
           Stream.map(org => org.orgId),
           Stream.changes,
           Stream.filter(() => testController.isDiscoveryRequested()),
@@ -53,11 +55,11 @@ export const initializeTestDiscovery = Effect.fn('apex-testing.initializeTestDis
                   .pipe(Effect.tap(() => Effect.promise(() => testController.refresh())))
               : Effect.promise(() => testController.clearAllTestItems())
           )
-        )
+        ),
+        extensionScope
       ),
-      Effect.forkDaemon(
-        catalogChanges.pipe(
-          Stream.fromPubSub<OrgMetadataCatalogChange>,
+      Effect.forkIn(
+        Stream.fromPubSub(catalogChanges).pipe(
           Stream.filter(() => testController.isDiscoveryRequested()),
           Stream.filter(
             (change): change is Extract<OrgMetadataCatalogChange, { kind: 'workspace' }> => change.kind === 'workspace'
@@ -65,7 +67,8 @@ export const initializeTestDiscovery = Effect.fn('apex-testing.initializeTestDis
           Stream.map(toApexClassChanges),
           Stream.filter(changes => changes.size > 0),
           Stream.runForEach(changes => Effect.promise(() => testController.incrementalUpdate(changes, false)))
-        )
+        ),
+        extensionScope
       )
     ],
     { discard: true }

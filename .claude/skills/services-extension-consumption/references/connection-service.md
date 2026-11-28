@@ -1,6 +1,6 @@
 # ConnectionService
 
-Salesforce org connections. Accessor pattern: call methods directly.
+Salesforce org connections. V2 is a `Context.Service`; use its `use` helper or yield the service value.
 
 ## Methods
 
@@ -9,13 +9,13 @@ Salesforce org connections. Accessor pattern: call methods directly.
 Get target org connection:
 
 ```typescript
-const connection = yield* api.services.ConnectionService.getConnection();
+const connection = yield* api.v2.services.ConnectionService.use(service => service.getConnection());
 ```
 
 Optional `username?` (username or alias) — connect to a specific org instead of the configured default:
 
 ```typescript
-const connection = yield* api.services.ConnectionService.getConnection('user@example.com');
+const connection = yield* api.v2.services.ConnectionService.use(service => service.getConnection('user@example.com'));
 ```
 
 Given → alias-resolve it, skip config `target-org`, do NOT mutate default-org ref. Omitted → resolve configured default, update ref. Web ignores param.
@@ -33,7 +33,7 @@ Get decoded auth fields for the configured org or an optional username/alias. Re
 Runs the access-token validation above against a given `Connection` (called internally by `getConnection`):
 
 ```typescript
-yield* api.services.ConnectionService.validateAccessTokenOrPromptReauth(connection);
+yield* api.v2.services.ConnectionService.use(service => service.validateAccessTokenOrPromptReauth(connection));
 ```
 
 ### invalidateCachedConnections
@@ -41,7 +41,7 @@ yield* api.services.ConnectionService.validateAccessTokenOrPromptReauth(connecti
 After auth files or tokens change on disk, drop cached JSForce connections so the next `getConnection()` reloads `AuthInfo`:
 
 ```typescript
-yield* api.services.ConnectionService.invalidateCachedConnections();
+yield* api.v2.services.ConnectionService.use(service => service.invalidateCachedConnections());
 ```
 
 ## Errors
@@ -57,7 +57,7 @@ yield* api.services.ConnectionService.invalidateCachedConnections();
 From `salesforcedx-vscode-metadata`:
 
 ```typescript
-const connection = yield* api.services.ConnectionService.getConnection();
+const connection = yield* api.v2.services.ConnectionService.use(service => service.getConnection());
 ```
 
 ## Notes

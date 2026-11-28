@@ -72,7 +72,7 @@ const OrgDisplayFailure = Schema.TaggedStruct('OrgDisplayFailure', {
   code: Schema.optional(Schema.String)
 });
 
-const OrgDisplayResponse = Schema.Union(OrgDisplaySuccess, OrgDisplayFailure);
+const OrgDisplayResponse = Schema.Union([OrgDisplaySuccess, OrgDisplayFailure]);
 type OrgDisplayResponse = Schema.Schema.Type<typeof OrgDisplayResponse>;
 
 /**
@@ -84,20 +84,20 @@ const decodeOrgDisplayResponse = decodeTaggedCliResponse(OrgDisplayResponse, raw
   raw.status === 0 ? 'OrgDisplaySuccess' : 'OrgDisplayFailure'
 )(() => new OrgDisplayParseError({ message: nls.localize('org_display_result_parsing_error') }));
 
-const AccessTokenResponse = Schema.Union(
+const AccessTokenResponse = Schema.Union([
   Schema.TaggedStruct('CredentialSuccess', {
     status: Schema.Literal(0),
     result: Schema.Struct({ accessToken: Schema.String })
   }),
   OrgDisplayFailure
-);
-const PasswordResponse = Schema.Union(
+]);
+const PasswordResponse = Schema.Union([
   Schema.TaggedStruct('CredentialSuccess', {
     status: Schema.Literal(0),
     result: Schema.Struct({ password: Schema.String })
   }),
   OrgDisplayFailure
-);
+]);
 const decodeAccessTokenResponse = decodeTaggedCliResponse(AccessTokenResponse, raw =>
   raw.status === 0 ? 'CredentialSuccess' : 'OrgDisplayFailure'
 )(() => new OrgDisplayParseError({ message: nls.localize('org_auth_result_parsing_error') }));
@@ -153,7 +153,7 @@ const formatOrgInfoAsTable = (orgInfo: OrgDisplayResult): string => {
 const runOrgCommand = Effect.fn('orgDisplay.runOrgCommand')(function* (args: readonly string[]) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   // simpleExec injects SF_JSON_TO_STDOUT + FORCE_COLOR=0 for sf commands, keeping the JSON we decode clean.
-  return yield* (yield* api.services.TerminalService)
+  return yield* (yield* api.v2.services.TerminalService)
     .simpleExec({ executable: 'sf', args, parse: identity })
     .pipe(
       Effect.catchTag('TerminalServiceError', error =>
@@ -197,8 +197,10 @@ const displayOrg = Effect.fn('orgDisplay.displayOrg')(function* (
   notificationCommand: ProgressOnlyCommandKey
 ) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const channel = yield* api.services.ChannelService;
-  const promptService = yield* api.services.PromptService;
+  const channel = yield* api.v2.services.ChannelService;
+  const promptService = yield* api.v2.services.PromptService;
+  const notificationMode = yield* api.v2.services.NotificationModeService;
+  const progressLocation = yield* notificationMode.getProgressLocation(notificationCommand);
 
   yield* runOrgCommand(args).pipe(
     Effect.flatMap(decodeOrgDisplayResponse),
@@ -209,11 +211,7 @@ const displayOrg = Effect.fn('orgDisplay.displayOrg')(function* (
         Match.exhaustive
       )
     ),
-    promptService.withProgress({
-      command: notificationCommand,
-      title: nls.localize('org_display_progress'),
-      cancellable: true
-    }),
+    promptService.withCancellableProgress(nls.localize('org_display_progress'), progressLocation),
     // Cancel interrupts the complete display + credential lookup before anything is written.
     Effect.tap(text => channel.appendToChannel(text)),
     Effect.tap(() => channel.showChannel)
@@ -229,11 +227,11 @@ export const orgDisplayDefaultCommand = Effect.fn('orgDisplayDefaultCommand')(fu
 
   // precondition: getSfProject sets the sf:project_opened context and fails with a typed
   // FailedToResolveSfProjectError (rendered by ErrorHandlerService) when there's no project.
-  yield* api.services.ProjectService.getSfProject();
+  yield* api.v2.services.ProjectService.use(service => service.getSfProject());
 
   // pass --target-org so sf resolves the default org by username rather than the extension-host cwd
   // (simpleExec runs without a workspace cwd). orgOpen/orgDelete use the same pattern.
-  const orgInfo = yield* SubscriptionRef.get(yield* api.services.TargetOrgRef());
+  const orgInfo = yield* SubscriptionRef.get(yield* api.v2.services.TargetOrgRef);
   const targetOrgArgs = orgInfo.username ? ['--target-org', orgInfo.username] : [];
   if (!orgInfo.username) {
     yield* Effect.log('no target-org username; falling back to sf default-org resolution', { module: 'orgDisplay' });
@@ -251,7 +249,7 @@ export const orgDisplayUsernameCommand = Effect.fn('orgDisplayUsernameCommand')(
 
   // precondition: getSfProject sets the sf:project_opened context and fails with a typed
   // FailedToResolveSfProjectError (rendered by ErrorHandlerService) when there's no project.
-  yield* api.services.ProjectService.getSfProject();
+  yield* api.v2.services.ProjectService.use(service => service.getSfProject());
 
   // picker selection; UserCancellationError propagates to ErrorHandlerService (no error toast on Esc).
   const { username } = yield* gatherOrgForDisplay();

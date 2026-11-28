@@ -5,14 +5,17 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { ExtensionProviderService, type SalesforceVSCodeServicesApi } from '@salesforce/effect-ext-utils';
+import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
-import type {
-  OrgMetadataCatalogComponentEntry,
-  OrgMetadataCatalogComponentReference
-} from 'salesforcedx-vscode-services';
-import { OrgMetadataCatalog } from 'salesforcedx-vscode-services/src/orgCatalog/orgMetadataCatalog';
+import * as Schema from 'effect/Schema';
+import {
+  OrgId,
+  OrgMetadataCatalog,
+  type OrgMetadataCatalogComponentEntry,
+  type OrgMetadataCatalogComponentReference,
+  type SalesforceVSCodeServicesApiV2
+} from '@salesforce/vscode-services/v2';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import { resolveReplaySourceUris } from '../../../src/services/replaySourceUris';
@@ -25,7 +28,7 @@ const component = (
 ): OrgMetadataCatalogComponentEntry => ({
   kind: 'component',
   reference: { type, fullName },
-  orgId: '00D000000000001',
+  orgId: Schema.decodeUnknownSync(OrgId)('00D000000000001'),
   name: fullName,
   namespacePrefix,
   observedAt: '2026-10-20T00:00:00.000Z',
@@ -48,10 +51,10 @@ describe('replay source URI resolution', () => {
   const layer = Layer.mergeAll(
     Layer.succeed(ExtensionProviderService, {
       getServicesApi: Effect.succeed({
-        services: { OrgMetadataCatalog }
-      } as unknown as SalesforceVSCodeServicesApi)
-    }),
-    Layer.succeed(OrgMetadataCatalog, { getEntries } as unknown as OrgMetadataCatalog)
+        v2: { services: { OrgMetadataCatalog } }
+      } as unknown as SalesforceVSCodeServicesApiV2)
+    } as unknown as ExtensionProviderService['Service']),
+    Layer.succeed(OrgMetadataCatalog, { getEntries } as unknown as OrgMetadataCatalog['Service'])
   );
 
   beforeEach(() => {
@@ -175,7 +178,7 @@ describe('replay source URI resolution', () => {
       resolveReplaySourceUris('time|METHOD_ENTRY|[1]|01p|Missing.run()', []).pipe(
         Effect.provide(
           Layer.succeed(ExtensionProviderService, {
-            getServicesApi: Effect.succeed({ services: {} } as unknown as SalesforceVSCodeServicesApi)
+            getServicesApi: Effect.succeed({ v2: { services: {} } } as unknown as SalesforceVSCodeServicesApiV2)
           })
         ),
         Effect.provide(layer)

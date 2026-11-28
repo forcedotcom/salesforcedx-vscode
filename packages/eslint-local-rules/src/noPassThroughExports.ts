@@ -26,7 +26,20 @@ const packageEntryTargets = (packageJson: ReturnType<typeof readJsonRecord>): st
     const target = packageJson?.[field];
     return typeof target === 'string' ? [target] : [];
   });
-  return [...exportTargets(packageJson?.exports), ...entryFields].flatMap(target => {
+  const outputTargets = [...exportTargets(packageJson?.exports), ...entryFields];
+  const sourceTargets = outputTargets.flatMap(target => {
+    const relativeTarget = target.startsWith('./') ? target : `./${target}`;
+    const sourcePath = relativeTarget.replace(/^\.\/out\//, './');
+    if (sourcePath === relativeTarget) return [];
+    if (sourcePath.endsWith('.d.ts')) return [`${sourcePath.slice(0, -5)}.ts`];
+    if (sourcePath.endsWith('.d.mts')) return [`${sourcePath.slice(0, -6)}.mts`];
+    if (sourcePath.endsWith('.d.cts')) return [`${sourcePath.slice(0, -6)}.cts`];
+    if (sourcePath.endsWith('.js')) return [`${sourcePath.slice(0, -3)}.ts`];
+    if (sourcePath.endsWith('.mjs')) return [`${sourcePath.slice(0, -4)}.mts`];
+    if (sourcePath.endsWith('.cjs')) return [`${sourcePath.slice(0, -4)}.cts`];
+    return [];
+  });
+  return [...outputTargets, ...sourceTargets].flatMap(target => {
     if (path.posix.isAbsolute(target) || target.startsWith('../')) return [];
     const relativeTarget = target.startsWith('./') ? target : `./${target}`;
     if (relativeTarget.includes('*') || path.posix.extname(relativeTarget)) return [relativeTarget];
@@ -35,7 +48,10 @@ const packageEntryTargets = (packageJson: ReturnType<typeof readJsonRecord>): st
   });
 };
 
-const packageCache = new Map<string, { targets: string[]; config: ts.ParsedCommandLine | undefined }>();
+const packageCache = new Map<
+  string,
+  { targets: string[]; config: ts.ParsedCommandLine | undefined; isPackageBoundary: boolean }
+>();
 
 const isSamePath = (left: string, right: string): boolean => {
   const normalizedLeft = path.resolve(left);
@@ -47,13 +63,22 @@ const isSamePath = (left: string, right: string): boolean => {
 
 const isPackageEntryPoint = (filename: string): boolean => {
   const absoluteFilename = path.resolve(filename);
+  const outputFiles = new Set([absoluteFilename]);
   for (let directory = path.dirname(absoluteFilename); ; directory = path.dirname(directory)) {
     const packagePath = path.join(directory, 'package.json');
     if (fs.existsSync(packagePath)) {
       if (!packageCache.has(packagePath)) {
         const configPath = path.join(directory, 'tsconfig.json');
+        const manifest = readJsonRecord(packagePath);
+        const packageTargets = packageEntryTargets(manifest);
         packageCache.set(packagePath, {
-          targets: packageEntryTargets(readJsonRecord(packagePath)),
+          targets: packageTargets,
+          // A type-only package.json sets Node module scope but does not start a new package.
+          isPackageBoundary:
+            packageTargets.length > 0 ||
+            typeof manifest?.name === 'string' ||
+            typeof manifest?.version === 'string' ||
+            manifest?.private === true,
           config: fs.existsSync(configPath)
             ? ts.parseJsonConfigFileContent(
                 ts.readConfigFile(configPath, fileName => ts.sys.readFile(fileName)).config,
@@ -66,11 +91,12 @@ const isPackageEntryPoint = (filename: string): boolean => {
         });
       }
       const { targets, config } = packageCache.get(packagePath)!;
-      // Compare both source targets and emitted targets; rootDir/outDir come from the package's tsconfig.
-      const emittedFiles = config?.fileNames.some(fileName => isSamePath(fileName, absoluteFilename))
-        ? ts.getOutputFileNames(config, absoluteFilename, false)
-        : [];
-      const candidates = [absoluteFilename, ...emittedFiles].flatMap(candidate => {
+      // Keep outputs from nested TypeScript projects (for example, the public /v2 entry).
+      if (config?.fileNames.some(fileName => isSamePath(fileName, absoluteFilename))) {
+        ts.getOutputFileNames(config, absoluteFilename, false).forEach(file => outputFiles.add(file));
+      }
+      // Compare both source targets and emitted targets against each ancestor package manifest.
+      const candidates = [...outputFiles].flatMap(candidate => {
         const relative = `./${path.relative(directory, candidate).split(path.sep).join('/')}`;
         const declaration = relative.endsWith('.mjs')
           ? `${relative.slice(0, -4)}.d.mts`
@@ -81,16 +107,21 @@ const isPackageEntryPoint = (filename: string): boolean => {
               : relative;
         return declaration === relative ? [relative] : [relative, declaration];
       });
-      return targets.some(target => {
-        // Node export patterns allow '*' to include directory separators.
-        const pattern = new RegExp(
-          `^${target
-            .split('*')
-            .map(part => part.replaceAll(/[.*+?^${}()|[\]\\]/g, '\\$&'))
-            .join('.*')}$`
-        );
-        return candidates.some(candidate => pattern.test(candidate));
-      });
+      if (
+        targets.some(target => {
+          // Node export patterns allow '*' to include directory separators.
+          const pattern = new RegExp(
+            `^${target
+              .split('*')
+              .map(part => part.replaceAll(/[.*+?^${}()|[\]\\]/g, '\\$&'))
+              .join('.*')}$`
+          );
+          return candidates.some(candidate => pattern.test(candidate));
+        })
+      ) {
+        return true;
+      }
+      if (packageCache.get(packagePath)!.isPackageBoundary) return false;
     }
     if (path.dirname(directory) === directory) return false;
   }

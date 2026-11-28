@@ -9,10 +9,10 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.actionPromise = exports.IssueRouteSchema = void 0;
 const core_1 = require("@actions/core");
 const github_1 = require("@actions/github");
-const FetchHttpClient = require("@effect/platform/FetchHttpClient");
 const effect_octokit_1 = require("@salesforce/effect-octokit");
 const Cause = require("effect/Cause");
 const Effect = require("effect/Effect");
+const FetchHttpClient = require("effect/http/FetchHttpClient");
 const Match = require("effect/Match");
 const Predicate_1 = require("effect/Predicate");
 const Schema = require("effect/Schema");
@@ -25,7 +25,12 @@ const SkipIssueRoute = Schema.TaggedStruct('Skip', {});
 const NewIssueRoute = Schema.TaggedStruct('NewIssue', {});
 const ValidateIssueRoute = Schema.TaggedStruct('Validate', {});
 const NotifyIssueRoute = Schema.TaggedStruct('Notify', { message: Schema.String });
-exports.IssueRouteSchema = Schema.Union(SkipIssueRoute, NewIssueRoute, ValidateIssueRoute, NotifyIssueRoute);
+exports.IssueRouteSchema = Schema.Union([
+    SkipIssueRoute,
+    NewIssueRoute,
+    ValidateIssueRoute,
+    NotifyIssueRoute
+]);
 const newIssueSkipLabels = [
     'announcement',
     'missing required information',
@@ -145,7 +150,7 @@ const run = () => Effect.gen(function* () {
         owner: 'microsoft',
         repo: 'vscode'
     })
-        .pipe(Effect.flatMap(Schema.decodeUnknown(Schema.Struct({ tag_name: Schema.optional(Schema.String) }))), Effect.catchAll(error => Effect.logWarning('Failed to fetch latest VSCode version, falling back to default', { error }).pipe(Effect.as(undefined))), Effect.map(release => {
+        .pipe(Effect.flatMap(Schema.decodeUnknownEffect(Schema.Struct({ tag_name: Schema.optional(Schema.String) }))), Effect.catch(error => Effect.logWarning('Failed to fetch latest VSCode version, falling back to default', { error }).pipe(Effect.as(undefined))), Effect.map(release => {
         const latestVersion = release?.tag_name ?? '1.103.0'; // e.g., "1.103.0"
         // Parse version numbers
         const versionParts = latestVersion.split('.').map(Number);
@@ -158,7 +163,7 @@ const run = () => Effect.gen(function* () {
     const shouldValidate = yield* Match.value(route).pipe(Match.tags({
         Skip: () => Effect.succeed(false),
         NewIssue: () => {
-            const isFeatureRequest = !(0, Predicate_1.isNull)(bodies[0]) && bodies.filter(Predicate_1.isNotNullable).some(commentBody => /feature\s*request/i.test(commentBody));
+            const isFeatureRequest = !(0, Predicate_1.isNull)(bodies[0]) && bodies.filter(Predicate_1.isNotNullish).some(commentBody => /feature\s*request/i.test(commentBody));
             return isFeatureRequest
                 ? addLabel('type:enhancements').pipe(Effect.as(false))
                 : postComment(defaultNewIssueMessage).pipe(Effect.as(true));
@@ -177,7 +182,7 @@ const run = () => Effect.gen(function* () {
         yield* addLabel('missing required information');
     }
     else {
-        const bodyTexts = bodies.filter(Predicate_1.isNotNullable);
+        const bodyTexts = bodies.filter(Predicate_1.isNotNullish);
         // Checking Salesforce Extension Pack version
         // The text "Salesforce Extension Version in VS Code" can be either bolded or unbolded
         const extensionsVersionRegex = /(?:\*{2}Salesforce Extension Version in VS Code\*{2}:\s*v?(\d{2}\.\d{1,2}\.\d))|(?:Salesforce Extension Version in VS Code:\s*v?(\d{2}\.\d{1,2}\.\d))/g;
@@ -346,7 +351,7 @@ const run = () => Effect.gen(function* () {
             yield* addLabel('missing required information');
         }
     }
-}).pipe(Effect.withSpan('validateIssue.run'), Effect.provide(FetchHttpClient.layer), Effect.catchAllCause(cause => Effect.sync(() => {
+}).pipe(Effect.withSpan('validateIssue.run'), Effect.provide(FetchHttpClient.layer), Effect.catchCause(cause => Effect.sync(() => {
     const error = Cause.squash(cause);
     (0, core_1.setFailed)(typeof error === 'object' && error !== null && 'message' in error && typeof error.message === 'string'
         ? error.message

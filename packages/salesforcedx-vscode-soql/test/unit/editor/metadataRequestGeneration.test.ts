@@ -41,7 +41,7 @@ describe('metadata request generation', () => {
         const request = yield* runForCurrentMetadataGeneration(
           Deferred.succeed(started, undefined).pipe(Effect.andThen(Deferred.await(response))),
           value => Ref.update(values, current => [...current, value])
-        ).pipe(Effect.fork);
+        ).pipe(Effect.forkChild);
 
         yield* Deferred.await(started);
         yield* invalidateMetadataRequests(Effect.void);
@@ -65,12 +65,12 @@ describe('metadata request generation', () => {
             Effect.andThen(Deferred.await(finishPublication)),
             Effect.andThen(Ref.update(values, current => [...current, `published:${value}`]))
           )
-        ).pipe(Effect.fork);
+        ).pipe(Effect.forkChild);
 
         yield* Deferred.await(publicationStarted);
         const invalidate = yield* invalidateMetadataRequests(
           Ref.update(values, current => [...current, 'connection_changed'])
-        ).pipe(Effect.fork);
+        ).pipe(Effect.forkChild);
         yield* Deferred.succeed(finishPublication, undefined);
         yield* Fiber.join(publish);
         yield* Fiber.join(invalidate);

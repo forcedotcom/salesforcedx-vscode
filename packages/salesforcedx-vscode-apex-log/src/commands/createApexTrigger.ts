@@ -25,9 +25,11 @@ const TRIGGER_EVENTS = [
 
 const promptForSObject = Effect.fn('promptForTriggerSObject')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const promptService = yield* api.services.PromptService;
+  const promptService = yield* api.v2.services.PromptService;
 
-  const sobjects = yield* api.services.MetadataDescribeService.listSObjects().pipe(Effect.orElseSucceed(() => []));
+  const sobjects = yield* api.v2.services.MetadataDescribeService.use(service => service.listSObjects()).pipe(
+    Effect.orElseSucceed(() => [])
+  );
 
   if (sobjects.length === 0) {
     return yield* Effect.promise(() =>
@@ -50,7 +52,7 @@ const promptForSObject = Effect.fn('promptForTriggerSObject')(function* () {
 
 const promptForTriggerEvents = Effect.fn('promptForTriggerEvents')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const promptService = yield* api.services.PromptService;
+  const promptService = yield* api.v2.services.PromptService;
 
   const items: vscode.QuickPickItem[] = TRIGGER_EVENTS.map(event => ({
     label: event,
@@ -75,15 +77,19 @@ const APEX_TRIGGER_TEMPLATE_DESCRIPTIONS: Record<string, string> = {
 const promptForTemplate = Effect.fn('promptForTriggerTemplate')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
 
-  const customTemplateNames = yield* api.services.TemplateService.getCustomTemplateNames('apextrigger', '.trigger');
+  const customTemplateNames = yield* api.v2.services.TemplateService.use(service =>
+    service.getCustomTemplateNames('apextrigger', '.trigger')
+  );
   const customItems = customTemplateNames.map(label => ({ label, description: '' }));
 
   if (customItems.length === 0) {
     return 'ApexTrigger';
   }
 
-  const promptService = yield* api.services.PromptService;
-  const builtInNames = yield* api.services.TemplateService.getBuiltInTemplateNames('apextrigger', /\.trigger$/);
+  const promptService = yield* api.v2.services.PromptService;
+  const builtInNames = yield* api.v2.services.TemplateService.use(service =>
+    service.getBuiltInTemplateNames('apextrigger', /\.trigger$/)
+  );
   const builtInItems = builtInNames.map((label: string) => ({
     label,
     description: APEX_TRIGGER_TEMPLATE_DESCRIPTIONS[label] ?? ''
@@ -112,9 +118,9 @@ const promptForTemplate = Effect.fn('promptForTriggerTemplate')(function* () {
 /** outputDirParam: explorer context (right-click triggers folder) */
 export const createApexTriggerCommand = Effect.fn('createApexTriggerCommand')(function* (outputDirParam?: URI) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const promptService = yield* api.services.PromptService;
-  const workspaceInfo = yield* api.services.WorkspaceService.getWorkspaceInfoOrThrow();
-  const project = yield* api.services.ProjectService.getSfProject();
+  const promptService = yield* api.v2.services.PromptService;
+  const workspaceInfo = yield* api.v2.services.WorkspaceService.use(service => service.getWorkspaceInfoOrThrow());
+  const project = yield* api.v2.services.ProjectService.use(service => service.getSfProject());
 
   const template = yield* promptForTemplate();
 
@@ -139,20 +145,23 @@ export const createApexTriggerCommand = Effect.fn('createApexTriggerCommand')(fu
   const metaUri = Utils.joinPath(outputDirUri, `${triggerName}.trigger-meta.xml`);
   yield* promptService.ensureMetadataOverwriteOrThrow({ uris: [triggerUri, metaUri] });
 
-  const fsService = yield* api.services.FsService;
-  yield* api.services.TemplateService.create({
-    cwd: yield* fsService.uriToPath(workspaceInfo.uri),
-    templateType: api.services.TemplateType.ApexTrigger,
-    outputdir: outputDirUri,
-    options: {
-      triggername: triggerName,
-      triggerevents: triggerevents.join(', '),
-      sobject,
-      template
-    }
-  });
+  const fsService = yield* api.v2.services.FsService;
+  const cwd = yield* fsService.uriToPath(workspaceInfo.uri);
+  yield* api.v2.services.TemplateService.use(service =>
+    service.create({
+      cwd,
+      templateType: api.v2.services.TemplateType.ApexTrigger,
+      outputdir: outputDirUri,
+      options: {
+        triggername: triggerName,
+        triggerevents: triggerevents.join(', '),
+        sobject,
+        template
+      }
+    })
+  );
 
-  const channelService = yield* api.services.ChannelService;
+  const channelService = yield* api.v2.services.ChannelService;
   yield* channelService.appendToChannel(nls.localize('apex_generate_trigger_success'));
   yield* fsService.showTextDocument(triggerUri);
 

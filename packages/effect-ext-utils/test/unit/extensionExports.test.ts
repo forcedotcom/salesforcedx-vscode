@@ -69,7 +69,7 @@ describe('getExtensionExports', () => {
         Effect.flip(getExtensionExports({ extId: extensionId, schema: ExtensionApiSchema }))
       );
 
-      expect(error).toMatchObject({ _tag: 'ParseError' });
+      expect(error).toMatchObject({ _tag: 'SchemaError' });
       expect(String(error)).toContain('getValue');
       expect(String(error)).toContain('Function');
     }

@@ -1,0 +1,10 @@
+{
+  "extends": "../../../tsconfig.common.json",
+  "compilerOptions": {
+    "outDir": "../out/v2",
+    "rootDir": ".",
+    "types": ["node"],
+    "lib": ["ES2024", "DOM"]
+  },
+  "include": ["*.ts", "*.cts"]
+}

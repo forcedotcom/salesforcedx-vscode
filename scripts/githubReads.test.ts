@@ -5,15 +5,16 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import type * as FileSystem from '@effect/platform/FileSystem';
-import * as NodeContext from '@effect/platform-node/NodeContext';
-import { GitHub } from '@salesforce/effect-octokit';
+import * as NodeServices from '@effect/platform-node/NodeServices';
+import { GitHub, GitHubLayer } from '@salesforce/effect-octokit';
 import * as ConfigProvider from 'effect/ConfigProvider';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
 import * as Fiber from 'effect/Fiber';
-import * as TestClock from 'effect/TestClock';
-import * as TestContext from 'effect/TestContext';
+import type * as FileSystem from 'effect/FileSystem';
+import * as Layer from 'effect/Layer';
+import * as Result from 'effect/Result';
+import * as TestClock from 'effect/testing/TestClock';
 import {
   downloadArtifacts,
   findPlaywrightWorkflows,
@@ -43,8 +44,13 @@ const json = (body: unknown, headers?: Record<string, string>, status = 200) => 
 
 const run = <A, E>(effect: Effect.Effect<A, E, GitHub | FileSystem.FileSystem>) =>
   effect.pipe(
-    Effect.provide([GitHub.Default, NodeContext.layer]),
-    Effect.withConfigProvider(ConfigProvider.fromMap(new Map([['GITHUB_TOKEN', 'test-token']]))),
+    Effect.provide([
+      NodeServices.layer,
+      ConfigProvider.layer(ConfigProvider.fromEnvRecord({ GITHUB_TOKEN: 'test-token' })),
+      GitHubLayer.pipe(
+        Layer.provide(ConfigProvider.layer(ConfigProvider.fromEnvRecord({ GITHUB_TOKEN: 'test-token' })))
+      )
+    ]),
     Effect.runPromise
   );
 
@@ -62,7 +68,11 @@ describe('GitHub script reads', () => {
     };
 
     const runs = await run(
-      GitHub.workflowRuns({ ...repository, branch: 'feature/a', event: 'push', status: 'success', per_page: 1 })
+      GitHub.pipe(
+        Effect.flatMap(github =>
+          github.workflowRuns({ ...repository, branch: 'feature/a', event: 'push', status: 'success', per_page: 1 })
+        )
+      )
     );
 
     expect(runs).toEqual([workflow]);
@@ -117,10 +127,13 @@ describe('GitHub script reads', () => {
 
     const result = await run(
       Effect.gen(function* () {
-        const fiber = yield* findPlaywrightWorkflows('feature/a').pipe(Effect.flatMap(monitorWorkflows), Effect.fork);
+        const fiber = yield* findPlaywrightWorkflows('feature/a').pipe(
+          Effect.flatMap(monitorWorkflows),
+          Effect.forkChild
+        );
         yield* TestClock.adjust(Duration.seconds(5));
         return yield* Fiber.join(fiber);
-      }).pipe(Effect.provide(TestContext.TestContext))
+      }).pipe(Effect.provide(TestClock.layer()))
     );
 
     expect(result).toEqual([{ ...workflow, status: 'completed', conclusion: 'failure' }]);
@@ -138,10 +151,10 @@ describe('GitHub script reads', () => {
         : json({ workflow_runs: [workflow] });
 
     const result = await run(
-      findPlaywrightWorkflows('feature/a').pipe(Effect.flatMap(monitorWorkflows), Effect.either)
+      findPlaywrightWorkflows('feature/a').pipe(Effect.flatMap(monitorWorkflows), Effect.result)
     );
-    expect(result._tag).toBe('Left');
-    if (result._tag === 'Left') expect(result.left).toMatchObject({ _tag: 'GitHubRequestError', status: 500 });
+    expect(Result.isFailure(result)).toBe(true);
+    if (Result.isFailure(result)) expect(result.failure).toMatchObject({ _tag: 'GitHubRequestError', status: 500 });
   });
 
   it('paginates artifact metadata and does not download when there are no artifacts', async () => {
@@ -155,7 +168,9 @@ describe('GitHub script reads', () => {
             }
           );
     expect(
-      (await run(GitHub.workflowRunArtifacts({ ...repository, run_id: 12 }))).map(artifact => artifact.name)
+      (
+        await run(GitHub.pipe(Effect.flatMap(github => github.workflowRunArtifacts({ ...repository, run_id: 12 }))))
+      ).map(artifact => artifact.name)
     ).toEqual(['first', 'second']);
 
     globalThis.fetch = () => json({ total_count: 0, artifacts: [] });

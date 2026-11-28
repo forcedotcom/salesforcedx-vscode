@@ -29,12 +29,13 @@
   ],
   "dependencies": {
     "@salesforce/effect-ext-utils": "workspace:*",
-    "effect": "^3.22.4",
+    "@salesforce/templates": "^66.21.3",
+    "effect": "^4.1.4",
     "@salesforce/vscode-i18n": "workspace:*",
-    "vscode-uri": "^3.1.0"
+    "vscode-uri": "^3.1.0",
+    "@salesforce/vscode-services": "*"
   },
   "devDependencies": {
-    "@salesforce/templates": "^66.21.3",
     "@salesforce/source-deploy-retrieve": "^13.14.1",
     "@salesforce/source-tracking": "^8.1.16",
     "@salesforce/types": "^1.8.0",
@@ -107,7 +108,6 @@
         "esbuild.config.mjs",
         "../../scripts/bundling/node.mjs",
         "../../scripts/bundling/web.mjs",
-        "../../scripts/bundling/process-polyfill.js",
         "out/**",
         "package.json"
       ],
@@ -126,7 +126,6 @@
         "esbuild.config.mjs",
         "../../scripts/bundling/node.mjs",
         "../../scripts/bundling/web.mjs",
-        "../../scripts/bundling/process-polyfill.js",
         "out/**",
         "package.json"
       ],

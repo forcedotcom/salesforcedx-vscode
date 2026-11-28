@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { formatHuman, type TestResult } from '@salesforce/apex-node';
+import { HumanReporter, type TestResult } from '@salesforce/apex-node';
 import * as Effect from 'effect/Effect';
 import * as vscode from 'vscode';
 import { FAIL_RESULT, PASS_RESULT, SKIP_RESULT } from '../constants';
@@ -58,14 +58,14 @@ export const updateTestRunResults = (params: {
   concise?: boolean;
 }): void => {
   const { result, run, testsToRun, methodItems, classItems, codeCoverage = false, concise = false } = params;
-  const humanOutput = formatHuman(result, codeCoverage, concise);
+  const humanOutput = new HumanReporter().format(result, codeCoverage, concise);
   if (humanOutput) {
     // Split by lines and add each line separately with \r\n to ensure newlines are preserved
     // This is important for table formatting in VS Code's Test Results panel
     const lines = humanOutput.split('\n');
     lines.forEach(line => run.appendOutput(`${line}\r\n`));
   } else {
-    // Fall back to the summary if formatting produced no output.
+    // Fallback if HumanReporter returns empty - at least show summary
     run.appendOutput(
       `Test execution completed. Tests ran: ${result.summary.testsRan ?? 0}, Passed: ${result.summary.passing ?? 0}, Failed: ${result.summary.failing ?? 0}\r\n`
     );

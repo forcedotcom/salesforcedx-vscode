@@ -6,8 +6,10 @@
  */
 
 import { type LLMServiceInterface, ServiceProvider, ServiceType } from '@salesforce/vscode-service-provider';
+import * as Context from 'effect/Context';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
+import * as Layer from 'effect/Layer';
 import { isString } from 'effect/Predicate';
 import * as Schedule from 'effect/Schedule';
 import * as vscode from 'vscode';
@@ -53,56 +55,57 @@ const toLLMError = (cause: unknown) => {
 /** Readiness-probe backoff for obtaining the LLM service: up to 3 retries, ~200ms apart (≈0.6s worst case).
  * Short by design — this only absorbs a brief provider-registration race at startup. A genuinely absent
  * command (e.g. a provider version that never registers it) should fail fast, not stall the user. */
-const LLM_AVAILABILITY_SCHEDULE = Schedule.spaced(Duration.millis(200)).pipe(Schedule.intersect(Schedule.recurs(3)));
+const LLM_AVAILABILITY_SCHEDULE = Schedule.spaced(Duration.millis(200));
 
-export class LLMService extends Effect.Service<LLMService>()('LLMService', {
-  accessors: true,
-  effect: Effect.gen(function* () {
-    const getInterface = Effect.tryPromise({
-      try: async (): Promise<LLMServiceInterface> => ServiceProvider.getService(ServiceType.LLMService, EXTENSION_ID),
-      catch: cause => new LLMCallFailed({ message: `Failed to obtain LLMService: ${String(cause)}`, cause })
+const makeLLMService = Effect.gen(function* () {
+  const getInterface = Effect.tryPromise({
+    try: async (): Promise<LLMServiceInterface> => ServiceProvider.getService(ServiceType.LLMService, EXTENSION_ID),
+    catch: cause => new LLMCallFailed({ message: `Failed to obtain LLMService: ${String(cause)}`, cause })
+  });
+
+  const callLLM = Effect.fn('ApexOas.Llm.callLLM')(function* (
+    prompt: string,
+    promptId: string | undefined,
+    tokenLimit: number | undefined
+  ) {
+    const llm = yield* getInterface;
+    return yield* Effect.tryPromise({
+      try: () => llm.callLLM(prompt, promptId, tokenLimit),
+      catch: toLLMError
     });
+  });
 
-    const callLLM = Effect.fn('ApexOas.Llm.callLLM')(function* (
-      prompt: string,
-      promptId: string | undefined,
-      tokenLimit: number | undefined
-    ) {
-      const llm = yield* getInterface;
-      return yield* Effect.tryPromise({
-        try: () => llm.callLLM(prompt, promptId, tokenLimit),
-        catch: toLLMError
-      });
-    });
+  /** Probe that the LLM service can be obtained from the service provider, without making a call.
+   * Used as a precondition for the REST generation path so an unreachable LLM fails the command up
+   * front (with the obtain cause attached) rather than partway through generation.
+   *
+   * `ServiceProvider.getService` is fail-fast: it checks the registered commands once and throws if the
+   * provider's LLM-service command isn't registered yet. Our extension can activate before the provider
+   * finishes registering it, so retry the obtain a few times with short backoff to absorb that race. This
+   * is only a readiness probe — keep it brief; the real generation call has its own retry. */
+  const ensureAvailable = Effect.fn('ApexOas.Llm.ensureAvailable')(function* () {
+    yield* getInterface.pipe(
+      Effect.retry({ schedule: LLM_AVAILABILITY_SCHEDULE, times: 3 }),
+      // Log the raw failure so the actual reason (e.g. "Command ...getLLMServiceInstance cannot be found",
+      // a provider error, or "not logged in") reaches the output channel — the user-facing notification only
+      // shows the friendly message below, which would otherwise hide why it failed.
+      Effect.tapError(error => Effect.logError('Failed to obtain LLM service', error)),
+      // The raw failure is internal and unactionable as a notification. Replace it with guidance that tells
+      // the user what to do, while keeping the original text as a non-Error `cause` for telemetry. The central
+      // error handler walks to the innermost Error's message, so a string cause won't shadow this.
+      Effect.mapError(
+        error =>
+          new LLMCallFailed({
+            message: `${nls.localize('llm_service_unavailable')}${v4RegressionHint()}`,
+            cause: String(error)
+          })
+      )
+    );
+  });
 
-    /** Probe that the LLM service can be obtained from the service provider, without making a call.
-     * Used as a precondition for the REST generation path so an unreachable LLM fails the command up
-     * front (with the obtain cause attached) rather than partway through generation.
-     *
-     * `ServiceProvider.getService` is fail-fast: it checks the registered commands once and throws if the
-     * provider's LLM-service command isn't registered yet. Our extension can activate before the provider
-     * finishes registering it, so retry the obtain a few times with short backoff to absorb that race. This
-     * is only a readiness probe — keep it brief; the real generation call has its own retry. */
-    const ensureAvailable = Effect.fn('ApexOas.Llm.ensureAvailable')(function* () {
-      yield* getInterface.pipe(
-        Effect.retry(LLM_AVAILABILITY_SCHEDULE),
-        // Log the raw failure so the actual reason (e.g. "Command ...getLLMServiceInstance cannot be found",
-        // a provider error, or "not logged in") reaches the output channel — the user-facing notification only
-        // shows the friendly message below, which would otherwise hide why it failed.
-        Effect.tapError(error => Effect.logError('Failed to obtain LLM service', error)),
-        // The raw failure is internal and unactionable as a notification. Replace it with guidance that tells
-        // the user what to do, while keeping the original text as a non-Error `cause` for telemetry. The central
-        // error handler walks to the innermost Error's message, so a string cause won't shadow this.
-        Effect.mapError(
-          error =>
-            new LLMCallFailed({
-              message: `${nls.localize('llm_service_unavailable')}${v4RegressionHint()}`,
-              cause: String(error)
-            })
-        )
-      );
-    });
+  return { callLLM, ensureAvailable };
+});
 
-    return { callLLM, ensureAvailable };
-  })
-}) {}
+export class LLMService extends Context.Service<LLMService, Effect.Success<typeof makeLLMService>>()('LLMService') {
+  public static readonly layer = Layer.effect(LLMService, makeLLMService);
+}

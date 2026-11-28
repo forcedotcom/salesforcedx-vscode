@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import * as NodeContext from '@effect/platform-node/NodeContext';
+import * as NodeServices from '@effect/platform-node/NodeServices';
 import { Effect } from 'effect';
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
@@ -115,7 +115,7 @@ const reportBytes = (
 };
 
 const run = (pairs: readonly { readonly report: string; readonly results: string }[], output: string, sha = 'head') =>
-  collectLane(pairs, SPEC, sha, output).pipe(Effect.provide(NodeContext.layer), Effect.runPromise);
+  collectLane(pairs, SPEC, sha, output).pipe(Effect.provide(NodeServices.layer), Effect.runPromise);
 
 const savePair = (
   directory: string,

@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import type { SObject } from 'salesforcedx-vscode-services';
+import type { SObject } from '@salesforce/vscode-services/v2';
 
 export type SObjectShortDescription = Pick<SObject, 'name' | 'custom'>;
 

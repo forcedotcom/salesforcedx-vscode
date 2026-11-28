@@ -1,14 +1,14 @@
-import * as Command from '@effect/platform/Command';
-import * as CommandExecutor from '@effect/platform/CommandExecutor';
-import * as NodeContext from '@effect/platform-node/NodeContext';
-import { ConfigProvider, Effect, Layer } from 'effect';
+import * as NodeServices from '@effect/platform-node/NodeServices';
+import * as ConfigProvider from 'effect/ConfigProvider';
+import * as Effect from 'effect/Effect';
+import * as Layer from 'effect/Layer';
+import * as ChildProcess from 'effect/process/ChildProcess';
+import * as ChildProcessSpawner from 'effect/process/ChildProcessSpawner';
 import { execFileSync } from 'node:child_process';
 import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import type { TestContext } from 'node:test';
-
-const gitEnv = Object.fromEntries(Object.entries(process.env).filter(([name]) => !name.startsWith('GIT_')));
 
 export const tempDirectory = (t: TestContext) => {
   const directory = mkdtempSync(join(tmpdir(), 'ci-ai-test-'));
@@ -16,28 +16,26 @@ export const tempDirectory = (t: TestContext) => {
   return directory;
 };
 
-export const commands = (replace: (command: Command.StandardCommand) => Command.Command) =>
+export const commands = (replace: (command: ChildProcess.StandardCommand) => ChildProcess.Command) =>
   Layer.effect(
-    CommandExecutor.CommandExecutor,
-    CommandExecutor.CommandExecutor.pipe(
-      Effect.map(executor =>
-        CommandExecutor.makeExecutor(command => {
-          if (command._tag !== 'StandardCommand') throw new Error('Unexpected pipeline');
-          const replacement = replace(command);
-          const isolated =
-            command.command === 'git' ? replacement.pipe(Command.env(gitEnv, { extendEnv: false })) : replacement;
-          return executor.start(isolated);
-        })
-      )
-    )
-  ).pipe(Layer.provide(NodeContext.layer));
+    ChildProcessSpawner.ChildProcessSpawner,
+    Effect.gen(function* () {
+      const spawner = yield* ChildProcessSpawner.ChildProcessSpawner;
+      return ChildProcessSpawner.make(command =>
+        command._tag === 'StandardCommand'
+          ? spawner.spawn(replace(command))
+          : Effect.die(new Error('Unexpected pipeline'))
+      );
+    })
+  ).pipe(Layer.provideMerge(NodeServices.layer));
 
-export const nodeCommand = (command: Command.StandardCommand, code: string) =>
-  Command.make(process.execPath, '-e', code, '--', ...command.args).pipe(
-    Command.env(Object.fromEntries(command.env)),
-    Command.stdin(command.stdin),
-    Command.workingDirectory(command.cwd._tag === 'Some' ? command.cwd.value : process.cwd())
-  );
+export const nodeCommand = (command: ChildProcess.StandardCommand, code: string) =>
+  ChildProcess.make(process.execPath, ['-e', code, '--', ...command.args], {
+    env: command.options.env,
+    extendEnv: command.options.extendEnv,
+    stdin: command.options.stdin,
+    cwd: command.options.cwd
+  });
 
 export const events = (text: string, reason = 'stop') =>
   [{ type: 'step_start' }, { type: 'text', part: { text } }, { type: 'step_finish', part: { reason } }]
@@ -64,14 +62,13 @@ export const decisionResponse = (body: {
   });
 
 export const config = (models = '["opencode/first","opencode/second"]') =>
-  ConfigProvider.fromMap(
-    new Map([
-      ['OPENCODE_API_KEY', 'test-key'],
-      ['OPENCODE_MODELS', models],
-      ['PATH', process.env.PATH ?? '']
-    ])
-  );
+  ConfigProvider.fromEnvRecord({
+    OPENCODE_API_KEY: 'test-key',
+    OPENCODE_MODELS: models,
+    PATH: process.env.PATH ?? ''
+  });
 
+const gitEnv = Object.fromEntries(Object.entries(process.env).filter(([name]) => !name.startsWith('GIT_')));
 export const git = (cwd: string, ...args: string[]) =>
   execFileSync('git', args, {
     cwd,

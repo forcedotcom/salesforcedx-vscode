@@ -14,8 +14,8 @@ vi.mock('../../src/services/runtime', () => createRecordingRuntimeMock(() => moc
 import { deactivate } from '../../src';
 
 describe('deactivate', () => {
-  it('records the extensionDeactivated span', () => {
-    deactivate();
+  it('records the extensionDeactivated span', async () => {
+    await deactivate();
 
     expect(mockRecordedSpans).toEqual([
       expect.objectContaining({ name: 'extensionDeactivated', ended: true, attributes: new Map() })

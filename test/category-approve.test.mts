@@ -2,9 +2,9 @@ import assert from 'node:assert/strict';
 import test, { type TestContext } from 'node:test';
 import { mkdirSync, readFileSync, unlinkSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
-import * as Command from '@effect/platform/Command';
-import * as FetchHttpClient from '@effect/platform/FetchHttpClient';
-import * as NodeContext from '@effect/platform-node/NodeContext';
+import * as NodeServices from '@effect/platform-node/NodeServices';
+import * as ChildProcess from 'effect/process/ChildProcess';
+import * as FetchHttpClient from 'effect/http/FetchHttpClient';
 import { ConfigProvider, Effect, Layer } from 'effect';
 import * as Option from 'effect/Option';
 import {
@@ -26,7 +26,19 @@ import {
   parseAgentResult
 } from '../scripts/shared/categoryDecision.mts';
 import { classify } from '../scripts/categoryApprove.mts';
-import { commands, config as agentConfig, decisionResponse, git, tempDirectory } from './ciAiFixtures.mts';
+import { commands, config as agentConfig, decisionResponse, git, nodeCommand, tempDirectory } from './ciAiFixtures.mts';
+
+const withWorkingDirectory = (command: ChildProcess.StandardCommand, cwd: string) =>
+  ChildProcess.make(command.command, command.args, {
+    ...command.options,
+    cwd,
+    env: Object.fromEntries(
+      [...Object.entries(process.env), ...Object.entries(command.options.env ?? {})].filter(
+        ([name]) => !name.toUpperCase().startsWith('GIT_')
+      )
+    ),
+    extendEnv: false
+  });
 
 const policy = readFileSync(new URL('../APPROVAL_POLICY.md', import.meta.url), 'utf8');
 const config = readFileSync(new URL('../.git2gus/config.json', import.meta.url), 'utf8');
@@ -223,10 +235,10 @@ for (const [category, paths] of Object.entries(pathCases)) {
     const result = await classify({ policy, files: paths.map(file), baseRef: 'base', headSha: 'head' }).pipe(
       Effect.provide(
         commands(() => assert.fail('No command should run for path-only changes')).pipe(
-          Layer.provideMerge(NodeContext.layer)
+          Layer.provideMerge(NodeServices.layer)
         )
       ),
-      Effect.withConfigProvider(ConfigProvider.fromMap(new Map())),
+      Effect.provide(ConfigProvider.layer(ConfigProvider.fromEnvRecord({}))),
       Effect.runPromise
     );
     assert.deepEqual(result, [category]);
@@ -273,9 +285,7 @@ test('combines deterministic categories without OpenCode for additions, deletion
       baseRef: 'base',
       headSha: 'head'
     }).pipe(
-      Effect.provide(
-        commands(() => assert.fail('OpenCode must not start')).pipe(Layer.provideMerge(NodeContext.layer))
-      ),
+      Effect.provide(commands(() => assert.fail('Jev must not start')).pipe(Layer.provideMerge(NodeServices.layer))),
       Effect.runPromise
     ),
     ['prose', 'plans', 'claude', 'vscode']
@@ -292,7 +302,7 @@ for (const count of [2999, 3000, 3001]) {
     }).pipe(
       Effect.provide(
         commands(() => assert.fail('No command should run for covered paths or a capped file list')).pipe(
-          Layer.provideMerge(NodeContext.layer)
+          Layer.provideMerge(NodeServices.layer)
         )
       ),
       Effect.runPromise
@@ -328,7 +338,7 @@ test('rejects forbidden paths and non-Markdown root plans files without OpenCode
         }).pipe(
           Effect.provide(
             commands(() => assert.fail(`No command should run for ${filename}`)).pipe(
-              Layer.provideMerge(NodeContext.layer)
+              Layer.provideMerge(NodeServices.layer)
             )
           ),
           Effect.runPromise
@@ -361,7 +371,7 @@ for (const [choice, expected] of [
       headSha: 'HEAD'
     }).pipe(
       Effect.provide(
-        commands(command => command.pipe(Command.workingDirectory(cwd))).pipe(Layer.provideMerge(NodeContext.layer))
+        commands(command => withWorkingDirectory(command, cwd)).pipe(Layer.provideMerge(NodeServices.layer))
       ),
       Effect.provideService(FetchHttpClient.Fetch, async (_url, init) => {
         calls += 1;
@@ -370,7 +380,7 @@ for (const [choice, expected] of [
           answers: { 'hunk-0': { type: 'choice', choice, confidence: 1, probabilities: { [choice]: 1 } } }
         });
       }),
-      Effect.withConfigProvider(agentConfig()),
+      Effect.provide(ConfigProvider.layer(agentConfig())),
       Effect.runPromise
     );
     assert.equal(calls, 1);
@@ -385,8 +395,8 @@ for (const [choice, expected] of [
 test('Git failures still fail classification', async () => {
   const result = await classify({ policy, files: [file('test/example.ts')], baseRef: 'base', headSha: 'head' }).pipe(
     Effect.provide(
-      commands(() => Command.make(process.execPath, '-e', 'process.stderr.write("git failed"); process.exit(1);')).pipe(
-        Layer.provideMerge(NodeContext.layer)
+      commands(command => nodeCommand(command, 'process.stderr.write("git failed"); process.exit(1);')).pipe(
+        Layer.provideMerge(NodeServices.layer)
       )
     ),
     Effect.flip,
@@ -416,7 +426,7 @@ test('uncovered production hunks reject the union, including renamed source file
     ]
   }).pipe(
     Effect.provide(
-      commands(command => command.pipe(Command.workingDirectory(cwd))).pipe(Layer.provideMerge(NodeContext.layer))
+      commands(command => withWorkingDirectory(command, cwd)).pipe(Layer.provideMerge(NodeServices.layer))
     ),
     Effect.provideService(FetchHttpClient.Fetch, async (_url, init) => {
       requestBody = await new Response(init?.body).text();
@@ -430,7 +440,7 @@ test('uncovered production hunks reject the union, including renamed source file
         )
       });
     }),
-    Effect.withConfigProvider(agentConfig()),
+    Effect.provide(ConfigProvider.layer(agentConfig())),
     Effect.runPromise
   );
   assert.deepEqual(result, []);
@@ -450,7 +460,7 @@ test('keeps covered version hunks when path-only hunks are omitted; version-only
   for (const files of [[file('README.md'), file('package.json')], [file('package.json')]]) {
     const categories = await classify({ policy, files, baseRef: 'base', headSha: 'head' }).pipe(
       Effect.provide(
-        commands(command => command.pipe(Command.workingDirectory(cwd))).pipe(Layer.provideMerge(NodeContext.layer))
+        commands(command => withWorkingDirectory(command, cwd)).pipe(Layer.provideMerge(NodeServices.layer))
       ),
       Effect.provideService(FetchHttpClient.Fetch, async () =>
         decisionResponse({
@@ -464,7 +474,7 @@ test('keeps covered version hunks when path-only hunks are omitted; version-only
           }
         })
       ),
-      Effect.withConfigProvider(agentConfig()),
+      Effect.provide(ConfigProvider.layer(agentConfig())),
       Effect.runPromise
     );
     assert.deepEqual(categories, files.length === 2 ? ['prose'] : []);
@@ -483,10 +493,10 @@ test('checks git2gus base and head contents without invoking OpenCode', async t 
       commands(command => {
         assert.equal(command.command, 'git', 'OpenCode must not start');
         assert.equal(command.args[0], 'show');
-        return command.pipe(Command.workingDirectory(cwd));
-      }).pipe(Layer.provideMerge(NodeContext.layer))
+        return withWorkingDirectory(command, cwd);
+      }).pipe(Layer.provideMerge(NodeServices.layer))
     ),
-    Effect.withConfigProvider(ConfigProvider.fromMap(new Map())),
+    Effect.provide(ConfigProvider.layer(ConfigProvider.fromEnvRecord({}))),
     Effect.runPromise
   );
   assert.deepEqual(categories, ['git2gus-config']);

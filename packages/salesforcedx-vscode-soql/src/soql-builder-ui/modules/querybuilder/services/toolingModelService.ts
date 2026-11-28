@@ -6,7 +6,9 @@
  *
  */
 
+import * as Context from 'effect/Context';
 import * as Effect from 'effect/Effect';
+import * as Layer from 'effect/Layer';
 import * as Stream from 'effect/Stream';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
 import { AndOr } from '@salesforce/soql-model';
@@ -29,14 +31,12 @@ export const toolingModelTemplate: ToolingModelJson = {
   originalSoqlStatement: ''
 };
 
-export class ToolingModelService extends Effect.Service<ToolingModelService>()('ToolingModelService', {
-  accessors: true,
-  effect: Effect.gen(function* () {
+const makeToolingModelService = Effect.gen(function* () {
     const messageService = yield* MessageService;
 
     const model = yield* SubscriptionRef.make<ToolingModelJson>(toolingModelTemplate);
 
-    const UIModel: Stream.Stream<ToolingModelJson> = model.changes;
+    const UIModel: Stream.Stream<ToolingModelJson> = SubscriptionRef.changes(model);
 
     const getModel = (): ToolingModelJson => Effect.runSync(SubscriptionRef.get(model));
 
@@ -76,7 +76,7 @@ export class ToolingModelService extends Effect.Service<ToolingModelService>()('
       sendMessageToBackend(newSoqlQuery);
     };
 
-    messageService.onMessage((event: HostToUiSoqlEditorEvent): void => {
+    const removeMessageListener = messageService.onMessage((event: HostToUiSoqlEditorEvent): void => {
       if (event && event.type === MessageType.TEXT_SOQL_CHANGED) {
         const originalSoqlStatement = event.payload as string;
         const soqlJSModel = convertSoqlToUiModel(originalSoqlStatement);
@@ -89,6 +89,7 @@ export class ToolingModelService extends Effect.Service<ToolingModelService>()('
         }
       }
     });
+    yield* Effect.addFinalizer(() => Effect.sync(removeMessageListener));
 
     /* ---- OBJECTS ---- */
 
@@ -187,7 +188,13 @@ export class ToolingModelService extends Effect.Service<ToolingModelService>()('
       sendTelemetryToBackend,
       restoreViewState
     };
-  })
-}) {}
+});
+
+export class ToolingModelService extends Context.Service<
+  ToolingModelService,
+  Effect.Success<typeof makeToolingModelService>
+>()('ToolingModelService') {
+  static readonly layer = Layer.effect(ToolingModelService, makeToolingModelService);
+}
 
 export type { ToolingModelJson };

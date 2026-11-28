@@ -21,15 +21,16 @@ const COMMAND: ProgressAndSuccessCommandKey = messages.deploy_in_manifest_text;
 
 /** Deploy to the default org using a manifest file */
 export const deployManifestCommand = Effect.fn('deployManifestCommand')(
-  function* (manifestUri?: URI) {
+  function* (manifestUri: URI | undefined) {
     yield* Effect.annotateCurrentSpan({ manifestUri });
     const api = yield* (yield* ExtensionProviderService).getServicesApi;
-    const notificationMode = yield* api.services.NotificationModeService;
-    const resolved = manifestUri ?? (yield* api.services.EditorService.getActiveEditorUri());
+    const notificationMode = yield* api.v2.services.NotificationModeService;
+    const componentSetService = yield* api.v2.services.ComponentSetService;
+    const resolved = manifestUri ?? (yield* api.v2.services.EditorService.use(service => service.getActiveEditorUri()));
 
     yield* Effect.succeed(resolved).pipe(
-      Effect.flatMap(uri => api.services.ComponentSetService.getComponentSetFromManifest(uri)),
-      Effect.flatMap(api.services.ComponentSetService.ensureNonEmptyComponentSet),
+      Effect.flatMap(uri => componentSetService.getComponentSetFromManifest(uri)),
+      Effect.flatMap(componentSetService.ensureNonEmptyComponentSet),
       withPreparationProgress('deploy', cs => detectConflicts(cs, 'deploy'), COMMAND),
       Effect.flatMap(cs => deployComponentSet({ componentSet: cs, command: COMMAND })),
       Effect.catchTag('ConflictsDetectedError', err =>

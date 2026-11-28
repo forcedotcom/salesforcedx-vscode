@@ -17,9 +17,10 @@ const isOption = (type: ts.Type): boolean => {
     : (type
         .getProperty('_tag')
         ?.getDeclarations()
-        ?.some(declaration =>
-          declaration.getSourceFile().fileName.replaceAll('\\', '/').endsWith('/effect/dist/dts/Option.d.ts')
-        ) ?? false);
+        ?.some(declaration => {
+          const fileName = declaration.getSourceFile().fileName.replaceAll('\\', '/');
+          return fileName.endsWith('/effect/dist/Option.d.ts') || fileName.endsWith('/effect/dist/dts/Option.d.ts');
+        }) ?? false);
 };
 
 export const noOptionTag = RuleCreator.withoutDocs({

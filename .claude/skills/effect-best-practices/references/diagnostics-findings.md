@@ -7,7 +7,7 @@ Many rules ship `default: "off"` upstream (`@effect/language-service/schema.json
 | Rule | Finding | Fix |
 | --- | --- | --- |
 | `globalErrorInEffectFailure` / `globalErrorInEffectCatch` | `new Error(...)` in an E-channel position or a `try*` catch handler | `Schema.TaggedError` with a `message` field — see `anti-patterns.md` |
-| `tryCatchInEffectGen` | `try`/`catch` inside `Effect.gen` | `catchTag`/`catchTags`; `catchAllCause` + `Cause.squash` when defects must be caught |
+| `tryCatchInEffectGen` | `try`/`catch` inside `Effect.gen` | `catchTag`/`catchTags`; `Effect.catchCause` when defects must be caught |
 | `effectSucceedWithVoid` | `Effect.succeed(undefined)` | `Effect.void` |
 | `unnecessaryFailYieldableError` | `yield* Effect.fail(err)` where `err` is already yieldable | `yield* err` |
 | `effectFnIife` | immediately-invoked `Effect.fn` | `Effect.gen` + piped `Effect.withSpan` |
@@ -17,6 +17,6 @@ Many rules ship `default: "off"` upstream (`@effect/language-service/schema.json
 | `effectFnOpportunity` | `Effect.gen` where a named `Effect.fn` fits | `Effect.fn('Span')(function* …)` |
 | `floatingEffect` | Effect expression statement never run | `yield*` it, or bind it |
 | `globalRandom` / `globalRandomInEffect` | `Math.random()` (outside Effect / inside Effect) | `Random.next`, `Random.nextInt` |
-| `globalFetchInEffect` | global `fetch(...)` inside Effect | `@effect/platform` `HttpClient` |
+| `globalFetchInEffect` | global `fetch(...)` inside Effect | `effect/http/HttpClient` |
 | `globalTimersInEffect` | `setTimeout`/`setInterval` inside Effect | `Effect.sleep`, `Effect.repeat`/`Effect.schedule` |
 | `missedPipeableOpportunity` | nested Effect/Schema calls `f(g(pipeable))` — fires at ≥2 pipeable call-kind transformations | `pipeable.pipe(g, f)` — steps apply inner-first, so the terminal step (`runPromise`, `fork`, outer semaphore) lands last. Nested Schema: `Schema.String.pipe(Schema.NullOr, Schema.optional)`, `x.pipe(Schema.Array, Schema.optional)`. Never take the quickfix blind: it reflows to 4-space, collapses long chains, and moves preceding comments into the pipe's args |

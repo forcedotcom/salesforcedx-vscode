@@ -22,15 +22,25 @@ import {
   validateNoCriticalErrors,
   verifyCommandExists,
   verifyNoTestRunInProgress,
+  waitForOutputChannelPredicate,
   waitForRunApexTestsProgressNotificationGone
 } from '@salesforce/playwright-vscode-ext';
 
+import type { Page } from '@playwright/test';
 import packageNls from '../../../package.nls.json';
 import { isContainer, sharedTest as test } from '../fixtures';
 import { TEST_RUN_TIMEOUT, TEST_SETUP_TIMEOUT } from '../constants';
 import { CMD_TOGGLE_MAXIMIZED_PANEL } from '../helpers/testExplorerHelpers';
 import { waitForApexRunOutputLine } from '../helpers/waitForApexRunOutputLine';
 
+const waitForSingleClassPass = async (page: Page, testClassName: string) => {
+  await waitForApexRunOutputLine(page, testClassName);
+  await waitForOutputChannelPredicate(page, {
+    predicate: lines =>
+      lines.some(line => /CommandPaletteTestClass1\d+\.testMethod1\s+Pass/.test(line.textContent ?? '')),
+    message: `Expected ${testClassName}.testMethod1 to pass`
+  });
+};
 test.beforeEach(async ({ page }) => {
   if (isContainer) {
     await resetContainerWorkbench(page);
@@ -103,9 +113,8 @@ test('Run Apex Tests via Command Palette: run all, then run single class', async
     await selectOutputChannel(page, 'Apex Testing');
     await executeCommandWithCommandPalette(page, CMD_TOGGLE_MAXIMIZED_PANEL);
     await saveScreenshot(page, 'step.run-single.output-open.png');
-    await waitForApexRunOutputLine(page, '=== Test Summary');
+    await waitForSingleClassPass(page, testClassName);
     await saveScreenshot(page, 'step.run-single.results-visible.png');
-    await waitForApexRunOutputLine(page, testClassName);
     await waitForApexRunOutputLine(page, 'Ended SFDX: Run Apex Tests');
     await verifyNoTestRunInProgress(page);
     await saveScreenshot(page, 'step.run-single.done.png');
@@ -124,8 +133,7 @@ test('Run Apex Tests via Command Palette: run all, then run single class', async
     await waitForRunApexTestsProgressNotificationGone(page, { timeout: TEST_RUN_TIMEOUT });
     await ensureOutputPanelOpen(page);
     await selectOutputChannel(page, 'Apex Testing');
-    await waitForApexRunOutputLine(page, '=== Test Summary');
-    await waitForApexRunOutputLine(page, testClassName);
+    await waitForSingleClassPass(page, testClassName);
     await waitForApexRunOutputLine(page, 'Ended SFDX: Run Apex Tests');
     await verifyNoTestRunInProgress(page);
     await saveScreenshot(page, 'step.rerun-last-class.done.png');

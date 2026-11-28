@@ -6,8 +6,8 @@
  */
 
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import type { DefaultOrgInfoSchema } from '@salesforce/vscode-services/v2';
 import * as Effect from 'effect/Effect';
-import type { DefaultOrgInfoSchema } from 'salesforcedx-vscode-services';
 import { getRuntime } from '../services/runtime';
 import { getDefaultOrgInfo } from './defaultOrgInfo';
 
@@ -24,10 +24,10 @@ export const shapeFrom = (info: OrgShapeInfo): OrgShape => {
 
 const getOrgShapeEffect = Effect.fn('workspaceOrgShape.getOrgShape')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const { isEmpty } = yield* api.services.WorkspaceService.getWorkspaceInfo();
+  const { isEmpty } = yield* api.v2.services.WorkspaceService.use(service => service.getWorkspaceInfo());
   if (isEmpty) return 'Undefined';
   return yield* getDefaultOrgInfo().pipe(Effect.map(shapeFrom));
 });
 
 export const getOrgShape = async (_username: string): Promise<OrgShape> =>
-  getRuntime().runPromise(getOrgShapeEffect().pipe(Effect.catchAll(() => Effect.succeed<OrgShape>('Undefined'))));
+  getRuntime().runPromise(getOrgShapeEffect().pipe(Effect.catch(() => Effect.succeed<OrgShape>('Undefined'))));

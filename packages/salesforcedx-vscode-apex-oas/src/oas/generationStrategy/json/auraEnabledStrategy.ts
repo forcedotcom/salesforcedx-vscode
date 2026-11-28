@@ -29,7 +29,7 @@ export const createAuraEnabledStrategy = async (
   const generateOAS = Effect.fn('ApexOas.AuraEnabled.generateOAS')(
     function* () {
       const api = yield* (yield* ExtensionProviderService).getServicesApi;
-      const connection = yield* api.services.ConnectionService.getConnection();
+      const connection = yield* api.v2.services.ConnectionService.use(service => service.getConnection());
       const endpoint = `/specifications/oas3/apex/${context.classDetail.name}`;
       const result = yield* Effect.tryPromise({
         try: () => connection.request({ method: 'GET', url: endpoint }),
@@ -41,7 +41,7 @@ export const createAuraEnabledStrategy = async (
     Effect.tap(() =>
       annotateRootSpan({ strategyName: 'AuraEnabled', biddedCallCount: 0, llmCallCount: 0, generationSize: 0 })
     ),
-    Effect.catchAll(cause =>
+    Effect.catch(cause =>
       cause instanceof OasGenerationFailed
         ? Effect.fail(cause)
         : Effect.fail(

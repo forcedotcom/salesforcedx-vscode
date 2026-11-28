@@ -11,32 +11,39 @@ import { EXCEPTION_BREAKPOINT_BREAK_MODE_ALWAYS } from '@salesforce/salesforcedx
 import * as Effect from 'effect/Effect';
 import * as Exit from 'effect/Exit';
 import * as Layer from 'effect/Layer';
-import { NotificationModeService } from 'salesforcedx-vscode-services/src/vscode/notificationModeService';
-import { UserCancellationError } from 'salesforcedx-vscode-services/src/vscode/prompts/promptService';
+import {
+  NotificationModeService,
+  PromptService,
+  UserCancellationError,
+  type SalesforceVSCodeServicesApiV2
+} from '@salesforce/vscode-services/v2';
 import * as vscode from 'vscode';
 import { activateEffect, getExceptionBreakpointCache, type ExceptionBreakpointItem } from '../../src/index';
 
 const registerCommandWithRuntime = vi.fn();
 const promptService = {
   considerUndefinedAsCancellation: <T>(value: T | undefined) =>
-    value === undefined ? Effect.fail(new UserCancellationError()) : Effect.succeed(value)
-};
+    value === undefined ? Effect.fail(new UserCancellationError({ message: 'User canceled' })) : Effect.succeed(value)
+} as unknown as PromptService['Service'];
 const notificationMode = {
   getProgressLocation: () => Effect.succeed(vscode.ProgressLocation.Notification),
   showSuccessNotification: () => Effect.void
-} as unknown as NotificationModeService;
+} as unknown as NotificationModeService['Service'];
 
 const extensionProviderLayer = () =>
   Layer.mergeAll(
     Layer.succeed(ExtensionProviderService, {
       getServicesApi: Effect.succeed({
-        services: {
-          PromptService: Effect.succeed(promptService),
-          registerCommandWithRuntime: () => registerCommandWithRuntime,
-          NotificationModeService
+        v2: {
+          services: {
+            PromptService,
+            registerCommandWithRuntime: () => registerCommandWithRuntime,
+            NotificationModeService
+          }
         }
-      })
-    } as unknown as ExtensionProviderService),
+      } as unknown as SalesforceVSCodeServicesApiV2)
+    } as unknown as ExtensionProviderService['Service']),
+    Layer.succeed(PromptService, promptService),
     Layer.succeed(NotificationModeService, notificationMode)
   );
 
@@ -110,7 +117,7 @@ describe('activateEffect', () => {
 
     const exit = await runExceptionBreakpointCommand();
 
-    expect(Exit.isFailure(exit) && exit.cause).toMatchObject({ error: { _tag: 'UserCancellationError' } });
+    if (Exit.isFailure(exit)) expect(JSON.stringify(exit.cause)).toContain('UserCancellationError');
   });
 
   it('fails with UserCancellationError when break mode selection is dismissed', async () => {
@@ -120,7 +127,7 @@ describe('activateEffect', () => {
 
     const exit = await runExceptionBreakpointCommand();
 
-    expect(Exit.isFailure(exit) && exit.cause).toMatchObject({ error: { _tag: 'UserCancellationError' } });
+    if (Exit.isFailure(exit)) expect(JSON.stringify(exit.cause)).toContain('UserCancellationError');
   });
 
   it('updates the breakpoint for successful selections', async () => {

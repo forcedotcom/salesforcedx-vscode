@@ -16,11 +16,11 @@ import type { ExtensionContext } from 'vscode';
  * for notification configuration.
  */
 export const buildAllServicesLayer = (context: ExtensionContext) =>
-  Layer.unwrapEffect(
+  Layer.unwrap(
     Effect.map(getServicesApi, api =>
       Layer.mergeAll(
         buildSharedServicesLayer(context, 'Salesforce Org Management'),
-        api.services.NotificationModeService.Default(
+        api.v2.services.NotificationModeServiceLayer(
           'salesforcedx-vscode-org',
           'sf-org-notifications',
           'Salesforce: Org Notifications'
@@ -40,11 +40,11 @@ export const setAllServicesLayer = (layer: ReturnType<typeof buildAllServicesLay
  * Built once on first use to avoid rebuilding services across commands.
  */
 /** Services provided by the org runtime (the `R` channel an Effect may require when run via {@link getOrgRuntime}). */
-type OrgRuntimeContext = Layer.Layer.Success<ReturnType<typeof buildAllServicesLayer>>;
+type OrgRuntimeContext = Layer.Success<ReturnType<typeof buildAllServicesLayer>>;
 
 type OrgRuntime = ManagedRuntime.ManagedRuntime<
   OrgRuntimeContext,
-  Layer.Layer.Error<ReturnType<typeof buildAllServicesLayer>>
+  Layer.Error<ReturnType<typeof buildAllServicesLayer>>
 >;
 let _orgRuntime: OrgRuntime | undefined;
 export const getOrgRuntime = () => (_orgRuntime ??= ManagedRuntime.make(AllServicesLayer));

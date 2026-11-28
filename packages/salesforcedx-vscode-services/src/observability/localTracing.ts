@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import * as LogLevel from 'effect/LogLevel';
+import type * as LogLevel from 'effect/LogLevel';
 import * as vscode from 'vscode';
 import { SALESFORCE_DX_SECTION } from '../constants';
 
@@ -34,19 +34,19 @@ export const getLogLevel = (): LogLevel.LogLevel => {
 const mapSfLogLevel = (level: string): LogLevel.LogLevel => {
   switch (level.toLowerCase()) {
     case 'trace':
-      return LogLevel.Trace;
+      return 'Trace';
     case 'debug':
-      return LogLevel.Debug;
+      return 'Debug';
     case 'info':
-      return LogLevel.Info;
+      return 'Info';
     case 'warn':
     case 'warning':
-      return LogLevel.Warning;
+      return 'Warn';
     case 'error':
     case 'fatal':
-      return LogLevel.Error;
+      return 'Error';
     default:
-      return LogLevel.Info;
+      return 'Info';
   }
 };
 

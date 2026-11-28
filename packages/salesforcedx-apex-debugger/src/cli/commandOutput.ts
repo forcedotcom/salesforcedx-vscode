@@ -6,7 +6,7 @@
  */
 
 import * as Effect from 'effect/Effect';
-import * as Either from 'effect/Either';
+import * as Result from 'effect/Result';
 import { stripAnsiInJson } from '../helpers/utils';
 import { type CommandExecution } from '../types/commandExecution';
 import { JSON_FLAG } from './commandBuilder';
@@ -24,7 +24,7 @@ export class CommandOutput {
       this.stderrBuffer += realData.toString();
     });
 
-    return Effect.async<string, string>(resume => {
+    return Effect.callback<string, string>(resume => {
       execution.processExitSubject.subscribe(data => {
         // Node child_process 'exit' emits (code, signal); RxJS fromEvent passes multiple args as an array
         const exitCode = Array.isArray(data) ? data[0] : data;
@@ -47,7 +47,7 @@ export class CommandOutput {
         }
       });
     })
-      .pipe(Effect.either, Effect.runPromise)
-      .then(Either.getOrThrowWith(error => error));
+      .pipe(Effect.result, Effect.runPromise)
+      .then(Result.getOrThrowWith(error => error));
   }
 }

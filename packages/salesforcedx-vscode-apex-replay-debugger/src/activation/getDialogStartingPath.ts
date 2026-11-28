@@ -20,11 +20,14 @@ export const getDialogStartingPath = Effect.fn('ApexReplayDebugger.getDialogStar
   extContext: vscode.ExtensionContext
 ) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const { isEmpty } = yield* api.services.WorkspaceService.getWorkspaceInfo();
+  const { isEmpty } = yield* api.v2.services.WorkspaceService.use(service => service.getWorkspaceInfo());
   if (isEmpty) return undefined;
   // If the user has already selected a log file, use that folder if it still exists.
   const pathToLastOpenedLogFolder = getLastOpenedLogFolder(extContext);
-  if (pathToLastOpenedLogFolder && (yield* api.services.FsService.fileOrFolderExists(pathToLastOpenedLogFolder))) {
+  if (
+    pathToLastOpenedLogFolder &&
+    (yield* api.v2.services.FsService.use(service => service.fileOrFolderExists(pathToLastOpenedLogFolder)))
+  ) {
     return URI.file(pathToLastOpenedLogFolder);
   }
   // If lastOpenedLogFolder isn't defined or doesn't exist then use the
@@ -33,14 +36,16 @@ export const getDialogStartingPath = Effect.fn('ApexReplayDebugger.getDialogStar
   // The workspace folders are re-read on every ProjectService call, so they can go away between the isEmpty
   // check above and these calls. A closed workspace means "no starting path",
   // not a failed activation.
-  const logsFolder = yield* api.services.ProjectService.getDebugLogsFolder().pipe(
+  const logsFolder = yield* api.v2.services.ProjectService.use(service => service.getDebugLogsFolder()).pipe(
     Effect.orElseSucceed(() => undefined)
   );
-  if (logsFolder && (yield* api.services.FsService.fileOrFolderExists(logsFolder))) {
+  if (logsFolder && (yield* api.v2.services.FsService.use(service => service.fileOrFolderExists(logsFolder)))) {
     return logsFolder;
   }
   // If all else fails, fallback to the .sfdx directory in the workspace
-  return yield* api.services.ProjectService.getStateFolder().pipe(Effect.orElseSucceed(() => undefined));
+  return yield* api.v2.services.ProjectService.use(service => service.getStateFolder()).pipe(
+    Effect.orElseSucceed(() => undefined)
+  );
 });
 
 const getLastOpenedLogFolder = (extContext: vscode.ExtensionContext): string | undefined => {

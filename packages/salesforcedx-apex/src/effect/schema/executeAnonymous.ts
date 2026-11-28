@@ -8,7 +8,7 @@
 import * as Schema from 'effect/Schema';
 
 /** Apex source selected by the caller; file and terminal input belong to the host. */
-export const ExecuteAnonymousOptionsSchema = Schema.Struct({ apexCode: Schema.String }).annotations({
+export const ExecuteAnonymousOptionsSchema = Schema.Struct({ apexCode: Schema.String }).annotate({
   identifier: 'ExecuteAnonymousOptions'
 });
 export type ExecuteAnonymousOptions = typeof ExecuteAnonymousOptionsSchema.Type;
@@ -18,5 +18,5 @@ export const ExecuteAnonymousOutcomeSchema = Schema.Struct({
   compiled: Schema.Literal(true),
   success: Schema.Literal(true),
   logBody: Schema.optional(Schema.String)
-}).annotations({ identifier: 'ExecuteAnonymousOutcome' });
+}).annotate({ identifier: 'ExecuteAnonymousOutcome' });
 export type ExecuteAnonymousOutcome = typeof ExecuteAnonymousOutcomeSchema.Type;

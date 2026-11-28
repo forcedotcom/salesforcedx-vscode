@@ -5,13 +5,13 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import * as Command from '@effect/platform/Command';
-import * as FileSystem from '@effect/platform/FileSystem';
-import * as Path from '@effect/platform/Path';
-import * as NodeContext from '@effect/platform-node/NodeContext';
+import * as NodeServices from '@effect/platform-node/NodeServices';
 import { GitHub } from '@salesforce/effect-octokit';
 import * as Console from 'effect/Console';
 import * as Effect from 'effect/Effect';
+import * as FileSystem from 'effect/FileSystem';
+import * as Path from 'effect/Path';
+import * as ChildProcess from 'effect/process/ChildProcess';
 import { commandFailed, commandOutput } from './commandOutput.mts';
 import { GitHubCliLive } from './githubCli.mts';
 
@@ -34,11 +34,13 @@ const IDE = process.argv[2] ?? 'code';
 const logger = (msg: string) => Console.log(`*** ${msg}`);
 
 const runCommand = Effect.fn('installVsixFromBranch.runCommand')(function* (executable: string, ...args: string[]) {
-  const exitCode = yield* Command.make(executable, ...args).pipe(
-    Command.stdin('inherit'),
-    Command.stdout('inherit'),
-    Command.stderr('inherit'),
-    Command.exitCode
+  const exitCode = yield* ChildProcess.make(executable, args, {
+    stdin: 'inherit',
+    stdout: 'inherit',
+    stderr: 'inherit'
+  }).pipe(
+    Effect.flatMap(process => process.exitCode),
+    Effect.scoped
   );
   if (exitCode !== 0) {
     return yield* commandFailed(executable, args, Number(exitCode), '');
@@ -50,7 +52,7 @@ const uninstallExtension = Effect.fn('installVsixFromBranch.uninstallExtension')
   failureMessage: string
 ) {
   yield* logger('\n');
-  yield* runCommand(IDE, '--uninstall-extension', extensionId).pipe(Effect.catchAll(() => logger(failureMessage)));
+  yield* runCommand(IDE, '--uninstall-extension', extensionId).pipe(Effect.catch(() => logger(failureMessage)));
 });
 
 const installVsixFromBranch = Effect.fn('installVsixFromBranch')(function* () {
@@ -71,14 +73,18 @@ const installVsixFromBranch = Effect.fn('installVsixFromBranch')(function* () {
   yield* logger('\n');
 
   yield* logger('Getting the latest successful push workflow for this branch');
-  const [latestWorkflowForBranch] = yield* GitHub.workflowRuns({
-    owner: 'forcedotcom',
-    repo: 'salesforcedx-vscode',
-    branch: currentBranch,
-    event: 'push',
-    status: 'success',
-    per_page: 1
-  });
+  const [latestWorkflowForBranch] = yield* GitHub.pipe(
+    Effect.flatMap(github =>
+      github.workflowRuns({
+        owner: 'forcedotcom',
+        repo: 'salesforcedx-vscode',
+        branch: currentBranch,
+        event: 'push',
+        status: 'success',
+        per_page: 1
+      })
+    )
+  );
   yield* logger('\n');
 
   if (!latestWorkflowForBranch) {
@@ -162,9 +168,9 @@ const installVsixFromBranch = Effect.fn('installVsixFromBranch')(function* () {
 
 if (process.argv.includes('--help')) {
   await Console.log('Usage: pnpm test-vsix\nDownload and install VSIX files from the current branch.').pipe(
-    Effect.provide(NodeContext.layer),
+    Effect.provide(NodeServices.layer),
     Effect.runPromise
   );
 } else {
-  await installVsixFromBranch().pipe(Effect.provide([GitHubCliLive, NodeContext.layer]), Effect.runPromise);
+  await installVsixFromBranch().pipe(Effect.provide([GitHubCliLive, NodeServices.layer]), Effect.runPromise);
 }

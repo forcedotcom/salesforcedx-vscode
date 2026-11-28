@@ -10,7 +10,7 @@ import * as Exit from 'effect/Exit';
 import * as Scope from 'effect/Scope';
 
 // eslint-disable-next-line functional/no-let
-let extensionScope: Scope.CloseableScope | undefined;
+let extensionScope: Scope.Closeable | undefined;
 
 export const getExtensionScope = Effect.fn('getExtensionScope')(function* () {
   extensionScope ??= yield* Scope.make();

@@ -24,8 +24,8 @@ export const retrieveComponentSet = Effect.fn('retrieveComponentSet')(function* 
 }) {
   const { componentSet, ignoreConflicts, fileResponsesFromDelete, command } = options;
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const notificationMode = yield* api.services.NotificationModeService;
-  const channelService = yield* api.services.ChannelService;
+  const notificationMode = yield* api.v2.services.NotificationModeService;
+  const channelService = yield* api.v2.services.ChannelService;
 
   const componentCount = componentSet.size;
   yield* channelService.appendToChannel(`Retrieving ${componentCount} component${componentCount === 1 ? '' : 's'}...`);
@@ -33,10 +33,12 @@ export const retrieveComponentSet = Effect.fn('retrieveComponentSet')(function* 
   const progressLocation = command
     ? yield* notificationMode.getProgressLocation(command)
     : vscode.ProgressLocation.Notification;
-  const result = yield* api.services.MetadataRetrieveService.retrieveComponentSet(componentSet, {
-    ignoreConflicts,
-    progressLocation
-  });
+  const result = yield* api.v2.services.MetadataRetrieveService.use(service =>
+    service.retrieveComponentSet(componentSet, {
+      ignoreConflicts,
+      progressLocation
+    })
+  );
 
   yield* channelService.appendToChannel(yield* formatRetrieveOutput(result, fileResponsesFromDelete));
 

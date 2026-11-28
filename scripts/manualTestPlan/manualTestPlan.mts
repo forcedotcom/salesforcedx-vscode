@@ -5,14 +5,21 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import * as Command from '@effect/platform/Command';
-import * as FileSystem from '@effect/platform/FileSystem';
-import * as Path from '@effect/platform/Path';
-import * as NodeContext from '@effect/platform-node/NodeContext';
-import { actionsEnvironment, GitHub, readPullRequestEvent, type PullRequestState } from '@salesforce/effect-octokit';
-import { Effect, Either, Exit, Layer, Logger, Match, Option, pipe, Schema, Stream } from 'effect';
-import * as Str from 'effect/String';
+import * as NodeServices from '@effect/platform-node/NodeServices';
+import {
+  actionsEnvironment,
+  GitHub,
+  GitHubLayer,
+  readPullRequestEvent,
+  type PullRequestState
+} from '@salesforce/effect-octokit';
+import { Effect, Exit, Layer, Logger, Match, Option, Result, Schema } from 'effect';
+import * as ConfigProvider from 'effect/ConfigProvider';
+import * as FileSystem from 'effect/FileSystem';
+import * as Path from 'effect/Path';
 import { pathToFileURL } from 'node:url';
+import { commandOutput } from '../commandOutput.mts';
+import { gitLocalEnv } from '../shared/gitLocalEnv.mts';
 import { openCodePrompt } from '../shared/openCode.mts';
 import { CommandFailed, InvalidBaseRef, Judgment, type Item } from './schema.mts';
 import { removeVideoSection, renderVideoManifest } from './videoManifest.mts';
@@ -31,26 +38,6 @@ export const isRelevantDiffPath = (file: string) => {
     !(parts[0] === 'packages' && ciPackages.has(parts[1] ?? ''))
   );
 };
-// Git hooks export these for their own worktree. This script's git calls use
-// an explicit cwd and must not inherit another worktree's repository or index.
-const gitLocalEnv = {
-  GIT_ALTERNATE_OBJECT_DIRECTORIES: undefined,
-  GIT_CONFIG: undefined,
-  GIT_CONFIG_PARAMETERS: undefined,
-  GIT_CONFIG_COUNT: undefined,
-  GIT_OBJECT_DIRECTORY: undefined,
-  GIT_DIR: undefined,
-  GIT_WORK_TREE: undefined,
-  GIT_IMPLICIT_WORK_TREE: undefined,
-  GIT_GRAFT_FILE: undefined,
-  GIT_INDEX_FILE: undefined,
-  GIT_NO_REPLACE_OBJECTS: undefined,
-  GIT_REPLACE_REF_BASE: undefined,
-  GIT_PREFIX: undefined,
-  GIT_SHALLOW_FILE: undefined,
-  GIT_COMMON_DIR: undefined
-};
-
 type Outcome = { readonly edited: boolean };
 export type PromptInput = { readonly skill: string; readonly diff: string; readonly correction?: string };
 type Attempt =
@@ -135,27 +122,12 @@ export const spliceManualTestPlan = (body: string, block: string) => {
 };
 
 const git = Effect.fn('manualTestPlan.git')(function* (cwd: string, args: readonly string[]) {
-  const [text, code] = yield* pipe(
-    Command.make('git', ...args),
-    Command.workingDirectory(cwd),
-    Command.env({ ...process.env, ...gitLocalEnv }, { extendEnv: false }),
-    Command.start,
-    Effect.flatMap(proc =>
-      Effect.all(
-        [
-          Stream.mkString(Stream.decodeText(proc.stdout)),
-          Stream.runDrain(Stream.decodeText(proc.stderr)),
-          proc.exitCode
-        ],
-        { concurrency: 'unbounded' }
-      )
-    ),
-    Effect.map(([stdout, , exitCode]) => [stdout, exitCode] as const),
-    Effect.scoped
+  return yield* commandOutput({ executable: 'git', args, cwd, env: gitLocalEnv, extendEnv: true }).pipe(
+    Effect.map(({ stdout }) => stdout),
+    Effect.catchTag('CommandFailed', error =>
+      Effect.fail(new CommandFailed({ command: 'git', code: error.exitCode, message: error.message }))
+    )
   );
-  return code === 0
-    ? text
-    : yield* new CommandFailed({ command: 'git', code: Number(code), message: `git exited ${String(code)}` });
 });
 
 type WorkflowName = { readonly name: string; readonly jobs: readonly string[] };
@@ -219,7 +191,7 @@ const checklistError = Effect.fn('manualTestPlan.checklistError')(function* (
       Match.tag('WatchVideo', video =>
         fs
           .exists(path.join(cwd, video.spec))
-          .pipe(Effect.map(exists => Option.fromNullable(watchVideoProblem(exists, workflows, video))))
+          .pipe(Effect.map(exists => Option.fromUndefinedOr(watchVideoProblem(exists, workflows, video))))
       ),
       Match.exhaustive
     )
@@ -238,7 +210,7 @@ export const manualTestPlanPrompt = Effect.fn('manualTestPlan.prompt')(function*
 });
 
 const readPrBody = Effect.fn('manualTestPlan.readPrBody')(function* (owner: string, repo: string, pr: number) {
-  return yield* GitHub.pullBody(owner, repo, pr);
+  return yield* GitHub.pipe(Effect.flatMap(github => github.pullBody(owner, repo, pr)));
 });
 
 const writePrBody = Effect.fn('manualTestPlan.writePrBody')(function* (
@@ -247,7 +219,7 @@ const writePrBody = Effect.fn('manualTestPlan.writePrBody')(function* (
   pr: number,
   body: string
 ) {
-  yield* GitHub.updatePullBody(owner, repo, pr, body);
+  yield* GitHub.pipe(Effect.flatMap(github => github.updatePullBody(owner, repo, pr, body)));
 });
 
 const skip = (reason: string, message: string) =>
@@ -262,19 +234,19 @@ const attempt = Effect.fn('manualTestPlan.attempt')(function* (
   cwd: string,
   correction: string | undefined
 ) {
-  const text = yield* prompt({ skill, diff, ...(correction === undefined ? {} : { correction }) }).pipe(Effect.either);
-  if (Either.isLeft(text)) return { _tag: 'opencode', message: text.left.message } satisfies Attempt;
-  const decoded = yield* Schema.decodeUnknown(Schema.parseJson(Judgment))(text.right).pipe(Effect.either);
-  if (Either.isLeft(decoded))
+  const text = yield* prompt({ skill, diff, ...(correction === undefined ? {} : { correction }) }).pipe(Effect.result);
+  if (Result.isFailure(text)) return { _tag: 'opencode', message: text.failure.message } satisfies Attempt;
+  const decoded = yield* Schema.decodeUnknownEffect(Schema.fromJsonString(Judgment))(text.success).pipe(Effect.result);
+  if (Result.isFailure(decoded))
     return {
       _tag: 'retry',
-      text: text.right,
-      error: `judgment JSON failed schema: ${decoded.left.message}`
+      text: text.success,
+      error: `judgment JSON failed schema: ${decoded.failure.message}`
     } satisfies Attempt;
-  const problem = yield* judgmentError(cwd, decoded.right);
+  const problem = yield* judgmentError(cwd, decoded.success);
   return problem === undefined
-    ? ({ _tag: 'ok', judgment: decoded.right } satisfies Attempt)
-    : ({ _tag: 'retry', text: text.right, error: problem } satisfies Attempt);
+    ? ({ _tag: 'ok', judgment: decoded.success } satisfies Attempt)
+    : ({ _tag: 'retry', text: text.success, error: problem } satisfies Attempt);
 });
 
 export type ManualTestPlanDeps = {
@@ -288,7 +260,7 @@ export type ManualTestPlanDeps = {
 };
 
 export const manualTestPlanProgram = Effect.fn('manualTestPlan.program')(function* (deps?: ManualTestPlanDeps) {
-  const env = yield* actionsEnvironment;
+  const env = yield* actionsEnvironment();
   const base = yield* Option.match(env.baseRef, {
     onNone: () => Effect.fail(new InvalidBaseRef({ ref: 'GITHUB_BASE_REF', message: 'GITHUB_BASE_REF is missing' })),
     onSome: ref =>
@@ -297,8 +269,9 @@ export const manualTestPlanProgram = Effect.fn('manualTestPlan.program')(functio
         : Effect.fail(new InvalidBaseRef({ ref, message: `refused base ref ${ref}` }))
   });
   const pr = yield* readPullRequestEvent(env.eventPath).pipe(Effect.map(event => event.pull_request.number));
-  const cwd = deps?.cwd ?? (yield* git(process.cwd(), ['rev-parse', '--show-toplevel']).pipe(Effect.map(Str.trim)));
-  const sha = yield* git(cwd, ['rev-parse', 'HEAD']).pipe(Effect.map(Str.trim));
+  const cwd =
+    deps?.cwd ?? (yield* git(process.cwd(), ['rev-parse', '--show-toplevel']).pipe(Effect.map(root => root.trim())));
+  const sha = yield* git(cwd, ['rev-parse', 'HEAD']).pipe(Effect.map(root => root.trim()));
   yield* Effect.annotateCurrentSpan('pr', String(pr));
   yield* git(cwd, ['fetch', 'origin', base]);
   const skill = yield* git(cwd, ['show', `origin/${base}:${skillPath}`]).pipe(Effect.option);
@@ -311,36 +284,22 @@ export const manualTestPlanProgram = Effect.fn('manualTestPlan.program')(functio
   const prompt = deps?.prompt ?? ((input: PromptInput) => manualTestPlanPrompt(cwd, input));
   const judged = yield* attempt(prompt, skill.value, diff, cwd, undefined).pipe(
     Effect.flatMap(first =>
-      Match.value(first).pipe(
-        Match.tag('opencode', () => Effect.succeed(first)),
-        Match.tag('retry', retry =>
-          attempt(prompt, skill.value, diff, cwd, `${retry.error}\n\nPrevious reply:\n${retry.text}`)
-        ),
-        Match.tag('ok', () => Effect.succeed(first)),
-        Match.exhaustive
-      )
+      first._tag === 'retry'
+        ? attempt(prompt, skill.value, diff, cwd, `${first.error}\n\nPrevious reply:\n${first.text}`)
+        : Effect.succeed(first)
     )
   );
   return yield* Match.value(judged).pipe(
     Match.tag('opencode', ({ message }) => skip('opencode', message)),
     Match.tag('retry', ({ error }) => skip('schema', error)),
     Match.tag('ok', ({ judgment }) =>
-      writeManualTestPlan({
-        cwd,
-        owner: env.owner,
-        repo: env.repo,
-        pr,
-        sha,
-        judgment,
-        deps
-      })
+      writeManualTestPlan({ owner: env.owner, repo: env.repo, pr, sha, judgment, deps })
     ),
     Match.exhaustive
   );
 });
 
 const writeManualTestPlan = Effect.fn('manualTestPlan.writeManualTestPlan')(function* (input: {
-  readonly cwd: string;
   readonly owner: string;
   readonly repo: string;
   readonly pr: number;
@@ -355,10 +314,11 @@ const writeManualTestPlan = Effect.fn('manualTestPlan.writeManualTestPlan')(func
       : yield* input.deps.readBody(input.pr);
   const latest =
     input.deps?.readHead === undefined
-      ? yield* GitHub.pullRequest(input.owner, input.repo, input.pr)
+      ? yield* GitHub.use(github => github.pullRequest(input.owner, input.repo, input.pr))
       : yield* input.deps.readHead(input.pr);
-  if (latest?.state !== 'OPEN' || latest.headRefOid !== input.sha)
+  if (latest?.state !== 'OPEN' || latest.headRefOid !== input.sha) {
     return yield* skip('stale-head', 'PR closed or head moved during manual plan generation');
+  }
   const next = spliceManualTestPlan(current, block);
   if (next === current) return { edited: false } satisfies Outcome;
   yield* input.deps?.writeBody === undefined
@@ -375,6 +335,7 @@ const stderrLogger = Logger.make(({ message }) => {
 const isDirectRun = process.argv[1] !== undefined && import.meta.url === pathToFileURL(process.argv[1]).href;
 
 if (isDirectRun) {
+  const configLayer = ConfigProvider.layer(ConfigProvider.fromEnvRecord(process.env));
   await manualTestPlanProgram().pipe(
     Effect.tapError(error => Effect.logError('manual test plan failed', { error })),
     Effect.exit,
@@ -383,8 +344,9 @@ if (isDirectRun) {
         if (Exit.isFailure(exit)) process.exitCode = 1;
       })
     ),
+    Effect.provide(configLayer),
     Effect.provide(
-      Layer.mergeAll(GitHub.Default, NodeContext.layer, Logger.replace(Logger.defaultLogger, stderrLogger))
+      Layer.mergeAll(GitHubLayer.pipe(Layer.provide(configLayer)), NodeServices.layer, Logger.layer([stderrLogger]))
     ),
     Effect.runPromise
   );

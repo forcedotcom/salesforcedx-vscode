@@ -13,16 +13,18 @@ import { URI } from 'vscode-uri';
 import { FAIL_RESULT, PASS_RESULT, SKIP_RESULT } from '../../../src/constants';
 import { parseStackTrace, updateTestRunResults } from '../../../src/utils/testResultProcessor';
 
-// Mock formatHuman before imports
-const { mockFormat } = vi.hoisted(() => ({
-  mockFormat: vi.fn().mockReturnValue('Mocked human-formatted output\nTest Results\n')
-}));
+// Mock HumanReporter before imports
+const mockFormat = vi.fn().mockReturnValue('Mocked HumanReporter Output\nTest Results\n');
 
 vi.mock('@salesforce/apex-node', async () => {
   const actual = (await vi.importActual<typeof ApexNode>('@salesforce/apex-node')) as any;
+  // Create a mock class that returns an object with format method
+  class MockHumanReporter {
+    public format = mockFormat;
+  }
   return {
     ...actual,
-    formatHuman: mockFormat
+    HumanReporter: MockHumanReporter
   };
 });
 
@@ -406,7 +408,7 @@ describe('testResultProcessor', () => {
       expect(run.failed).not.toHaveBeenCalled();
     });
 
-    it('should add human-formatted output', () => {
+    it('should add HumanReporter output', () => {
       const run = createMockTestRun();
 
       const methodItems = new Map();
@@ -414,7 +416,7 @@ describe('testResultProcessor', () => {
       const classItems = new Map();
 
       // Ensure mockFormat returns the expected output for this test
-      mockFormat.mockReturnValueOnce('Mocked human-formatted output\nTest Results\n');
+      mockFormat.mockReturnValueOnce('Mocked HumanReporter Output\nTest Results\n');
 
       const result: TestResult = {
         tests: [],
@@ -424,20 +426,20 @@ describe('testResultProcessor', () => {
       updateTestRunResults({ result, run, testsToRun: [], methodItems, classItems, codeCoverage: false });
 
       // The output is split by lines and each line is added separately with \r\n
-      // So we need to check if any call contains the formatted output
+      // So we need to check if any call contains the HumanReporter output
       const outputCalls = (run.appendOutput as VitestMock).mock.calls;
       const allOutput = outputCalls.map(call => call[0]).join('');
-      expect(allOutput).toContain('Mocked human-formatted output');
+      expect(allOutput).toContain('Mocked HumanReporter Output');
     });
 
-    it('should handle empty formatted output', () => {
+    it('should handle empty HumanReporter output', () => {
       const run = createMockTestRun();
 
       const methodItems = new Map();
 
       const classItems = new Map();
 
-      // Return empty output for this test
+      // Mock HumanReporter to return empty string for this test
       mockFormat.mockReturnValueOnce('');
 
       const result: TestResult = {

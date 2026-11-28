@@ -2,9 +2,9 @@
 
 Configurable success notifications and progress location, plus error toasts with action buttons. `commandKey` = English title (`COMMAND` in [SKILL.md](../SKILL.md#1-manifest--i18n)).
 
-Yield `api.services.NotificationModeService`. Merge `Default(extensionSection, statusBarId, statusBarName)` into `AllServicesLayer`.
+Yield `api.v2.services.NotificationModeService`. Merge `api.v2.services.NotificationModeServiceLayer(extensionSection, statusBarId, statusBarName)` into `AllServicesLayer`.
 
-`Default` returns a scoped per-extension layer. Status item, registered command, and timer release when the owning runtime is disposed.
+`NotificationModeServiceLayer` returns a scoped per-extension layer. Status item, registered command, and timer release when the owning runtime is disposed.
 
 ## showSuccessNotification
 

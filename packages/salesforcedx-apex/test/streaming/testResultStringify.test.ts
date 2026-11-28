@@ -5,8 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { stringifyTestResultChunks } from '../../src/streaming/testResultStringify';
-import { type CodeCoverageResult, type PerClassCoverage } from '../../src/effect/coverageSchemas';
-import { type TestResult } from '../../src/tests/types';
+import { type CodeCoverageResult, type PerClassCoverage, type TestResult } from '../../src/tests/apiTypes';
 import { apexClassId, salesforceId } from '../schemaHelpers';
 
 const firstAsyncApexJobId = salesforceId('707000000000001AAA');

@@ -46,5 +46,5 @@ export const annotateRootSpan: {
           })
       })
     ),
-    Effect.catchTag('NoSuchElementException', () => Effect.logDebug('annotateRootSpan: no current span'))
+    Effect.catchTag('NoSuchElementError', () => Effect.logDebug('annotateRootSpan: no current span'))
   );

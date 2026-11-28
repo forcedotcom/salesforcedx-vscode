@@ -11,8 +11,12 @@ import type * as ts from 'typescript';
 
 const effectTypeNames = new Set(['Effect', 'Stream', 'Schema']);
 
-const fromEffectModule = (fileName: string, moduleName: string): boolean =>
-  fileName.replaceAll('\\', '/').endsWith(`/effect/dist/dts/${moduleName}.d.ts`);
+const fromEffectModule = (fileName: string, moduleName: string): boolean => {
+  const normalized = fileName.replaceAll('\\', '/');
+  return (
+    normalized.endsWith(`/effect/dist/${moduleName}.d.ts`) || normalized.endsWith(`/effect/dist/dts/${moduleName}.d.ts`)
+  );
+};
 
 const isEffectPipe = (type: ts.Type): boolean =>
   type.getCallSignatures().some(signature => {

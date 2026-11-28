@@ -7,4 +7,4 @@
 
 import * as Schema from 'effect/Schema';
 
-export const SalesforceIdSchema = Schema.String.pipe(Schema.pattern(/^(?:[A-Za-z0-9]{15}|[A-Za-z0-9]{18})$/));
+export const SalesforceIdSchema = Schema.String.check(Schema.isPattern(/^(?:[A-Za-z0-9]{15}|[A-Za-z0-9]{18})$/));

@@ -11,7 +11,7 @@ import * as Effect from 'effect/Effect';
 export const resetRemoteTrackingCommand = Effect.fn('resetRemoteTracking')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const [channelService, sourceTrackingService] = yield* Effect.all(
-    [api.services.ChannelService, api.services.SourceTrackingService],
+    [api.v2.services.ChannelService, api.v2.services.SourceTrackingService],
     { concurrency: 'unbounded' }
   );
 

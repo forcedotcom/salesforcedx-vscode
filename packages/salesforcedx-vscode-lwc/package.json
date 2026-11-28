@@ -31,7 +31,7 @@
     "@salesforce/effect-ext-utils": "workspace:*",
     "@salesforce/salesforcedx-lightning-lsp-common": "workspace:*",
     "@salesforce/vscode-i18n": "workspace:*",
-    "effect": "^3.22.4",
+    "effect": "^4.1.4",
     "jest-editor-support": "31.1.2",
     "jest-regex-util": "^24.9.0",
     "vscode-languageclient": "^9.0.1",
@@ -43,6 +43,7 @@
     "@salesforce/core": "^9.4.1",
     "@salesforce/playwright-vscode-ext": "workspace:*",
     "@salesforce/salesforcedx-lwc-language-server": "workspace:*",
+    "@salesforce/vscode-services": "workspace:*",
     "salesforcedx-vscode-services": "workspace:*",
     "@types/which": "^1.3.1"
   },
@@ -120,7 +121,6 @@
         "esbuild.config.mjs",
         "../../scripts/bundling/node.mjs",
         "../../scripts/bundling/web.mjs",
-        "../../scripts/bundling/process-polyfill.js",
         "../../scripts/bundling/fs-polyfill.js",
         "src/**"
       ],
@@ -254,7 +254,6 @@
         "esbuild.config.mjs",
         "../../scripts/bundling/node.mjs",
         "../../scripts/bundling/web.mjs",
-        "../../scripts/bundling/process-polyfill.js",
         "../../scripts/bundling/fs-polyfill.js",
         "src/**"
       ],

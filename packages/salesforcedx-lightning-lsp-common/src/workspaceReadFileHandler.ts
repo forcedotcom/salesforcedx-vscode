@@ -6,16 +6,8 @@
  */
 
 import type { FileStat, DirectoryEntry } from './types/fileSystemTypes';
-import {
-  type buildAllServicesLayer,
-  type SalesforceVSCodeServicesApi,
-  getMessageFromError
-} from '@salesforce/effect-ext-utils';
-
-import type * as Context from 'effect/Context';
+import { getMessageFromError, type SalesforceVSCodeServicesApiV2 } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
-import type * as Layer from 'effect/Layer';
-import type * as ManagedRuntime from 'effect/ManagedRuntime';
 import { isError } from 'effect/Predicate';
 import * as Schema from 'effect/Schema';
 import * as vscode from 'vscode';
@@ -61,16 +53,11 @@ const vscodeStatToFileStat = (vstat: vscode.FileStat): FileStat => ({
   exists: true
 });
 
-type WorkspaceFsService = Context.Tag.Service<SalesforceVSCodeServicesApi['services']['FsService']>;
-type AllServicesLayer = ReturnType<typeof buildAllServicesLayer>;
-type AllServicesRuntime = ManagedRuntime.ManagedRuntime<
-  Layer.Layer.Success<AllServicesLayer>,
-  Layer.Layer.Error<AllServicesLayer>
->;
+type WorkspaceFsService = SalesforceVSCodeServicesApiV2['v2']['services']['FsService']['Service'];
 
 type WorkspaceReadFileServices = {
   readonly fsService: WorkspaceFsService;
-  readonly runPromise: AllServicesRuntime['runPromise'];
+  readonly runPromise: <A, E>(effect: Effect.Effect<A, E, never>) => Promise<A>;
 };
 
 const logTo = (channel: Pick<vscode.OutputChannel, 'appendLine'>, msg: string) =>
@@ -163,7 +150,7 @@ export const registerWorkspaceReadFileHandler = (
 
   client.onRequest<WorkspaceReadFileParams, WorkspaceReadFileResult>(WORKSPACE_READ_FILE_REQUEST, params =>
     handleReadFile(params).pipe(
-      Effect.catchAll(e =>
+      Effect.catch(e =>
         Effect.sync(() => {
           log.appendLine(`[readFile] error: ${getMessageFromError(e)}`);
           return { error: getMessageFromError(e) };
@@ -175,7 +162,7 @@ export const registerWorkspaceReadFileHandler = (
 
   client.onRequest<WorkspaceStatParams, WorkspaceStatResult>(WORKSPACE_STAT_REQUEST, params =>
     handleStat(params).pipe(
-      Effect.catchAll(e =>
+      Effect.catch(e =>
         Effect.sync(() => {
           log.appendLine(
             `[stat] error uri=${JSON.stringify(params.uri)}: ${getMessageFromError(e) || `(no message) left=${JSON.stringify(e)}`}`
@@ -191,7 +178,7 @@ export const registerWorkspaceReadFileHandler = (
     WORKSPACE_READ_DIRECTORY_REQUEST,
     params =>
       handleReadDirectory(params).pipe(
-        Effect.catchAll(e =>
+        Effect.catch(e =>
           Effect.sync(() => {
             log.appendLine(`[readDirectory] error: ${getMessageFromError(e)}`);
             return { error: getMessageFromError(e) };
@@ -203,7 +190,7 @@ export const registerWorkspaceReadFileHandler = (
 
   client.onRequest<WorkspaceFindFilesParams, WorkspaceFindFilesResult>(WORKSPACE_FIND_FILES_REQUEST, params =>
     handleFindFiles(params).pipe(
-      Effect.catchAll(e =>
+      Effect.catch(e =>
         Effect.sync(() => {
           const message = getMessageFromError(e);
           const stack = isError(e) ? e.stack : undefined;
@@ -218,7 +205,7 @@ export const registerWorkspaceReadFileHandler = (
 
   client.onRequest<WorkspaceDeleteFileParams, WorkspaceDeleteFileResult>(WORKSPACE_DELETE_FILE_REQUEST, params =>
     handleDeleteFile(params).pipe(
-      Effect.catchAll(e =>
+      Effect.catch(e =>
         Effect.sync(() => {
           log.appendLine(`[deleteFile] error: ${getMessageFromError(e)}`);
           return { error: getMessageFromError(e) };

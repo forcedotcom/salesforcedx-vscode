@@ -9,8 +9,12 @@ import type { Mock as VitestMock } from 'vitest';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
-import type { NonEmptyComponentSet } from 'salesforcedx-vscode-services';
-import { SettingsService } from 'salesforcedx-vscode-services/src/vscode/settingsService';
+import {
+  TargetOrgRef,
+  SettingsService,
+  type DefaultOrgInfo,
+  type NonEmptyComponentSet
+} from '@salesforce/vscode-services/v2';
 import { detectConflicts } from '../../../src/conflict/conflictFlow';
 import * as conflictDetection from '../../../src/conflict/conflictDetection';
 import * as conflictDetectionTimestamp from '../../../src/conflict/conflictDetectionTimestamp';
@@ -41,31 +45,35 @@ vi.mock('../../../src/settings/deployOnSaveSettings', () => ({
 // Minimal branded NonEmptyComponentSet for testing
 const makeCS = (size = 1) => ({ size }) as unknown as NonEmptyComponentSet;
 const mockGetValue = vi.fn((_section: string, _key: string, defaultValue?: unknown) => Effect.succeed(defaultValue));
-const settingsService = SettingsService.make({ getValue: mockGetValue, getValueOrElse: mockGetValue } as never);
+const settingsService = {
+  getValue: mockGetValue,
+  getValueOrElse: mockGetValue
+} as unknown as SettingsService['Service'];
 
 const createMockTargetOrgRef = (tracksSource: boolean) =>
-  SubscriptionRef.make({ orgId: 'test-org', tracksSource }) as Effect.Effect<
-    SubscriptionRef.SubscriptionRef<{ orgId: string; tracksSource: boolean }>,
-    never,
-    never
-  >;
+  Effect.runSync(
+    SubscriptionRef.make<DefaultOrgInfo>({ orgId: '00D000000000001' as DefaultOrgInfo['orgId'], tracksSource })
+  );
 
 const createMockServicesApi = (tracksSource: boolean) => ({
-  services: {
-    TargetOrgRef: () => createMockTargetOrgRef(tracksSource),
-    SettingsService
+  v2: {
+    services: {
+      TargetOrgRef,
+      SettingsService
+    }
   }
 });
 
 const createMockExtensionProvider = (tracksSource: boolean) =>
   ({
     getServicesApi: Effect.succeed(createMockServicesApi(tracksSource))
-  }) as unknown as ExtensionProviderService;
+  }) as unknown as ExtensionProviderService['Service'];
 
 const provideServices = (tracksSource: boolean) => (e: Effect.Effect<unknown, unknown, unknown>) =>
   e.pipe(
     Effect.provideService(ExtensionProviderService, createMockExtensionProvider(tracksSource)),
-    Effect.provideService(SettingsService, settingsService)
+    Effect.provideService(SettingsService, settingsService),
+    Effect.provideService(TargetOrgRef, createMockTargetOrgRef(tracksSource))
   );
 
 const runWithServices = (effect: Effect.Effect<any, any, any>, tracksSource = true) =>

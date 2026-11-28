@@ -6,7 +6,9 @@
  *
  */
 
+import * as Context from 'effect/Context';
 import * as Effect from 'effect/Effect';
+import * as Layer from 'effect/Layer';
 import * as Match from 'effect/Match';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
 import { MessageService } from './message/iMessageService';
@@ -16,9 +18,7 @@ import {
   type SObjectMetadata
 } from './message/soqlEditorEvent';
 
-export class ToolingSDK extends Effect.Service<ToolingSDK>()('ToolingSDK', {
-  accessors: true,
-  effect: Effect.gen(function* () {
+const makeToolingSDK = Effect.gen(function* () {
     const messageService = yield* MessageService;
 
     const sobjects = yield* SubscriptionRef.make<string[]>([]);
@@ -63,8 +63,12 @@ export class ToolingSDK extends Effect.Service<ToolingSDK>()('ToolingSDK', {
       Match.orElse(() => undefined)
     );
 
-    messageService.onMessage(handleMessage);
+    const removeMessageListener = messageService.onMessage(handleMessage);
+    yield* Effect.addFinalizer(() => Effect.sync(removeMessageListener));
 
     return { sobjects, sobjectMetadata, queryRunState, noDefaultOrg, queryPlanRunState, loadSObjectDefinitions, loadSObjectMetadata };
-  })
-}) {}
+});
+
+export class ToolingSDK extends Context.Service<ToolingSDK, Effect.Success<typeof makeToolingSDK>>()('ToolingSDK') {
+  static readonly layer = Layer.effect(ToolingSDK, makeToolingSDK);
+}

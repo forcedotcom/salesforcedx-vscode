@@ -8,8 +8,8 @@
 import { mkdir, mkdtemp, readdir, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import * as FileSystem from '@effect/platform/FileSystem';
-import * as Path from '@effect/platform/Path';
+import * as FileSystem from 'effect/FileSystem';
+import * as Path from 'effect/Path';
 import * as Effect from 'effect/Effect';
 import * as Cause from 'effect/Cause';
 import * as Deferred from 'effect/Deferred';
@@ -69,13 +69,13 @@ describe('Node FileOutput', () => {
     const result = await Effect.runPromise(
       NodeFileOutput.writeFile(directory, 'report.txt', content).pipe(
         Effect.provide(NodeFileOutputLayer),
-        Effect.either
+        Effect.result
       )
     );
 
     expect(result).toMatchObject({
-      _tag: 'Left',
-      left: { _tag: 'FileOutputError', path: filePath, message: 'render failed' }
+      _tag: 'Failure',
+      failure: { _tag: 'FileOutputError', path: filePath, message: 'render failed' }
     });
     await expect(readdir(directory)).resolves.toEqual(['report.txt']);
     await expect(readFile(filePath, 'utf8')).resolves.toBe('previous');
@@ -89,7 +89,7 @@ describe('Node FileOutput', () => {
     const content = Stream.concat(
       Stream.make('new '),
       Stream.fromEffect(
-        Deferred.succeed(started, undefined).pipe(Effect.zipRight(Deferred.await(finish)), Effect.as('result'))
+        Deferred.succeed(started, undefined).pipe(Effect.andThen(Deferred.await(finish)), Effect.as('result'))
       )
     );
     const fiber = Effect.runFork(
@@ -112,11 +112,11 @@ describe('Node FileOutput', () => {
     const result = await Effect.runPromise(
       NodeFileOutput.writeFile(directory, 'report.txt', Stream.make('complete')).pipe(
         Effect.provide(NodeFileOutputLayer),
-        Effect.either
+        Effect.result
       )
     );
 
-    expect(result).toMatchObject({ _tag: 'Left', left: { _tag: 'FileOutputError', path: filePath } });
+    expect(result).toMatchObject({ _tag: 'Failure', failure: { _tag: 'FileOutputError', path: filePath } });
     await expect(readdir(directory)).resolves.toEqual(['report.txt']);
     await expect(readdir(filePath)).resolves.toEqual([]);
   });
@@ -145,22 +145,23 @@ describe('Node FileOutput', () => {
             Stream.make('incomplete'),
             Stream.fromEffect(
               Deferred.succeed(started, undefined).pipe(
-                Effect.zipRight(interrupted ? Effect.never : Effect.die(new Error('render failed')))
+                Effect.andThen(interrupted ? Effect.never : Effect.die(new Error('render failed')))
               )
             )
           );
-          const fiber = yield* Effect.fork(fileOutput.writeFile(directory, 'report.txt', content));
+          const fiber = yield* Effect.forkChild(fileOutput.writeFile(directory, 'report.txt', content));
           yield* Deferred.await(started);
-          return yield* interrupted ? Fiber.interrupt(fiber) : Fiber.await(fiber);
+          if (interrupted) yield* Fiber.interrupt(fiber);
+          return yield* Fiber.await(fiber);
         }).pipe(Effect.provide(NodeFileOutputPlatformLayer))
       );
 
       const cause = Exit.match(exit, { onFailure: cause => cause, onSuccess: () => Cause.empty });
-      const details = Cause.failureOption(cause).pipe(
+      const details = Cause.findErrorOption(cause).pipe(
         Option.match({ onNone: () => Cause.pretty(cause), onSome: error => error.cause ?? error.message })
       );
       expect(exit._tag).toBe('Failure');
-      expect(Cause.isInterrupted(cause)).toBe(interrupted);
+      expect(Cause.hasInterrupts(cause)).toBe(interrupted);
       expect(details).toContain('cleanup failed');
       expect(details).toContain(interrupted ? 'cleanup failed' : 'render failed');
       await expect(readFile(filePath, 'utf8')).resolves.toBe('previous');
@@ -181,25 +182,30 @@ describe('Node FileOutput', () => {
           ...fileSystem,
           rename: (from, to) =>
             Deferred.succeed(started, undefined).pipe(
-              Effect.zipRight(Deferred.await(finish)),
-              Effect.zipRight(fileSystem.rename(from, to))
+              Effect.andThen(Deferred.await(finish)),
+              Effect.andThen(fileSystem.rename(from, to))
             )
         },
         path
       ).writeFile(directory, 'report.txt', Stream.make('complete'));
     }).pipe(Effect.provide(NodeFileOutputPlatformLayer));
     const fiber = Effect.runFork(write);
+    let interruption = Promise.resolve();
     try {
       await Effect.runPromise(Deferred.await(started));
-      await Effect.runPromise(Fiber.interruptFork(fiber));
-      expect(await Effect.runPromise(Fiber.poll(fiber))).toEqual(Option.none());
+      let interruptionCompleted = false;
+      interruption = Effect.runPromise(Fiber.interrupt(fiber)).then(() => {
+        interruptionCompleted = true;
+      });
+      await new Promise(resolve => setImmediate(resolve));
+      expect(interruptionCompleted).toBe(false);
       await expect(readFile(filePath, 'utf8')).resolves.toBe('previous');
     } finally {
       await Effect.runPromise(Deferred.succeed(finish, undefined));
-      await Effect.runPromise(Fiber.await(fiber));
+      await Promise.all([Effect.runPromise(Fiber.await(fiber)), interruption]);
     }
     const exit = await Effect.runPromise(Fiber.await(fiber));
-    expect(Exit.isFailure(exit) && Cause.isInterruptedOnly(exit.cause)).toBe(true);
+    expect(Exit.isFailure(exit) && Cause.hasInterruptsOnly(exit.cause)).toBe(true);
     await expect(readFile(filePath, 'utf8')).resolves.toBe('complete');
     await expect(readdir(directory)).resolves.toEqual(['report.txt']);
   });
@@ -213,17 +219,18 @@ describe('Node FileOutput', () => {
         const started = yield* Deferred.make<void>();
         const content = Stream.concat(
           Stream.make('incomplete'),
-          Stream.fromEffect(Deferred.succeed(started, undefined).pipe(Effect.zipRight(Effect.never)))
+          Stream.fromEffect(Deferred.succeed(started, undefined).pipe(Effect.andThen(Effect.never)))
         );
-        const fiber = yield* Effect.fork(
+        const fiber = yield* Effect.forkChild(
           NodeFileOutput.writeFile(directory, 'report.txt', content).pipe(Effect.provide(NodeFileOutputLayer))
         );
         yield* Deferred.await(started);
-        return yield* Fiber.interrupt(fiber);
+        yield* Fiber.interrupt(fiber);
+        return yield* Fiber.await(fiber);
       })
     );
 
-    expect(Exit.isFailure(exit) && Cause.isInterruptedOnly(exit.cause)).toBe(true);
+    expect(Exit.isFailure(exit) && Cause.hasInterruptsOnly(exit.cause)).toBe(true);
     await expect(readdir(directory)).resolves.toEqual(existing ? ['report.txt'] : []);
     if (existing) await expect(readFile(filePath, 'utf8')).resolves.toBe('previous');
   });

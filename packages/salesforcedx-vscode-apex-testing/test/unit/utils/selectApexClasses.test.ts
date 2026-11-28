@@ -7,10 +7,13 @@
 
 import type { Mock as VitestMock } from 'vitest';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import * as Arr from 'effect/Array';
 import * as Effect from 'effect/Effect';
 import * as Exit from 'effect/Exit';
 import * as Layer from 'effect/Layer';
-import { PromptService, UserCancellationError } from 'salesforcedx-vscode-services/src/vscode/prompts/promptService';
+import { isNotUndefined } from 'effect/Predicate';
+import * as Schema from 'effect/Schema';
+import { PromptService, UserCancellationError } from '@salesforce/vscode-services/v2';
 import * as vscode from 'vscode';
 import { type ApexTestQuickPickItem } from '../../../src/utils/fileHelpers';
 import { selectApexClasses } from '../../../src/utils/selectApexClasses';
@@ -20,16 +23,34 @@ describe('selectApexClasses', () => {
     { label: 'LocalTest', type: 'Class' },
     { label: 'ManagedTest', type: 'Class', fullClassName: 'ns.ManagedTest' }
   ];
+  const promptService = {
+    considerEmptySelectionAsCancellation: <T>(selection: readonly T[] | undefined) =>
+      Effect.succeed(selection).pipe(
+        Effect.filterOrFail(
+          (value): value is Arr.NonEmptyReadonlyArray<T> => isNotUndefined(value) && Arr.isReadonlyArrayNonEmpty(value),
+          () => new UserCancellationError({ message: 'User cancelled' })
+        )
+      )
+  } as unknown as PromptService['Service'];
   const servicesLayer = Layer.mergeAll(
-    PromptService.Default,
+    Layer.succeed(PromptService, promptService),
     Layer.succeed(ExtensionProviderService, {
       getServicesApi: Effect.succeed({
-        services: { PromptService }
+        v2: { services: { PromptService } }
       })
-    } as unknown as ExtensionProviderService)
+    } as unknown as ExtensionProviderService['Service'])
   );
   const runSelection = () =>
     selectApexClasses(selectedClasses).pipe(Effect.provide(servicesLayer), Effect.runPromiseExit);
+  const expectCancellation = async () => {
+    const exit = await runSelection();
+    expect(Exit.isFailure(exit)).toBe(true);
+    if (Exit.isFailure(exit)) {
+      expect(
+        exit.cause.reasons.some(reason => reason._tag === 'Fail' && Schema.is(UserCancellationError)(reason.error))
+      ).toBe(true);
+    }
+  };
 
   afterEach(() => vi.clearAllMocks());
 
@@ -39,7 +60,7 @@ describe('selectApexClasses', () => {
   ])('cancels when the class selection is $description', async ({ result }) => {
     (vscode.window.showQuickPick as VitestMock).mockResolvedValue(result);
 
-    expect(await runSelection()).toStrictEqual(Exit.fail(new UserCancellationError()));
+    await expectCancellation();
   });
 
   it('returns selected class names, preferring the fully-qualified name when available', async () => {

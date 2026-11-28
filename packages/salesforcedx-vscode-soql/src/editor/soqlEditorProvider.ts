@@ -7,6 +7,7 @@
 
 import { getServicesApi } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
+import * as Queue from 'effect/Queue';
 import * as vscode from 'vscode';
 import { type URI, Utils } from 'vscode-uri';
 import { BUILDER_VIEW_TYPE, HTML_FILE, SOQL_BUILDER_UI_PATH } from '../constants';
@@ -15,7 +16,7 @@ import { getSoqlRuntime } from '../services/extensionProvider';
 import { isDefaultOrgSet } from '../services/org';
 import { isOrgExtensionInstalled } from '../services/orgExtension';
 import { transformHtml } from './htmlUtils';
-import { SOQLEditorInstance } from './soqlEditorInstance';
+import { SOQLEditorInstance, type SoqlEditorEvent } from './soqlEditorInstance';
 
 export class SOQLEditorProvider implements vscode.CustomTextEditorProvider {
   public static register(extensionContext: vscode.ExtensionContext): vscode.Disposable {
@@ -39,17 +40,24 @@ export class SOQLEditorProvider implements vscode.CustomTextEditorProvider {
       enableScripts: true,
       localResourceRoots: [soqlBuilderUri]
     };
-    webviewPanel.webview.html = await this.getWebViewContent(webviewPanel.webview);
-    const instance = new SOQLEditorInstance(document, webviewPanel, _token);
+    const html = await this.getWebViewContent(webviewPanel.webview);
+    const incomingMessages = Effect.runSync(Queue.unbounded<SoqlEditorEvent>());
+    const instance = new SOQLEditorInstance(document, webviewPanel, _token, incomingMessages);
+    instance.subscriptions.push(
+      webviewPanel.webview.onDidReceiveMessage((event: SoqlEditorEvent) => {
+        Queue.offerUnsafe(incomingMessages, event);
+      })
+    );
     this.instances.push(instance);
     instance.onDispose(this.disposeInstance.bind(this));
     this.extensionContext.subscriptions.push(...instance.subscriptions);
+    webviewPanel.webview.html = html;
 
     if (!(await isDefaultOrgSet())) {
       const message = noDefaultOrgMessage();
       getSoqlRuntime().runFork(
         getServicesApi.pipe(
-          Effect.flatMap(api => api.services.ChannelService),
+          Effect.flatMap(api => api.v2.services.ChannelService),
           Effect.flatMap(svc => svc.appendToChannel(message))
         )
       );
@@ -62,7 +70,9 @@ export class SOQLEditorProvider implements vscode.CustomTextEditorProvider {
     const htmlContent = await getSoqlRuntime().runPromise(
       Effect.gen(function* () {
         const api = yield* getServicesApi;
-        return yield* api.services.FsService.readFile(Utils.joinPath(soqlBuilderUri, HTML_FILE));
+        return yield* api.v2.services.FsService.use(service =>
+          service.readFile(Utils.joinPath(soqlBuilderUri, HTML_FILE))
+        );
       })
     );
     return transformHtml(htmlContent, soqlBuilderUri, webview, isOrgExtensionInstalled());

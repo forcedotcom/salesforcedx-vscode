@@ -2,9 +2,9 @@
 
 `executable` + `args` as argv (never a shell string). Desktop-only — `TerminalServiceError` on web.
 
-Spawn: `@effect/platform` `Command.make` + `commandExecutor.start`. Tests stub `CommandExecutor.CommandExecutor`, not a ChildProcess service.
+The V2 service owns platform-specific command execution. Consumers pass argv and do not spawn processes directly.
 
-- `TerminalService.Default` desktop-only. Deps: Config+Settings. CommandExecutor from the platform layer
+- `TerminalService` is reached through the V2 service API; it is desktop-only. Its layer uses Config/Settings and the Node child-process platform.
 - desktop: `servicesLayers` `import()`s `CrossSpawnCommandExecutorLive` inside the `ESBUILD_PLATFORM` node branch (LWC testSupport / visualforce javascriptMode). Module static-imports `cross-spawn` for Windows `.cmd`; `shell` never enabled. stdout/stderr via `NodeStream.fromReadable`
 - web: `TerminalServiceWebLive` (`Layer.succeed` stub; no CommandExecutor/Config/Settings). `simpleExec` → `TerminalServiceError` (`errorType: unsupported_platform`)
 
@@ -15,7 +15,7 @@ simpleExec(args: {
   executable: string;
   args: readonly string[];
   parse: (stdout: string) => A;
-  timeout?: Duration.DurationInput;
+  timeout?: Duration.Input;
   env?: Record<string, string>;
   cwd?: string;
 }): Effect<A, TerminalServiceError>
@@ -23,7 +23,7 @@ simpleExec(args: {
 
 - `parse` required — `identity` for trimmed stdout
 - stdout trimmed before `parse`
-- `timeout` optional `Duration.DurationInput` (default `Duration.seconds(30)`); larger Duration for long-running commands (e.g. org delete)
+- `timeout` optional `Duration.Input` (default `Duration.seconds(30)`); larger Duration for long-running commands (e.g. org delete)
 - `env` optional — overlays child env
 - `cwd` optional — child working directory (omitted → extension-host `process.cwd()`)
 - `executable === 'sf'` gets env assembled at exec time, lowest precedence first:
@@ -51,11 +51,11 @@ Parse stdout into a string:
 
 ```typescript
 // stdout is pre-trimmed; split "7.200.6 @salesforce/cli/..." → just the version token
-const version = yield* api.services.TerminalService.simpleExec({
+const version = yield* api.v2.services.TerminalService.use(service => service.simpleExec({
   executable: 'sf',
   args: ['--version'],
   parse: stdout => stdout.split(' ')[0]
-});
+}));
 // version: string
 ```
 
@@ -65,11 +65,11 @@ Pass a longer `timeout` for slow commands:
 import * as Duration from 'effect/Duration';
 import { identity } from 'effect/Function';
 
-const result = yield* api.services.TerminalService.simpleExec({
+const result = yield* api.v2.services.TerminalService.use(service => service.simpleExec({
   executable: 'sf',
   args: ['org', 'delete', 'scratch'],
   parse: identity,
   timeout: Duration.minutes(2)
-});
+}));
 // result: string
 ```

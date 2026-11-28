@@ -31,7 +31,7 @@ import { makeTreeRefreshCoordinator } from './tree/treeRefreshCoordinator';
 export const activate = async (context: vscode.ExtensionContext): Promise<void> => {
   const extensionScope = Effect.runSync(getExtensionScope());
   setAllServicesLayer(buildAllServicesLayer(context));
-  await getOrgBrowserRuntime().runPromise(activateEffect(context).pipe(Scope.extend(extensionScope)));
+  await getOrgBrowserRuntime().runPromise(Scope.provide(extensionScope)(activateEffect(context)));
 };
 
 export const deactivate = async (): Promise<void> => {
@@ -41,7 +41,7 @@ export const deactivate = async (): Promise<void> => {
 // export for testing
 export const activateEffect = Effect.fn(`activation:${EXTENSION_NAME}`)(function* (context: vscode.ExtensionContext) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const svc = yield* api.services.ChannelService;
+  const svc = yield* api.v2.services.ChannelService;
   yield* svc.appendToChannel('Salesforce Org Browser extension activating');
   yield* Effect.promise(() => vscode.commands.executeCommand('setContext', 'sf:orgBrowser.initialized', false));
 
@@ -97,11 +97,11 @@ export const activateEffect = Effect.fn(`activation:${EXTENSION_NAME}`)(function
 
   const saveActiveFilterState = (filter: Partial<OrgBrowserFilterState>) =>
     Effect.gen(function* () {
-      const { orgId } = yield* SubscriptionRef.get(yield* api.services.TargetOrgRef());
+      const { orgId } = yield* SubscriptionRef.get(yield* api.v2.services.TargetOrgRef);
       if (orgId) yield* Effect.promise(() => saveFilterState(context, orgId, filter));
     });
 
-  const registerCommand = api.services.registerCommandWithRuntime(getOrgBrowserRuntime());
+  const registerCommand = api.v2.services.registerCommandWithRuntime(getOrgBrowserRuntime());
 
   // Register commands
   yield* Effect.all(
@@ -184,7 +184,7 @@ export const activateEffect = Effect.fn(`activation:${EXTENSION_NAME}`)(function
 
   yield* Effect.promise(() => vscode.commands.executeCommand('setContext', 'sf:orgBrowser.initialized', true));
 
-  const targetOrgRef = yield* api.services.TargetOrgRef();
+  const targetOrgRef = yield* api.v2.services.TargetOrgRef;
   const legacyFilter: OrgBrowserFilterState | undefined = (() => {
     const typeFilter = context.workspaceState.get<string | undefined>('orgBrowser.typeFilter');
     const componentFilter = context.workspaceState.get<string | undefined>('orgBrowser.componentFilter');
@@ -252,7 +252,7 @@ export const activateEffect = Effect.fn(`activation:${EXTENSION_NAME}`)(function
     });
   const { orgId: initialOrgId } = yield* SubscriptionRef.get(targetOrgRef);
   const initialFilter = initialOrgId ? yield* restoreFilter(initialOrgId, false, true) : undefined;
-  const orgMetadataChanges = yield* api.services.OrgMetadataCatalogChangePubSub;
+  const orgMetadataChanges = yield* api.v2.services.OrgMetadataCatalogChangePubSub;
   const extensionScope = yield* getExtensionScope();
   yield* Effect.forkIn(
     orgMetadataChanges.pipe(
@@ -275,17 +275,17 @@ export const activateEffect = Effect.fn(`activation:${EXTENSION_NAME}`)(function
     );
   } else if (initialOrgId) {
     if (!initialFilter?.typeFilter) {
-      const catalog = yield* api.services.OrgMetadataCatalog;
+      const catalog = yield* api.v2.services.OrgMetadataCatalog;
       yield* treeProvider.trackOrgRequest('Discovering org metadata', catalog.getChildren());
       yield* treeProvider
         .trackOrgRequest('Discovering org metadata', preloadMetadataTypes(catalog))
-        .pipe(Effect.catchAll(error => Effect.logWarning('Failed to preload Org Browser metadata types', error)));
+        .pipe(Effect.catch(error => Effect.logWarning('Failed to preload Org Browser metadata types', error)));
     }
     treeProvider.fireChangeEvent();
   }
 
-  yield* Effect.forkDaemon(
-    targetOrgRef.changes.pipe(
+  yield* Effect.forkIn(
+    SubscriptionRef.changes(targetOrgRef).pipe(
       Stream.map(org => org.orgId),
       Stream.changes,
       // skip the snapshot already handled via initialOrgId; any other value (incl. org arriving after read, or no org) refreshes
@@ -297,8 +297,8 @@ export const activateEffect = Effect.fn(`activation:${EXTENSION_NAME}`)(function
           if (!orgId) {
             treeProvider.clearTextFilter();
             return yield* Effect.tryPromise(() => treeProvider.updateTreeEmptyContext(true)).pipe(
-              Effect.zipRight(Effect.sync(() => treeProvider.fireChangeEvent())),
-              Effect.catchAll(error => Effect.logWarning('Failed to clear the Org Browser tree', error))
+              Effect.andThen(Effect.sync(() => treeProvider.fireChangeEvent())),
+              Effect.catch(error => Effect.logWarning('Failed to clear the Org Browser tree', error))
             );
           }
           const filter = yield* restoreFilter(orgId, false, true);
@@ -309,15 +309,16 @@ export const activateEffect = Effect.fn(`activation:${EXTENSION_NAME}`)(function
             return;
           }
           return yield* Effect.tryPromise(() => treeProvider.refreshType()).pipe(
-            Effect.catchAll(error =>
+            Effect.catch(error =>
               Effect.logWarning('Failed to refresh Org Browser after an org change', error).pipe(
-                Effect.zipRight(Effect.sync(() => treeProvider.fireChangeEvent()))
+                Effect.andThen(Effect.sync(() => treeProvider.fireChangeEvent()))
               )
             )
           );
         })
       )
-    )
+    ),
+    extensionScope
   );
 
   // Append completion message
@@ -341,6 +342,6 @@ export const activateEffect = Effect.fn(`activation:${EXTENSION_NAME}`)(function
 
 export const deactivateEffect = Effect.fn(`deactivation:${EXTENSION_NAME}`)(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const svc = yield* api.services.ChannelService;
+  const svc = yield* api.v2.services.ChannelService;
   yield* svc.appendToChannel('Salesforce Org Browser extension is now deactivated!');
 });

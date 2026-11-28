@@ -5,11 +5,12 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import * as Clock from 'effect/Clock';
-import * as Chunk from 'effect/Chunk';
 import * as Effect from 'effect/Effect';
 import * as Stream from 'effect/Stream';
-import { formatHuman, formatJUnit, formatTap } from '../../src';
+import * as TestClock from 'effect/testing/TestClock';
+import { formatHuman } from '../../src/reporters/humanFormatting';
+import { formatJUnit } from '../../src/reporters/junitFormatting';
+import { formatTap } from '../../src/reporters/tapFormatting';
 import {
   formatHumanReport,
   formatJUnitReport,
@@ -116,7 +117,7 @@ describe('Effect reporters', () => {
       const streamedReport = await Effect.runPromise(
         formatMarkdownTextReportStream(coverageFailResult, options).pipe(
           Effect.flatMap(Stream.runCollect),
-          Effect.map(Chunk.join(''))
+          Effect.map(chunks => chunks.join(''))
         )
       );
       await expect(Effect.runPromise(formatMarkdownTextReport(coverageFailResult, options))).resolves.toBe(
@@ -140,8 +141,12 @@ describe('Effect reporters', () => {
   });
 
   it('uses the Effect clock for the default Markdown timestamp and preserves defaults', async () => {
-    const clock = Object.assign(Clock.make(), { currentTimeMillis: Effect.succeed(timestamp.getTime()) });
-    const actual = await Effect.runPromise(formatMarkdownTextReport(successResult).pipe(Effect.withClock(clock)));
+    const actual = await Effect.runPromise(
+      Effect.gen(function* () {
+        yield* TestClock.setTime(timestamp.getTime());
+        return yield* formatMarkdownTextReport(successResult);
+      }).pipe(Effect.provide(TestClock.layer()))
+    );
     const explicit = await Effect.runPromise(
       formatMarkdownTextReport(successResult, {
         timestamp,

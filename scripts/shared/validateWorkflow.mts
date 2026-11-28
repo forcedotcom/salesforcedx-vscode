@@ -6,7 +6,7 @@
  */
 
 import { validateWorkflow as validateWorkflowSchema } from '@action-validator/core';
-import { isRecord } from 'effect/Predicate';
+import * as Schema from 'effect/Schema';
 import { parseDocument, stringify } from 'yaml';
 
 // @action-validator/core@0.6.0 predates GitHub's queue: max concurrency option:
@@ -14,13 +14,14 @@ import { parseDocument, stringify } from 'yaml';
 // Accept only the documented literal with cancellation explicitly disabled; let
 // the bundled schema validate every remaining field, including group and job shape.
 const compatibleConcurrency = (value: unknown) => {
-  if (!isRecord(value) || value.queue !== 'max' || value['cancel-in-progress'] !== false) return value;
+  if (!Schema.is(Schema.Record(Schema.String, Schema.Unknown))(value)) return value;
+  if (value.queue !== 'max' || value['cancel-in-progress'] !== false) return value;
   const { queue: _queue, ...concurrency } = value;
   return concurrency;
 };
 
 const compatibleJob = (job: unknown) =>
-  isRecord(job) && Object.hasOwn(job, 'concurrency')
+  Schema.is(Schema.Record(Schema.String, Schema.Unknown))(job) && Object.hasOwn(job, 'concurrency')
     ? { ...job, concurrency: compatibleConcurrency(job.concurrency) }
     : job;
 
@@ -28,12 +29,12 @@ export const validateWorkflow = (source: string) => {
   const document = parseDocument(source);
   if (document.errors.length > 0) return validateWorkflowSchema(source);
   const workflow: unknown = document.toJS();
-  if (!isRecord(workflow)) return validateWorkflowSchema(source);
+  if (!Schema.is(Schema.Record(Schema.String, Schema.Unknown))(workflow)) return validateWorkflowSchema(source);
   return validateWorkflowSchema(
     stringify({
       ...workflow,
       ...(Object.hasOwn(workflow, 'concurrency') ? { concurrency: compatibleConcurrency(workflow.concurrency) } : {}),
-      ...(isRecord(workflow.jobs)
+      ...(Schema.is(Schema.Record(Schema.String, Schema.Unknown))(workflow.jobs)
         ? { jobs: Object.fromEntries(Object.entries(workflow.jobs).map(([name, job]) => [name, compatibleJob(job)])) }
         : {})
     })

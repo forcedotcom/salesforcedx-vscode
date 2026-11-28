@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import * as FetchHttpClient from '@effect/platform/FetchHttpClient';
+import * as FetchHttpClient from 'effect/http/FetchHttpClient';
 import { decisions } from '@salesforce/opencode-decisions';
 import { Config, Effect, Option, Redacted, Schema } from 'effect';
 
@@ -22,7 +22,7 @@ export const jevDecisions = Effect.fn('jev.decisions')(function* (input: {
   >;
 }) {
   const fetch = yield* Effect.serviceOption(FetchHttpClient.Fetch);
-  const password = yield* Config.option(Config.redacted('OPENCODE_PASSWORD'));
+  const password = yield* Config.option(Config.Redacted('OPENCODE_PASSWORD'));
   const result = yield* Effect.tryPromise({
     try: signal =>
       decisions(
@@ -61,9 +61,9 @@ export const jevDecisions = Effect.fn('jev.decisions')(function* (input: {
     const Choice = Schema.Struct({
       type: Schema.Literal('choice'),
       name: Schema.Literal(name),
-      choice: Schema.String.pipe(Schema.filter(choice => Object.hasOwn(question.criteria, choice)))
+      choice: Schema.Literals(Object.keys(question.criteria))
     });
-    return Schema.decodeUnknown(Choice)(result.answers.find(answer => answer.name === name)).pipe(
+    return Schema.decodeUnknownEffect(Choice)(result.answers.find(answer => answer.name === name)).pipe(
       Effect.map(answer => answer.choice),
       Effect.mapError(() => new JevRequestFailed({ message: `Invalid Jev answer for ${name}` }))
     );

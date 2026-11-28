@@ -7,10 +7,14 @@
 
 import { fs, resetFs, setFs } from '@salesforce/core/fs';
 import * as Effect from 'effect/Effect';
+import * as Exit from 'effect/Exit';
+import * as Layer from 'effect/Layer';
+import * as ManagedRuntime from 'effect/ManagedRuntime';
 import { createFsFromVolume, Volume } from 'memfs';
 import { Buffer } from 'node:buffer';
+import { setImmediate } from 'node:timers/promises';
 import * as vscode from 'vscode';
-import { IndexedDBStorageService } from '../../../src/virtualFsProvider/indexedDbStorage';
+import { IndexedDBStorageService, IndexedDBStorageServiceLayer } from '../../../src/virtualFsProvider/indexedDbStorage';
 
 const makeRequest = <T>(result: () => T, complete: () => void): IDBRequest<T> => {
   const request = {
@@ -27,7 +31,8 @@ const makeRequest = <T>(result: () => T, complete: () => void): IDBRequest<T> =>
   return request as unknown as IDBRequest<T>;
 };
 
-const installIndexedDb = (): void => {
+const installIndexedDb = (holdOpen = false) => {
+  const requests: TestOpenRequest[] = [];
   const entries = new Map<IDBValidKey, unknown>();
   const db = {
     close: vi.fn(),
@@ -67,17 +72,24 @@ const installIndexedDb = (): void => {
     public onupgradeneeded: ((event: Event) => void) | null = null;
 
     constructor() {
-      queueMicrotask(() => this.onsuccess?.({ target: this } as unknown as Event));
+      requests.push(this);
+      if (!holdOpen) queueMicrotask(() => this.onsuccess?.({ target: this } as unknown as Event));
     }
   }
 
+  const open = vi.fn(() => new TestOpenRequest());
   Object.defineProperties(globalThis, {
     IDBOpenDBRequest: { configurable: true, value: TestOpenRequest },
     indexedDB: {
       configurable: true,
-      value: { open: () => new TestOpenRequest() as unknown as IDBOpenDBRequest }
+      value: { open }
     }
   });
+  return {
+    db,
+    open,
+    completeOpen: () => requests.forEach(request => request.onsuccess?.({ target: request } as unknown as Event))
+  };
 };
 
 describe('IndexedDBStorageService', () => {
@@ -107,10 +119,52 @@ describe('IndexedDBStorageService', () => {
           fs.unlinkSync(path);
           yield* storage.loadFile(path);
           return fs.readFileSync(path);
-        }).pipe(Effect.provide(IndexedDBStorageService.Default))
+        }).pipe(Effect.provide(IndexedDBStorageServiceLayer))
       )
     );
 
     expect([...restored]).toEqual([...bytes]);
+  });
+
+  it('shares one database connection within the owner memo map and closes after the last owner', async () => {
+    const { db, open } = installIndexedDb();
+    const memoMap = Layer.makeMemoMapUnsafe();
+    const first = ManagedRuntime.make(IndexedDBStorageServiceLayer, { memoMap });
+    const second = ManagedRuntime.make(IndexedDBStorageServiceLayer, { memoMap });
+    try {
+      const a = await first.runPromise(IndexedDBStorageService);
+      const b = await second.runPromise(IndexedDBStorageService);
+      expect(a).toBe(b);
+      expect(open).toHaveBeenCalledTimes(1);
+      await first.dispose();
+      expect(db.close).not.toHaveBeenCalled();
+      await second.dispose();
+      expect(db.close).toHaveBeenCalledTimes(1);
+    } finally {
+      await first.dispose();
+      await second.dispose();
+    }
+  });
+
+  it('joins an in-flight native open during startup cancellation, then closes the acquired connection', async () => {
+    const { db, open, completeOpen } = installIndexedDb(true);
+    const controller = new AbortController();
+    let returned = false;
+    const running = Effect.runPromiseExit(IndexedDBStorageService.pipe(Effect.provide(IndexedDBStorageServiceLayer)), {
+      signal: controller.signal
+    }).then(result => {
+      returned = true;
+      return result;
+    });
+    await setImmediate();
+    expect(open).toHaveBeenCalledTimes(1);
+    controller.abort();
+    await setImmediate();
+    expect(returned).toBe(false);
+    completeOpen();
+    const exit = await running;
+    expect(Exit.isFailure(exit)).toBe(true);
+    if (Exit.isFailure(exit)) expect(exit.cause.reasons.some(reason => reason._tag === 'Interrupt')).toBe(true);
+    expect(db.close).toHaveBeenCalledTimes(1);
   });
 });

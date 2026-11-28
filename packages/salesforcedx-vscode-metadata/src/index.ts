@@ -47,7 +47,7 @@ import { createSourceTrackingStatusBar } from './statusBar/sourceTrackingStatusB
 export const activate = async (context: vscode.ExtensionContext): Promise<void> => {
   const extensionScope = Effect.runSync(getExtensionScope());
   setAllServicesLayer(buildAllServicesLayer(context));
-  await getMetadataRuntime().runPromise(activateEffect(context).pipe(Scope.extend(extensionScope)));
+  await getMetadataRuntime().runPromise(Scope.provide(extensionScope)(activateEffect(context)));
 };
 
 export const deactivate = async (): Promise<void> => {
@@ -57,9 +57,9 @@ export const deactivate = async (): Promise<void> => {
 /** Activate the metadata extension */
 export const activateEffect = Effect.fn(`activation:${EXTENSION_NAME}`)(function* (context: vscode.ExtensionContext) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const svc = yield* api.services.ChannelService;
+  const svc = yield* api.v2.services.ChannelService;
   yield* svc.appendToChannel('Salesforce Metadata extension activating');
-  const registerCommand = api.services.registerCommandWithRuntime(getMetadataRuntime());
+  const registerCommand = api.v2.services.registerCommandWithRuntime(getMetadataRuntime());
   const projectGenerateCommands =
     process.env.ESBUILD_PLATFORM === 'web'
       ? []
@@ -123,11 +123,8 @@ export const activateEffect = Effect.fn(`activation:${EXTENSION_NAME}`)(function
   );
 
   if (process.env.ESBUILD_PLATFORM === 'web') {
-    yield* api.services.SettingsService.setValue(
-      CORE_CONFIG_SECTION,
-      DEPLOY_ON_SAVE_ENABLED,
-      true,
-      vscode.ConfigurationTarget.Workspace
+    yield* api.v2.services.SettingsService.use(service =>
+      service.setValue(CORE_CONFIG_SECTION, DEPLOY_ON_SAVE_ENABLED, true, vscode.ConfigurationTarget.Workspace)
     );
   }
   setConflictViewContext(context);
@@ -144,7 +141,7 @@ export const activateEffect = Effect.fn(`activation:${EXTENSION_NAME}`)(function
 
 export const deactivateEffect = Effect.fn(`deactivation:${EXTENSION_NAME}`)(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const svc = yield* api.services.ChannelService;
+  const svc = yield* api.v2.services.ChannelService;
   yield* closeExtensionScope();
   yield* svc.appendToChannel('Salesforce Metadata extension is now deactivated!');
 });

@@ -51,7 +51,7 @@ const findSeededSpan = (contents: string | undefined): SpanRow | undefined => {
 
 class SpanNotReadyError extends Data.TaggedError('SpanNotReadyError') {}
 
-const waitForSeededSpan = (timeout: Duration.DurationInput): Promise<SpanRow> =>
+const waitForSeededSpan = (timeout: Duration.Input): Promise<SpanRow> =>
   Effect.runPromise(
     Effect.tryPromise({
       try: async () => {

@@ -15,13 +15,13 @@ import { ApexMetadataService } from './apexMetadataService';
 import { LLMService } from './llmService';
 
 export const buildAllServicesLayer = (context: ExtensionContext, fallbackDisplayName: string) =>
-  Layer.unwrapEffect(
+  Layer.unwrap(
     Effect.map(getServicesApi, api =>
       Layer.mergeAll(
         buildBaseServicesLayer(context, fallbackDisplayName),
-        ApexMetadataService.Default,
-        LLMService.Default,
-        api.services.NotificationModeService.Default(
+        ApexMetadataService.layer,
+        LLMService.layer,
+        api.v2.services.NotificationModeServiceLayer(
           EXTENSION_NAME,
           'sf-apex-oas-notifications',
           'Salesforce: Apex OAS Notifications'
@@ -38,8 +38,8 @@ export const setAllServicesLayer = (layer: ReturnType<typeof buildAllServicesLay
 };
 
 type ApexOasRuntime = ManagedRuntime.ManagedRuntime<
-  Layer.Layer.Success<ReturnType<typeof buildAllServicesLayer>>,
-  Layer.Layer.Error<ReturnType<typeof buildAllServicesLayer>>
+  Layer.Success<ReturnType<typeof buildAllServicesLayer>>,
+  Layer.Error<ReturnType<typeof buildAllServicesLayer>>
 >;
 // eslint-disable-next-line functional/no-let -- Lazy singleton runtime
 let _apexOasRuntime: ApexOasRuntime | undefined;

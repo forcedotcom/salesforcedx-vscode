@@ -43,8 +43,8 @@ export const startLanguageServer = Effect.fn('startLanguageServer')(function* (c
       // Non-fatal: LSP unavailable, but the extension still activates.
       Effect.gen(function* () {
         const api = yield* (yield* ExtensionProviderService).getServicesApi;
-        yield* api.services.ChannelService.pipe(
-          Effect.flatMap(svc => svc.appendToChannel(`Visualforce language server unavailable: ${error.message}`))
+        yield* api.v2.services.ChannelService.use(service =>
+          service.appendToChannel(`Visualforce language server unavailable: ${error.message}`)
         );
         return undefined;
       })

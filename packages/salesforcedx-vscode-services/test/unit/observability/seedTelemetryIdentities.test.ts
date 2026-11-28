@@ -6,21 +6,20 @@
  */
 
 import * as Effect from 'effect/Effect';
-import * as Layer from 'effect/Layer';
 import * as Option from 'effect/Option';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
 import type { ExtensionContext } from 'vscode';
-import { getDefaultOrgRef } from '../../../src/core/defaultOrgRef';
+import * as ManagedRuntime from 'effect/ManagedRuntime';
+import { orgLayers, OrgChanges } from '../../../src/services/targetOrgRef';
 import * as cliTelemetryModule from '../../../src/observability/cliTelemetry';
 import { seedTelemetryIdentities } from '../../../src/observability/seedTelemetryIdentities';
 import * as Schema from 'effect/Schema';
-import { CliId } from '../../../src/observability/cliTelemetry';
+import { CliId, OrgId, TargetOrgRef, ExtensionContextServiceLayer } from '@salesforce/vscode-services/v2';
 import { UNAUTHENTICATED_USER } from '../../../src/observability/webUserId';
-import { ExtensionContextService } from '../../../src/vscode/extensionContextService';
 
 const PERSISTED_CLI_ID = '11111111-1111-4111-8111-111111111111';
 const CLI_FROM_SF = '22222222-2222-4222-8222-222222222222';
-const brandedCliId = (value: string) => Schema.decodeSync(CliId)(value);
+const brandedCliId = (value: string) => Schema.decodeUnknownSync(CliId)(value);
 
 type GlobalState = Map<string, string>;
 
@@ -29,20 +28,24 @@ const buildContextService = (state: GlobalState) => {
     state.set(key, value);
   });
   const get = vi.fn(<T>(key: string): T | undefined => state.get(key) as T | undefined);
-  const ctx = { globalState: { get, update } } as unknown as ExtensionContext;
-  const service = { getContext: Effect.succeed(ctx) } as unknown as ExtensionContextService;
-  return { update, get, layer: Layer.succeed(ExtensionContextService, service) };
+  const ctx = {
+    extension: { packageJSON: { displayName: 'Services' } },
+    globalState: { get, update }
+  } as unknown as ExtensionContext;
+  return { update, get, layer: ExtensionContextServiceLayer(ctx) };
 };
 
 describe('seedTelemetryIdentities', () => {
   const originalPlatform = process.env.ESBUILD_PLATFORM;
 
-  beforeEach(async () => {
-    const ref = await Effect.runPromise(getDefaultOrgRef());
-    await Effect.runPromise(SubscriptionRef.set(ref, {}));
+  let runtime: ReturnType<typeof makeRuntime>;
+  const makeRuntime = () => ManagedRuntime.make(orgLayers);
+  beforeEach(() => {
+    runtime = makeRuntime();
   });
 
-  afterEach(() => {
+  afterEach(async () => {
+    await runtime.dispose();
     if (originalPlatform === undefined) delete process.env.ESBUILD_PLATFORM;
     else process.env.ESBUILD_PLATFORM = originalPlatform;
     vi.restoreAllMocks();
@@ -53,8 +56,8 @@ describe('seedTelemetryIdentities', () => {
     const state: GlobalState = new Map([['telemetryUserId', PERSISTED_CLI_ID]]);
     const { update, layer } = buildContextService(state);
 
-    await Effect.runPromise(seedTelemetryIdentities().pipe(Effect.provide(layer)));
-    const ref = await Effect.runPromise(getDefaultOrgRef());
+    await runtime.runPromise(seedTelemetryIdentities().pipe(Effect.provide(layer)));
+    const ref = await runtime.runPromise(TargetOrgRef);
     const info = await SubscriptionRef.get(ref).pipe(Effect.runPromise);
     expect(info.cliId).toBe(PERSISTED_CLI_ID);
     expect(info.webUserId).toBe(UNAUTHENTICATED_USER);
@@ -67,7 +70,7 @@ describe('seedTelemetryIdentities', () => {
     const state: GlobalState = new Map();
     const { update, layer } = buildContextService(state);
 
-    await Effect.runPromise(seedTelemetryIdentities().pipe(Effect.provide(layer)));
+    await runtime.runPromise(seedTelemetryIdentities().pipe(Effect.provide(layer)));
 
     expect(update).toHaveBeenCalledWith('telemetryUserId', CLI_FROM_SF);
   });
@@ -78,7 +81,7 @@ describe('seedTelemetryIdentities', () => {
     const state: GlobalState = new Map();
     const { update, layer } = buildContextService(state);
 
-    await Effect.runPromise(seedTelemetryIdentities().pipe(Effect.provide(layer)));
+    await runtime.runPromise(seedTelemetryIdentities().pipe(Effect.provide(layer)));
 
     const persistedCliId = state.get('telemetryUserId');
     expect(persistedCliId).toMatch(/^[0-9a-f-]{36}$/);
@@ -91,7 +94,7 @@ describe('seedTelemetryIdentities', () => {
     const state: GlobalState = new Map();
     const { layer } = buildContextService(state);
 
-    await Effect.runPromise(seedTelemetryIdentities().pipe(Effect.provide(layer)));
+    await runtime.runPromise(seedTelemetryIdentities().pipe(Effect.provide(layer)));
 
     expect(cliSpy).not.toHaveBeenCalled();
     const persistedCliId = state.get('telemetryUserId');
@@ -104,11 +107,29 @@ describe('seedTelemetryIdentities', () => {
     const state: GlobalState = new Map([['telemetryWebUserId', 'sha256-existing']]);
     const { update, layer } = buildContextService(state);
 
-    await Effect.runPromise(seedTelemetryIdentities().pipe(Effect.provide(layer)));
+    await runtime.runPromise(seedTelemetryIdentities().pipe(Effect.provide(layer)));
 
     expect(update).not.toHaveBeenCalledWith('telemetryWebUserId', expect.anything());
-    const ref = await Effect.runPromise(getDefaultOrgRef());
+    const ref = await runtime.runPromise(TargetOrgRef);
     const info = await SubscriptionRef.get(ref).pipe(Effect.runPromise);
     expect(info.webUserId).toBe('sha256-existing');
+  });
+
+  it('preserves the already populated org while seeding telemetry through its writer', async () => {
+    const orgId = Schema.decodeUnknownSync(OrgId)('00D000000000001');
+    const changes = await runtime.runPromise(OrgChanges);
+    const generation = await runtime.runPromise(changes.begin);
+    await runtime.runPromise(
+      changes.update(generation, () => Effect.succeed({ orgId, username: 'existing-user', alias: 'existing-alias' }))
+    );
+    const { layer } = buildContextService(new Map([['telemetryUserId', PERSISTED_CLI_ID]]));
+    await runtime.runPromise(seedTelemetryIdentities().pipe(Effect.provide(layer)));
+    expect((await runtime.runPromise(changes.snapshot)).org).toEqual({
+      orgId,
+      username: 'existing-user',
+      alias: 'existing-alias',
+      cliId: PERSISTED_CLI_ID,
+      webUserId: UNAUTHENTICATED_USER
+    });
   });
 });

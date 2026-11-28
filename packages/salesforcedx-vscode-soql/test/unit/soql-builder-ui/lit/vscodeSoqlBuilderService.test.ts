@@ -364,7 +364,7 @@ describe('VscodeSoqlBuilderService', () => {
 
     const state = await runWithService(harness.layer, service =>
       Effect.gen(function* () {
-        const stateFiber = yield* service.stateChanges.pipe(Stream.runHead, Effect.fork);
+        const stateFiber = yield* service.stateChanges.pipe(Stream.runHead, Effect.forkChild);
         yield* Effect.sleep(Duration.millis(10));
         harness.emit({ type: MessageType.TEXT_SOQL_CHANGED, payload: statement });
         return Option.getOrThrow(yield* Fiber.join(stateFiber));
@@ -426,7 +426,7 @@ describe('VscodeSoqlBuilderService', () => {
         yield* service.dispatch({ _tag: 'ObjectSelected', objectName: 'Account' });
         yield* service.dispatch({ _tag: 'ObjectSelected', objectName: 'Contact' });
 
-        const stateFiber = yield* service.stateChanges.pipe(Stream.runHead, Effect.fork);
+        const stateFiber = yield* service.stateChanges.pipe(Stream.runHead, Effect.forkChild);
         yield* Effect.sleep(Duration.millis(10));
         harness.emit({
           type: MessageType.SOBJECT_METADATA_RESPONSE,

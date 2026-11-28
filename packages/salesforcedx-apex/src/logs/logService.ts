@@ -4,33 +4,36 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import type { EffectApexLogGetOptions } from '../effect/schema/logs';
+import type { EffectApexLogGetOptions } from '../effect/schema/logs.js';
 import type { JsonObject } from '../json';
 import { type Connection, Logger, type Org, type StatusResult, StreamingClient } from '@salesforce/core';
 import { Duration } from '@salesforce/kit';
+import { getErrorMessage } from '@salesforce/salesforcedx-utils';
 import * as Effect from 'effect/Effect';
-import * as Either from 'effect/Either';
 import { isUndefined } from 'effect/Predicate';
+import * as Result from 'effect/Result';
 import * as Schema from 'effect/Schema';
 import * as path from 'node:path';
+import { CoreFileOutput } from '../effect/coreFileOutput';
 import { FileOutput } from '../effect/fileOutput';
-import { getLogBody, getLogRecords as getEffectLogRecords, getLogs as getEffectLogs } from '../effect/logs';
-import { NodeFileOutput } from '../effect/nodeFileOutputLayer';
+import { getLogBody, getLogRecords as getEffectLogRecords, getLogs as getEffectLogs } from '../effect/logs.js';
+import { ApexLogId } from '../effect/schema/salesforceId.js';
 import { nls } from '../i18n';
-import { ApexLogId } from '../schemas/salesforceId';
 import { elapsedTime } from '../utils/elapsedTime';
 import { createFile } from '../utils/fileSystemHandler';
-import { ensureTraceFlags } from '../utils/traceFlags';
+import { TraceFlags } from '../utils/traceFlags';
 import { LISTENER_ABORTED_ERROR_NAME, LOG_TIMER_LENGTH_MINUTES, STREAMING_LOG_TOPIC } from './constants';
 import { type ApexLogGetOptions, type LogRecord, type LogResult } from './types';
 
-const runLogOperation = async <A, E extends { message: string }>(operation: Effect.Effect<A, E>): Promise<A> =>
-  Either.match(await operation.pipe(Effect.either, Effect.runPromise), {
-    onLeft: error => {
-      throw new Error(error.message);
+const runLogOperation = async <A, E>(operation: Effect.Effect<A, E>): Promise<A> => {
+  const result = await operation.pipe(Effect.result, Effect.runPromise);
+  return Result.match(result, {
+    onFailure: error => {
+      throw new Error(getErrorMessage(error));
     },
-    onRight: result => result
+    onSuccess: value => value
   });
+};
 
 type StreamingLogMessage = {
   errorName?: string;
@@ -39,13 +42,11 @@ type StreamingLogMessage = {
 
 export class LogService {
   private readonly connection: Connection;
-  private readonly fileOutput: typeof FileOutput.Service;
   private logger!: Logger;
   private logTailer?: (log: string) => void;
 
-  constructor(connection: Connection, fileOutput: typeof FileOutput.Service = NodeFileOutput) {
+  constructor(connection: Connection) {
     this.connection = connection;
-    this.fileOutput = fileOutput;
   }
 
   @elapsedTime()
@@ -58,34 +59,28 @@ export class LogService {
         ? { logId: options.logId }
         : { logId: options.logId, numberOfLogs: options.numberOfLogs };
     if (isUndefined(effectOptions)) throw new Error(nls.localize('missingInfoLogError'));
-
     const outputDir = options.outputDir;
-    if (outputDir) {
-      const writeLog = (fileName: string, body: string) =>
-        createFile(path.join(outputDir, fileName), body).pipe(Effect.provideService(FileOutput, this.fileOutput));
-      return runLogOperation(getEffectLogs(this.connection, effectOptions, writeLog)).then(logs =>
-        logs.map(({ log, logPath }) => (isUndefined(logPath) ? { log } : { log, logPath }))
-      );
-    }
-    return runLogOperation(getEffectLogs(this.connection, effectOptions)).then(logs =>
-      logs.map(({ log }) => ({ log }))
-    );
+    const writeLog = isUndefined(outputDir)
+      ? undefined
+      : (fileName: string, body: string) =>
+          createFile(path.join(outputDir, fileName), body).pipe(Effect.provideService(FileOutput, CoreFileOutput));
+    const logs = await runLogOperation(getEffectLogs(this.connection, effectOptions, writeLog));
+    return logs.map(({ log, logPath }) => (isUndefined(logPath) ? { log } : { log, logPath }));
   }
 
   @elapsedTime()
   private async getLogById(logId: string): Promise<LogResult> {
-    return {
-      log: await runLogOperation(
-        Schema.decodeUnknown(ApexLogId)(logId).pipe(
-          Effect.flatMap(decodedLogId => getLogBody(this.connection, decodedLogId))
-        )
+    const log = await runLogOperation(
+      Schema.decodeUnknownEffect(ApexLogId)(logId).pipe(
+        Effect.flatMap(decodedLogId => getLogBody(this.connection, decodedLogId))
       )
-    };
+    );
+    return { log };
   }
 
   @elapsedTime()
-  public async getLogRecords(numberOfLogs?: number): Promise<readonly LogRecord[]> {
-    return runLogOperation(getEffectLogRecords(this.connection, numberOfLogs));
+  public async getLogRecords(numberOfLogs?: number): Promise<LogRecord[]> {
+    return [...(await runLogOperation(getEffectLogRecords(this.connection, numberOfLogs)))];
   }
 
   @elapsedTime()
@@ -134,8 +129,8 @@ export class LogService {
     return { completed: false };
   }
 
-  @elapsedTime()
   public async prepareTraceFlag(requestedDebugLevel: string): Promise<void> {
-    await ensureTraceFlags(this.connection, requestedDebugLevel);
+    const flags = new TraceFlags(this.connection);
+    await flags.ensureTraceFlags(requestedDebugLevel);
   }
 }

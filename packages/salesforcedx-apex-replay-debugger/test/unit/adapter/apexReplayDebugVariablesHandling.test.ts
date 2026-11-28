@@ -17,7 +17,7 @@ vi.mock(import('@vscode/debugadapter'), async importOriginal => {
 import type { MockInstance as VitestMockInstance } from 'vitest';
 import { Source, type StackFrame } from '@vscode/debugadapter';
 import { type DebugProtocol } from '@vscode/debugprotocol';
-import { EXTENT_TRIGGER_PREFIX } from '../../../src/constants';
+import { EXTENT_TRIGGER_PREFIX } from '../../../src';
 import { ApexDebugStackFrameInfo } from '../../../src/adapter/apexDebugStackFrameInfo';
 import { ApexVariable } from '../../../src/adapter/apexVariable';
 import { type LaunchRequestArguments } from '../../../src/adapter/types';

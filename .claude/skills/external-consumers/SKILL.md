@@ -70,7 +70,7 @@ Via `vscode.extensions.getExtension('salesforce.salesforcedx-vscode-services')`:
 | Repo | Visibility | Consumed |
 |------|-----------|----------|
 | [einstein-gpt](https://github.com/forcedotcom/salesforcedx-vscode-einstein-gpt) | **Private** | `services.ConnectionService.getConnection`, `services.TargetOrgRef`, `services.prebuiltServicesDependencies` |
-| [debug-log-analyzer](https://github.com/certinia/debug-log-analyzer) | Public | `services.ApexLogService.{listLogs,getLogBody}`, `services.FsService.safeWriteFile`, `services.TargetOrgRef`, `services.prebuiltServicesDependencies` |
+| [debug-log-analyzer](https://github.com/certinia/debug-log-analyzer) | Public | Root V3 `services.prebuiltServicesDependencies`, `ApexLogService.{listLogs,getLogBody}`, `FsService.safeWriteFile`, `TargetOrgRef` |
 
 > **einstein-gpt directly consumes the services extension API** (separate from its core dependency and its `@salesforce/vscode-service-provider` telemetry use). `packages/extension/src/services/auth/org-service.ts` (on the actively-shipping `main` branch, which now builds `afv-v4` via `release.yml`) resolves `salesforce.salesforcedx-vscode-services`, duplicates a local `SalesforceVSCodeServicesApi` type, and calls `api.services.ConnectionService.getConnection()`, `api.services.TargetOrgRef()`, and reads `api.services.prebuiltServicesDependencies`. **Check changes to `ConnectionService.getConnection`, `TargetOrgRef`, or `prebuiltServicesDependencies` against this consumer** — breaking any of them is a breaking change even though code search on `main` may not surface the duplicated type.
 
@@ -97,7 +97,7 @@ Via `vscode.extensions.getExtension('salesforce.salesforcedx-vscode-services')`:
 |------|-------|
 | [slds](https://github.com/forcedotcom/salesforcedx-vscode-slds) | No extensionDep, no getExtension. In same extension pack. |
 | [apex-language-support](https://github.com/forcedotcom/apex-language-support) | Experimental. String refs only in tests/comments. |
-| apex-oas (in-repo) | extensionDependency = `salesforcedx-vscode-apex` + `salesforcedx-vscode-services`; no core dep. Reads project/registry/fs via services-extension `api.services.*`. Only cross-extension `.exports` use is apex's `.languageClientManager`. |
+| apex-oas (in-repo) | extensionDependency = `salesforcedx-vscode-apex` + `salesforcedx-vscode-services`; no core dep. Reads project/registry/fs via services-extension `api.v2.services.*`. Only cross-extension `.exports` use is apex's `.languageClientManager`. |
 
 ## In-repo consumers
 

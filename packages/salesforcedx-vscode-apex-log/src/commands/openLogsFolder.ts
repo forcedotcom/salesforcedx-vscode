@@ -15,7 +15,7 @@ import { getDebugLogsDir } from '../logs/logStorage';
 export const openLogsFolderCommand = Effect.fn('ApexLog.Command.openLogsFolder')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const dir = yield* getDebugLogsDir();
-  yield* api.services.FsService.createDirectory(dir);
+  yield* api.v2.services.FsService.use(service => service.createDirectory(dir));
   yield* Effect.tryPromise({
     try: () => vscode.commands.executeCommand('revealInExplorer', dir),
     catch: (error: unknown) =>

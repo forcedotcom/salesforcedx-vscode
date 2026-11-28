@@ -1,14 +1,12 @@
 # EditorService
 
-Active editor changes and URI access. Accessor pattern: call methods directly.
+Active editor changes and URI access. V2 service access uses `Context.Service.use`.
 
 ## Layer Setup
 
-Include in your services layer:
+The shared V2 service graph includes `EditorService`; don't add a second implementation layer.
 
-```typescript
-api.services.EditorService.Default;
-```
+No additional layer is needed for `EditorService`; it comes from the shared V2 graph.
 
 ## Methods
 
@@ -17,7 +15,7 @@ api.services.EditorService.Default;
 Get URI from active editor, fails with `NoActiveEditorError` if none:
 
 ```typescript
-const uri = yield * api.services.EditorService.getActiveEditorUri();
+const uri = yield* api.v2.services.EditorService.use(service => service.getActiveEditorUri());
 // Returns: URI
 // Throws: NoActiveEditorError if no active editor
 ```
@@ -27,7 +25,7 @@ const uri = yield * api.services.EditorService.getActiveEditorUri();
 Get text from active editor (selection if `selection=true` and non-empty, else full document), fails with `NoActiveEditorError` if none:
 
 ```typescript
-const text = yield * api.services.EditorService.getActiveEditorText(true);
+const text = yield* api.v2.services.EditorService.use(service => service.getActiveEditorText(true));
 // Returns: string (selection or full document)
 // Throws: NoActiveEditorError if no active editor
 ```
@@ -37,7 +35,7 @@ const text = yield * api.services.EditorService.getActiveEditorText(true);
 Get text, URI, and optional selection range from active editor. Use `selection=true` to include selection offset:
 
 ```typescript
-const ctx = yield * api.services.EditorService.getActiveEditorContext(true);
+const ctx = yield* api.v2.services.EditorService.use(service => service.getActiveEditorContext(true));
 // Returns: { text: string; documentUri: URI; selectionRange?: { startLine: number; startCharacter: number } }
 // Throws: NoActiveEditorError if no active editor
 ```
@@ -47,7 +45,7 @@ const ctx = yield * api.services.EditorService.getActiveEditorContext(true);
 PubSub stream of active editor changes (`vscode.TextEditor | undefined`):
 
 ```typescript
-const editorService = yield * api.services.EditorService;
+const editorService = yield* api.v2.services.EditorService;
 // editorService.pubsub: PubSub.PubSub<vscode.TextEditor | undefined>
 ```
 
@@ -59,7 +57,7 @@ Watch active editor changes:
 import * as Duration from 'effect/Duration';
 import * as Stream from 'effect/Stream';
 
-const editorService = yield * api.services.EditorService;
+const editorService = yield* api.v2.services.EditorService;
 
 // Get initial state and merge with changes
 yield *
@@ -98,7 +96,7 @@ yield *
       uri
         ? projectService.isInPackageDirectories(uri).pipe(
             Effect.flatMap(setInPackageDirectoriesContext),
-            Effect.catchAll(() => setInPackageDirectoriesContext(false))
+            Effect.catch(() => setInPackageDirectoriesContext(false))
           )
         : setInPackageDirectoriesContext(false)
     )

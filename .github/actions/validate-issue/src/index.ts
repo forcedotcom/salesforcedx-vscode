@@ -7,13 +7,13 @@
 
 import { getInput, setFailed } from '@actions/core';
 import { context } from '@actions/github';
-import * as FetchHttpClient from '@effect/platform/FetchHttpClient';
 import type { Label } from '@octokit/webhooks-types';
 import { githubFromToken } from '@salesforce/effect-octokit';
 import * as Cause from 'effect/Cause';
 import * as Effect from 'effect/Effect';
+import * as FetchHttpClient from 'effect/http/FetchHttpClient';
 import * as Match from 'effect/Match';
-import { isNotNullable, isNotUndefined, isNull, isString } from 'effect/Predicate';
+import { isNotNullish, isNotUndefined, isNull, isString } from 'effect/Predicate';
 import * as Schema from 'effect/Schema';
 import { execSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
@@ -25,12 +25,12 @@ const SkipIssueRoute = Schema.TaggedStruct('Skip', {});
 const NewIssueRoute = Schema.TaggedStruct('NewIssue', {});
 const ValidateIssueRoute = Schema.TaggedStruct('Validate', {});
 const NotifyIssueRoute = Schema.TaggedStruct('Notify', { message: Schema.String });
-export const IssueRouteSchema = Schema.Union(
+export const IssueRouteSchema = Schema.Union([
   SkipIssueRoute,
   NewIssueRoute,
   ValidateIssueRoute,
   NotifyIssueRoute
-);
+]);
 type IssueRoute = typeof IssueRouteSchema.Type;
 
 const newIssueSkipLabels = [
@@ -207,8 +207,10 @@ const run = () =>
           repo: 'vscode'
         })
         .pipe(
-          Effect.flatMap(Schema.decodeUnknown(Schema.Struct({ tag_name: Schema.optional(Schema.String) }))),
-          Effect.catchAll(error =>
+          Effect.flatMap(
+            Schema.decodeUnknownEffect(Schema.Struct({ tag_name: Schema.optional(Schema.String) }))
+          ),
+          Effect.catch(error =>
             Effect.logWarning('Failed to fetch latest VSCode version, falling back to default', { error }).pipe(
               Effect.as(undefined)
             )
@@ -233,7 +235,7 @@ const run = () =>
         Skip: () => Effect.succeed(false),
         NewIssue: () => {
           const isFeatureRequest =
-            !isNull(bodies[0]) && bodies.filter(isNotNullable).some(commentBody => /feature\s*request/i.test(commentBody));
+              !isNull(bodies[0]) && bodies.filter(isNotNullish).some(commentBody => /feature\s*request/i.test(commentBody));
           return isFeatureRequest
             ? addLabel('type:enhancements').pipe(Effect.as(false))
             : postComment(defaultNewIssueMessage).pipe(Effect.as(true));
@@ -253,7 +255,7 @@ const run = () =>
       yield* postComment(message);
       yield* addLabel('missing required information');
     } else {
-      const bodyTexts = bodies.filter(isNotNullable);
+      const bodyTexts = bodies.filter(isNotNullish);
 
       // Checking Salesforce Extension Pack version
       // The text "Salesforce Extension Version in VS Code" can be either bolded or unbolded
@@ -470,7 +472,7 @@ const run = () =>
   }).pipe(
     Effect.withSpan('validateIssue.run'),
     Effect.provide(FetchHttpClient.layer),
-    Effect.catchAllCause(cause =>
+    Effect.catchCause(cause =>
       Effect.sync(() => {
         const error = Cause.squash(cause);
         setFailed(

@@ -2,19 +2,19 @@
 
 ## Package Overview
 
-This package (`@salesforce/vscode-services`) publishes TypeScript type definitions for the `salesforcedx-vscode-services` extension API. It contains only `.d.ts` files with no runtime code.
+This package (`@salesforce/vscode-services`) publishes the frozen V3 external API at its root and the V4 API at `/v2`. It contains declarations and shared type-level constants; the runtime implementation belongs to `salesforcedx-vscode-services`.
 
-The package uses Node.js `exports` field to enforce that only the main `SalesforceVSCodeServicesApi` type is accessible. Internal types and implementation details cannot be directly imported.
+The package `exports` map exposes only the legacy root API, the `/v2` API, and their explicit supported subpaths. Internal types and implementation details cannot be directly imported.
 
 ## How It Works
 
 ### Generated Source
 
-The source code is **not committed** to git. Instead, it's generated on-demand from the parent package:
+The V1 root declaration source is generated on demand from the frozen V3 compatibility surface. V2 declarations are maintained under `v2/`:
 
-1. `scripts/generateEntry.mts` creates `src/index.ts` that re-exports only `SalesforceVSCodeServicesApi`
-2. TypeScript compiles this along with all referenced types from the parent package
-3. The output `out/` directory contains all necessary `.d.ts` files
+1. `scripts/generateEntry.mts` reads `salesforcedx-vscode-services-v3-compat/out/externalServices.d.cts`, rewrites Effect imports to the `effect-v3` alias, and generates `src/index.ts` plus `src/externalServices.d.ts`.
+2. `scripts/syncDeps.mts` updates only the package version from the services extension. The frozen V3 dependency set is intentionally not copied from the V4 provider.
+3. TypeScript compiles the root V3 declarations and the separate `v2/` V4 declarations into `out/`.
 
 Scripts require Node.js 24.18+ and run directly, without `ts-node` or a loader:
 
@@ -27,7 +27,7 @@ Run these from the repository root. Paths resolve relative to each script, not t
 
 ### Dependency Sync
 
-Dependencies are automatically synced from the parent package:
+The package has two deliberate dependency groups: V4 dependencies for `/v2`, and a pinned Effect V3 alias for the frozen root declarations. Only the package version is synced from the services extension:
 
 ```bash
 npm run sync-deps
@@ -36,9 +36,8 @@ npm run sync-deps
 This script:
 
 - Reads `../salesforcedx-vscode-services/package.json`
-- Extracts all relevant dependencies
-- Updates this package's `package.json` with matching versions
-- Syncs the version number
+- Updates this package's version
+- Preserves the V3 compatibility dependency pins and the separate V4 dependencies
 
 ### Build Process
 
@@ -48,9 +47,9 @@ npm run compile
 
 This runs:
 
-1. Wireit's `generate-src` runs `generateEntry.mts` and `syncDeps.mts`
-2. The services extension's `compile` dependency builds its declarations; its `generate-types` target also runs the same Node scripts
-3. `tsc` compiles this package's declarations against the services extension's declarations
+1. The compatibility package compiles the frozen V3 subset.
+2. Wireit's `generate-src` runs `generateEntry.mts` and `syncDeps.mts`.
+3. `compile:legacy` builds the root V3 declarations; `compile:v2` builds the V4 declarations.
 
 ### Publishing
 

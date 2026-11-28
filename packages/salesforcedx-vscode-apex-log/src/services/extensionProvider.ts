@@ -22,19 +22,19 @@ import {
 } from './apexLogState';
 
 const apexLogServicesLayer = Layer.mergeAll(
-  TraceFlagsContentProviderService.Default,
+  TraceFlagsContentProviderService.layer,
   Layer.sync(CurrentTraceFlags, getOrCreateTraceFlagRefreshSubscriptionRef),
   Layer.sync(LogCollectorStateRef, getOrCreateLogCollectorStateRef),
   Layer.effect(KnownLogIdsRef, Ref.make(HashSet.empty<string>()))
 );
 
 export const buildAllServicesLayer = (context: ExtensionContext, fallbackDisplayName: string) =>
-  Layer.unwrapEffect(
+  Layer.unwrap(
     Effect.map(getServicesApi, api =>
       Layer.mergeAll(
         buildBaseServicesLayer(context, fallbackDisplayName),
         apexLogServicesLayer,
-        api.services.NotificationModeService.Default(
+        api.v2.services.NotificationModeServiceLayer(
           APEX_LOG_SETTINGS_SECTION,
           'sf-apex-log-notifications',
           'Salesforce: Apex Log Notifications'

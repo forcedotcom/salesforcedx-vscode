@@ -14,7 +14,10 @@ import { messages } from 'querybuilder/messages';
 import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
 import * as ManagedRuntime from 'effect/ManagedRuntime';
+import * as Exit from 'effect/Exit';
+import * as Scope from 'effect/Scope';
 import * as Stream from 'effect/Stream';
+import * as SubscriptionRef from 'effect/SubscriptionRef';
 import { ToolingSDK } from '../services/toolingSDK';
 import { ToolingModelService, toolingModelTemplate } from '../services/toolingModelService';
 import { MessageService, IMessageService } from '../services/message/iMessageService';
@@ -99,6 +102,7 @@ export default class App extends LightningElement {
   private _toolingSDK: ToolingSDK | undefined;
   private _modelService: ToolingModelService | undefined;
   private _runtime: { dispose: () => Promise<void> } | undefined;
+  private _scope: Scope.Closeable | undefined;
 
   public async connectedCallback(): Promise<void> {
     this._ready = this._init();
@@ -106,22 +110,28 @@ export default class App extends LightningElement {
   }
 
   public disconnectedCallback(): void {
-    void this._runtime?.dispose();
+    const runtime = this._runtime;
+    const scope = this._scope;
+    this._runtime = undefined;
+    this._scope = undefined;
+    if (runtime && scope) {
+      void Effect.runPromise(Scope.close(scope, Exit.succeed(undefined))).finally(() => runtime.dispose());
+    } else {
+      void runtime?.dispose();
+    }
   }
 
   private async _init(): Promise<void> {
     const self = this;
     const runtime = ManagedRuntime.make(
-      Layer.mergeAll(
-        self.appLayer,
-        Layer.provide(ToolingSDK.Default, self.appLayer),
-        Layer.provide(ToolingModelService.Default, self.appLayer)
-      )
+      Layer.provideMerge(Layer.mergeAll(ToolingSDK.layer, ToolingModelService.layer), self.appLayer)
     );
     self._runtime = runtime;
 
     await runtime.runPromise(
       Effect.gen(function* () {
+        const scope = yield* Scope.make();
+        self._scope = scope;
         self._messageService = yield* MessageService;
         self._toolingSDK = yield* ToolingSDK;
         self._modelService = yield* ToolingModelService;
@@ -129,50 +139,62 @@ export default class App extends LightningElement {
         const sdk = self._toolingSDK;
         const model = self._modelService;
 
-        yield* Effect.forkDaemon(
+        yield* Effect.forkIn(
           Stream.runForEach(model.UIModel, (newQuery: ToolingModelJson) =>
             Effect.sync(() => self.uiModelSubscriber(newQuery))
-          )
+          ),
+          scope,
+          { startImmediately: true }
         );
 
-        yield* Effect.forkDaemon(
-          Stream.runForEach(sdk.sobjects.changes.pipe(Stream.drop(1)), (objs: string[]) =>
+        yield* Effect.forkIn(
+          Stream.runForEach(SubscriptionRef.changes(sdk.sobjects).pipe(Stream.drop(1)), (objs: string[]) =>
             Effect.sync(() => {
               self.isFromLoading = false;
               self.sObjects = objs;
             })
-          )
+          ),
+          scope,
+          { startImmediately: true }
         );
 
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        yield* Effect.forkDaemon(
+        yield* Effect.forkIn(
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          Stream.runForEach(sdk.sobjectMetadata.changes.pipe(Stream.drop(1)), (meta: any) =>
+          Stream.runForEach(SubscriptionRef.changes(sdk.sobjectMetadata).pipe(Stream.drop(1)), (meta: any) =>
             Effect.sync(() => {
               self.isFieldsLoading = false;
               // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access,@typescript-eslint/no-unsafe-call,@typescript-eslint/no-explicit-any
               self.fields = meta && meta.fields ? meta.fields.map((f: any) => f.name).sort() : [];
               self.sobjectMetadata = meta;
             })
-          )
+          ),
+          scope,
+          { startImmediately: true }
         );
 
-        yield* Effect.forkDaemon(
-          Stream.runForEach(sdk.queryRunState.changes.pipe(Stream.drop(1)), () =>
+        yield* Effect.forkIn(
+          Stream.runForEach(SubscriptionRef.changes(sdk.queryRunState).pipe(Stream.drop(1)), () =>
             Effect.sync(() => { self.isQueryRunning = false; })
-          )
+          ),
+          scope,
+          { startImmediately: true }
         );
 
-        yield* Effect.forkDaemon(
-          Stream.runForEach(sdk.queryPlanRunState.changes.pipe(Stream.drop(1)), () =>
+        yield* Effect.forkIn(
+          Stream.runForEach(SubscriptionRef.changes(sdk.queryPlanRunState).pipe(Stream.drop(1)), () =>
             Effect.sync(() => { self.isQueryPlanRunning = false; })
-          )
+          ),
+          scope,
+          { startImmediately: true }
         );
 
-        yield* Effect.forkDaemon(
-          Stream.runForEach(sdk.noDefaultOrg.changes.pipe(Stream.drop(1)), (hasNoDefaultOrg: boolean) =>
+        yield* Effect.forkIn(
+          Stream.runForEach(SubscriptionRef.changes(sdk.noDefaultOrg).pipe(Stream.drop(1)), (hasNoDefaultOrg: boolean) =>
             Effect.sync(() => { self.hasNoDefaultOrg = hasNoDefaultOrg; })
-          )
+          ),
+          scope,
+          { startImmediately: true }
         );
 
         self.isFromLoading = true;

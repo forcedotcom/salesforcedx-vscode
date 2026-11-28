@@ -30,7 +30,7 @@ import { isContainer, sharedMinimalDefaultTest as test } from '../fixtures';
 
 const ORG_CHANNEL = 'Salesforce Org Management';
 
-const orgDisplayResponseSchema = Schema.parseJson(
+const orgDisplayResponseSchema = Schema.fromJsonString(
   Schema.Struct({ result: Schema.Struct({ username: Schema.String }) })
 );
 

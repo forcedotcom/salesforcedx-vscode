@@ -15,8 +15,5 @@ export const SALESFORCE_DX_SECTION = 'salesforcedx-vscode-salesforcedx';
  * settings.json entries keep working. */
 export const SFDX_CORE_SECTION = 'salesforcedx-vscode-core';
 export const INSTANCE_URL_KEY = 'instanceUrl';
-export const ACCESS_TOKEN_KEY = 'accessToken';
-export const API_VERSION_KEY = 'apiVersion';
-export const SESSION_CONTEXT_KEY = 'sessionContext';
 export const RETRIEVE_ON_LOAD_KEY = 'retrieveOnLoad';
 export const SERVICES_CHANNEL_NAME = 'Salesforce Services';

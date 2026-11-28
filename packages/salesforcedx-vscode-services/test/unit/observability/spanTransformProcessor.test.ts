@@ -7,6 +7,9 @@
 
 import type { MockInstance as VitestMockInstance } from 'vitest';
 import * as os from 'node:os';
+import { NodeTracerProvider } from '@opentelemetry/sdk-trace-node';
+import { ExportResultCode, type ExportResult } from '@opentelemetry/core';
+import { setImmediate } from 'node:timers/promises';
 import {
   isInternalUser,
   setSpanCreationIdentity,
@@ -70,4 +73,63 @@ describe('SpanTransformProcessor legacy identity', () => {
     expect(attributes.isSandbox).toBeUndefined();
     expect(attributes['common.vscodemachineid']).toEqual(expect.any(String));
   });
+});
+
+it('awaits the exporter buffer after its SDK span batch and preserves flush failures', async () => {
+  const started = Promise.withResolvers<void>();
+  const release = Promise.withResolvers<void>();
+  const flush = vi.fn(() => {
+    started.resolve();
+    return release.promise;
+  });
+  const processor = new SpanTransformProcessor({
+    exporter: { export: vi.fn(), shutdown: () => Promise.resolve(), forceFlush: flush },
+    getIdentitySnapshot: () => ({ telemetryClassification: 'unknown' })
+  });
+  let finished = false;
+  const flushing = processor.forceFlush().then(() => {
+    finished = true;
+  });
+  await started.promise;
+  expect(finished).toBe(false);
+  release.resolve();
+  await flushing;
+  const defect = new Error('native exporter flush failed');
+  flush.mockRejectedValueOnce(defect);
+  await expect(processor.forceFlush()).rejects.toBe(defect);
+  await processor.shutdown();
+});
+
+it('awaits an automatic native export already in flight before draining downstream buffers', async () => {
+  const started = Promise.withResolvers<(result: ExportResult) => void>();
+  const downstreamFlush = vi.fn(() => Promise.resolve());
+  const processor = new SpanTransformProcessor({
+    exporter: {
+      export: (_spans, complete) => started.resolve(complete),
+      shutdown: () => Promise.resolve(),
+      forceFlush: downstreamFlush
+    },
+    options: { maxExportBatchSize: 1, maxQueueSize: 1 },
+    getIdentitySnapshot: () => ({ telemetryClassification: 'unknown' })
+  });
+  const provider = new NodeTracerProvider({ spanProcessors: [processor] });
+  provider.getTracer('automatic-export').startSpan('automatic').end();
+  const callback = await started.promise;
+  let completed = false;
+  let flushed = false;
+  const flushing = processor.forceFlush().then(() => {
+    flushed = true;
+  });
+  try {
+    await setImmediate();
+    expect(flushed).toBe(false);
+    expect(downstreamFlush).not.toHaveBeenCalled();
+    callback({ code: ExportResultCode.SUCCESS });
+    completed = true;
+    await flushing;
+    expect(downstreamFlush).toHaveBeenCalledTimes(1);
+  } finally {
+    if (!completed) callback({ code: ExportResultCode.SUCCESS });
+    await provider.shutdown();
+  }
 });

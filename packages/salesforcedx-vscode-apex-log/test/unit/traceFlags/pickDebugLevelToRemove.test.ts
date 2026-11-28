@@ -9,7 +9,7 @@ import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as Exit from 'effect/Exit';
 import { isString } from 'effect/Predicate';
-import type { DebugLevelItem } from 'salesforcedx-vscode-services';
+import { PromptService, type DebugLevelItem } from '@salesforce/vscode-services/v2';
 import * as vscode from 'vscode';
 import { pickDebugLevelToRemove } from '../../../src/traceFlags/traceFlagJsonSync';
 
@@ -44,9 +44,10 @@ const run = (items: DebugLevelItem[]) =>
     pickDebugLevelToRemove(items).pipe(
       Effect.provideService(ExtensionProviderService, {
         getServicesApi: Effect.succeed({
-          services: { PromptService: Effect.succeed({ considerUndefinedAsCancellation }) }
+          v2: { services: { PromptService } }
         })
-      } as unknown as ExtensionProviderService)
+      } as unknown as ExtensionProviderService['Service']),
+      Effect.provideService(PromptService, { considerUndefinedAsCancellation } as never)
     ) as unknown as Effect.Effect<string, { _tag: string }, never>
   );
 
@@ -72,7 +73,7 @@ describe('pickDebugLevelToRemove', () => {
 
     expect(vscode.window.showQuickPick).toHaveBeenCalledTimes(1);
     expect(Exit.isFailure(exit)).toBe(true);
-    expect(Exit.isFailure(exit) && exit.cause).toMatchObject({ error: { _tag: 'UserCancellationError' } });
+    if (Exit.isFailure(exit)) expect(JSON.stringify(exit.cause)).toContain('UserCancellationError');
   });
 
   it('uses masterLabel as the QuickPick label and developerName as the detail', async () => {

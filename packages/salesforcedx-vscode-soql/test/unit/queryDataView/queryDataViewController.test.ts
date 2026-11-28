@@ -22,15 +22,17 @@ type TableOptions = {
   rowFormatter?: (row: { getData: () => Record<string, unknown>; getElement: () => HTMLElement }) => void;
 };
 
+import type { Mock as VitestMock } from 'vitest';
+
 class FakeTabulator {
   public static readonly instances: FakeTabulator[] = [];
 
-  public readonly destroy = vi.fn();
+  public readonly destroy: VitestMock<() => void> = vi.fn();
   public readonly on = vi.fn((eventName: string, handler: () => void) => {
     this.eventHandlers.set(eventName, handler);
   });
-  public readonly redraw = vi.fn();
-  public readonly setHeight = vi.fn();
+  public readonly redraw: VitestMock<(...args: [boolean?]) => void> = vi.fn();
+  public readonly setHeight: VitestMock<(...args: [string | number]) => void> = vi.fn();
   private readonly eventHandlers = new Map<string, () => void>();
 
   constructor(

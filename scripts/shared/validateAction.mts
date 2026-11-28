@@ -6,7 +6,7 @@
  */
 
 import { validateAction as validateActionSchema } from '@action-validator/core';
-import { isRecord } from 'effect/Predicate';
+import { isObject } from 'effect/Predicate';
 import { parseDocument, stringify } from 'yaml';
 
 // @action-validator/core@0.6.0 predates node24 in GitHub's JavaScript action schema:
@@ -17,7 +17,7 @@ export const validateAction = (source: string) => {
   if (document.errors.length > 0) return validateActionSchema(source);
   const action: unknown = document.toJS();
   return validateActionSchema(
-    isRecord(action) && isRecord(action.runs) && action.runs.using === 'node24'
+    isObject(action) && isObject(action.runs) && action.runs.using === 'node24'
       ? stringify({ ...action, runs: { ...action.runs, using: 'node20' } })
       : source
   );

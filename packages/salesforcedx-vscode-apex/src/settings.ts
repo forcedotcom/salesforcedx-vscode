@@ -27,17 +27,18 @@ const DEFAULT_CLASS_ACCESS_MODIFIERS = ['global', 'public'];
 const DEFAULT_METHOD_ACCESS_MODIFIERS = ['global', 'public'];
 const DEFAULT_PROP_ACCESS_MODIFIERS = ['global', 'public'];
 
-const unionValues = (defaults: readonly string[], configuredValues: readonly string[]): string[] =>
-  HashSet.toValues(HashSet.union(HashSet.fromIterable(defaults), HashSet.fromIterable(configuredValues)));
+const unionValues = (defaults: readonly string[], configuredValues: readonly string[]): string[] => [
+  ...HashSet.union(HashSet.fromIterable(defaults), HashSet.fromIterable(configuredValues))
+];
 
 const getSetting = Effect.fn('apex.getSetting')(function* <T>(key: string, defaultValue: T) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  return yield* (yield* api.services.SettingsService).getValueOrElse(APEX_SETTINGS_SECTION, key, defaultValue);
+  return yield* (yield* api.v2.services.SettingsService).getValueOrElse(APEX_SETTINGS_SECTION, key, defaultValue);
 });
 
 const getCapabilitySetting = Effect.fn('apex.getCapabilitySetting')(function* (key: string) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const value = yield* (yield* api.services.SettingsService).getValue<CapabilitySetting>(APEX_SETTINGS_SECTION, key);
+  const value = yield* (yield* api.v2.services.SettingsService).getValue<CapabilitySetting>(APEX_SETTINGS_SECTION, key);
   return value === 'enabled';
 });
 

@@ -8,6 +8,7 @@
 import type { Mock as VitestMock, MockInstance as VitestMockInstance } from 'vitest';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
+import { ProjectService, WorkspaceService } from '@salesforce/vscode-services/v2';
 import * as vscode from 'vscode';
 import type * as LanguageClientManagerModule from '../../src/languageUtils/languageClientManager';
 
@@ -173,16 +174,13 @@ describe('index tests', () => {
       const effect = index.activateEffect(mockContext).pipe(
         Effect.provideService(ExtensionProviderService, {
           getServicesApi: Effect.succeed({
-            services: {
-              WorkspaceService: {
-                getWorkspaceInfoOrThrow
-              },
-              ProjectService: {
-                isSalesforceProject: () => Effect.succeed(isSalesforceProject)
-              }
-            }
+            v2: { services: { WorkspaceService, ProjectService } }
           })
-        } as unknown as ExtensionProviderService)
+        } as unknown as ExtensionProviderService['Service']),
+        Effect.provideService(WorkspaceService, { getWorkspaceInfoOrThrow } as never),
+        Effect.provideService(ProjectService, {
+          isSalesforceProject: () => Effect.succeed(isSalesforceProject)
+        } as never)
       );
 
       return Effect.runPromise(effect as Effect.Effect<void, unknown, never>);

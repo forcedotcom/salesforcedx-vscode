@@ -5,11 +5,10 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import type { Connection } from '@salesforce/core';
+import type { FilePropertiesSchema, MetadataTypeDescription } from '@salesforce/vscode-services/v2';
 import type * as S from 'effect/Schema';
-import type { DescribeMetadataObject } from 'salesforcedx-vscode-services/src/core/schemas/describeMetadataObject';
-import type { FilePropertiesSchema } from 'salesforcedx-vscode-services/src/core/schemas/fileProperties';
 
-export type MetadataDescribeResultItem = DescribeMetadataObject;
+export type MetadataDescribeResultItem = MetadataTypeDescription;
 export type CustomObjectField = Connection['sobject'] extends (name: string) => infer SObject
   ? SObject extends { describe: () => Promise<infer Desc> }
     ? Desc extends { fields: (infer F)[] }

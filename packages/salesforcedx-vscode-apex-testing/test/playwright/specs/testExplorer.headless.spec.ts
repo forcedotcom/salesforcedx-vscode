@@ -160,7 +160,7 @@ test('Apex Tests via Test Explorer: run all, verify discovery', async ({ page })
     await methodRow.waitFor({ state: 'visible', timeout: 15_000 });
 
     // Gate on the completion sentinel only. The Explorer run path (ApexTestExecutionService) writes the
-    // Human-formatted detail — including the dotted "Class.method" line — to the TestRun output
+    // HumanReporter detail — including the dotted "Class.method" line — to the TestRun output
     // (run.appendOutput, Test Results panel), NOT to the Apex Testing channel; only "Ended SFDX: Run Apex
     // Tests" reaches the channel. So the dotted string never appears in the channel on this path (unlike the
     // command path used by Re-Run Last Method below). Verify the specific method via its durable "Passed"
@@ -190,7 +190,8 @@ test('Apex Tests via Test Explorer: run all, verify discovery', async ({ page })
     await waitForRunApexTestsProgressNotificationGone(page, { timeout: TEST_RUN_TIMEOUT });
     await ensureOutputPanelOpen(page);
     await selectOutputChannel(page, 'Apex Testing');
-    await waitForApexRunOutputLine(page, '=== Test Summary');
+    // Re-Run Last Method emits the one-test summary without the section-heading line.
+    await waitForApexRunOutputLine(page, 'Tests Ran            1');
     await waitForApexRunOutputLine(page, `${testClassName}.shouldDiscoverThisTest`);
     await waitForApexRunOutputLine(page, 'Ended SFDX: Run Apex Tests');
     await verifyNoTestRunInProgress(page);

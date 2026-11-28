@@ -5,18 +5,16 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import * as FileSystem from '@effect/platform/FileSystem';
-import * as NodeFileSystem from '@effect/platform-node/NodeFileSystem';
-import * as NodePath from '@effect/platform-node/NodePath';
+import * as FileSystem from 'effect/FileSystem';
 import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
 import { DRIVABLE_VSCODE_EXTENSION_DIRS } from '../src/constants';
-import { ExtensionService } from '../src/extensionService';
+import { ExtensionService, ExtensionServiceLayer } from '../src/extensionService';
+import { drivablePlatformLayer } from '../src/platformLayer';
 
 vi.mock('@salesforce/playwright-vscode-ext', () => ({ prepareVsixExtensions: vi.fn() }));
 
-const PlatformLayer = Layer.merge(NodeFileSystem.layer, NodePath.layer);
-const TestLayer = Layer.merge(ExtensionService.Default.pipe(Layer.provide(PlatformLayer)), PlatformLayer);
+const TestLayer = ExtensionServiceLayer.pipe(Layer.provideMerge(drivablePlatformLayer));
 
 describe('ExtensionService', () => {
   test('rejects a development extension package missing version', async () => {
@@ -30,7 +28,8 @@ describe('ExtensionService', () => {
           `${extensionDirectory}/package.json`,
           JSON.stringify({ name: DRIVABLE_VSCODE_EXTENSION_DIRS[0], publisher: 'salesforce' })
         );
-        return yield* ExtensionService.resolveDev(repoRoot).pipe(Effect.flip);
+        const service = yield* ExtensionService;
+        return yield* service.resolveDev(repoRoot).pipe(Effect.flip);
       }).pipe(Effect.scoped, Effect.provide(TestLayer))
     );
 

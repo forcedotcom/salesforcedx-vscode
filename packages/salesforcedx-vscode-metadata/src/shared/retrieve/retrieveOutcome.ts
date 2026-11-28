@@ -7,10 +7,10 @@
 
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import type { RetrieveResult } from '@salesforce/source-deploy-retrieve';
+import type { RequestStatusValue } from '@salesforce/vscode-services/v2';
 import * as Data from 'effect/Data';
 import * as Effect from 'effect/Effect';
 import { isUndefined } from 'effect/Predicate';
-import type { RequestStatusValue } from 'salesforcedx-vscode-services';
 
 /** Retrieve finished but the org reported failures (file responses and/or retrieve status). */
 export class RetrieveCompletedWithErrorsError extends Data.TaggedError('RetrieveCompletedWithErrorsError')<{
@@ -33,8 +33,8 @@ const RETRIEVE_FAILURE_STATUSES: ReadonlySet<RequestStatusValue> = new Set([
  * handle API status when SDR does not surface every issue as a failed file response.
  */
 export const retrieveHasErrors = Effect.fn('retrieveHasErrors')(function* (result: RetrieveResult) {
-  const { isSDRFailure, toRequestStatus } = yield* (yield* (yield* ExtensionProviderService).getServicesApi).services
-    .ComponentSetService;
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const { isSDRFailure, toRequestStatus } = yield* api.v2.services.ComponentSetService;
 
   if (result.getFileResponses().some(isSDRFailure)) {
     return true;

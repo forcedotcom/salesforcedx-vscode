@@ -6,13 +6,21 @@
  */
 
 import * as Effect from 'effect/Effect';
-import * as ParseResult from 'effect/ParseResult';
 import * as Schema from 'effect/Schema';
+import * as SchemaGetter from 'effect/SchemaGetter';
 import { ChildRelationshipSchema, SObjectFieldSchema } from './sObjectSchema.js';
 
+const NonEmptyTrimmedString = Schema.String.pipe(
+  Schema.decodeTo(Schema.NonEmptyString, {
+    decode: SchemaGetter.transform(value => value.trim()),
+    encode: SchemaGetter.transform(value => value)
+  })
+);
+const NonNegativeInt = Schema.Int.check(Schema.isBetween({ minimum: 0, maximum: Number.MAX_SAFE_INTEGER }));
+
 const SoqlObjectMetadataSchema = Schema.Struct({
-  name: Schema.NonEmptyTrimmedString,
-  label: Schema.NonEmptyTrimmedString,
+  name: NonEmptyTrimmedString,
+  label: NonEmptyTrimmedString,
   queryable: Schema.Boolean
 });
 
@@ -20,34 +28,34 @@ const SoqlBuilderMetadataSchema = Schema.Struct({
   objects: Schema.Array(SoqlObjectMetadataSchema),
   fields: Schema.Array(SObjectFieldSchema),
   childRelationships: Schema.Array(ChildRelationshipSchema),
-  selectedObjectName: Schema.optional(Schema.NonEmptyTrimmedString)
+  selectedObjectName: Schema.optional(NonEmptyTrimmedString)
 });
 
 const SoqlOrderBySchema = Schema.Struct({
-  field: Schema.NonEmptyTrimmedString,
-  order: Schema.optional(Schema.Literal('ASC', 'DESC')),
-  nulls: Schema.optional(Schema.Literal('NULLS FIRST', 'NULLS LAST'))
+  field: NonEmptyTrimmedString,
+  order: Schema.optional(Schema.Literals(['ASC', 'DESC'])),
+  nulls: Schema.optional(Schema.Literals(['NULLS FIRST', 'NULLS LAST']))
 });
 
 const SoqlLiteralSchema = Schema.Struct({
   kind: Schema.optional(Schema.Literal('literal')),
-  type: Schema.Literal('BOOLEAN', 'CURRENCY', 'DATE', 'NULL', 'NUMBER', 'STRING'),
+  type: Schema.Literals(['BOOLEAN', 'CURRENCY', 'DATE', 'NULL', 'NUMBER', 'STRING']),
   value: Schema.String
 });
 
 export type SoqlLiteral = typeof SoqlLiteralSchema.Type;
 
 const SoqlWhereConditionSchema = Schema.Struct({
-  index: Schema.NonNegativeInt,
+  index: NonNegativeInt,
   condition: Schema.Struct({
-    kind: Schema.optional(Schema.Literal('fieldCompare', 'includes', 'inList')),
+    kind: Schema.optional(Schema.Literals(['fieldCompare', 'includes', 'inList'])),
     field: Schema.Struct({
       kind: Schema.optional(Schema.Literal('fieldRef')),
-      fieldName: Schema.NonEmptyTrimmedString
+      fieldName: NonEmptyTrimmedString
     }),
-    operator: Schema.Literal('=', '!=', '<>', '<=', '>=', '<', '>', 'LIKE', 'IN', 'NOT IN', 'INCLUDES', 'EXCLUDES'),
+    operator: Schema.Literals(['=', '!=', '<>', '<=', '>=', '<', '>', 'LIKE', 'IN', 'NOT IN', 'INCLUDES', 'EXCLUDES']),
     compareValue: Schema.optional(SoqlLiteralSchema),
-    values: Schema.optional(SoqlLiteralSchema.pipe(Schema.Array))
+    values: SoqlLiteralSchema.pipe(Schema.Array, Schema.optional)
   })
 });
 
@@ -69,15 +77,15 @@ const SoqlUnsupportedSyntaxSchema = Schema.Struct({
   })
 });
 
-export const SoqlLimitSchema = Schema.Union(
+export const SoqlLimitSchema = Schema.Union([
   Schema.TaggedStruct('Empty', {}),
   Schema.TaggedStruct('Valid', {
-    value: Schema.NonNegativeInt.pipe(Schema.lessThanOrEqualTo(Number.MAX_SAFE_INTEGER))
+    value: NonNegativeInt
   }),
   Schema.TaggedStruct('Invalid', {
-    input: Schema.String.pipe(Schema.minLength(1))
+    input: Schema.String.check(Schema.isMinLength(1))
   })
-);
+]);
 
 export type SoqlLimit = typeof SoqlLimitSchema.Type;
 
@@ -92,7 +100,7 @@ export const soqlLimitFromInput = (input: string): SoqlLimit => {
 const SoqlBuilderQuerySchema = Schema.Struct({
   headerComments: Schema.optional(Schema.String),
   allRows: Schema.Boolean,
-  fields: Schema.Array(Schema.NonEmptyTrimmedString),
+  fields: Schema.Array(NonEmptyTrimmedString),
   limit: SoqlLimitSchema,
   orderBy: Schema.Array(SoqlOrderBySchema),
   originalSoqlStatement: Schema.optional(Schema.String),
@@ -100,7 +108,7 @@ const SoqlBuilderQuerySchema = Schema.Struct({
   sObject: Schema.optional(Schema.String),
   unsupportedSyntax: Schema.Array(SoqlUnsupportedSyntaxSchema),
   where: Schema.Struct({
-    andOr: Schema.optional(Schema.Literal('AND', 'OR')),
+    andOr: Schema.optional(Schema.Literals(['AND', 'OR'])),
     conditions: Schema.Array(SoqlWhereConditionSchema)
   })
 });
@@ -121,30 +129,30 @@ export const SoqlBuilderStateSchema = Schema.Struct({
 
 export type SoqlBuilderState = typeof SoqlBuilderStateSchema.Type;
 
-export const SoqlBuilderActionSchema = Schema.Union(
+export const SoqlBuilderActionSchema = Schema.Union([
   Schema.TaggedStruct('ObjectSelected', {
-    objectName: Schema.NonEmptyTrimmedString
+    objectName: NonEmptyTrimmedString
   }),
   Schema.TaggedStruct('FieldsSelected', {
-    fieldNames: Schema.Array(Schema.NonEmptyTrimmedString)
+    fieldNames: Schema.Array(NonEmptyTrimmedString)
   }),
   Schema.TaggedStruct('AllFieldsSelected', {}),
   Schema.TaggedStruct('AllFieldsCleared', {}),
   Schema.TaggedStruct('WhereConditionUpserted', {
     condition: SoqlWhereConditionSchema,
-    andOr: Schema.optional(Schema.Literal('AND', 'OR'))
+    andOr: Schema.optional(Schema.Literals(['AND', 'OR']))
   }),
   Schema.TaggedStruct('WhereConditionRemoved', {
-    index: Schema.NonNegativeInt
+    index: NonNegativeInt
   }),
   Schema.TaggedStruct('WhereConjunctionChanged', {
-    andOr: Schema.Literal('AND', 'OR')
+    andOr: Schema.Literals(['AND', 'OR'])
   }),
   Schema.TaggedStruct('OrderByUpserted', {
     orderBy: SoqlOrderBySchema
   }),
   Schema.TaggedStruct('OrderByRemoved', {
-    fieldName: Schema.NonEmptyTrimmedString
+    fieldName: NonEmptyTrimmedString
   }),
   Schema.TaggedStruct('LimitChanged', {
     limit: SoqlLimitSchema
@@ -156,7 +164,7 @@ export const SoqlBuilderActionSchema = Schema.Union(
   Schema.TaggedStruct('SetDefaultOrgRequested', {}),
   Schema.TaggedStruct('RunQueryRequested', {}),
   Schema.TaggedStruct('QueryPlanRequested', {})
-);
+]);
 
 export type SoqlBuilderAction = typeof SoqlBuilderActionSchema.Type;
 
@@ -199,13 +207,8 @@ export type SoqlBuilderServiceError =
   | InvalidSoqlBuilderMetadataError;
 
 export const decodeSoqlBuilderMetadata = (input: unknown) =>
-  Schema.decodeUnknown(SoqlBuilderMetadataSchema)(input).pipe(
-    Effect.mapError(
-      error =>
-        new InvalidSoqlBuilderMetadataError({
-          details: ParseResult.TreeFormatter.formatErrorSync(error)
-        })
-    )
+  Schema.decodeUnknownEffect(SoqlBuilderMetadataSchema)(input).pipe(
+    Effect.mapError(error => new InvalidSoqlBuilderMetadataError({ details: error.message }))
   );
 
 export const createInitialSoqlBuilderQuery = (): SoqlBuilderQuery => ({

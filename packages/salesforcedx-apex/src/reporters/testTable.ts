@@ -6,7 +6,7 @@
  */
 
 import { nls } from '../i18n';
-import { createTable, type Row } from '../utils/table';
+import { createTable, type Row } from '../utils/createTable';
 
 export const formatTestTable = (
   rows: Row[],

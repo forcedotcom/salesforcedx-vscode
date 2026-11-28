@@ -11,15 +11,17 @@ import type {
   DrivableVscodeLaunchOptions,
   DrivableVscodeStatus
 } from './schemas';
-import * as FileSystem from '@effect/platform/FileSystem';
+import * as Context from 'effect/Context';
 import * as Effect from 'effect/Effect';
 import * as Exit from 'effect/Exit';
+import * as FileSystem from 'effect/FileSystem';
 import * as Layer from 'effect/Layer';
 import * as Match from 'effect/Match';
 import * as Option from 'effect/Option';
 import * as Ref from 'effect/Ref';
+import * as Semaphore from 'effect/Semaphore';
 import { DrivableVscodeStateError } from './errors';
-import { SessionService, type DrivableVscodeSession } from './sessionService';
+import { SessionService, SessionServiceLayer, type DrivableVscodeSession } from './sessionService';
 
 type ControllerState = {
   lifecycle: DrivableVscodeStatus['state'];
@@ -28,119 +30,124 @@ type ControllerState = {
   findingCount: number;
 };
 
-export class ControllerService extends Effect.Service<ControllerService>()('DrivableVscode/ControllerService', {
-  accessors: true,
-  dependencies: [SessionService.Default, Layer.service(FileSystem.FileSystem)],
-  effect: Effect.gen(function* () {
-    const fs = yield* FileSystem.FileSystem;
-    const sessions = yield* SessionService;
-    const state = yield* Ref.make<ControllerState>({
-      lifecycle: 'new',
-      objective: Option.none(),
+const makeControllerService = Effect.gen(function* () {
+  const fs = yield* FileSystem.FileSystem;
+  const sessions = yield* SessionService;
+  const state = yield* Ref.make<ControllerState>({
+    lifecycle: 'new',
+    objective: Option.none(),
+    session: Option.none(),
+    findingCount: 0
+  });
+  const semaphore = yield* Semaphore.make(1);
+  const requireSession = Ref.get(state).pipe(
+    Effect.flatMap(current =>
+      Option.match(current.session, {
+        onNone: () =>
+          new DrivableVscodeStateError({
+            message: `Drivable VS Code session is ${current.lifecycle}`,
+            state: current.lifecycle
+          }),
+        onSome: Effect.succeed
+      })
+    )
+  );
+  const startCriticalSection = Effect.fn('ControllerService.startCriticalSection')(function* (
+    objective: string,
+    options: DrivableVscodeLaunchOptions
+  ) {
+    const current = yield* Ref.get(state);
+    if (current.lifecycle !== 'new' && current.lifecycle !== 'closed')
+      return yield* new DrivableVscodeStateError({
+        message: `Drivable VS Code session is ${current.lifecycle}`,
+        state: current.lifecycle
+      });
+    yield* Ref.set(state, {
+      lifecycle: 'starting' as const,
+      objective: Option.some(objective),
       session: Option.none(),
       findingCount: 0
     });
-    const semaphore = yield* Effect.makeSemaphore(1);
-    const requireSession = Ref.get(state).pipe(
-      Effect.flatMap(current =>
+    const session = yield* sessions
+      .launch({ ...options, objective })
+      .pipe(Effect.onExit(exit => (Exit.isFailure(exit) ? Ref.set(state, current) : Effect.void)));
+    yield* Ref.set(state, {
+      lifecycle: 'running' as const,
+      objective: Option.some(objective),
+      session: Option.some(session),
+      findingCount: 0
+    });
+    return session;
+  });
+  const start = Effect.fn('ControllerService.start')(function* (
+    objective: string,
+    options: DrivableVscodeLaunchOptions = {}
+  ) {
+    return yield* semaphore.withPermits(1)(startCriticalSection(objective, options));
+  });
+  const observe = semaphore.withPermits(1)(requireSession.pipe(Effect.flatMap(session => session.observe)));
+  const observeForMcp = observe.pipe(
+    Effect.flatMap(observation =>
+      fs.readFile(observation.screenshotPath).pipe(Effect.map(screenshot => ({ observation, screenshot })))
+    )
+  );
+  const act = Effect.fn('ControllerService.act')(function* (action: DrivableVscodeAction) {
+    yield* semaphore.withPermits(1)(requireSession.pipe(Effect.flatMap(session => session.act(action))));
+  });
+  const addFindingCriticalSection = Effect.fn('ControllerService.addFindingCriticalSection')(function* (
+    finding: DrivableVscodeFinding
+  ) {
+    const session = yield* requireSession;
+    yield* session.addFinding(finding);
+    yield* Ref.update(state, current => ({ ...current, findingCount: current.findingCount + 1 }));
+  });
+  const addFinding = Effect.fn('ControllerService.addFinding')(function* (finding: DrivableVscodeFinding) {
+    yield* semaphore.withPermits(1)(addFindingCriticalSection(finding));
+  });
+  const status = Ref.get(state).pipe(
+    Effect.map(
+      current =>
+        ({
+          state: current.lifecycle,
+          objective: Option.getOrUndefined(current.objective),
+          runId: Option.getOrUndefined(Option.map(current.session, session => session.runId)),
+          artifactDir: Option.getOrUndefined(Option.map(current.session, session => session.artifactDir)),
+          findingCount: current.findingCount
+        }) satisfies DrivableVscodeStatus
+    )
+  );
+  const finishCriticalSection = Effect.fn('ControllerService.finishCriticalSection')(function* () {
+    const current = yield* Ref.get(state);
+    yield* Match.value(current.lifecycle).pipe(
+      Match.when('new', () => Ref.update(state, value => ({ ...value, lifecycle: 'closed' as const }))),
+      Match.when('closed', () =>
+        Option.match(current.session, { onNone: () => Effect.void, onSome: session => session.close })
+      ),
+      Match.orElse(() =>
         Option.match(current.session, {
           onNone: () =>
             new DrivableVscodeStateError({
               message: `Drivable VS Code session is ${current.lifecycle}`,
               state: current.lifecycle
             }),
-          onSome: Effect.succeed
+          onSome: session =>
+            Ref.update(state, value => ({ ...value, lifecycle: 'stopping' as const })).pipe(
+              Effect.andThen(session.close),
+              Effect.andThen(Ref.update(state, value => ({ ...value, lifecycle: 'closed' as const })))
+            )
         })
       )
     );
-    const startCriticalSection = Effect.fn('ControllerService.startCriticalSection')(function* (
-      objective: string,
-      options: DrivableVscodeLaunchOptions
-    ) {
-      const current = yield* Ref.get(state);
-      if (current.lifecycle !== 'new' && current.lifecycle !== 'closed')
-        return yield* new DrivableVscodeStateError({
-          message: `Drivable VS Code session is ${current.lifecycle}`,
-          state: current.lifecycle
-        });
-      yield* Ref.set(state, {
-        lifecycle: 'starting' as const,
-        objective: Option.some(objective),
-        session: Option.none(),
-        findingCount: 0
-      });
-      const session = yield* sessions
-        .launch({ ...options, objective })
-        .pipe(Effect.onExit(exit => (Exit.isFailure(exit) ? Ref.set(state, current) : Effect.void)));
-      yield* Ref.set(state, {
-        lifecycle: 'running' as const,
-        objective: Option.some(objective),
-        session: Option.some(session),
-        findingCount: 0
-      });
-      return session;
-    });
-    const start = Effect.fn('ControllerService.start')(function* (
-      objective: string,
-      options: DrivableVscodeLaunchOptions = {}
-    ) {
-      return yield* semaphore.withPermits(1)(startCriticalSection(objective, options));
-    });
-    const observe = semaphore.withPermits(1)(requireSession.pipe(Effect.flatMap(session => session.observe)));
-    const observeForMcp = observe.pipe(
-      Effect.flatMap(observation =>
-        fs.readFile(observation.screenshotPath).pipe(Effect.map(screenshot => ({ observation, screenshot })))
-      )
-    );
-    const act = Effect.fn('ControllerService.act')(function* (action: DrivableVscodeAction) {
-      yield* semaphore.withPermits(1)(requireSession.pipe(Effect.flatMap(session => session.act(action))));
-    });
-    const addFindingCriticalSection = Effect.fn('ControllerService.addFindingCriticalSection')(function* (
-      finding: DrivableVscodeFinding
-    ) {
-      const session = yield* requireSession;
-      yield* session.addFinding(finding);
-      yield* Ref.update(state, current => ({ ...current, findingCount: current.findingCount + 1 }));
-    });
-    const addFinding = Effect.fn('ControllerService.addFinding')(function* (finding: DrivableVscodeFinding) {
-      yield* semaphore.withPermits(1)(addFindingCriticalSection(finding));
-    });
-    const status = Ref.get(state).pipe(
-      Effect.map(
-        current =>
-          ({
-            state: current.lifecycle,
-            objective: Option.getOrUndefined(current.objective),
-            runId: Option.getOrUndefined(Option.map(current.session, session => session.runId)),
-            artifactDir: Option.getOrUndefined(Option.map(current.session, session => session.artifactDir)),
-            findingCount: current.findingCount
-          }) satisfies DrivableVscodeStatus
-      )
-    );
-    const finishCriticalSection = Effect.fn('ControllerService.finishCriticalSection')(function* () {
-      const current = yield* Ref.get(state);
-      yield* Match.value(current.lifecycle).pipe(
-        Match.when('new', () => Ref.update(state, value => ({ ...value, lifecycle: 'closed' as const }))),
-        Match.when('closed', () =>
-          Option.match(current.session, { onNone: () => Effect.void, onSome: session => session.close })
-        ),
-        Match.orElse(() =>
-          Option.match(current.session, {
-            onNone: () =>
-              new DrivableVscodeStateError({
-                message: `Drivable VS Code session is ${current.lifecycle}`,
-                state: current.lifecycle
-              }),
-            onSome: session =>
-              Ref.update(state, value => ({ ...value, lifecycle: 'stopping' as const })).pipe(
-                Effect.zipRight(session.close),
-                Effect.zipRight(Ref.update(state, value => ({ ...value, lifecycle: 'closed' as const })))
-              )
-          })
-        )
-      );
-    });
-    const finish = semaphore.withPermits(1)(Effect.suspend(finishCriticalSection));
-    return { start, observe, observeForMcp, act, addFinding, status, finish };
-  })
-}) {}
+  });
+  const finish = semaphore.withPermits(1)(Effect.suspend(finishCriticalSection));
+  return { start, observe, observeForMcp, act, addFinding, status, finish };
+});
+
+export class ControllerService extends Context.Service<
+  ControllerService,
+  Effect.Success<typeof makeControllerService>
+>()('DrivableVscode/ControllerService') {}
+
+export const ControllerServiceLayer = Layer.effect(ControllerService, makeControllerService).pipe(
+  Layer.provideMerge(SessionServiceLayer)
+);

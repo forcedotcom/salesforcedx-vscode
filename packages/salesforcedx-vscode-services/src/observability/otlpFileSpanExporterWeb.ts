@@ -60,7 +60,7 @@ export class OtlpFileSpanExporterWeb implements SpanExporter {
           })
         ),
         Effect.map(res => resultCallback(exportResultFromHttpStatus(res.status, status => `HTTP ${status}`))),
-        Effect.catchAll(error => {
+        Effect.catchTag('OtlpSpanExportError', error => {
           const exportError = isError(error) ? error : new Error(String(error));
           if (!localExportFailureLogged.logged) {
             localExportFailureLogged.logged = true;

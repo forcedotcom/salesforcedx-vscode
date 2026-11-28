@@ -9,11 +9,15 @@ import type { Mock as VitestMock } from 'vitest';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
+import * as Scope from 'effect/Scope';
 import * as vscode from 'vscode';
 import { URI, Utils } from 'vscode-uri';
-import { ChannelService } from 'salesforcedx-vscode-services/src/vscode/channelService';
-import { ExtensionContextService } from 'salesforcedx-vscode-services/src/vscode/extensionContextService';
-import { SettingsService } from 'salesforcedx-vscode-services/src/vscode/settingsService';
+import {
+  ChannelService,
+  ExtensionContextService,
+  SettingsService,
+  type SalesforceVSCodeServicesApiV2
+} from '@salesforce/vscode-services/v2';
 import { nls } from '../../../src/messages';
 import {
   ensureMinXmlHeap,
@@ -74,17 +78,23 @@ describe('metadata XML support — showSchemaDocumentationType suppression', () 
     });
     vi.spyOn(vscode.extensions, 'getExtension').mockReturnValue(redhat);
 
-    const services = { ChannelService, ExtensionContextService, SettingsService };
+    const services = {
+      v2: { services: { ChannelService, ExtensionContextService, SettingsService } }
+    } as unknown as SalesforceVSCodeServicesApiV2;
     const layer = Layer.mergeAll(
       Layer.succeed(ExtensionProviderService, {
-        getServicesApi: Effect.succeed({ services })
-      } as never),
-      Layer.succeed(ChannelService, new ChannelService({ appendToChannel } as never)),
+        getServicesApi: Effect.succeed(services)
+      } as unknown as ExtensionProviderService['Service']),
+      Layer.succeed(ChannelService, ChannelService.of({ appendToChannel } as never)),
       Layer.succeed(
         ExtensionContextService,
-        new ExtensionContextService({ getContext: Effect.succeed(extensionContext) } as never)
+        ExtensionContextService.of({
+          scope: Effect.runSync(Scope.make()),
+          getContext: Effect.succeed(extensionContext),
+          getDisplayName: Effect.succeed(undefined)
+        })
       ),
-      Layer.succeed(SettingsService, new SettingsService({ getValue, getValueOrElse: getValue, setValue } as never))
+      Layer.succeed(SettingsService, SettingsService.of({ getValue, getValueOrElse: getValue, setValue } as never))
     );
 
     await Effect.runPromise(initializeMetadataSupport().pipe(Effect.provide(layer)));

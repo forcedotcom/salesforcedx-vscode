@@ -18,7 +18,7 @@ import {
 
 const makeClassEntry = (id?: string) => ({
   fullClassName: 'TestClass',
-  entries: [{ id: Option.fromNullable(id), name: 'TestClass', namespacePrefix: Option.none() }] as any
+  entries: [{ id: Option.fromNullishOr(id), name: 'TestClass', namespacePrefix: Option.none() }] as any
 });
 
 const domainClass = (

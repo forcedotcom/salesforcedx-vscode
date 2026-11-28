@@ -20,7 +20,7 @@ export class StrategyNotQualified extends Data.TaggedError('StrategyNotQualified
   readonly message: string;
 }> {}
 
-const BidRule = Schema.Literal('LEAST_CALLS', 'MOST_CALLS');
+const BidRule = Schema.Literals(['LEAST_CALLS', 'MOST_CALLS']);
 export type BidRule = typeof BidRule.Type;
 
 const validBidsByCount = (bids: Map<GenerationStrategyType, PromptGenerationStrategyBid>) =>
@@ -57,8 +57,8 @@ export const applyRule = (rule: BidRule, bids: Map<GenerationStrategyType, Promp
 
 const getBidRule = Effect.fn('ApexOas.Strategy.getBidRule')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const current = yield* (yield* api.services.SettingsService).getValue(EXTENSION_NAME, 'generation_strategy');
-  return yield* Schema.decodeUnknown(BidRule)(current).pipe(Effect.orElseSucceed((): BidRule => 'LEAST_CALLS'));
+  const current = yield* (yield* api.v2.services.SettingsService).getValue(EXTENSION_NAME, 'generation_strategy');
+  return yield* Schema.decodeUnknownEffect(BidRule)(current).pipe(Effect.orElseSucceed((): BidRule => 'LEAST_CALLS'));
 });
 
 export const selectStrategyByBidRule = Effect.fn('ApexOas.Strategy.bid')(function* (

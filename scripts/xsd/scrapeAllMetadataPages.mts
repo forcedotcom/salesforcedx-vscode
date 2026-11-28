@@ -8,7 +8,7 @@
 import { Effect } from 'effect';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
-import { chromium, type Page, type BrowserContext } from 'playwright';
+import { chromium, type Page, type Browser, type BrowserContext } from 'playwright';
 import {
   loadMetadataPage,
   extractMetadataFromPage,
@@ -448,7 +448,7 @@ const scrapeInBatches = async (
       };
     }),
     // Catch any errors and return partial results
-    Effect.catchAll(_error => {
+    Effect.catch(_error => {
       const averageDuration = totalMetadataTypes > 0 ? totalDuration / totalMetadataTypes : 0;
       return Effect.succeed({
         results,

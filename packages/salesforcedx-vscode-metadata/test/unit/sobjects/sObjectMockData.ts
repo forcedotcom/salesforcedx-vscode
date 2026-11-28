@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import type { SObject } from 'salesforcedx-vscode-services';
+import type { SObject } from '@salesforce/vscode-services/v2';
 
 // This is our internal minimal fields version (type SObject) of the same set of sobjects:
 export const minimalCustomSObject: SObject = {

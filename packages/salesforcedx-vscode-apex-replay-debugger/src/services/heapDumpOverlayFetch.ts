@@ -12,10 +12,9 @@ import {
   type HeapDumpResult
 } from '@salesforce/salesforcedx-apex-replay-debugger';
 import * as Arr from 'effect/Array';
-import * as Chunk from 'effect/Chunk';
 import * as Effect from 'effect/Effect';
 import { pipe } from 'effect/Function';
-import { isRecord, isString } from 'effect/Predicate';
+import { isObject, isString } from 'effect/Predicate';
 import * as S from 'effect/Schema';
 import * as Stream from 'effect/Stream';
 
@@ -25,36 +24,32 @@ import * as Stream from 'effect/Stream';
 const MAX_QUERY_IDS = 200;
 const QUERY_CONCURRENCY = 15;
 
-const OverlayRow = S.Unknown.pipe(
-  S.filter((value): value is ApexExecutionOverlayResultCommandSuccess => isRecord(value) && isString(value.Id))
+const OverlayRow = S.declare<ApexExecutionOverlayResultCommandSuccess>(
+  (value): value is ApexExecutionOverlayResultCommandSuccess => isObject(value) && isString(value.Id)
 );
 
 /** Tooling query for a chunk of heap-dump ids, mapped to a HeapDumpResult per id (missing id → error). */
 const runOverlayQuery = Effect.fn('heapDumpOverlayFetch.runOverlayQuery')(function* (ids: string[]) {
-  return yield* Effect.flatMap(ExtensionProviderService, provider => provider.getServicesApi).pipe(
-    Effect.flatMap(api => api.services.QueryService),
-    Effect.flatMap(queryService =>
-      queryService.query(
-        {
-          soql: `SELECT Id, HeapDump, ApexResult, SOQLResult, Line, Iteration, ClassName, Namespace, IsDumpingHeap, OverlayResultLength FROM ApexExecutionOverlayResult WHERE Id IN (${ids
-            .map(id => `'${id}'`)
-            .join(',')})`,
-          tooling: true
-        },
-        OverlayRow
-      )
-    ),
-    Effect.flatMap(({ records }) => Stream.runCollect(records)),
-    Effect.map(chunk => new Map(Chunk.toReadonlyArray(chunk).map(record => [record.Id, record]))),
-    Effect.map(byId =>
-      ids.map((id): HeapDumpResult => {
-        const record = byId.get(id);
-        return record
-          ? { heapDumpId: id, success: record }
-          : { heapDumpId: id, error: `No overlay result found for ${id}` };
-      })
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const queryResult = yield* api.v2.services.QueryService.use(service =>
+    service.query(
+      {
+        soql: `SELECT Id, HeapDump, ApexResult, SOQLResult, Line, Iteration, ClassName, Namespace, IsDumpingHeap, OverlayResultLength FROM ApexExecutionOverlayResult WHERE Id IN (${ids
+          .map(id => `'${id}'`)
+          .join(',')})`,
+        tooling: true
+      },
+      input => S.decodeUnknownEffect(S.Struct({ totalSize: S.Number, records: S.Array(OverlayRow) }))(input)
     )
   );
+  const records = yield* Stream.runCollect(queryResult.records);
+  const byId = new Map(records.map(record => [record.Id, record]));
+  return ids.map((id): HeapDumpResult => {
+    const record = byId.get(id);
+    return record
+      ? { heapDumpId: id, success: record }
+      : { heapDumpId: id, error: `No overlay result found for ${id}` };
+  });
 });
 
 /**
@@ -71,9 +66,8 @@ export const fetchHeapDumpOverlayResults = Effect.fn('heapDumpOverlayFetch.fetch
     Arr.dedupe,
     Stream.fromIterable,
     Stream.grouped(MAX_QUERY_IDS),
-    Stream.mapEffect(chunk => chunk.pipe(Chunk.toArray, runOverlayQuery), { concurrency: QUERY_CONCURRENCY }),
-    Stream.flattenIterables,
-    Stream.runCollect,
-    Effect.map(Chunk.toArray)
+    Stream.mapEffect(chunk => runOverlayQuery([...chunk]), { concurrency: QUERY_CONCURRENCY }),
+    Stream.flattenIterable,
+    Stream.runCollect
   );
 });

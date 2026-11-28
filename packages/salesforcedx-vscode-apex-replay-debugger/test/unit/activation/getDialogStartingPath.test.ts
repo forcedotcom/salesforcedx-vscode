@@ -6,10 +6,14 @@
  */
 
 import type { Mock as VitestMock } from 'vitest';
-import { ExtensionProviderService, type SalesforceVSCodeServicesApi } from '@salesforce/effect-ext-utils';
-import { ProjectService } from 'salesforcedx-vscode-services/src/core/projectService';
-import { FsService } from 'salesforcedx-vscode-services/src/vscode/fsService';
-import { NoWorkspaceOpenError, WorkspaceService } from 'salesforcedx-vscode-services/src/vscode/workspaceService';
+import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import {
+  FsService,
+  NoWorkspaceOpenError,
+  ProjectService,
+  WorkspaceService,
+  type SalesforceVSCodeServicesApiV2
+} from '@salesforce/vscode-services/v2';
 import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
 import * as vscode from 'vscode';
@@ -23,10 +27,7 @@ const debugLogsFolder = URI.file('/mock/.sfdx/tools/debug/logs');
 const stateFolder = URI.file('/mock/.sfdx');
 
 /**
- * The source calls the static accessors `api.services.<Service>.<method>()`, which read the service from
- * context. Provide the real classes through the api plus service instances so the accessors resolve and the
- * effect's requirements are satisfied. `FsService.Default` is the real service; it drives
- * `vscode.workspace.fs.stat`, which is mocked below.
+ * Provide V2 service tags through the API and mock their Context.Service values.
  */
 const provideWorkspace = (isEmpty: boolean, workspaceClosedAfterCheck = false) => {
   const info = { path: '/mock', fsPath: '/mock', isEmpty, isVirtualFs: false, cwd: '/mock' } as const;
@@ -38,24 +39,27 @@ const provideWorkspace = (isEmpty: boolean, workspaceClosedAfterCheck = false) =
   return Layer.mergeAll(
     Layer.succeed(ExtensionProviderService, {
       getServicesApi: Effect.succeed({
-        services: { WorkspaceService, ProjectService, FsService }
-      } as unknown as SalesforceVSCodeServicesApi)
-    }),
-    Layer.succeed(
-      WorkspaceService,
-      new WorkspaceService({
-        getWorkspaceInfo: () => Effect.succeed(info),
-        getWorkspaceInfoOrThrow: () => Effect.succeed(info)
-      } as unknown as WorkspaceService)
-    ),
-    Layer.succeed(
-      ProjectService,
-      new ProjectService({
-        getDebugLogsFolder: () => folderOrClosed(debugLogsFolder),
-        getStateFolder: () => folderOrClosed(stateFolder)
-      } as unknown as ProjectService)
-    ),
-    FsService.Default
+        v2: { services: { WorkspaceService, ProjectService, FsService } }
+      } as unknown as SalesforceVSCodeServicesApiV2)
+    } as unknown as ExtensionProviderService['Service']),
+    Layer.succeed(WorkspaceService, {
+      getWorkspaceInfo: () => Effect.succeed(info),
+      getWorkspaceInfoOrThrow: () => Effect.succeed(info)
+    } as unknown as WorkspaceService['Service']),
+    Layer.succeed(ProjectService, {
+      getDebugLogsFolder: () => folderOrClosed(debugLogsFolder),
+      getStateFolder: () => folderOrClosed(stateFolder)
+    } as unknown as ProjectService['Service']),
+    Layer.succeed(FsService, {
+      fileOrFolderExists: (path: string | URI) =>
+        Effect.tryPromise({
+          try: () => vscode.workspace.fs.stat(typeof path === 'string' ? URI.file(path) : path),
+          catch: () => false
+        }).pipe(
+          Effect.as(true),
+          Effect.catch(() => Effect.succeed(false))
+        )
+    } as unknown as FsService['Service'])
   );
 };
 

@@ -9,7 +9,16 @@ import type { Mock as VitestMock } from 'vitest';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as Exit from 'effect/Exit';
+import { identity } from 'effect/Function';
 import * as vscode from 'vscode';
+import {
+  ChannelService,
+  NotificationModeService,
+  ProjectService,
+  PromptService,
+  TerminalService,
+  UserCancellationError
+} from '@salesforce/vscode-services/v2';
 import { orgLoginWebCommand } from '../../../../src/commands/auth/orgLoginWeb';
 import { nls } from '../../../../src/messages';
 import { updateConfigAndStateAggregators } from '../../../../src/util/orgUtil';
@@ -27,7 +36,7 @@ const buildServices = (opts: {
   showChannel: VitestMock;
   captureProgressTitle: (title: string) => void;
 }) => ({
-  ProjectService: {
+  project: {
     // gatherAuthParams' QuickPick branch reads sfdcLoginUrl off the project json to offer a "project"
     // org-type; return an empty json (get → undefined) so only the fixed prod/sandbox/custom options show.
     getSfProject: () =>
@@ -36,19 +45,18 @@ const buildServices = (opts: {
         : Effect.fail({ _tag: 'FailedToResolveSfProjectError' as const })
   },
   // gatherAuthParams pulls PromptService + (for the prod URL path) ProjectService; the test drives the
-  // org-type QuickPick + alias input box through the vscode mock, while this progress stub runs the Effect.
-  PromptService: Effect.succeed({
+  // org-type QuickPick + alias input box through the vscode mock, so PromptService just needs its
+  // cancellation helpers. withCancellableProgress is the only operator the command pipes through.
+  prompt: {
     considerUndefinedAsCancellation: (value: unknown) =>
       value === undefined ? Effect.fail({ _tag: 'UserCancellationError' as const }) : Effect.succeed(value),
-    withProgress:
-      ({ title }: { title: string }) =>
-      <A, E, R>(work: Effect.Effect<A, E, R>) => {
-        opts.captureProgressTitle(title);
-        return work;
-      }
-  }),
-  TerminalService: Effect.succeed({ simpleExec: opts.simpleExec }),
-  ChannelService: Effect.succeed({
+    withCancellableProgress: (title: string, _location?: unknown) => {
+      opts.captureProgressTitle(title);
+      return identity;
+    }
+  },
+  terminal: { simpleExec: opts.simpleExec },
+  channel: {
     appendToChannel: (msg: string) =>
       Effect.sync(() => {
         opts.appendToChannel(msg);
@@ -56,13 +64,10 @@ const buildServices = (opts: {
     showChannel: Effect.sync(() => {
       opts.showChannel();
     })
-  }),
-  NotificationModeService: Effect.succeed({
+  },
+  notificationMode: {
     getProgressLocation: () => Effect.succeed(1),
     showSuccessNotification: () => Effect.void
-  }),
-  UserCancellationError: class {
-    public readonly _tag = 'UserCancellationError';
   }
 });
 
@@ -72,14 +77,32 @@ const run = (opts: {
   appendToChannel: VitestMock;
   showChannel: VitestMock;
   captureProgressTitle: (title: string) => void;
-}) =>
-  Effect.runPromiseExit(
+}) => {
+  const services = buildServices(opts);
+  return Effect.runPromiseExit(
     orgLoginWebCommand().pipe(
       Effect.provideService(ExtensionProviderService, {
-        getServicesApi: Effect.succeed({ services: buildServices(opts) })
-      } as unknown as ExtensionProviderService)
+        getServicesApi: Effect.succeed({
+          v2: {
+            services: {
+              ProjectService,
+              PromptService,
+              TerminalService,
+              ChannelService,
+              NotificationModeService,
+              UserCancellationError
+            }
+          }
+        })
+      } as unknown as ExtensionProviderService['Service']),
+      Effect.provideService(ProjectService, services.project as never),
+      Effect.provideService(PromptService, services.prompt as never),
+      Effect.provideService(TerminalService, services.terminal as never),
+      Effect.provideService(ChannelService, services.channel as never),
+      Effect.provideService(NotificationModeService, services.notificationMode as never)
     ) as Effect.Effect<void, unknown, never>
   );
+};
 
 describe('orgLoginWebCommand', () => {
   let appendToChannel: VitestMock;

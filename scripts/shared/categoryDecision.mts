@@ -97,7 +97,7 @@ export const classifyGit2GusConfig = (
   const oldNumber = Number(oldBuild[1]);
   const newNumber = Number(newBuild[1]);
   if (!Number.isSafeInteger(oldNumber) || !Number.isSafeInteger(newNumber) || newNumber <= oldNumber) return [];
-  if (Option.isNone(Schema.decodeUnknownOption(Schema.parseJson(Schema.Unknown))(headConfig))) return [];
+  if (Option.isNone(Schema.decodeUnknownOption(Schema.fromJsonString(Schema.Unknown))(headConfig))) return [];
   if (headConfig.replace(after[0]?.[0] ?? '', `${after[0]?.[1]}${before[0]?.[2]}${after[0]?.[3]}`) !== baseConfig)
     return [];
   return ['git2gus-config'];
@@ -110,12 +110,13 @@ const AgentEnvelope = Schema.Struct({ result: Schema.optional(Schema.String) });
 const AgentCategories = Schema.Struct({ covered: Schema.Boolean, categories: Schema.Array(Schema.String) });
 
 export const parseAgentResult = (stdout: string): Option.Option<readonly string[]> => {
-  const body = Option.match(Schema.decodeUnknownOption(Schema.parseJson(AgentEnvelope))(stdout), {
+  const body = Option.match(Schema.decodeUnknownOption(Schema.fromJsonString(AgentEnvelope))(stdout), {
     onNone: () => stdout,
     onSome: ({ result }) => result ?? stdout
   });
-  return Option.fromNullable(body.match(/\{[\s\S]*"categories"\s*:\s*\[[\s\S]*?\][\s\S]*?\}/)?.[0]).pipe(
-    Option.flatMap(Schema.decodeUnknownOption(Schema.parseJson(AgentCategories))),
+  const extracted = body.match(/\{[\s\S]*"categories"\s*:\s*\[[\s\S]*?\][\s\S]*?\}/)?.[0];
+  if (isUndefined(extracted)) return Option.none();
+  return Schema.decodeUnknownOption(Schema.fromJsonString(AgentCategories))(extracted).pipe(
     Option.filter(
       decoded =>
         decoded.covered &&

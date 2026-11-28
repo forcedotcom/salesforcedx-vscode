@@ -21,9 +21,9 @@ export const orgLoginAccessTokenCommand = Effect.fn('orgLoginAccessTokenCommand'
   // precondition: getSfProject sets the sf:project_opened context and fails with a typed
   // FailedToResolveSfProjectError (rendered by ErrorHandlerService) when there's no project.
   // a project is required so the authorized org can become its default (--set-default below).
-  yield* api.services.ProjectService.getSfProject();
+  yield* api.v2.services.ProjectService.use(service => service.getSfProject());
 
-  const output = yield* (yield* api.services.TerminalService).simpleExec({
+  const output = yield* (yield* api.v2.services.TerminalService).simpleExec({
     executable: 'sf',
     args: [
       'org',
@@ -40,7 +40,7 @@ export const orgLoginAccessTokenCommand = Effect.fn('orgLoginAccessTokenCommand'
     env: { SF_ACCESS_TOKEN: accessToken }
   });
 
-  const channel = yield* api.services.ChannelService;
+  const channel = yield* api.v2.services.ChannelService;
   yield* channel.appendToChannel(output);
   yield* channel.showChannel;
 

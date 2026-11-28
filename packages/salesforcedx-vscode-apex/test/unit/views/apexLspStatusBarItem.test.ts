@@ -6,8 +6,7 @@
  */
 import type { MockInstance as VitestMockInstance } from 'vitest';
 import * as Effect from 'effect/Effect';
-import type { SalesforceVSCodeServicesApi } from 'salesforcedx-vscode-services';
-import { SettingsService } from 'salesforcedx-vscode-services/src/vscode/settingsService';
+import { SettingsService, type SalesforceVSCodeServicesApiV2 } from '@salesforce/vscode-services/v2';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import ApexLSPStatusBarItem from '../../../src/apexLspStatusBarItem';
@@ -29,10 +28,10 @@ vi.mock('../../../src/services/runtime', async () => {
           eff.pipe(
             effect.provideService(ExtensionProviderService, {
               getServicesApi: effect.succeed({
-                services: { SettingsService }
-              } as SalesforceVSCodeServicesApi)
+                v2: { services: { SettingsService } }
+              } as SalesforceVSCodeServicesApiV2)
             }),
-            effect.provideService(SettingsService, SettingsService.make(settingsService as never))
+            effect.provideService(SettingsService, SettingsService.of(settingsService as never))
           )
         )
     })

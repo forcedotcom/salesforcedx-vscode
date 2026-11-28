@@ -18,11 +18,11 @@ import { ApexTestTreeService } from '../views/apexTestTreeService';
 
 /** Layer of apex-testing-specific services merged on top of the shared all-services layer. */
 const ApexTestingServicesLayer = Layer.mergeAll(
-  ApexTestRunCacheService.Default,
-  CodeCoverageService.Default,
-  PackageResolutionService.Default,
-  ApexTestTreeService.Default,
-  ApexTestExecutionService.Default
+  ApexTestRunCacheService.layer,
+  CodeCoverageService.layer,
+  PackageResolutionService.layer,
+  ApexTestTreeService.layer,
+  ApexTestExecutionService.layer
 );
 
 /**
@@ -31,12 +31,12 @@ const ApexTestingServicesLayer = Layer.mergeAll(
  * calls) plus apex-testing-specific services.
  */
 export const buildAllServicesLayer = (context: ExtensionContext, fallbackDisplayName: string) =>
-  Layer.unwrapEffect(
+  Layer.unwrap(
     Effect.map(getServicesApi, api =>
       Layer.mergeAll(
         buildBaseServicesLayer(context, fallbackDisplayName),
         ApexTestingServicesLayer,
-        api.services.NotificationModeService.Default(
+        api.v2.services.NotificationModeServiceLayer(
           APEX_TESTING_SECTION,
           'sf-apex-testing-notifications',
           'Salesforce: Apex Testing Notifications'
@@ -58,8 +58,8 @@ export const setAllServicesLayer = (layer: ReturnType<typeof buildAllServicesLay
  * stateful services across test discovery, runs, and code-completion calls
  */
 type ApexTestingRuntime = ManagedRuntime.ManagedRuntime<
-  Layer.Layer.Success<ReturnType<typeof buildAllServicesLayer>>,
-  Layer.Layer.Error<ReturnType<typeof buildAllServicesLayer>>
+  Layer.Success<ReturnType<typeof buildAllServicesLayer>>,
+  Layer.Error<ReturnType<typeof buildAllServicesLayer>>
 >;
 // eslint-disable-next-line functional/no-let -- module-level lazy singleton, assigned once via ??= in getApexTestingRuntime
 let _apexTestingRuntime: ApexTestingRuntime | undefined;

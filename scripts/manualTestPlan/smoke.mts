@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import * as NodeContext from '@effect/platform-node/NodeContext';
+import * as NodeServices from '@effect/platform-node/NodeServices';
 import { Effect, Schema } from 'effect';
 import { manualTestPlanPrompt } from './manualTestPlan.mts';
 
@@ -15,13 +15,13 @@ await manualTestPlanPrompt(process.cwd(), {
   diff: ''
 }).pipe(
   Effect.flatMap(
-    Schema.decodeUnknown(
-      Schema.parseJson(
+    Schema.decodeUnknownEffect(
+      Schema.fromJsonString(
         Schema.Struct({ name: Schema.Literal('Manual test plan'), referencesModelVariable: Schema.Literal(true) })
       )
     )
   ),
   Effect.tap(result => Effect.logInfo('OpenCode inference and repository read verified', result)),
-  Effect.provide(NodeContext.layer),
+  Effect.provide(NodeServices.layer),
   Effect.runPromise
 );

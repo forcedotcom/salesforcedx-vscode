@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { randomUUID } from 'node:crypto';
 import { createDesktopTest, MINIMAL_ORG_ALIAS } from '@salesforce/playwright-vscode-ext';
 
 const desktopTestOptions = {
@@ -16,11 +17,12 @@ const desktopTestOptions = {
 };
 
 export const desktopTest = createDesktopTest(desktopTestOptions);
+export const TELEMETRY_TAG = `core-telemetry-e2e-test-${randomUUID()}`;
 
 export const telemetryDesktopTest = createDesktopTest({
   ...desktopTestOptions,
   userSettings: {
     ...desktopTestOptions.userSettings,
-    'salesforcedx-vscode-core.telemetry-tag': 'core-telemetry-e2e-test'
+    'salesforcedx-vscode-core.telemetry-tag': TELEMETRY_TAG
   }
 });

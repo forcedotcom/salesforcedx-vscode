@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-// exported for use in other packages
+// Shared across source modules in this package.
 export const SEND_METRIC_GENERAL_EVENT = 'sendMetricGeneral';
 export const SEND_METRIC_ERROR_EVENT = 'sendMetricError';
 export const EXTENT_TRIGGER_PREFIX = 'Trigger.';

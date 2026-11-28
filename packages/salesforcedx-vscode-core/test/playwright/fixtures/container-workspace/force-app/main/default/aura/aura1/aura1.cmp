@@ -1,5 +1,5 @@
 <aura:component>
-	
+
 	<aura:attribute name="simpleNewContact" type="Object"/>
 	<div class="slds-page-header" role="banner">
 		<h1 class="slds-m-right_small">Create New Contact</h1>

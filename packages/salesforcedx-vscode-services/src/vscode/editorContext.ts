@@ -5,13 +5,12 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { ProjectService, EditorService } from '@salesforce/vscode-services/v2';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
 import * as Stream from 'effect/Stream';
 import * as vscode from 'vscode';
 import { Utils } from 'vscode-uri';
-import { ProjectService } from '../core/projectService';
-import { EditorService } from './editorService';
 
 const setInPackageDirectoriesContext = (value: boolean) =>
   Effect.promise(() => vscode.commands.executeCommand('setContext', 'sf:in_package_directories', value));
@@ -40,7 +39,9 @@ export const watchPackageDirectoriesContext = Effect.fn('watchPackageDirectories
       uri
         ? projectService.isInPackageDirectories(uri).pipe(
             Effect.flatMap(setInPackageDirectoriesContext),
-            Effect.catchAll(() => setInPackageDirectoriesContext(false))
+            Effect.catchTag(['NoWorkspaceOpenError', 'FailedToResolveSfProjectError'], () =>
+              setInPackageDirectoriesContext(false)
+            )
           )
         : setInPackageDirectoriesContext(false)
     )

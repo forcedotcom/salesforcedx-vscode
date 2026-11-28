@@ -5,14 +5,14 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import * as FileSystem from '@effect/platform/FileSystem';
-import * as Path from '@effect/platform/Path';
 import * as Cause from 'effect/Cause';
 import * as Effect from 'effect/Effect';
+import * as FileSystem from 'effect/FileSystem';
 import * as Layer from 'effect/Layer';
+import * as Path from 'effect/Path';
 import * as Stream from 'effect/Stream';
-import { causeMessage } from './errors';
-import { FileOutput, FileOutputError } from './fileOutput';
+import { causeMessage } from './errors.js';
+import { FileOutput, FileOutputError } from './fileOutput.js';
 
 const toFileOutputError = (operation: string, filePath: string, cause: unknown): FileOutputError =>
   new FileOutputError({ operation, path: filePath, message: causeMessage(cause), cause: causeMessage(cause) });
@@ -31,20 +31,20 @@ export const makeFileOutput = (
     directory: string,
     fileName: string,
     content: Stream.Stream<string>
-  ) {
+  ): Effect.fn.Return<string, FileOutputError> {
     const filePath = path.join(directory, fileName);
     return yield* fileSystem.makeTempFileScoped({ directory: path.dirname(filePath), prefix: '.apex-result-' }).pipe(
       Effect.flatMap(stagedPath =>
         content.pipe(
           Stream.map(encode),
           Stream.run(fileSystem.sink(stagedPath)),
-          Effect.zipRight(fileSystem.rename(stagedPath, filePath).pipe(Effect.uninterruptible))
+          Effect.andThen(fileSystem.rename(stagedPath, filePath).pipe(Effect.uninterruptible))
         )
       ),
       Effect.scoped,
       Effect.mapError(error => toFileOutputError('writeFile', filePath, error)),
-      Effect.catchAllCause(cause =>
-        Cause.isInterrupted(cause)
+      Effect.catchCause(cause =>
+        Cause.hasInterrupts(cause)
           ? Effect.failCause(cause)
           : Effect.fail(
               new FileOutputError({

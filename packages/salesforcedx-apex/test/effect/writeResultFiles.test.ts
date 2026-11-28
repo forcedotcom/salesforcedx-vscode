@@ -5,7 +5,6 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import * as Chunk from 'effect/Chunk';
 import * as Effect from 'effect/Effect';
 import * as Cause from 'effect/Cause';
 import * as Deferred from 'effect/Deferred';
@@ -14,14 +13,13 @@ import * as Fiber from 'effect/Fiber';
 import * as Stream from 'effect/Stream';
 import { FileOutput, FileOutputError } from '../../src/effect/fileOutput';
 import { writeResultFiles } from '../../src/effect/writeResultFiles';
-import { NodeFileOutputPlatformLayer } from '../../src/effect/nodeFileOutputLayer';
 import { successResult } from '../reporters/testResults';
 
 const createMemoryFileOutput = (files: Map<string, string>): typeof FileOutput.Service => ({
   createDirectory: () => Effect.void,
   writeFile: (directory, fileName, content) =>
     Stream.runCollect(content).pipe(
-      Effect.map(Chunk.join('')),
+      Effect.map(chunks => chunks.join('')),
       Effect.map(content => {
         const path = `${directory}/${fileName}`;
         files.set(path, content);
@@ -43,7 +41,6 @@ describe('Effect writeResultFiles', () => {
 
     const written = await Effect.runPromise(
       writeResultFiles(result, { dirPath: '/reports', resultFormats: ['json'] }, { codeCoverage: true }).pipe(
-        Effect.provide(NodeFileOutputPlatformLayer),
         Effect.provideService(FileOutput, fileOutput)
       )
     );
@@ -73,7 +70,6 @@ describe('Effect writeResultFiles', () => {
 
     await Effect.runPromise(
       writeResultFiles(result, { dirPath: '/reports', resultFormats: ['json'] }, { includeSetup: true }).pipe(
-        Effect.provide(NodeFileOutputPlatformLayer),
         Effect.provideService(FileOutput, createMemoryFileOutput(files))
       )
     );
@@ -89,13 +85,12 @@ describe('Effect writeResultFiles', () => {
     );
     const result = await Effect.runPromise(
       writeResultFiles(successResult, { dirPath: '/reports', resultFormats: ['json'] }).pipe(
-        Effect.provide(NodeFileOutputPlatformLayer),
         Effect.provideService(FileOutput, { createDirectory: () => Effect.void, writeFile }),
-        Effect.either
+        Effect.result
       )
     );
 
-    expect(result).toMatchObject({ _tag: 'Left', left: { _tag: 'FileOutputError', message: 'denied' } });
+    expect(result).toMatchObject({ _tag: 'Failure', failure: { _tag: 'FileOutputError', message: 'denied' } });
     expect(writeFile).toHaveBeenCalledTimes(1);
   });
 
@@ -112,19 +107,18 @@ describe('Effect writeResultFiles', () => {
           { filename: 'not-started.txt', content: 'later' }
         ]
       }).pipe(
-        Effect.provide(NodeFileOutputPlatformLayer),
         Effect.provideService(FileOutput, {
           ...memory,
           writeFile: (directory, fileName, content) =>
             fileName === 'extra.txt' ? Effect.fail(failure) : memory.writeFile(directory, fileName, content)
         }),
-        Effect.either
+        Effect.result
       )
     );
 
     expect(result).toMatchObject({
-      _tag: 'Left',
-      left: {
+      _tag: 'Failure',
+      failure: {
         _tag: 'PartialResultFilesError',
         writtenFiles: ['/reports/test-run-id.txt', '/reports/test-result-7073t000061uwZI.json'],
         cause: failure
@@ -142,16 +136,12 @@ describe('Effect writeResultFiles', () => {
       writeResultFiles(successResult, {
         dirPath: '/reports',
         fileInfos: [{ filename: 'circular.json', content: circular }]
-      }).pipe(
-        Effect.provide(NodeFileOutputPlatformLayer),
-        Effect.provideService(FileOutput, createMemoryFileOutput(files)),
-        Effect.either
-      )
+      }).pipe(Effect.provideService(FileOutput, createMemoryFileOutput(files)), Effect.result)
     );
 
     expect(result).toMatchObject({
-      _tag: 'Left',
-      left: {
+      _tag: 'Failure',
+      failure: {
         _tag: 'PartialResultFilesError',
         writtenFiles: ['/reports/test-run-id.txt'],
         cause: { _tag: 'FileOutputError', operation: 'serialize', path: '/reports/circular.json' }
@@ -170,22 +160,22 @@ describe('Effect writeResultFiles', () => {
           resultFormats: ['json'],
           fileInfos: [{ filename: 'not-started.txt', content: 'later' }]
         }).pipe(
-          Effect.provide(NodeFileOutputPlatformLayer),
           Effect.provideService(FileOutput, {
             ...memory,
             writeFile: (directory, fileName, content) =>
               fileName.endsWith('.json')
-                ? Deferred.succeed(started, undefined).pipe(Effect.zipRight(Effect.never))
+                ? Deferred.succeed(started, undefined).pipe(Effect.andThen(Effect.never))
                 : memory.writeFile(directory, fileName, content)
           }),
-          Effect.fork
+          Effect.forkChild
         );
         yield* Deferred.await(started);
-        return yield* Fiber.interrupt(fiber);
+        yield* Fiber.interrupt(fiber);
+        return yield* Fiber.await(fiber);
       })
     );
 
-    expect(Exit.isFailure(exit) && Cause.isInterruptedOnly(exit.cause)).toBe(true);
+    expect(Exit.isFailure(exit) && Cause.hasInterruptsOnly(exit.cause)).toBe(true);
     expect([...files.keys()]).toEqual(['/reports/test-run-id.txt']);
   });
 });

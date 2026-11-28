@@ -30,14 +30,12 @@ const promptForTemplate = Effect.fn('promptForLwcTemplate')(function* (
   configuredTemplate: Option.Option<'default' | 'typeScript'>
 ) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const promptService = yield* api.services.PromptService;
+  const promptService = yield* api.v2.services.PromptService;
 
   const customItems = customTemplateNames.map(label => ({ label, description: '' }));
 
-  const builtInNames = yield* api.services.TemplateService.getBuiltInTemplateSubdirNames(
-    'lightningcomponent',
-    'lwc',
-    /\.html$/
+  const builtInNames = yield* api.v2.services.TemplateService.use(service =>
+    service.getBuiltInTemplateSubdirNames('lightningcomponent', 'lwc', /\.html$/)
   );
   // Pin 'default'/'typeScript' first (configuredTemplate leads when set, else 'default' leads): readdirSync order
   // isn't guaranteed, Playwright helpers select the first item, and JS/TS are the two templates users choose
@@ -107,10 +105,8 @@ const promptForTemplate = Effect.fn('promptForLwcTemplate')(function* (
  * 2. Prompt user (built-in + custom templates), with defaultLwcLanguage still steering which is pinned first */
 const determineComponentTemplate = Effect.fn('determineComponentTemplate')(function* (project: SfProject) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const customTemplateNames = yield* api.services.TemplateService.getCustomTemplateSubdirNames(
-    'lightningcomponent',
-    'lwc',
-    CUSTOM_TEMPLATE_FILETYPE
+  const customTemplateNames = yield* api.v2.services.TemplateService.use(service =>
+    service.getCustomTemplateSubdirNames('lightningcomponent', 'lwc', CUSTOM_TEMPLATE_FILETYPE)
   );
 
   const projectJson = yield* Effect.tryPromise(() => project.retrieveSfProjectJson());
@@ -137,10 +133,10 @@ export const createLwcCommand = Effect.fn('createLwcCommand')(function* (
   options?: { internal?: boolean }
 ) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const promptService = yield* api.services.PromptService;
-  const workspaceInfo = yield* api.services.WorkspaceService.getWorkspaceInfoOrThrow();
-  const project = yield* api.services.ProjectService.getSfProject();
-  const componentSetService = yield* api.services.ComponentSetService;
+  const promptService = yield* api.v2.services.PromptService;
+  const workspaceInfo = yield* api.v2.services.WorkspaceService.use(service => service.getWorkspaceInfoOrThrow());
+  const project = yield* api.v2.services.ProjectService.use(service => service.getSfProject());
+  const componentSetService = yield* api.v2.services.ComponentSetService;
 
   const template = yield* determineComponentTemplate(project);
   const componentName = yield* componentSetService
@@ -171,19 +167,22 @@ export const createLwcCommand = Effect.fn('createLwcCommand')(function* (
 
   yield* promptService.ensureMetadataOverwriteOrThrow({ uris: [Utils.joinPath(outputDirUri, componentName)] });
 
-  const fsService = yield* api.services.FsService;
+  const fsService = yield* api.v2.services.FsService;
+  const cwd = yield* fsService.uriToPath(workspaceInfo.uri);
 
-  const result = yield* api.services.TemplateService.create({
-    cwd: yield* fsService.uriToPath(workspaceInfo.uri),
-    templateType: api.services.TemplateType.LightningComponent,
-    outputdir: outputDirUri,
-    options: {
-      componentname: componentName,
-      template,
-      type: 'lwc',
-      internal: options?.internal ?? false
-    }
-  });
+  const result = yield* api.v2.services.TemplateService.use(service =>
+    service.create({
+      cwd,
+      templateType: api.v2.services.TemplateType.LightningComponent,
+      outputdir: outputDirUri,
+      options: {
+        componentname: componentName,
+        template,
+        type: 'lwc',
+        internal: options?.internal ?? false
+      }
+    })
+  );
 
   // Custom templates may name their template anything, so the main file extension can't be inferred
   // from the template name (unlike the built-in 'default'/'typeScript' names) - inspect what was created.

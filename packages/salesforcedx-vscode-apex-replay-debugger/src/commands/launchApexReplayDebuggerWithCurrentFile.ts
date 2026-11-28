@@ -17,16 +17,20 @@ export const launchApexReplayDebuggerWithCurrentFileCommand = Effect.fn(
 )(
   function* (extensionContext: vscode.ExtensionContext) {
     const api = yield* (yield* ExtensionProviderService).getServicesApi;
-    const { documentUri: sourceUri, text } = yield* api.services.EditorService.getActiveEditorContext(false);
+    const { documentUri: sourceUri, text } = yield* api.v2.services.EditorService.use(service =>
+      service.getActiveEditorContext(false)
+    );
 
     if (isLogFile(sourceUri)) {
       updateLastOpened(extensionContext, sourceUri);
-      yield* api.services.FsService.uriToPath(sourceUri).pipe(Effect.flatMap(logFile => launchFromLogFile(logFile)));
+      yield* api.v2.services.FsService.use(service => service.uriToPath(sourceUri)).pipe(
+        Effect.flatMap(logFile => launchFromLogFile(logFile))
+      );
       return;
     }
 
     if (isAnonymousApexFile(sourceUri)) {
-      if (!(yield* api.services.ProjectService.isSalesforceProject())) {
+      if (!(yield* api.v2.services.ProjectService.use(service => service.isSalesforceProject()))) {
         yield* Effect.sync(() => {
           void vscode.window.showErrorMessage(nls.localize('launch_apex_replay_debugger_no_salesforce_project'));
         });

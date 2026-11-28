@@ -7,7 +7,6 @@
 import { type ExportResult, ExportResultCode } from '@opentelemetry/core';
 import type { ReadableSpan, SpanExporter } from '@opentelemetry/sdk-trace-base';
 import * as Effect from 'effect/Effect';
-import { isError } from 'effect/Predicate';
 import * as vscode from 'vscode';
 import { isLegacySpan, legacyCallerExtName, resolveLegacyConnectionString } from './legacyTelemetrySender';
 
@@ -23,7 +22,7 @@ const packageJSONFor = (extName: string): { otelConnectionString?: string; aiKey
 const exportVia = (make: () => SpanExporter, spans: ReadableSpan[]): Promise<ExportResult> =>
   Effect.try({ try: make, catch: String }).pipe(
     Effect.flatMap(delegate =>
-      Effect.async<ExportResult, string>(resume => {
+      Effect.callback<ExportResult, string>(resume => {
         // eslint-disable-next-line functional/no-try-statements -- exporter boundary
         try {
           delegate.export(spans, result => resume(Effect.succeed(result)));
@@ -32,9 +31,7 @@ const exportVia = (make: () => SpanExporter, spans: ReadableSpan[]): Promise<Exp
         }
       })
     ),
-    Effect.catchAll(error =>
-      Effect.succeed({ code: ExportResultCode.FAILED, error: isError(error) ? error : new Error(error) })
-    ),
+    Effect.catch(error => Effect.succeed({ code: ExportResultCode.FAILED, error: new Error(error) })),
     Effect.runPromise
   );
 

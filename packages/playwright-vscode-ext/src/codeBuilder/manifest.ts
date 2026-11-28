@@ -16,8 +16,7 @@
  */
 
 import type { ExtensionDigest } from './digest';
-import * as Either from 'effect/Either';
-import * as ParseResult from 'effect/ParseResult';
+import * as Result from 'effect/Result';
 import * as Schema from 'effect/Schema';
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 
@@ -56,7 +55,7 @@ export const makeManifest = (entries: readonly ({ id: string; version: string } 
 });
 
 const encode = Schema.encodeSync(ManifestSchema);
-const decodeEither = Schema.decodeUnknownEither(ManifestSchema);
+const decodeResult = Schema.decodeUnknownResult(ManifestSchema);
 
 /** Serialize + write the manifest to disk (the provenance artifact CI uploads). */
 export const writeManifest = (path: string, manifest: Manifest): void => {
@@ -69,11 +68,9 @@ export const readManifest = (path: string): Manifest => {
     throw new Error(`manifest not found: ${path}`);
   }
   const parsed: unknown = JSON.parse(readFileSync(path, 'utf-8'));
-  const result = decodeEither(parsed);
-  if (Either.isLeft(result)) {
-    // TreeFormatter renders the schema ParseError as a readable field-by-field tree; String(...)
-    // would just print "[object Object]".
-    throw new Error(`invalid manifest at ${path}: ${ParseResult.TreeFormatter.formatErrorSync(result.left)}`);
+  const result = decodeResult(parsed);
+  if (Result.isFailure(result)) {
+    throw new Error(`invalid manifest at ${path}: ${result.failure.message}`);
   }
-  return result.right;
+  return result.success;
 };

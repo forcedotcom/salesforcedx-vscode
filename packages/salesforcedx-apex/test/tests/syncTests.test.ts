@@ -15,9 +15,10 @@ import { type SyncTestConfiguration, TestService } from '../../src';
 import {
   type ApexOrgWideCoverage,
   type ApexCodeCoverageAggregate,
-  type ApexCodeCoverage
-} from '../../src/effect/schema/wire/coverage';
-import { type OutputDirConfig, type TestResult } from '../../src/tests/types';
+  type ApexCodeCoverage,
+  type OutputDirConfig,
+  type TestResult
+} from '../../src/tests/apiTypes';
 import { nls } from '../../src/i18n';
 import {
   codeCoverageQueryResult,
@@ -29,7 +30,8 @@ import {
 import * as diagnosticUtil from '../../src/tests/diagnosticUtil';
 import { fail } from 'node:assert';
 import { SyncTests } from '../../src/tests/syncTests';
-import { type FileOutput } from '../../src/effect/fileOutput';
+import { FileOutput } from '../../src/effect/fileOutput';
+import { writeResultFiles } from '../../src/effect/writeResultFiles';
 
 vi.mock(import('../../src/tests/diagnosticUtil'), async importOriginal => {
   const actual = await importOriginal();
@@ -63,6 +65,8 @@ describe('Run Apex tests synchronously', () => {
         })
       )
   };
+  const writeFiles = (result: Parameters<typeof writeResultFiles>[0], config: OutputDirConfig) =>
+    Effect.runPromise(writeResultFiles(result, config).pipe(Effect.provideService(FileOutput, fileOutput)));
   beforeEach(async () => {
     writtenFilePaths.length = 0;
     await $$.stubAuths(testData);
@@ -223,8 +227,7 @@ describe('Run Apex tests synchronously', () => {
         dirPath: 'path/to/directory',
         resultFormats: ['json']
       } as OutputDirConfig;
-      const testSrv = new TestService(mockConnection, fileOutput);
-      await testSrv.writeResultFiles(syncResult, config);
+      await writeFiles(syncResult, config);
 
       expect(writtenFilePaths).toEqual([join(config.dirPath, 'test-result-default.json')]);
     });
@@ -234,8 +237,7 @@ describe('Run Apex tests synchronously', () => {
         dirPath: 'path/to/directory',
         resultFormats: ['junit']
       } as OutputDirConfig;
-      const testSrv = new TestService(mockConnection, fileOutput);
-      await testSrv.writeResultFiles(syncResult, config);
+      await writeFiles(syncResult, config);
 
       expect(writtenFilePaths).toEqual([join(config.dirPath, 'test-result-default-junit.xml')]);
     });

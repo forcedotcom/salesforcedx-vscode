@@ -9,10 +9,11 @@ import * as Context from 'effect/Context';
 import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
 import * as Ref from 'effect/Ref';
+import * as Semaphore from 'effect/Semaphore';
 
-type MetadataRequestGenerationGate = {
+type MetadataRequestGenerationGateShape = {
   readonly generation: Ref.Ref<number>;
-  readonly semaphore: Effect.Semaphore;
+  readonly semaphore: Semaphore.Semaphore;
 };
 
 /**
@@ -22,16 +23,17 @@ type MetadataRequestGenerationGate = {
  * mutable implementation detail. Each editor provides its own layer, so an org change only
  * invalidates metadata work owned by that editor.
  */
-const MetadataRequestGenerationGate = Context.GenericTag<MetadataRequestGenerationGate>(
-  'SOQLEditor/MetadataRequestGenerationGate'
-);
+class MetadataRequestGenerationGate extends Context.Service<
+  MetadataRequestGenerationGate,
+  MetadataRequestGenerationGateShape
+>()('SOQLEditor/MetadataRequestGenerationGate') {}
 
 export const MetadataRequestGenerationGateLive = Layer.effect(
   MetadataRequestGenerationGate,
   Effect.gen(function* () {
     return {
       generation: yield* Ref.make(0),
-      semaphore: yield* Effect.makeSemaphore(1)
+      semaphore: yield* Semaphore.make(1)
     };
   })
 );

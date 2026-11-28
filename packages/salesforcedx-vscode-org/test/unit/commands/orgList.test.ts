@@ -8,10 +8,22 @@
 import type { Mock as VitestMock } from 'vitest';
 import type { OrgAuthorization } from '@salesforce/core';
 import { createTable, ExtensionProviderService } from '@salesforce/effect-ext-utils';
-import type { SalesforceVSCodeServicesApi } from '@salesforce/vscode-services';
+import {
+  AliasService,
+  ChannelService,
+  ConfigService,
+  ConnectionService,
+  NotificationModeService,
+  TargetOrgRef,
+  TerminalService,
+  WorkspaceService,
+  type DefaultOrgInfo,
+  type SalesforceVSCodeServicesApiV2
+} from '@salesforce/vscode-services/v2';
 import * as Effect from 'effect/Effect';
 import { identity } from 'effect/Function';
 import * as Layer from 'effect/Layer';
+import * as SubscriptionRef from 'effect/SubscriptionRef';
 import { nls } from '../../../src/messages';
 import {
   determineConnectedStatusForNonScratchOrg,
@@ -49,33 +61,50 @@ vi.mock('@salesforce/effect-ext-utils', async () => {
 // Seed ExtensionProviderService with the mocked ConnectionService.listAllAuthorizations (an Effect),
 // a ConfigService whose default-org lookups resolve to undefined, and a ChannelService whose
 // appendToChannel/showChannel are Vitest mocks so we can assert channel output.
-const buildServicesLayer = (listMock: VitestMock) =>
-  Layer.succeed(ExtensionProviderService, {
-    getServicesApi: Effect.succeed({
+const buildServicesLayer = (listMock: VitestMock) => {
+  const servicesApi = {
+    v2: {
       services: {
-        ConnectionService: {
-          listAllAuthorizations: listMock,
-          getConnection: getConnectionMock,
-          getAuthInfoFields: getAuthInfoFieldsMock
-        },
-        TerminalService: Effect.succeed({ simpleExec: simpleExecMock }),
-        WorkspaceService: { getWorkspaceInfoOrThrow: () => Effect.succeed({ fsPath: '/workspace' }) },
-        ConfigService: {
-          getTargetDevHub: () => Effect.succeed(undefined),
-          getTargetOrg: () => Effect.succeed(undefined)
-        },
-        AliasService: Effect.succeed({ getAllAliases: () => Effect.succeed({}) }),
-        ChannelService: Effect.succeed({
-          appendToChannel: (message: string) => Effect.sync(() => appendToChannelMock(message)),
-          showChannel: Effect.sync(() => showChannelMock())
-        }),
-        NotificationModeService: Effect.succeed({
-          getProgressLocation: () => Effect.succeed(1),
-          showSuccessNotification: () => Effect.void
-        })
+        ConnectionService,
+        TerminalService,
+        WorkspaceService,
+        ConfigService,
+        AliasService,
+        ChannelService,
+        NotificationModeService,
+        TargetOrgRef
       }
-    } as unknown as SalesforceVSCodeServicesApi)
-  } as unknown as ExtensionProviderService);
+    }
+  } as unknown as SalesforceVSCodeServicesApiV2;
+  return Layer.mergeAll(
+    Layer.succeed(ExtensionProviderService, {
+      getServicesApi: Effect.succeed(servicesApi)
+    } as unknown as ExtensionProviderService['Service']),
+    Layer.succeed(ConnectionService, {
+      listAllAuthorizations: listMock,
+      getConnection: getConnectionMock,
+      getAuthInfoFields: getAuthInfoFieldsMock
+    } as unknown as ConnectionService['Service']),
+    Layer.succeed(TerminalService, { simpleExec: simpleExecMock } as never),
+    Layer.succeed(WorkspaceService, {
+      getWorkspaceInfoOrThrow: () => Effect.succeed({ fsPath: '/workspace' })
+    } as never),
+    Layer.succeed(ConfigService, {
+      getTargetDevHub: () => Effect.succeed(undefined),
+      getTargetOrg: () => Effect.succeed(undefined)
+    } as never),
+    Layer.succeed(AliasService, { getAllAliases: () => Effect.succeed({}) } as never),
+    Layer.succeed(ChannelService, {
+      appendToChannel: (message: string) => Effect.sync(() => appendToChannelMock(message)),
+      showChannel: Effect.sync(() => showChannelMock())
+    } as never),
+    Layer.succeed(NotificationModeService, {
+      getProgressLocation: () => Effect.succeed(1),
+      showSuccessNotification: () => Effect.void
+    } as never),
+    Layer.succeed(TargetOrgRef, Effect.runSync(SubscriptionRef.make<DefaultOrgInfo>({})))
+  );
+};
 
 // Run a helper Effect against the seeded layer. The migrated helpers leak ChannelService /
 // ConnectionService (and, via getDefaultOrgConfiguration, Alias/Config services) into their R

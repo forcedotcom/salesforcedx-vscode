@@ -10,8 +10,8 @@ import * as Record from 'effect/Record';
 
 export const aliasListCommand = Effect.fn('aliasListCommand')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const aliases = yield* api.services.AliasService.getAllAliases();
-  const channelService = yield* api.services.ChannelService;
+  const aliases = yield* api.v2.services.AliasService.use(service => service.getAllAliases());
+  const channelService = yield* api.v2.services.ChannelService;
 
   const table = createTable(
     Record.collect(aliases, (alias, username) => ({ alias, username })),

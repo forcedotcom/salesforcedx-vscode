@@ -384,19 +384,19 @@ describe('issue actions', () => {
     workflow => {
       const parsed = Schema.decodeUnknownSync(
         Schema.Struct({
-          jobs: Schema.Record({
-            key: Schema.String,
-            value: Schema.Struct({
+          jobs: Schema.Record(
+            Schema.String,
+            Schema.Struct({
               steps: Schema.Array(
                 Schema.Struct({
                   name: Schema.optional(Schema.String),
                   uses: Schema.optional(Schema.String),
                   run: Schema.optional(Schema.String),
-                  with: Schema.optional(Schema.Record({ key: Schema.String, value: Schema.String }))
+                  with: Schema.optional(Schema.Record(Schema.String, Schema.String))
                 })
               )
             })
-          })
+          )
         })
       )(parse(readFileSync(`.github/workflows/${workflow}.yml`, 'utf8')));
       Object.values(parsed.jobs).forEach(job => {

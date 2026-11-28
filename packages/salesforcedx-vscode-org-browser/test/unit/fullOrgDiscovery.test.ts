@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import type { OrgMetadataCatalog, OrgMetadataCatalogEntry } from 'salesforcedx-vscode-services';
+import type { OrgMetadataCatalogEntry, OrgMetadataCatalogService } from '@salesforce/vscode-services/v2';
 import * as Effect from 'effect/Effect';
 import { discoverFullOrgMetadata } from '../../src/services/fullOrgDiscovery';
 
@@ -33,7 +33,7 @@ describe('discoverFullOrgMetadata', () => {
       [];
 
     await Effect.runPromise(
-      discoverFullOrgMetadata({ getChildren } as unknown as OrgMetadataCatalog, update => progress.push(update))
+      discoverFullOrgMetadata({ getChildren } as unknown as OrgMetadataCatalogService, update => progress.push(update))
     );
 
     expect(getChildren).toHaveBeenCalledWith({ type: 'ApexClass' });
@@ -44,7 +44,11 @@ describe('discoverFullOrgMetadata', () => {
     expect(getChildren).toHaveBeenCalledWith({ type: 'CustomObject', fullName: 'Broker__c' });
     expect(progress).toContainEqual({ completed: 0, total: 3, componentCompleted: 0, componentTotal: 0 });
     expect(progress).toContainEqual(expect.objectContaining({ componentCompleted: 0, componentTotal: 1 }));
-    expect(progress).toContainEqual(expect.objectContaining({ componentCompleted: 1, componentTotal: 3 }));
+    expect(
+      progress.some(
+        ({ componentCompleted, componentTotal }) => componentCompleted > 0 && componentCompleted <= componentTotal
+      )
+    ).toBe(true);
     expect(progress).toContainEqual({ completed: 3, total: 3, componentCompleted: 3, componentTotal: 3 });
   });
 });

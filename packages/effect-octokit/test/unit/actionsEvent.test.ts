@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import * as NodeContext from '@effect/platform-node/NodeContext';
+import * as NodeServices from '@effect/platform-node/NodeServices';
 import * as Effect from 'effect/Effect';
 import * as Schema from 'effect/Schema';
 import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
@@ -20,7 +20,7 @@ describe('workflow_dispatch event', () => {
     writeFileSync(eventPath, JSON.stringify({ inputs: { pull_number: '8497' } }));
     try {
       const event = await readWorkflowDispatchEvent(eventPath, Schema.Struct({ pull_number: Schema.String })).pipe(
-        Effect.provide(NodeContext.layer),
+        Effect.provide(NodeServices.layer),
         Effect.runPromise
       );
       expect(event.inputs.pull_number).toBe('8497');

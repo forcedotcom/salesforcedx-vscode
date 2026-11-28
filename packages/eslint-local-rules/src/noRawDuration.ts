@@ -14,12 +14,14 @@ const numberFlag = 64;
 const numberLiteralFlag = 2048;
 const undefinedFlag = 4;
 
-const durationNames = new Set(['Duration', 'DurationInput']);
+const durationNames = new Set(['Duration', 'DurationInput', 'Input']);
 
 const isDurationSymbol = (symbol: ts.Symbol | undefined): boolean => {
   const fileName = symbol?.getDeclarations()?.[0]?.getSourceFile().fileName.replaceAll('\\', '/');
   const name = symbol?.getName();
-  return name !== undefined && durationNames.has(name) && fileName?.endsWith('/effect/dist/dts/Duration.d.ts') === true;
+  return (
+    name !== undefined && durationNames.has(name) && /\/effect\/dist\/(?:dts\/)?Duration\.d\.ts$/.test(fileName ?? '')
+  );
 };
 
 const mentionsDuration = (type: ts.Type, seen: ReadonlySet<ts.Type> = new Set()): boolean =>

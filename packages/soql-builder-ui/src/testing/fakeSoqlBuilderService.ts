@@ -15,7 +15,7 @@ export type FakeSoqlBuilderServiceStats = FakeEffectServiceStats;
 
 export const makeFakeSoqlBuilderService = (
   initialState: SoqlBuilderState,
-  options: { readonly dispatchLatency?: Duration.DurationInput } = {}
+  options: { readonly dispatchLatency?: Duration.Input } = {}
 ) => makeFakeEffectService(SoqlBuilderService, initialState, options);
 
-export type FakeSoqlBuilderService = Effect.Effect.Success<ReturnType<typeof makeFakeSoqlBuilderService>>;
+export type FakeSoqlBuilderService = Effect.Success<ReturnType<typeof makeFakeSoqlBuilderService>>;

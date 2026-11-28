@@ -7,7 +7,8 @@
 import type { ApexExecuteOptions, ExecuteAnonymousResponse } from './types';
 import type { Connection } from '@salesforce/core';
 import * as Effect from 'effect/Effect';
-import * as Either from 'effect/Either';
+import * as Match from 'effect/Match';
+import * as Result from 'effect/Result';
 import { executeAnonymous } from '../effect';
 import { elapsedTime } from '../utils/elapsedTime';
 
@@ -17,43 +18,41 @@ export class ExecuteService {
 
   @elapsedTime()
   public async executeAnonymous(options: ApexExecuteOptions): Promise<ExecuteAnonymousResponse> {
-    const execution = await executeAnonymous(this.connection, options).pipe(Effect.either, Effect.runPromise);
+    const execution = await executeAnonymous(this.connection, options).pipe(Effect.result, Effect.runPromise);
     // Unwrap typed failures outside the Effect runtime so CLI errors do not acquire a FiberFailure prefix.
-    if (Either.isLeft(execution)) {
-      const error = execution.left;
-      switch (error._tag) {
-        case 'ApexCompileError':
-          return {
-            compiled: false,
-            success: false,
-            ...(error.logBody === undefined ? {} : { logs: error.logBody }),
-            diagnostic: [
-              {
-                ...(error.line === undefined ? {} : { lineNumber: error.line }),
-                ...(error.column === undefined ? {} : { columnNumber: error.column }),
-                ...(error.compileProblem ? { compileProblem: error.compileProblem } : {})
-              }
-            ]
-          };
-        case 'ApexRuntimeError':
-          return {
-            compiled: true,
-            success: false,
-            ...(error.logBody === undefined ? {} : { logs: error.logBody }),
-            diagnostic: [
-              {
-                ...(error.line === undefined ? {} : { lineNumber: error.line }),
-                ...(error.column === undefined ? {} : { columnNumber: error.column }),
-                ...(error.exceptionMessage ? { exceptionMessage: error.exceptionMessage } : {}),
-                ...(error.exceptionStackTrace ? { exceptionStackTrace: error.exceptionStackTrace } : {})
-              }
-            ]
-          };
-        default:
+    if (Result.isFailure(execution)) {
+      return Match.value(execution.failure).pipe(
+        Match.when({ _tag: 'ApexCompileError' }, error => ({
+          compiled: false,
+          success: false,
+          ...(error.logBody === undefined ? {} : { logs: error.logBody }),
+          diagnostic: [
+            {
+              ...(error.line === undefined ? {} : { lineNumber: error.line }),
+              ...(error.column === undefined ? {} : { columnNumber: error.column }),
+              compileProblem: error.compileProblem ?? ''
+            }
+          ]
+        })),
+        Match.when({ _tag: 'ApexRuntimeError' }, error => ({
+          compiled: true,
+          success: false,
+          ...(error.logBody === undefined ? {} : { logs: error.logBody }),
+          diagnostic: [
+            {
+              ...(error.line === undefined ? {} : { lineNumber: error.line }),
+              ...(error.column === undefined ? {} : { columnNumber: error.column }),
+              exceptionMessage: error.exceptionMessage ?? '',
+              exceptionStackTrace: error.exceptionStackTrace ?? ''
+            }
+          ]
+        })),
+        Match.orElse(error => {
           throw new Error(error.message);
-      }
+        })
+      );
     }
-    const result = execution.right;
+    const result = execution.success;
     return {
       compiled: result.compiled,
       success: result.success,

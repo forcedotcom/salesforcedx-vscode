@@ -1,8 +1,8 @@
-// These node:test callbacks are entry points; each provides its test layers before Effect.runPromise.
-// @effect-diagnostics effect/strictEffectProvide:off
-import * as NodeContext from '@effect/platform-node/NodeContext';
-import { ConfigProvider, Effect, Either, Layer } from 'effect';
+import * as NodeServices from '@effect/platform-node/NodeServices';
+import { ConfigProvider, Effect, Result } from 'effect';
 import * as Option from 'effect/Option';
+import * as Redacted from 'effect/Redacted';
+import * as ChildProcess from 'effect/process/ChildProcess';
 import assert from 'node:assert/strict';
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
@@ -23,6 +23,12 @@ import {
   tempDirectory
 } from './ciAiFixtures.mts';
 
+const modelArgument = (command: ChildProcess.StandardCommand) => {
+  const value = command.args.at(-1);
+  assert.ok(value);
+  return typeof value === 'string' ? value : Redacted.value(value);
+};
+
 test('category judgment uses the first configured model with isolated stdin and credentials', async t => {
   const directory = tempDirectory(t);
   const capturePath = join(directory, 'capture.json');
@@ -31,7 +37,7 @@ test('category judgment uses the first configured model with isolated stdin and 
     Effect.provide(
       commands(command => {
         assert.equal(command.command, 'opencode');
-        const environment = Object.fromEntries(command.env);
+        const environment = Object.fromEntries(Object.entries(command.options.env ?? {}));
         const allowed = new Set([
           'HOME',
           'PWD',
@@ -67,9 +73,10 @@ test('category judgment uses the first configured model with isolated stdin and 
         });
       `
         );
-      }).pipe(Layer.provideMerge(NodeContext.layer))
+      })
     ),
-    Effect.withConfigProvider(config()),
+    Effect.provide(NodeServices.layer),
+    Effect.provide(ConfigProvider.layer(config())),
     Effect.runPromise
   );
   assert.deepEqual(parseAgentResult(result), Option.some(['tests-only']));
@@ -101,13 +108,14 @@ for (const output of [
         commands(command => {
           calls += 1;
           return nodeCommand(command, `process.stdout.write(${JSON.stringify(output)});`);
-        }).pipe(Layer.provideMerge(NodeContext.layer))
+        })
       ),
-      Effect.withConfigProvider(config()),
-      Effect.either,
+      Effect.provide(NodeServices.layer),
+      Effect.provide(ConfigProvider.layer(config())),
+      Effect.result,
       Effect.runPromise
     );
-    assert.equal(result._tag, 'Left');
+    assert.equal(result._tag, 'Failure');
     assert.equal(calls, 1);
   });
 }
@@ -120,17 +128,18 @@ test('uses only final-step text and does not retry non-retryable process failure
         commands(command => {
           calls += 1;
           return nodeCommand(command, `process.stdout.write(${JSON.stringify(output)}); process.exitCode = ${code};`);
-        }).pipe(Layer.provideMerge(NodeContext.layer))
+        })
       ),
-      Effect.withConfigProvider(config()),
-      Effect.either,
+      Effect.provide(NodeServices.layer),
+      Effect.provide(ConfigProvider.layer(config())),
+      Effect.result,
       Effect.runPromise
     );
   assert.deepEqual(
     await run(events('progress', 'tool-calls') + events('{"categories":[]}'), 0),
-    Either.right('{"categories":[]}')
+    Result.succeed('{"categories":[]}')
   );
-  assert.equal((await run(events('{"categories":["prose"]}'), 2))._tag, 'Left');
+  assert.equal((await run(events('{"categories":["prose"]}'), 2))._tag, 'Failure');
   assert.equal(calls, 2);
 });
 
@@ -152,8 +161,7 @@ for (const message of [
       const result = await openCodePrompt({ prompt: 'judge' }).pipe(
         Effect.provide(
           commands(command => {
-            const model = command.args.at(-1);
-            assert.ok(model);
+            const model = modelArgument(command);
             attemptedModels.push(model);
             return nodeCommand(
               command,
@@ -161,14 +169,14 @@ for (const message of [
                 ? `process.${errorEvent ? 'stdout' : 'stderr'}.write(${JSON.stringify(output)}); process.exitCode = ${errorEvent ? 0 : 1};`
                 : `process.stdout.write(${JSON.stringify(events('{"categories":["prose"]}'))});`
             );
-          }).pipe(Layer.provideMerge(NodeContext.layer))
+          })
         ),
-        Effect.withConfigProvider(config('["opencode/first","opencode/second","opencode/third"]')),
-        Effect.either,
+        Effect.provide(ConfigProvider.layer(config('["opencode/first","opencode/second","opencode/third"]'))),
+        Effect.result,
         Effect.runPromise
       );
 
-      assert.deepEqual(result, Either.right('{"categories":["prose"]}'));
+      assert.deepEqual(result, Result.succeed('{"categories":["prose"]}'));
       assert.deepEqual(attemptedModels, ['opencode/first', 'opencode/second']);
     });
   }
@@ -179,8 +187,7 @@ test('continues through multiple model errors until a configured model succeeds'
   const result = await openCodePrompt({ prompt: 'judge' }).pipe(
     Effect.provide(
       commands(command => {
-        const model = command.args.at(-1);
-        assert.ok(model);
+        const model = modelArgument(command);
         attemptedModels.push(model);
         return nodeCommand(
           command,
@@ -188,14 +195,14 @@ test('continues through multiple model errors until a configured model succeeds'
             ? `process.stdout.write(${JSON.stringify(events('{"categories":["prose"]}'))});`
             : `process.stdout.write(${JSON.stringify(JSON.stringify({ type: 'error', error: { name: 'APIError', data: { statusCode: model === 'opencode/first' ? 410 : 429 } } }) + '\n')});`
         );
-      }).pipe(Layer.provideMerge(NodeContext.layer))
+      })
     ),
-    Effect.withConfigProvider(config('["opencode/first","opencode/second","opencode/third"]')),
-    Effect.either,
+    Effect.provide(ConfigProvider.layer(config('["opencode/first","opencode/second","opencode/third"]'))),
+    Effect.result,
     Effect.runPromise
   );
 
-  assert.deepEqual(result, Either.right('{"categories":["prose"]}'));
+  assert.deepEqual(result, Result.succeed('{"categories":["prose"]}'));
   assert.deepEqual(attemptedModels, ['opencode/first', 'opencode/second', 'opencode/third']);
 });
 
@@ -205,20 +212,19 @@ for (const configuredModels of [['opencode/only'], ['opencode/third', 'opencode/
     const result = await openCodePrompt({ prompt: 'judge' }).pipe(
       Effect.provide(
         commands(command => {
-          const model = command.args.at(-1);
-          assert.ok(model);
+          const model = modelArgument(command);
           attemptedModels.push(model);
           return nodeCommand(command, `process.stderr.write('Model unavailable'); process.exitCode = 1;`);
-        }).pipe(Layer.provideMerge(NodeContext.layer))
+        })
       ),
-      Effect.withConfigProvider(config(JSON.stringify(configuredModels))),
-      Effect.either,
+      Effect.provide(ConfigProvider.layer(config(JSON.stringify(configuredModels)))),
+      Effect.result,
       Effect.runPromise
     );
 
-    assert.ok(Either.isLeft(result));
+    assert.ok(Result.isFailure(result));
     assert.equal(
-      result.left.message,
+      result.failure.message,
       `All configured OpenCode models were unavailable or rate limited (last: ${configuredModels.at(-1)})`
     );
     assert.deepEqual(attemptedModels, configuredModels);
@@ -240,21 +246,20 @@ for (const [stdout, stderr, code, expectedTag] of [
     const result = await openCodePrompt({ prompt: 'judge' }).pipe(
       Effect.provide(
         commands(command => {
-          const model = command.args.at(-1);
-          assert.ok(model);
+          const model = modelArgument(command);
           attemptedModels.push(model);
           return nodeCommand(
             command,
             `process.stdout.write(${JSON.stringify(stdout)}); process.stderr.write(${JSON.stringify(stderr)}); process.exitCode = ${code};`
           );
-        }).pipe(Layer.provideMerge(NodeContext.layer))
+        })
       ),
-      Effect.withConfigProvider(config()),
-      Effect.either,
+      Effect.provide(ConfigProvider.layer(config())),
+      Effect.result,
       Effect.runPromise
     );
 
-    assert.equal(result._tag, expectedTag);
+    assert.equal(result._tag, expectedTag === 'Right' ? 'Success' : 'Failure');
     assert.deepEqual(attemptedModels, ['opencode/first']);
   });
 }
@@ -264,22 +269,21 @@ test('stops at an unrelated failure after a retryable model error', async () => 
   const result = await openCodePrompt({ prompt: 'judge' }).pipe(
     Effect.provide(
       commands(command => {
-        const model = command.args.at(-1);
-        assert.ok(model);
+        const model = modelArgument(command);
         attemptedModels.push(model);
         return nodeCommand(
           command,
           `process.stderr.write(${JSON.stringify(model === 'opencode/first' ? 'HTTP 429' : 'Invalid API key')}); process.exitCode = 1;`
         );
-      }).pipe(Layer.provideMerge(NodeContext.layer))
+      })
     ),
-    Effect.withConfigProvider(config('["opencode/first","opencode/second","opencode/third"]')),
-    Effect.either,
+    Effect.provide(ConfigProvider.layer(config('["opencode/first","opencode/second","opencode/third"]'))),
+    Effect.result,
     Effect.runPromise
   );
 
-  assert.ok(Either.isLeft(result));
-  assert.equal(result.left.message, 'OpenCode exited 1');
+  assert.ok(Result.isFailure(result));
+  assert.equal(result.failure.message, 'OpenCode exited 1');
   assert.deepEqual(attemptedModels, ['opencode/first', 'opencode/second']);
 });
 
@@ -289,13 +293,14 @@ for (const models of ['', '[]', 'not json', '["auto"]', '["opencode/first", 3]']
       Effect.provide(
         commands(() => {
           assert.fail('OpenCode must not start');
-        }).pipe(Layer.provideMerge(NodeContext.layer))
+        })
       ),
-      Effect.withConfigProvider(config(models)),
-      Effect.either,
+      Effect.provide(NodeServices.layer),
+      Effect.provide(ConfigProvider.layer(config(models))),
+      Effect.result,
       Effect.runPromise
     );
-    assert.equal(result._tag, 'Left');
+    assert.equal(result._tag, 'Failure');
   });
 }
 
@@ -305,13 +310,14 @@ test('missing or empty API key fails before starting OpenCode', async () => {
       Effect.provide(
         commands(() => {
           assert.fail('OpenCode must not start');
-        }).pipe(Layer.provideMerge(NodeContext.layer))
+        })
       ),
-      Effect.withConfigProvider(ConfigProvider.fromMap(new Map(entries.map(([key, value]) => [key, value] as const)))),
-      Effect.either,
+      Effect.provide(NodeServices.layer),
+      Effect.provide(ConfigProvider.layer(ConfigProvider.fromEnvRecord(Object.fromEntries(entries)))),
+      Effect.result,
       Effect.runPromise
     );
-    assert.equal(result._tag, 'Left');
+    assert.equal(result._tag, 'Failure');
   }
 });
 
@@ -335,20 +341,21 @@ test('changelog migration keeps rendered links and rejects missing PRs, duplicat
         });
       `
           );
-        }).pipe(Layer.provideMerge(NodeContext.layer))
+        })
       ),
-      Effect.withConfigProvider(config()),
-      Effect.either,
+      Effect.provide(NodeServices.layer),
+      Effect.provide(ConfigProvider.layer(config())),
+      Effect.result,
       Effect.runPromise
     );
   const rendered = await run(sections);
-  assert.equal(rendered._tag, 'Right');
-  if (rendered._tag === 'Right') {
-    assert.match(rendered.right, /## Added\n\n#### salesforcedx-vscode-core/);
-    assert.match(rendered.right, /We added a feature\./);
-    assert.match(rendered.right, /pull\/12/);
-    assert.match(rendered.right, /issues\/42/);
-    assert.equal(rendered.right.includes('W-123'), false);
+  assert.equal(rendered._tag, 'Success');
+  if (Result.isSuccess(rendered)) {
+    assert.match(rendered.success, /## Added\n\n#### salesforcedx-vscode-core/);
+    assert.match(rendered.success, /We added a feature\./);
+    assert.match(rendered.success, /pull\/12/);
+    assert.match(rendered.success, /issues\/42/);
+    assert.equal(rendered.success.includes('W-123'), false);
   }
   for (const reply of [
     { ...sections, Added: [] },
@@ -356,12 +363,12 @@ test('changelog migration keeps rendered links and rejects missing PRs, duplicat
     { ...sections, Added: [{ ...sections.Added[0], package: 'other' }] },
     { ...sections, Added: [], 'Under the Hood': sections.Added }
   ])
-    assert.equal((await run(reply))._tag, 'Left');
-  assert.equal((await run(sections, 'HEAD', 'HEAD'))._tag, 'Left');
+    assert.equal((await run(reply))._tag, 'Failure');
+  assert.equal((await run(sections, 'HEAD', 'HEAD'))._tag, 'Failure');
   git(cwd, 'commit', '--allow-empty', '-m', 'chore: skipped');
   const empty = await run(sections, 'HEAD~1', 'HEAD');
-  assert.equal(empty._tag, 'Right');
-  if (empty._tag === 'Right') assert.equal(empty.right, '');
+  assert.equal(empty._tag, 'Success');
+  if (Result.isSuccess(empty)) assert.equal(empty.success, '');
 });
 
 test('workflows keep trusted approval execution and share the OpenCode key and model list', () => {

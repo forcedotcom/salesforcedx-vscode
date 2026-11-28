@@ -31,22 +31,16 @@ vi.mock('../../../../src/services/extensionProvider', async () => {
   const EffectLib = await vi.importActual<typeof Effect>('effect/Effect');
   const Layer = await vi.importActual<typeof EffectLayer>('effect/Layer');
   const { ExtensionProviderService } = await vi.importActual<typeof EffectExtUtils>('@salesforce/effect-ext-utils');
+  const { FsService } = await import('@salesforce/vscode-services/v2');
   const { createRecordingTracerLayer } = await import('../../testUtils/recordingTracer.js');
   const mockServicesApi = {
-    services: {
-      FsService: { readFile: mockFsReadFile }
-    }
+    v2: { services: { FsService } }
   };
   const MockAllServicesLayer = Layer.mergeAll(
-    Layer.effect(
-      ExtensionProviderService,
-      EffectLib.sync(
-        () =>
-          ({
-            getServicesApi: EffectLib.succeed(mockServicesApi)
-          }) as unknown as EffectExtUtils.ExtensionProviderService
-      )
-    ),
+    Layer.succeed(ExtensionProviderService, {
+      getServicesApi: EffectLib.succeed(mockServicesApi)
+    } as never),
+    Layer.succeed(FsService, { readFile: mockFsReadFile } as never),
     createRecordingTracerLayer(() => mockRecordedSpans)
   );
   return {
@@ -74,6 +68,7 @@ vi.mock('../../../../src/testSupport/workspace', () => ({
     getTestWorkspaceFolder: vi.fn()
   }
 }));
+
 vi.mock('../../../../src/testSupport/workspace/workspaceService', () => ({
   workspaceService: {
     getCurrentWorkspaceTypeForTelemetry: vi.fn(() => 'SFDX')
@@ -900,7 +895,7 @@ describe('LwcTestController public run API', () => {
     const erroredCalls = (mockRun.errored as VitestMock).mock.calls;
 
     // Find the call with the crash-extracted error (should contain "SyntaxError" in the message field)
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+
     const crashErrorCall = erroredCalls.find((call: any[]) => {
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       const testMessage = call[1];

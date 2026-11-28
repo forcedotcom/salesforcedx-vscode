@@ -48,7 +48,7 @@ import { getRuntime, setAllServicesLayer } from './services/extensionProvider';
 
 const getActivationMode = Effect.fn('aura:getActivationMode')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  return yield* (yield* api.services.SettingsService).getValueOrElse(
+  return yield* (yield* api.v2.services.SettingsService).getValueOrElse(
     LIGHTNING_SETTINGS_SECTION,
     'activationMode',
     'autodetect'
@@ -57,7 +57,7 @@ const getActivationMode = Effect.fn('aura:getActivationMode')(function* () {
 
 const activateCommands = Effect.fn('aura:activateCommands')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const registerCommand = api.services.registerCommandWithRuntime(getRuntime());
+  const registerCommand = api.v2.services.registerCommandWithRuntime(getRuntime());
   yield* Effect.all(
     [
       registerCommand('sf.lightning.generate.app', createAuraAppCommand),
@@ -105,7 +105,7 @@ export const activateEffect = Effect.fn('activation:salesforcedx-vscode-lightnin
 
   // Register commands eagerly so they're available even if LSP startup fails
   const extensionScope = yield* getExtensionScope();
-  yield* activateCommands().pipe(Scope.extend(extensionScope));
+  yield* Scope.provide(extensionScope)(activateCommands());
 
   // 3) If activationMode is autodetect or always, check workspaceType before startup
   const workspaceType = yield* detectWorkspaceType(workspace.workspaceFolders.map(folder => folder.uri.fsPath));
@@ -121,7 +121,7 @@ export const activateEffect = Effect.fn('activation:salesforcedx-vscode-lightnin
 
   // Start the Aura Language Server
   // TODO: derive the path from extensionUri instead of pjson
-  const serverPath = yield* Schema.decodeUnknown(Schema.Struct({ serverPath: Schema.Array(Schema.String) }))(
+  const serverPath = yield* Schema.decodeUnknownEffect(Schema.Struct({ serverPath: Schema.Array(Schema.String) }))(
     extensionContext.extension.packageJSON
   ).pipe(
     Effect.map(decoded => decoded.serverPath),
@@ -204,7 +204,7 @@ export const activateEffect = Effect.fn('activation:salesforcedx-vscode-lightnin
   });
   // Register workspace read file handler before start so the server can read files during initialize
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const fsService = yield* api.services.FsService;
+  const fsService = yield* api.v2.services.FsService;
   registerWorkspaceReadFileHandler(client, { fsService, runPromise: getRuntime().runPromise });
   log('Workspace read file handler registered');
 

@@ -7,7 +7,7 @@
 import {
   type ApexTestProgressValue,
   type AsyncTestConfiguration,
-  formatHuman,
+  HumanReporter,
   type TestResult,
   TestService
 } from '@salesforce/apex-node';
@@ -21,7 +21,6 @@ import { CancellationTokenSource, type Progress } from 'vscode';
 import { type URI } from 'vscode-uri';
 import { APEX_TESTING_SECTION } from '../constants';
 import { nls } from '../messages';
-import { fileOutputFromFsService } from '../services/fsServiceFileOutput';
 import { writeAndOpenTestReport } from '../utils/testReportGenerator';
 import { writeTestResultJsonFile } from '../utils/testUtils';
 
@@ -66,8 +65,8 @@ const reportTestProgress = (
  */
 export const getRunCommandContext = Effect.fn('getRunCommandContext')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const promptService = yield* api.services.PromptService;
-  const channelService = yield* api.services.ChannelService;
+  const promptService = yield* api.v2.services.PromptService;
+  const channelService = yield* api.v2.services.ChannelService;
   const executionName = nls.localize('apex_test_run_text');
   // e2e specs gate completion on the `Ended SFDX: …` channel sentinel
   const appendEnded = channelService.appendToChannel(`Ended ${executionName}`);
@@ -85,12 +84,12 @@ export const resolveRunInputs = <E, R>(
 ) =>
   Effect.gen(function* () {
     const api = yield* (yield* ExtensionProviderService).getServicesApi;
-    const settings = yield* api.services.SettingsService;
+    const settings = yield* api.v2.services.SettingsService;
     const codeCoverage = yield* settings.getValueOrElse(APEX_TESTING_SECTION, 'retrieve-test-code-coverage', false);
     const concise = yield* settings.getValueOrElse(APEX_TESTING_SECTION, 'test-run-concise', false);
     const resolved = yield* Effect.all(
       {
-        payload: api.services.ConnectionService.getConnection().pipe(
+        payload: api.v2.services.ConnectionService.use(service => service.getConnection()).pipe(
           Effect.flatMap(connection => Effect.promise(() => buildPayload(new TestService(connection), codeCoverage)))
         ),
         outputDir
@@ -107,9 +106,9 @@ const appendTestOutput = Effect.fn('runApexTests.appendTestOutput')(function* (
   concise: boolean
 ) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const svc = yield* api.services.ChannelService;
+  const svc = yield* api.v2.services.ChannelService;
   yield* Stream.fromIterable(
-    formatHuman(result, codeCoverage, concise)?.split(/\r?\n/) ?? [
+    new HumanReporter().format(result, codeCoverage, concise)?.split(/\r?\n/) ?? [
       `Test execution completed. Tests ran: ${result.summary.testsRan ?? 0}, Passed: ${result.summary.passing ?? 0}, Failed: ${result.summary.failing ?? 0}`
     ]
   ).pipe(
@@ -143,12 +142,8 @@ export const runApexTests = Effect.fn('runApexTests')(function* (options: ApexTe
   yield* Effect.annotateCurrentSpan('trigger', options.telemetryTrigger);
 
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const connection = yield* api.services.ConnectionService.getConnection();
-  const fsService = process.env.ESBUILD_PLATFORM === 'web' ? yield* api.services.FsService : undefined;
-  const testService =
-    fsService === undefined
-      ? new TestService(connection)
-      : new TestService(connection, fileOutputFromFsService(fsService));
+  const connection = yield* api.v2.services.ConnectionService.use(service => service.getConnection());
+  const testService = new TestService(connection);
 
   // Bridge the fiber's interruption (e.g. user clicks Cancel on the progress notification) to a
   // vscode CancellationToken so apex-node stops polling the org server-side, not just the UI.
@@ -189,13 +184,13 @@ export const runApexTests = Effect.fn('runApexTests')(function* (options: ApexTe
 
   // Non-fatal: a write failure logs and the run continues (report generation still happens below).
   yield* writeTestResultJsonFile(result, options.outputDir, options.codeCoverage).pipe(
-    Effect.catchAll(error => Effect.logError(`Failed to write JSON test result file: ${String(error)}`))
+    Effect.catch(error => Effect.logError(`Failed to write JSON test result file: ${String(error)}`))
   );
 
   yield* appendTestOutput(result, options.codeCoverage, options.concise);
 
   // Generate and open test report
-  const settings = yield* api.services.SettingsService;
+  const settings = yield* api.v2.services.SettingsService;
   const outputFormat = yield* settings.getValueOrElse<'markdown' | 'text'>(
     APEX_TESTING_SECTION,
     'outputFormat',
@@ -206,7 +201,7 @@ export const runApexTests = Effect.fn('runApexTests')(function* (options: ApexTe
     'testSortOrder',
     'runtime'
   );
-  const channelService = yield* api.services.ChannelService;
+  const channelService = yield* api.v2.services.ChannelService;
   const reportUri = yield* writeAndOpenTestReport(
     result,
     options.outputDir,
@@ -214,7 +209,7 @@ export const runApexTests = Effect.fn('runApexTests')(function* (options: ApexTe
     options.codeCoverage,
     sortOrder
   ).pipe(
-    Effect.catchAll(error =>
+    Effect.catch(error =>
       Effect.logError(`Failed to generate test report: ${String(error)}`).pipe(
         Effect.andThen(
           channelService.appendToChannel(nls.localize('apex_test_report_generation_failed_message', String(error)))

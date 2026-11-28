@@ -5,12 +5,12 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { ExtensionProviderService, type SalesforceVSCodeServicesApi } from '@salesforce/effect-ext-utils';
+import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import { EditorService, type SalesforceVSCodeServicesApiV2 } from '@salesforce/vscode-services/v2';
 import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
-import { EditorService } from 'salesforcedx-vscode-services/src/vscode/editorService';
 import { CHECKPOINT } from '../../../src/debuggerConstants';
 
 vi.mock('../../../src/apexExtension', () => ({
@@ -36,7 +36,7 @@ describe('sfToggleCheckpointCommand', () => {
     Object.defineProperty(vscode, 'debug', { configurable: true, value: debug });
     Object.defineProperty(vscode, 'SourceBreakpoint', { configurable: true, value: MockSourceBreakpoint });
 
-    const servicesApi = { services: { EditorService } } as unknown as SalesforceVSCodeServicesApi;
+    const servicesApi = { v2: { services: { EditorService } } } as unknown as SalesforceVSCodeServicesApiV2;
     const editorService = {
       getActiveEditorContext: () =>
         Effect.succeed({
@@ -45,9 +45,11 @@ describe('sfToggleCheckpointCommand', () => {
           selectionStart: { line: 7, character: 12 },
           selectionRange: { startLine: 7, startCharacter: 12 }
         })
-    } as unknown as EditorService;
+    } as unknown as EditorService['Service'];
     const layer = Layer.mergeAll(
-      Layer.succeed(ExtensionProviderService, { getServicesApi: Effect.succeed(servicesApi) }),
+      Layer.succeed(ExtensionProviderService, {
+        getServicesApi: Effect.succeed(servicesApi)
+      } as unknown as ExtensionProviderService['Service']),
       Layer.succeed(EditorService, editorService)
     );
 

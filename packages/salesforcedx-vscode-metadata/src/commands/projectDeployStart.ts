@@ -19,17 +19,17 @@ const COMMAND: ProgressAndSuccessCommandKey = messages.project_deploy_start_defa
 
 const deployEffect = Effect.fn('projectDeploy.deployEffect')(function* (ignoreConflicts: boolean) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  return yield* api.services.MetadataDeployService.getComponentSetForDeploy().pipe(
-    Effect.flatMap((yield* api.services.ComponentSetService).ensureNonEmptyComponentSet),
+  return yield* api.v2.services.MetadataDeployService.use(service => service.getComponentSetForDeploy()).pipe(
+    Effect.flatMap((yield* api.v2.services.ComponentSetService).ensureNonEmptyComponentSet),
     withPreparationProgress('deploy', ignoreConflicts ? undefined : cs => detectConflicts(cs, 'deploy'), COMMAND),
     Effect.flatMap(cs => deployComponentSet({ componentSet: cs, command: COMMAND }))
   );
 });
 
 /** Deploy local changes to the default org */
-export const projectDeployStartCommand = Effect.fn('projectDeployStartCommand')(function* (ignoreConflicts = false) {
+export const projectDeployStartCommand = Effect.fn('projectDeployStartCommand')(function* (ignoreConflicts: boolean) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const notificationMode = yield* api.services.NotificationModeService;
+  const notificationMode = yield* api.v2.services.NotificationModeService;
   return yield* deployEffect(ignoreConflicts).pipe(
     Effect.catchTag('ConflictsDetectedError', err =>
       handleConflictWithRetry({

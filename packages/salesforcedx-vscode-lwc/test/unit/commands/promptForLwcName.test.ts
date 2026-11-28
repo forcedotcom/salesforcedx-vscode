@@ -5,10 +5,12 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import { ExtensionProviderService, type SalesforceVSCodeServicesApiV2 } from '@salesforce/effect-ext-utils';
+import { PromptService, UserCancellationError } from '@salesforce/vscode-services/v2';
+import * as Cause from 'effect/Cause';
 import * as Effect from 'effect/Effect';
 import * as Exit from 'effect/Exit';
-import { PromptService, UserCancellationError } from 'salesforcedx-vscode-services/src/vscode/prompts/promptService';
+import * as Option from 'effect/Option';
 import * as vscode from 'vscode';
 import {
   promptForLwcName,
@@ -20,15 +22,36 @@ import { nls } from '../../../src/messages';
 const run = (options: PromptForLwcNameOptions = { existingNames: new Set() }) =>
   Effect.runPromiseExit(
     promptForLwcName(options).pipe(
-      Effect.provideService(ExtensionProviderService, {
-        getServicesApi: Effect.succeed({
-          services: { PromptService }
+      Effect.provideService(
+        ExtensionProviderService,
+        ExtensionProviderService.of({
+          getServicesApi: Effect.succeed({
+            v2: { services: { PromptService } }
+          } as unknown as SalesforceVSCodeServicesApiV2)
         })
-      } as unknown as ExtensionProviderService),
-      Effect.provideService(PromptService, {
-        considerUndefinedAsCancellation: (value: string | undefined) =>
-          value === undefined ? Effect.fail(new UserCancellationError()) : Effect.succeed(value)
-      } as unknown as PromptService)
+      ),
+      Effect.provideService(
+        PromptService,
+        PromptService.of({
+          ensureMetadataOverwriteOrThrow: () => Effect.void,
+          confirmOrThrow: () => Effect.void,
+          considerUndefinedAsCancellation: <T>(value: T | undefined) =>
+            value === undefined
+              ? Effect.fail(new UserCancellationError({ message: 'User cancelled' }))
+              : Effect.succeed(value),
+          considerEmptySelectionAsCancellation: () => Effect.die(new Error('unused in this test')),
+          promptForOutputDir: () => Effect.die(new Error('unused in this test')),
+          withProgress:
+            () =>
+            <A, E, R>(self: Effect.Effect<A, E, R>) =>
+              self,
+          withCancellableProgress:
+            () =>
+            <A, E, R>(self: Effect.Effect<A, E, R>) =>
+              self,
+          withCancellableProgressReporting: () => () => Effect.die(new Error('unused in this test'))
+        })
+      )
     )
   );
 
@@ -88,6 +111,15 @@ describe('promptForLwcName', () => {
   it('still treats dismissal as cancellation', async () => {
     vi.spyOn(vscode.window, 'showInputBox').mockResolvedValue(undefined);
 
-    expect(await run()).toStrictEqual(Exit.fail(new UserCancellationError()));
+    const exit = await run();
+    expect(Exit.isFailure(exit)).toBe(true);
+    if (Exit.isFailure(exit)) {
+      const failure = Cause.findErrorOption(exit.cause);
+      expect(Option.isSome(failure)).toBe(true);
+      if (Option.isSome(failure)) {
+        expect(failure.value).toBeInstanceOf(UserCancellationError);
+        expect(failure.value.message).toBe('User cancelled');
+      }
+    }
   });
 });

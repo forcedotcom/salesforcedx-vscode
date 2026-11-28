@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import * as FetchHttpClient from '@effect/platform/FetchHttpClient';
+import * as FetchHttpClient from 'effect/http/FetchHttpClient';
 import * as ManagedRuntime from 'effect/ManagedRuntime';
 
 /** Own a Fetch client runtime for the lifetime of a local telemetry exporter. */

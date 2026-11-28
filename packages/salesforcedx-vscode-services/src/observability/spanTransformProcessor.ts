@@ -4,8 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import type { DefaultOrgInfoSchema } from '../core/schemas/defaultOrgInfo';
-import { type Context } from '@opentelemetry/api';
+import { type Context, type Span as ApiSpan } from '@opentelemetry/api';
 import {
   type Span,
   BatchSpanProcessor,
@@ -13,6 +12,7 @@ import {
   type BufferConfig,
   type ReadableSpan
 } from '@opentelemetry/sdk-trace-base';
+import { TargetOrgRef, type DefaultOrgInfo } from '@salesforce/vscode-services/v2';
 import * as Effect from 'effect/Effect';
 import { isNotUndefined, isString } from 'effect/Predicate';
 // aliased to Rec so the global `Record<K, V>` utility type stays usable in this file
@@ -21,12 +21,12 @@ import * as SubscriptionRef from 'effect/SubscriptionRef';
 import * as os from 'node:os';
 import { env, UIKind, version, workspace } from 'vscode';
 import { SFDX_CORE_SECTION } from '../constants';
-import { getDefaultOrgRef } from '../core/defaultOrgRef';
 import { classifyOrgForTelemetry, type TelemetryClassification } from './classifyOrgForTelemetry';
+import { finishFlush, trackExportCallbacks } from './exportCallbacks';
 
 export type SpanCreationIdentity = Readonly<
   Pick<
-    typeof DefaultOrgInfoSchema.Type,
+    DefaultOrgInfo,
     | 'orgId'
     | 'devHubOrgId'
     | 'userId'
@@ -52,7 +52,7 @@ const identityAttributes = [
   'orgEdition'
 ] as const;
 
-export const getSpanCreationIdentity = (span: Span | ReadableSpan): SpanCreationIdentity =>
+export const getSpanCreationIdentity = (span: ApiSpan | ReadableSpan): SpanCreationIdentity =>
   creationIdentities.get(span) ?? { telemetryClassification: 'unknown' };
 
 // legacy telemetry path stamps synthetic spans with frozen send-time identity
@@ -60,27 +60,40 @@ export const setSpanCreationIdentity = (span: object, identity: SpanCreationIden
   creationIdentities.set(span, Object.freeze({ ...identity }));
 };
 
-const getCurrentSpanCreationIdentity = (): SpanCreationIdentity => {
-  const { instanceName, ...identity } = Effect.runSync(getDefaultOrgRef().pipe(Effect.flatMap(SubscriptionRef.get)));
-  return { ...identity, telemetryClassification: classifyOrgForTelemetry(identity.orgId, instanceName) };
-};
+/** Capture the authoritative ref during SDK acquisition, before runtime publication. */
+export const spanIdentitySnapshot = TargetOrgRef.pipe(
+  Effect.map(ref => (): SpanCreationIdentity => {
+    const { instanceName, ...identity } = SubscriptionRef.getUnsafe(ref);
+    return { ...identity, telemetryClassification: classifyOrgForTelemetry(identity.orgId, instanceName) };
+  })
+);
 
 /** Custom span processor that transforms spans before they're exported */
 export class SpanTransformProcessor extends BatchSpanProcessor {
   constructor({
     exporter,
     options,
-    getIdentitySnapshot = getCurrentSpanCreationIdentity
+    getIdentitySnapshot
   }: {
     exporter: SpanExporter;
     options?: BufferConfig;
-    getIdentitySnapshot?: () => SpanCreationIdentity;
+    getIdentitySnapshot: () => SpanCreationIdentity;
   }) {
-    super(exporter, options);
+    const tracked = trackExportCallbacks(exporter);
+    super(tracked, options);
     this.getIdentitySnapshot = getIdentitySnapshot;
+    this.flushExporter = tracked.forceFlush;
   }
 
   private readonly getIdentitySnapshot: () => SpanCreationIdentity;
+  private readonly flushExporter: () => Promise<void>;
+
+  public override async forceFlush(): Promise<void> {
+    const queued = await Promise.allSettled([super.forceFlush()]);
+    // O11y buffers after export; flushing the span batch alone does not drain that native buffer.
+    const delegate = await Promise.allSettled([Promise.resolve().then(this.flushExporter)]);
+    await finishFlush([...queued, ...delegate]);
+  }
 
   public onStart(span: Span, parentContext: Context): void {
     if (!creationIdentities.has(span)) {
@@ -92,10 +105,7 @@ export class SpanTransformProcessor extends BatchSpanProcessor {
       const extensionName = resourceAttrs['extension.name'];
       const extensionVersion = resourceAttrs['extension.version'];
       const [dynamic, permanent] = Effect.runSync(
-        Effect.all([
-          getAdditionalAttributes(getSpanCreationIdentity(span), extensionName, extensionVersion),
-          memoized('everySpanIsTheSame')
-        ]) // it seems to want a key
+        Effect.all([getAdditionalAttributes(getSpanCreationIdentity(span), extensionName, extensionVersion), memoized])
       );
       const attributes = { ...permanent, ...dynamic };
       Rec.keys(attributes).forEach(key => {
@@ -173,7 +183,7 @@ const getPermanentAttributes = () => {
   });
 };
 
-const memoized = Effect.runSync(Effect.cachedFunction(getPermanentAttributes));
+const memoized = Effect.sync(getPermanentAttributes).pipe(Effect.flatten, Effect.cached, Effect.runSync);
 
 const getCPUs = (): string => {
   const cpus = os?.cpus() ?? [];

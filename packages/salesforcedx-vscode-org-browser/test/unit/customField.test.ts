@@ -4,13 +4,14 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import type { OrgMetadataCatalogComponentEntry } from 'salesforcedx-vscode-services';
+import { OrgId, type OrgMetadataCatalogComponentEntry } from '@salesforce/vscode-services/v2';
+import * as Schema from 'effect/Schema';
 import { URI } from 'vscode-uri';
 import { fieldNodeLabel } from '../../src/tree/customField';
 
 const component = (overrides: Partial<OrgMetadataCatalogComponentEntry> = {}): OrgMetadataCatalogComponentEntry => ({
   kind: 'component',
-  orgId: '00D000000000001',
+  orgId: Schema.decodeUnknownSync(OrgId)('00D000000000001'),
   observedAt: '2026-09-18T00:00:00.000Z',
   provenance: 'metadata-api',
   name: 'Email__c',

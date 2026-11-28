@@ -6,7 +6,7 @@
  */
 
 import * as Schema from 'effect/Schema';
-import { HashableUri } from 'salesforcedx-vscode-services/src/vscode/hashableUri';
+import { HashableUri } from '@salesforce/vscode-services/v2';
 import { URI } from 'vscode-uri';
 import { createDiffFilePair, DiffFilePairSchema } from '../../../../src/shared/diff/diffTypes';
 

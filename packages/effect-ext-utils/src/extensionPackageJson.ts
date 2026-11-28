@@ -14,7 +14,7 @@ export const ExtensionPackageJsonSchema = Schema.Struct({
   version: Schema.optional(Schema.String),
   displayName: Schema.optional(Schema.String),
   aiKey: Schema.optional(Schema.String),
-  enableO11y: Schema.optional(Schema.Union(Schema.String, Schema.Boolean)),
+  enableO11y: Schema.optional(Schema.Union([Schema.String, Schema.Boolean])),
   o11yUploadEndpoint: Schema.optional(Schema.String),
   otelConnectionString: Schema.optional(Schema.String),
   productFeatureId: Schema.optional(Schema.String),

@@ -6,9 +6,28 @@
  */
 
 import { getErrorMessage } from '@salesforce/salesforcedx-utils';
-import * as Effect from 'effect/Effect';
-import * as Either from 'effect/Either';
 import * as Schema from 'effect/Schema';
+
+const AnonymousExecutionErrorFields = {
+  operation: Schema.NonEmptyString.check(Schema.isTrimmed()),
+  message: Schema.String,
+  line: Schema.Number,
+  column: Schema.Number,
+  logBody: Schema.optional(Schema.String)
+};
+
+/** Anonymous Apex compiled unsuccessfully; diagnostics remain on the error. */
+export class ApexCompileError extends Schema.TaggedError<ApexCompileError>()('ApexCompileError', {
+  ...AnonymousExecutionErrorFields,
+  compileProblem: Schema.NullOr(Schema.String)
+}) {}
+
+/** Anonymous Apex compiled but failed during execution. */
+export class ApexRuntimeError extends Schema.TaggedError<ApexRuntimeError>()('ApexRuntimeError', {
+  ...AnonymousExecutionErrorFields,
+  exceptionMessage: Schema.NullOr(Schema.String),
+  exceptionStackTrace: Schema.NullOr(Schema.String)
+}) {}
 
 /** Formatting or generating an Apex report failed. */
 export class ApexReportError extends Schema.TaggedError<ApexReportError>()('ApexReportError', {
@@ -19,11 +38,3 @@ export class ApexReportError extends Schema.TaggedError<ApexReportError>()('Apex
 
 /** Produces the serializable cause carried by public operation errors. */
 export const causeMessage = (cause: unknown): string => getErrorMessage(cause);
-
-/** Synchronous compatibility adapter that preserves the typed report error. */
-export const runReportSync = <A>(report: Effect.Effect<A, ApexReportError>): A =>
-  report.pipe(
-    Effect.either,
-    Effect.runSync,
-    Either.getOrThrowWith(error => error)
-  );

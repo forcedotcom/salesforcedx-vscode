@@ -14,7 +14,7 @@ const getChannelService = () =>
   getRuntime().runPromise(
     Effect.gen(function* () {
       const api = yield* (yield* ExtensionProviderService).getServicesApi;
-      return yield* api.services.ChannelService;
+      return yield* api.v2.services.ChannelService;
     })
   );
 

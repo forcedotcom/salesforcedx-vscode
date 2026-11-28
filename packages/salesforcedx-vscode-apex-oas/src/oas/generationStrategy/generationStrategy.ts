@@ -15,8 +15,8 @@ import type {
 import type { LLMService } from '../../services/llmService';
 import type { PromptGenerationStrategyBid } from '../schemas';
 import type { ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import type { ConnectionService } from '@salesforce/vscode-services/v2';
 import type * as Effect from 'effect/Effect';
-import type { ConnectionService } from 'salesforcedx-vscode-services';
 
 export type GenerationStrategy = {
   bid: () => Effect.Effect<PromptGenerationStrategyBid, never, never>;

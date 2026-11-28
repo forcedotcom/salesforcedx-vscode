@@ -12,36 +12,21 @@ import * as Tracer from 'effect/Tracer';
 export type RecordedSpan = { name: string; attributes: Map<string, unknown>; ended: boolean };
 
 const createRecordingTracerLayer = (getRecordedSpans: () => RecordedSpan[]) =>
-  Layer.setTracer(
+  Layer.succeed(
+    Tracer.Tracer,
     Tracer.make({
-      span: (name, parent, context, links, startTime, kind, spanOptions) => {
+      span: options => {
         const recordedSpans = getRecordedSpans();
-        const attributes = new Map<string, unknown>(Object.entries(spanOptions?.attributes ?? {}));
-        const recordedSpan: RecordedSpan = { name, attributes, ended: false };
+        const span = new Tracer.NativeSpan(options);
+        const recordedSpan: RecordedSpan = { name: span.name, attributes: span.attributes, ended: false };
         recordedSpans.push(recordedSpan);
-        return {
-          _tag: 'Span',
-          name,
-          spanId: `span-${recordedSpans.length}`,
-          traceId: 'trace',
-          parent,
-          context,
-          links,
-          status: { _tag: 'Started', startTime },
-          attributes,
-          sampled: true,
-          kind,
-          end: () => {
-            recordedSpan.ended = true;
-          },
-          attribute: (key: string, value: unknown) => {
-            attributes.set(key, value);
-          },
-          event: () => {},
-          addLinks: () => {}
-        } as Tracer.Span;
-      },
-      context: <A>(f: () => A) => f()
+        const end = span.end.bind(span);
+        span.end = (endTime, exit) => {
+          recordedSpan.ended = true;
+          end(endTime, exit);
+        };
+        return span;
+      }
     })
   );
 

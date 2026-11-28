@@ -16,10 +16,10 @@ const mockAppendToChannel = vi.fn();
 // Mock the extensionProvider module before importing anything that uses it
 vi.mock('../../../src/services/extensionProvider', async () => {
   const Effect = await vi.importActual<typeof EffectModule>('effect/Effect');
-  const Context = await vi.importActual<typeof ContextModule>('effect/Context');
   const Layer = await vi.importActual<typeof LayerModule>('effect/Layer');
   const ManagedRuntime = await vi.importActual<typeof ManagedRuntimeModule>('effect/ManagedRuntime');
   const { ExtensionProviderService } = await vi.importActual<typeof EffectExtUtils>('@salesforce/effect-ext-utils');
+  const { FsService, ChannelService, SettingsService } = await import('@salesforce/vscode-services/v2');
   const vscodeApi = await import('vscode');
   const { URI: VscodeUri } = await import('vscode-uri');
 
@@ -47,19 +47,13 @@ vi.mock('../../../src/services/extensionProvider', async () => {
       Effect.succeed(typeof pathOrUri === 'string' ? VscodeUri.parse(pathOrUri) : pathOrUri),
     readFile: (_path: string | URI) => Effect.succeed(''),
     fileOrFolderExists: (_path: string | URI) => Effect.succeed(false),
+    writeFile: mockFsWrite,
+    safeWriteFile: mockFsWrite,
     showTextDocument: (uri: unknown, options?: unknown) =>
       Effect.promise(() =>
         vscodeApi.window.showTextDocument(uri as URI, options as vscode.TextDocumentShowOptions | undefined)
-      ),
-    writeFile: mockFsWrite,
-    safeWriteFile: mockFsWrite
+      )
   };
-  const FsServiceTag = Context.GenericTag<typeof mockFsService>('FsService');
-  const MockFsService = Object.assign(FsServiceTag, {
-    Default: Layer.succeed(FsServiceTag, mockFsService),
-    showTextDocument: (uri: unknown, options?: unknown) =>
-      Effect.flatMap(FsServiceTag, fsService => fsService.showTextDocument(uri, options))
-  });
   const MockChannelServiceInstance = {
     appendToChannel: (message: string) => Effect.sync(() => mockAppendToChannel(message)),
     getChannel: Effect.succeed({ appendLine: vi.fn(), show: vi.fn() })
@@ -78,24 +72,17 @@ vi.mock('../../../src/services/extensionProvider', async () => {
   };
 
   const mockServicesApi = {
-    services: {
-      FsService: MockFsService,
-      ChannelService: Effect.succeed(MockChannelServiceInstance),
-      // Yielded as an instance (yield* api.services.SettingsService), so wrap in Effect.succeed.
-      SettingsService: Effect.succeed(mockSettingsService)
+    v2: {
+      services: { FsService, ChannelService, SettingsService }
     }
   };
   const MockAllServicesLayer = Layer.mergeAll(
-    MockFsService.Default,
-    Layer.effect(
-      ExtensionProviderService,
-      Effect.sync(
-        () =>
-          ({
-            getServicesApi: Effect.succeed(mockServicesApi)
-          }) as unknown as EffectExtUtils.ExtensionProviderService
-      )
-    )
+    Layer.succeed(ExtensionProviderService, {
+      getServicesApi: Effect.succeed(mockServicesApi)
+    } as never),
+    Layer.succeed(FsService, mockFsService as never),
+    Layer.succeed(ChannelService, MockChannelServiceInstance as never),
+    Layer.succeed(SettingsService, mockSettingsService as never)
   );
 
   return {
@@ -108,7 +95,6 @@ vi.mock('../../../src/services/extensionProvider', async () => {
 import type { Mock as VitestMock } from 'vitest';
 import type * as EffectExtUtils from '@salesforce/effect-ext-utils';
 import type * as EffectModule from 'effect/Effect';
-import type * as ContextModule from 'effect/Context';
 import type * as LayerModule from 'effect/Layer';
 import type * as ManagedRuntimeModule from 'effect/ManagedRuntime';
 import { type TestResult, MarkdownTextFormatTransformer } from '@salesforce/apex-node';

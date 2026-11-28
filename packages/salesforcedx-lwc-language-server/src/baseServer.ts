@@ -196,7 +196,7 @@ export abstract class BaseServer {
     // workspace/readFile and workspace/stat handlers. Defer performDelayedInitialization to the next tick
     // so the client has time to attach handlers before we send any workspace/readFile or workspace/stat.
     Effect.tryPromise({ try: () => this.performDelayedInitialization(), catch: err => ({ err }) }).pipe(
-      Effect.catchAll(({ err }) =>
+      Effect.catch(({ err }) =>
         Effect.sync(() => {
           Logger.error(
             `Delayed initialization failed: ${getErrorMessage(err)}`,

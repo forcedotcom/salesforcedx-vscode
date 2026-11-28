@@ -13,11 +13,11 @@ import type { ExtensionContext } from 'vscode';
 import { SOQL_CONFIGURATION_NAME } from '../constants';
 
 export const buildAllServicesLayer = (context: ExtensionContext) =>
-  Layer.unwrapEffect(
+  Layer.unwrap(
     Effect.map(getServicesApi, api =>
       Layer.mergeAll(
         buildSharedServicesLayer(context, 'SOQL'),
-        api.services.NotificationModeService.Default(
+        api.v2.services.NotificationModeServiceLayer(
           SOQL_CONFIGURATION_NAME,
           'sf-soql-notifications',
           'Salesforce: SOQL Notifications'
@@ -38,8 +38,8 @@ export const setAllServicesLayer = (layer: ReturnType<typeof buildAllServicesLay
  * stateful services across sobject_metadata_request, sobjects_request, and code-completion calls.
  */
 type SoqlRuntime = ManagedRuntime.ManagedRuntime<
-  Layer.Layer.Success<ReturnType<typeof buildAllServicesLayer>>,
-  Layer.Layer.Error<ReturnType<typeof buildAllServicesLayer>>
+  Layer.Success<ReturnType<typeof buildAllServicesLayer>>,
+  Layer.Error<ReturnType<typeof buildAllServicesLayer>>
 >;
 let _soqlRuntime: SoqlRuntime | undefined;
 export const getSoqlRuntime = () => (_soqlRuntime ??= ManagedRuntime.make(AllServicesLayer));

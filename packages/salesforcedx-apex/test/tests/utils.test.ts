@@ -10,7 +10,6 @@ import * as utils from '../../src/tests/utils';
 
 let mockConnection: Connection;
 const testData = new MockTestOrgData();
-const queryPage = (records: unknown[]) => ({ done: true, totalSize: records.length, records });
 
 describe('Query Namespaces', () => {
   const $$ = new TestContext();
@@ -30,7 +29,7 @@ describe('Query Namespaces', () => {
   it('should query for installed packages and namespaced orgs', async () => {
     const queryStub = $$.SANDBOX.stub(mockConnection, 'query')
       //@ts-ignore
-      .resolves(queryPage([{ NamespacePrefix: 'myNamespace' }]));
+      .resolves({ records: [{ NamespacePrefix: 'myNamespace' }] });
     await utils.queryNamespaces(mockConnection);
     expect(queryStub.calledTwice).toBe(true);
   });
@@ -40,9 +39,13 @@ describe('Query Namespaces', () => {
     queryStub
       .onFirstCall()
       //@ts-ignore
-      .resolves(queryPage([{ NamespacePrefix: 'myNamespace' }, { NamespacePrefix: 'otherNamespace' }]));
+      .resolves({
+        records: [{ NamespacePrefix: 'myNamespace' }, { NamespacePrefix: 'otherNamespace' }]
+      });
     //@ts-ignore
-    queryStub.onSecondCall().resolves(queryPage([{ NamespacePrefix: 'otherNamespace' }]));
+    queryStub.onSecondCall().resolves({
+      records: [{ NamespacePrefix: 'otherNamespace' }]
+    });
 
     const namespaces = await utils.queryNamespaces(mockConnection);
     expect(queryStub.calledTwice).toBe(true);

@@ -8,9 +8,9 @@
 import { Option, Schema } from 'effect';
 
 export const VideoTarget = Schema.Struct({
-  spec: Schema.String.pipe(Schema.pattern(/^packages\/[\w-]+\/test\/playwright\/[\w./-]+\.spec\.ts$/)),
+  spec: Schema.String.check(Schema.isPattern(/^packages\/[\w-]+\/test\/playwright\/[\w./-]+\.spec\.ts$/)),
   workflow: Schema.NonEmptyString,
-  job: Schema.String.pipe(Schema.pattern(/^[\w-]+$/))
+  job: Schema.String.check(Schema.isPattern(/^[\w-]+$/))
 });
 export type VideoTarget = typeof VideoTarget.Type;
 const VideoManifest = Schema.Struct({ sha: Schema.NonEmptyString, targets: Schema.Array(VideoTarget) });
@@ -28,7 +28,7 @@ export const readVideoManifest = (body: string) => {
   const end = body.indexOf(' -->', start);
   return start < 0 || end < start
     ? Option.none()
-    : Schema.decodeUnknownOption(Schema.parseJson(VideoManifest))(body.slice(start + manifestMarker.length, end));
+    : Schema.decodeUnknownOption(Schema.fromJsonString(VideoManifest))(body.slice(start + manifestMarker.length, end));
 };
 
 export const videoSection = (body: string) => {

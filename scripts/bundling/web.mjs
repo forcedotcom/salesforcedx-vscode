@@ -95,6 +95,7 @@ export const commonConfigBrowser = {
     'node:stream': 'readable-stream',
     'node:stream/consumers': emptyPolyfillsPath,
     'node:stream/promises': emptyPolyfillsPath,
+    'node:stream/consumers': emptyPolyfillsPath,
     'readable-stream/promises': emptyPolyfillsPath,
     'node:util': 'util',
     'node:events': 'events',

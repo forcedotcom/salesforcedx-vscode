@@ -28,7 +28,7 @@ export const MessageType = {
 
 export type MessageType = (typeof MessageType)[keyof typeof MessageType];
 
-export type SObjectMetadata = Pick<typeof SObjectSchema.Type, 'fields'>;
+export type SObjectMetadata = Pick<Schema.Schema.Type<typeof SObjectSchema>, 'fields'>;
 
 const eventWithoutPayload = <T extends MessageType>(type: T) => Schema.Struct({ type: Schema.Literal(type) });
 
@@ -49,7 +49,7 @@ const UiSoqlChangedEventSchema = Schema.Struct({
 });
 const UiTelemetryEventSchema = Schema.Struct({
   type: Schema.Literal(MessageType.UI_TELEMETRY),
-  payload: Schema.Record({ key: Schema.String, value: Schema.Unknown })
+  payload: Schema.Record(Schema.String, Schema.Unknown)
 });
 const SObjectMetadataRequestEventSchema = Schema.Struct({
   type: Schema.Literal(MessageType.SOBJECT_METADATA_REQUEST),
@@ -68,7 +68,7 @@ const TextSoqlChangedEventSchema = Schema.Struct({
   payload: Schema.String
 });
 
-export const UiToHostSoqlEditorEventSchema = Schema.Union(
+export const UiToHostSoqlEditorEventSchema = Schema.Union([
   UiActivatedEventSchema,
   SObjectsRequestEventSchema,
   RunSoqlQueryEventSchema,
@@ -77,11 +77,11 @@ export const UiToHostSoqlEditorEventSchema = Schema.Union(
   UiSoqlChangedEventSchema,
   UiTelemetryEventSchema,
   SObjectMetadataRequestEventSchema
-);
+]);
 
-export type UiToHostSoqlEditorEvent = typeof UiToHostSoqlEditorEventSchema.Type;
+export type UiToHostSoqlEditorEvent = Schema.Schema.Type<typeof UiToHostSoqlEditorEventSchema>;
 
-export const HostToUiSoqlEditorEventSchema = Schema.Union(
+export const HostToUiSoqlEditorEventSchema = Schema.Union([
   SObjectMetadataResponseEventSchema,
   SObjectsResponseEventSchema,
   TextSoqlChangedEventSchema,
@@ -89,8 +89,8 @@ export const HostToUiSoqlEditorEventSchema = Schema.Union(
   NoDefaultOrgEventSchema,
   RunSoqlQueryDoneEventSchema,
   GetQueryPlanDoneEventSchema
-);
+]);
 
-export type HostToUiSoqlEditorEvent = typeof HostToUiSoqlEditorEventSchema.Type;
+export type HostToUiSoqlEditorEvent = Schema.Schema.Type<typeof HostToUiSoqlEditorEventSchema>;
 
 export type SoqlEditorEvent = UiToHostSoqlEditorEvent | HostToUiSoqlEditorEvent;
